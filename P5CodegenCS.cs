@@ -375,8 +375,8 @@ namespace Grammlator
             // throw new ArgumentException("IndentationLevel<0");
       }
 
-      public void GenerateBeginOfBlock(Int32 NewIndentation)
-      {
+      public void GenerateBeginOfBlock()
+         {
          IndentExactly();
          AppendLine('{');
          IncrementIndentationLevel();
@@ -478,41 +478,43 @@ namespace Grammlator
          Int32 count = 0;
          foreach (MethodParameterStruct Parameter in semantischeAktion.MethodParameters)
          {
+            string ParameterTypeString=GlobalVariables.GetStringOfIndex(Parameter.TypeStringIndex);
+
             OutputandclearLine();
-            IndentAndAppend(Parameter.Name);
+            IndentAndAppend(GlobalVariables.GetStringOfIndex(Parameter.NameStringIndex));
             Append(": ");
             switch (Parameter.Implementation)
             {
                case ParameterImplementation.OutCall:
                {
                   Append("out ");
-                  AppendAttributePeekRef(Parameter.Offset, Parameter.Type);
+                  AppendAttributePeekRef(Parameter.Offset, ParameterTypeString);
                   break;
                }
 
                case ParameterImplementation.RefCall:
                {
                   Append("ref ");
-                  AppendAttributePeekRef(Parameter.Offset, Parameter.Type);
+                  AppendAttributePeekRef(Parameter.Offset, ParameterTypeString);
                   break;
                }
 
                case ParameterImplementation.ValueOrInCall:
                {
-                  AppendAttributePeekRef(Parameter.Offset, Parameter.Type);
+                  AppendAttributePeekRef(Parameter.Offset, ParameterTypeString);
                   break;
                }
 
                case ParameterImplementation.OutClearCall:
                {
                   Append("out ");
-                  AppendAttributePeekRefClear(Parameter.Offset, Parameter.Type);
+                  AppendAttributePeekRefClear(Parameter.Offset, ParameterTypeString);
                   break;
                }
 
                case ParameterImplementation.ValueOrInClearCall:
                {
-                  AppendAttributePeekClear(Parameter.Offset, Parameter.Type);
+                  AppendAttributePeekClear(Parameter.Offset, ParameterTypeString);
                   break;
                }
 

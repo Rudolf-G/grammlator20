@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -16,19 +17,19 @@ namespace grammlator {
       public MainWindow()
          {
          InitializeComponent();
-         Title="grammlator - no file -";
-         MenuItemTranslateStandard.IsEnabled=false;
-         MenuItemReloadAndTranslate.IsEnabled=false;
+         Title = "grammlator - no file -";
+         MenuItemTranslateStandard.IsEnabled = false;
+         MenuItemReloadAndTranslate.IsEnabled = false;
          }
 
       const string fileFilter = "cs files (*.cs)|*.cs|All files (*.*)|*.*";
       readonly OpenFileDialog OpenSourceFileDialog = new OpenFileDialog() {
-         AddExtension=false, ReadOnlyChecked=true,
-         FilterIndex=2, Filter=fileFilter
+         AddExtension = false, ReadOnlyChecked = true,
+         FilterIndex = 2, Filter = fileFilter
          };
       readonly SaveFileDialog SaveSourceOrResultDialog = new SaveFileDialog() {
-         AddExtension=false,
-         FilterIndex=2, Filter=fileFilter
+         AddExtension = false,
+         FilterIndex = 2, Filter = fileFilter
          };
 
       String
@@ -43,6 +44,8 @@ namespace grammlator {
       private Int32 warnings, errors, firstErrorIndex;
       private Boolean aborted;
 
+      Stopwatch Watch = new Stopwatch();
+
       private void ClearAllResults()
          {
          RemoveErrorBoxes();
@@ -51,35 +54,35 @@ namespace grammlator {
          States1TextBox.Clear();
          States2TextBox.Clear();
 
-         ResultFilename="no_result"; // ResultFilename will be set after successfull translation
+         ResultFilename = "no_result"; // ResultFilename will be set after successfull translation
 
          Resultbuilder.Clear();
          LogTextBox.Clear();
          Log.Clear();
-         warnings=0;
-         errors=0;
-         firstErrorIndex=-1;
-         aborted=false;
+         warnings = 0;
+         errors = 0;
+         firstErrorIndex = -1;
+         aborted = false;
          }
 
       private void MenuItemSaveResult_Click(Object sender, RoutedEventArgs e)
          {
-         SaveSourceOrResultDialog.Title="Save result";
+         SaveSourceOrResultDialog.Title = "Save result";
          if (String.IsNullOrEmpty(ResultFilename))
             {
             // no source filename known
-            SaveSourceOrResultDialog.FileName="";
+            SaveSourceOrResultDialog.FileName = "";
             }
          else
             {
             // use the ResultFilename , which was set on last translate
-            SaveSourceOrResultDialog.InitialDirectory=Path.GetDirectoryName(ResultFilename);
-            SaveSourceOrResultDialog.FileName=Path.GetFileName(ResultFilename);
+            SaveSourceOrResultDialog.InitialDirectory = Path.GetDirectoryName(ResultFilename);
+            SaveSourceOrResultDialog.FileName = Path.GetFileName(ResultFilename);
             }
 
          bool? r = SaveSourceOrResultDialog.ShowDialog();
 
-         if (r!=true)
+         if (r != true)
             {
             return;
             }
@@ -87,7 +90,7 @@ namespace grammlator {
          try
             {
             File.WriteAllText(SaveSourceOrResultDialog.FileName, ResultTextBox.Text);
-            ResultFilename=SaveSourceOrResultDialog.FileName;
+            ResultFilename = SaveSourceOrResultDialog.FileName;
             }
          catch (Exception ex)
             {
@@ -99,24 +102,24 @@ namespace grammlator {
       private void MenuItemSaveSource_Click(Object sender, RoutedEventArgs e)
          {
 
-         SaveSourceOrResultDialog.Title="Save source file";
+         SaveSourceOrResultDialog.Title = "Save source file";
          String saveFileFilename = SourceFilename; // may be ""
 
          if (String.IsNullOrEmpty(saveFileFilename))
             {
             // no source filename known
-            SaveSourceOrResultDialog.FileName="";
+            SaveSourceOrResultDialog.FileName = "";
             }
          else
             {
             // use the ResultFilename , which was set on last translate
-            SaveSourceOrResultDialog.InitialDirectory=Path.GetDirectoryName(saveFileFilename);
-            SaveSourceOrResultDialog.FileName=Path.GetFileName(saveFileFilename);
+            SaveSourceOrResultDialog.InitialDirectory = Path.GetDirectoryName(saveFileFilename);
+            SaveSourceOrResultDialog.FileName = Path.GetFileName(saveFileFilename);
             }
 
          bool? r = SaveSourceOrResultDialog.ShowDialog();
 
-         if (r!=true)
+         if (r != true)
             {
             return;
             }
@@ -124,7 +127,7 @@ namespace grammlator {
          try
             {
             File.WriteAllText(SaveSourceOrResultDialog.FileName, SourceTextBox.Text);
-            UseFilenameInDialogs(SaveSourceOrResultDialog.FileName);
+            EnableMenuItemsStoreFileName(SaveSourceOrResultDialog.FileName);
             }
          catch (Exception ex)
             {
@@ -137,19 +140,19 @@ namespace grammlator {
 
       private void MenuItemLoadSourceFile_Click(Object sender, RoutedEventArgs e)
          {
-         OpenSourceFileDialog.Title="Load source file";
+         OpenSourceFileDialog.Title = "Load source file";
          if (String.IsNullOrEmpty(SourceFilename))
             {
-            OpenSourceFileDialog.FileName="";
+            OpenSourceFileDialog.FileName = "";
             }
          else
             {
-            OpenSourceFileDialog.InitialDirectory=Path.GetDirectoryName(SourceFilename);
-            OpenSourceFileDialog.FileName=Path.GetFileName(SourceFilename);
+            OpenSourceFileDialog.InitialDirectory = Path.GetDirectoryName(SourceFilename);
+            OpenSourceFileDialog.FileName = Path.GetFileName(SourceFilename);
             }
 
          bool? result = OpenSourceFileDialog.ShowDialog();
-         if (result!=true)
+         if (result != true)
             {
             return;
             }
@@ -165,81 +168,85 @@ namespace grammlator {
             {
             ClearAllResults();
 
-            SourceTextBox.Text=File.ReadAllText(OpenSourceFileDialog.FileName);
-            SetCursorTo(0, SourceTextBox, 0, 0); // show source file with cursor at first position
+            SourceTextBox.Text = File.ReadAllText(OpenSourceFileDialog.FileName);
 
-            UseFilenameInDialogs(OpenSourceFileDialog.FileName);
+            // show source file with cursor at first position
+            SetCursorTo(0, SourceTextBox, 0, 0);
+            GrammlatorTabControl.SelectedIndex = 0;
+
+            EnableMenuItemsStoreFileName(OpenSourceFileDialog.FileName);
             }
          catch (Exception ex)
             {
-            success=false;
+            success = false;
             MessageBox.Show($"Error: Could not read from file. Original error: {ex.Message}");
             }
 
          return success;
          }
 
-      private void UseFilenameInDialogs(String fileName)
+      private void EnableMenuItemsStoreFileName(String fileName)
          {
          // Save name of the source file for later use
-         SourceFilename=fileName;
+         SourceFilename = fileName;
          // Show  name of source file in caption of main window
-         this.Title=SourceFilename;
+         this.Title = SourceFilename;
          // enable "reload source ... " toolstrip item
-         MenuItemTranslateStandard.IsEnabled=true;
-         MenuItemReloadAndTranslate.IsEnabled=true;
+         MenuItemTranslateStandard.IsEnabled = true;
+         MenuItemReloadAndTranslate.IsEnabled = true;
          }
 
 
       internal void SetCursorTo(Int32 tabIndex, TextBox box, Int32 position, Int32 length = 3)
          {
-         if (position>=box.Text.Length-length)
-            position=box.Text.Length-length-1;
-         if (position<0)
-            position=0;
-         GrammlatorTabControl.SelectedIndex=tabIndex; // Select destination to enable ScrollToCaret();
-         // Box. .Select(); // give focus to the box (and select the contents)
+         if (position >= box.Text.Length - length)
+            position = box.Text.Length - length - 1;
+         if (position < 0)
+            position = 0;
+
+         GrammlatorTabControl.SelectedIndex = tabIndex;
          box.Select(position, length);
-         Int32 line = box.GetLineIndexFromCharacterIndex(position);
-         box.ScrollToLine(line);
+         Int32 lineIndex = box.GetLineIndexFromCharacterIndex(position);
+         if (lineIndex < 0)
+            return;
+         box.ScrollToLine(lineIndex);
          }
 
       private void Translate()
          {
-         Int64 TranslateStart = DateTime.Now.Ticks; // will be reset after "using(var SourceReader...)
-         Int64 TranslateEnd = DateTime.Now.Ticks; // will be reset in finally clause
+
          ClearAllResults();
 
-         ResultFilename="Errors_in_Source"; // default, is replaced after successfull translation
+         ResultFilename = "Errors_in_Source"; // default, is replaced after successfull translation
 
          try
             {
             var source = new ReadOnlyMemory<char>(SourceTextBox.Text.ToCharArray());
             var SourceReader = new SpanReaderWithCharacterAndLineCounter(source);
             // Translate   ----- HERE WE GO -----
-            TranslateStart=DateTime.Now.Ticks;
+            Watch.Restart();
             Phases1to5.Execute(Resultbuilder, SourceReader, BufferMessage, BufferPositionAndMessage);
 
-            if (errors>0)
+            if (errors > 0)
                {
                AppendLine(Log, "<<<< Error break:   ", "translation finished with {errors} errors in source");
                }
             else
                {
                // Set ResultFilename only after successfull translation
-               ResultFilename=
-                   Path.GetDirectoryName(SourceFilename)+"\\"+
-                   Path.GetFileNameWithoutExtension(SourceFilename)+"-generated"+
+               ResultFilename =
+                   Path.GetDirectoryName(SourceFilename) + "\\" +
+                   Path.GetFileNameWithoutExtension(SourceFilename) + "-generated" +
                    Path.GetExtension(SourceFilename);
                }
             }
          catch (ErrorInSourcedataException e)
             {
             // Show message in log
-            AppendLine(Log, "<<<< Error break:   ", referenceToBox(e.Message));
+            AppendLine(Log, "<<<< Error break:   ", ReferenceToBox(e.Message));
             // show message in new Errorbox
-            if (errors++==0)
-               firstErrorIndex=ErrorPositions.Count;
+            if (errors++ == 0)
+               firstErrorIndex = ErrorPositions.Count;
             AddErrorBox(e.Message, e.ErrorPosition.Position);
             }
          catch (Exception ex)
@@ -248,13 +255,13 @@ namespace grammlator {
             }
          finally
             {
-            TranslateEnd=DateTime.Now.Ticks;
+            Watch.Stop();
             }
          // Copy the result buffer to the ResultTextBox and clear the buffer
          String ResultText = Resultbuilder.ToString();
          Resultbuilder.Clear();
 
-         ResultTextBox.Text=ResultText;
+         ResultTextBox.Text = ResultText;
 
          // TODO LbItem1.Content = xxx. firstErrorMessage; ???
 
@@ -266,43 +273,43 @@ namespace grammlator {
 
 
          // If there is an error move the cursor in SourceTextBox to the position of the error
-         if (firstErrorIndex>=0&&firstErrorIndex<ErrorPositions.Count)
+         if (firstErrorIndex >= 0 && firstErrorIndex < ErrorPositions.Count)
             {
             // move the cursor in SourceTextBox to the position of the first error
             SetCursorTo(0, SourceTextBox, ErrorPositions[firstErrorIndex], length: 5);
             }
-         else if (ErrorPositions.Count>0)
+         else if (ErrorPositions.Count > 0)
             SetCursorTo(0, SourceTextBox, ErrorPositions[0], length: 5);
          else
-            SetCursorTo(0, SourceTextBox, SourceTextBox.Text.Length-5, length: 5);
+            SetCursorTo(0, SourceTextBox, SourceTextBox.Text.Length - 5, length: 5);
 
          BufferMessage(MessageTypeOrDestinationEnum.Information,
-             $"There have been {errors} error{(errors==1 ? "" : "s")} and {warnings} warning{(warnings==1 ? "" : "s")}.");
+             $"There have been {errors} error{(errors == 1 ? "" : "s")} and {warnings} warning{(warnings == 1 ? "" : "s")}.");
 
          BufferMessage(MessageTypeOrDestinationEnum.Information,
-             $"Execution time (without I/O):  {(TranslateEnd-TranslateStart)/10000} msec.");
+             $"Execution time (without I/O):  {Watch.ElapsedMilliseconds} msec.");
 
          if (aborted)
             AppendLine(Log, "<<<< translation not completed (exception) ", "");
-         else if (errors>0)
+         else if (errors > 0)
             AppendLine(Log, "<<<< translation not completed (errors)  ", "");
 
          // Show the buffered messages in the MessagesTextBox and clear the buffer
-         LogTextBox.Text=Log.ToString();
+         LogTextBox.Text = Log.ToString();
 
          Log.Clear();
          SetCursorTo(1, LogTextBox, 0, 0);
 
          // Show source end select first one if there is a box with error message,  else show log
-         if (firstErrorIndex>=0)
+         if (firstErrorIndex >= 0)
             {
-            lb.SelectedIndex=0;
-            lb.SelectedIndex=firstErrorIndex;
+            lb.SelectedIndex = 0;
+            lb.SelectedIndex = firstErrorIndex;
             lb.ScrollIntoView(lb.SelectedItem);
-            GrammlatorTabControl.SelectedIndex=0; // Source
+            GrammlatorTabControl.SelectedIndex = 0; // Source
             }
          else
-            GrammlatorTabControl.SelectedIndex= 1; // Log
+            GrammlatorTabControl.SelectedIndex = 1; // Log
          }
 
       private void MenuItemReloadAndTranslate_Click(Object sender, RoutedEventArgs e)
@@ -326,27 +333,35 @@ namespace grammlator {
          ErrorPositions.Clear();
          }
 
-      FontFamily StandardFont = new FontFamily("Consolas");
+      readonly FontFamily StandardFont = new FontFamily("Consolas");
       private void AddErrorBox(String text, Int32 position)
          {
          ErrorPositions.Add(position);
 
          var tb = new TextBox {
-            Name='E'+lb.Items.Count.ToString(),
-            Text=text,
-            Width=lb.ActualWidth,
-            IsReadOnly=true,
-            IsEnabled=true,
-            AcceptsReturn=true,
-            AcceptsTab=true,
-            UseLayoutRounding=true,
-            Padding=new Thickness(5, 5, 5, 5),
-            FontFamily=StandardFont,
-            TextWrapping=TextWrapping.Wrap
+            Name = 'E' + lb.Items.Count.ToString(),
+            Text = text,
+            Width = lb.ActualWidth - ListboxDistanceAtRight,
+            IsReadOnly = true,
+            IsEnabled = true,
+            AcceptsReturn = true,
+            AcceptsTab = true,
+            UseLayoutRounding = true,
+            Padding = new Thickness(5, 5, 5, 5),
+            FontFamily = StandardFont,
+            TextWrapping = TextWrapping.Wrap,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Top,
+            HorizontalContentAlignment = HorizontalAlignment.Left,
+            VerticalContentAlignment = VerticalAlignment.Top
             };
-         tb.GotFocus+=TextBox_GotFocus;
+         tb.GotFocus += TextBox_GotFocus;
 
+         lb.ClipToBounds = true;
          lb.Items.Add(tb);
+
          }
 
       private void TextBox_GotFocus(Object sender, RoutedEventArgs e)
@@ -354,7 +369,7 @@ namespace grammlator {
          if (sender is TextBox tb)
             {
             Int32 Index = Int32.Parse(tb.Name.AsSpan(1));
-            if (Index<ErrorPositions.Count)
+            if (Index < ErrorPositions.Count)
                SetCursorOfSourceTextbox(ErrorPositions[Index]);
             }
          else
@@ -363,8 +378,8 @@ namespace grammlator {
 
       private void SetCursorOfSourceTextbox(Int32 position)
          {
-         GrammlatorTabControl.SelectedIndex=0;
-         if (position>=0)
+         GrammlatorTabControl.SelectedIndex = 0;
+         if (position >= 0)
             SetCursorTo(0, SourceTextBox, position, length: 5);
          else
             SetCursorTo(0, SourceTextBox, 0);
@@ -375,6 +390,11 @@ namespace grammlator {
          SourceTextBox.Focus();
          }
 
+      private void ResultTextBox_MouseEnter(Object sender, System.Windows.Input.MouseEventArgs e)
+         {
+         ResultTextBox.Focus();
+         }
+
       private void CompareIgnoringSeparators_Click(Object sender, RoutedEventArgs e)
          {
          /* Compare result and source 
@@ -383,40 +403,47 @@ namespace grammlator {
           * because this may contain the time of the grammlator translation which is not relevant
          */
 
-         CompareSourceAndResult(SourceTextBox.Text, ResultTextBox.Text,
-             out SubStringStruct differingSourceLine, out SubStringStruct differingResultLine);
+         CompareSourceAndResultSpan(SourceTextBox.Text, ResultTextBox.Text,
+             out ReadOnlySpan<char> differingSourceLine, out ReadOnlySpan<char> differingResultLine,
+             out Int32 sourceDiffIndex, out Int32 resultDiffIndex);
 
-         SetCursorTo(0, SourceTextBox, differingSourceLine.StartIndex, differingSourceLine.Length<3 ? 3 : differingSourceLine.Length);
-         SetCursorTo(6, ResultTextBox, differingResultLine.StartIndex, differingResultLine.Length<3 ? 3 : differingResultLine.Length);
+         SetCursorTo(0, SourceTextBox, sourceDiffIndex, differingSourceLine.Length < 3 ? 3 : differingSourceLine.Length);
+         SetCursorTo(6, ResultTextBox, resultDiffIndex, differingResultLine.Length < 3 ? 3 : differingResultLine.Length);
+         GrammlatorTabControl.SelectedIndex = 0;
          }
 
+      const Int32 ListboxDistanceAtRight = 35; // used to avoid horizontal scrollbar in Listbox
+
+#pragma warning disable IDE1006 // Benennungsstile
       private void lb_SizeChanged(Object sender, SizeChangedEventArgs e)
          { // Adjust Width of contained TextBox (may be contained in a ListBoxItem)
-         ListBox lb = sender as ListBox;
-         if (lb==null)
+         if (!(sender is ListBox lb))
             return;
+
          foreach (object o in lb.Items)
             if (o is TextBox tb)
-               tb.Width=lb.ActualWidth;
-            else if (o is ListBoxItem li&&li.Content is TextBox containedTb)
+               tb.Width = lb.ActualWidth - ListboxDistanceAtRight; // try to avoid horizontal scrollbar in Listbox
+            else if (o is ListBoxItem li && li.Content is TextBox containedTb)
                {
                // li.Width is OK !
-               containedTb.Width=li.ActualWidth;
+               containedTb.Width = li.ActualWidth - ListboxDistanceAtRight;
                }
          // Is too large if there is a scrollbar
          }
+#pragma warning restore IDE1006 // Benennungsstile
+
 
       private static void AppendLine(StringBuilder sb, String s1, String s2)
          => sb.Append(s1).AppendLine(s2);
 
       /// <summary>
-      /// form shortened message with reference to not yet created messagebox
+      /// returns shortened message with reference to not yet created next messagebox
       /// </summary>
       /// <param name="m"></param>
       /// <returns></returns>
-      string referenceToBox(String m)
-         => m.AsSpan(0, 35).ToString()
-            +$"...   see error messages {ErrorPositions.Count+1}";
+      string ReferenceToBox(String m)
+       => m.AsSpan(0, m.Length > 35 ? 35 : m.Length).ToString()
+          + $"...   see error messages {ErrorPositions.Count + 1}";
 
 
 
@@ -439,53 +466,59 @@ namespace grammlator {
       /// <exception cref="ErrorInSourcedataException">will be thrown if Abort</exception>
       private void BufferPositionAndMessage(MessageTypeOrDestinationEnum messageType, String message, STextPosition pos)
          {
+         if (pos.LineNumber < 0)
+            {
+            GrammlatorTabControl.SelectedIndex = 0; // without correct selection of the TabControl with the SourceTextBox the program will crash
+            pos.LineNumber = SourceTextBox.GetLineIndexFromCharacterIndex(pos.Position);
+            pos.ColumnNumber = pos.Position - SourceTextBox.GetCharacterIndexFromLineIndex(pos.LineNumber);
+            }
 
          // local method to add line and column number to message
          String MessageIncludingPosition()
-            => pos.LineNumber<0 ?
+            => pos.LineNumber < 0 ?
             message :
-            $"Line {pos.LineNumber+1,5} column {pos.ColumnNumber+1,3} {message}";
+            $"Line {pos.LineNumber + 1,5} column {pos.ColumnNumber + 1,3} {message}";
 
          // local method to format the message type for output
          string messageHeader()
-            => $"---- {messageType.ToString()+":",-15}";
+            => $"---- {messageType.ToString() + ":",-15}";
 
          switch (messageType)
             {
 
          // Messages directed to special TextBoxes
          case MessageTypeOrDestinationEnum.SymbolProtocol:
-            SymbolsTextBox.Text=message;
+            SymbolsTextBox.Text = message;
             return;
 
          case MessageTypeOrDestinationEnum.ConflictProtocol:
-            ConflictsTextBox.Text=message;
+            ConflictsTextBox.Text = message;
             return;
 
          case MessageTypeOrDestinationEnum.StateProtocol1:
-            States1TextBox.Text=message;
+            States1TextBox.Text = message;
             return;
 
          case MessageTypeOrDestinationEnum.StateProtocol2:
-            States2TextBox.Text=message;
+            States2TextBox.Text = message;
             return;
 
          // Status ("found... grammlator line"), Error and Abort messages
          case MessageTypeOrDestinationEnum.Error:
-            if (errors++==0)
-               firstErrorIndex=ErrorPositions.Count;
-            if (errors>=errorLimit)
+            if (errors++ == 0)
+               firstErrorIndex = ErrorPositions.Count;
+            if (errors >= errorLimit)
                throw new ErrorInSourcedataException($"More than {errorLimit} messages");
             goto case MessageTypeOrDestinationEnum.Status;
 
          case MessageTypeOrDestinationEnum.Status:
             // display shortened message in log and complete message in ErrorList
-            AppendLine(Log, messageHeader(), referenceToBox(MessageIncludingPosition()));
+            AppendLine(Log, messageHeader(), ReferenceToBox(MessageIncludingPosition()));
             AddErrorBox(MessageIncludingPosition(), pos.Position);
             return;
 
          case MessageTypeOrDestinationEnum.AbortIfErrors:
-            if (errors<=0)
+            if (errors <= 0)
                return;
             goto case MessageTypeOrDestinationEnum.Abort;
 
@@ -501,56 +534,88 @@ namespace grammlator {
             }
          }
 
-      /// <summary>
-      /// Compares the source and the result texts ignoring separator characters at start and at end of lines
-      /// and ignoring text the rest of lines starting with #region or #endregion.
-      /// </summary>
-      /// <param name="s1">the 1st string to be compared with the other</param>
-      /// <param name="s2">the 2nd string to be compared with the other</param>
-      /// <param name="s1Line">The line (subString) of s1 which is different or at end of s1</param>
-      /// <param name="s2Line">The line (subString) of s2 which is different or at end of s1</param>
-      /// <returns><see langword="true"/> if s1 and s1 are equal (ignoring separators and special lines)</returns>
-      private static Boolean CompareSourceAndResult(String s1, String s2,
-          out SubStringStruct s1Line, out SubStringStruct s2Line)
+      private static Boolean CompareSourceAndResultSpan(ReadOnlySpan<char> s1, ReadOnlySpan<char> s2,
+         out ReadOnlySpan<char> s1Line, out ReadOnlySpan<char> s2Line,
+         out Int32 s1Index, out Int32 s2Index)
          {
-         var s1Remain = new SubStringStruct(s1);
-         var s2Remain = new SubStringStruct(s2);
+         var s1Remain = s1;
+         var s2Remain = s2;
 
-         s1Line=s1Remain.SelectUpTo('\r'); // initial values for case s1="" or s2='""
-         s2Line=s2Remain.SelectUpTo('\r');
+         s1Line = ReadOnlySpan<char>.Empty;
+         s2Line = ReadOnlySpan<char>.Empty;
 
-         while (s1Remain.Length>0&&s2Remain.Length>0)
+         s1Index = 0;
+         s2Index = 0;
+
+         Int32 eol1Index, eol2Index;
+
+         while (s1Remain.Length > 0 && s2Remain.Length > 0)
             {
-            // Get (next) lines = part 
-            s1Remain=s1Remain.IgnoreLeadingChar('\n');
-            s2Remain=s2Remain.IgnoreLeadingChar('\n');
-            s1Line=s1Remain.SelectUpTo('\r');
-            s2Line=s2Remain.SelectUpTo('\r');
-            // Skip these lines in the origins and skip next '\n' if present
-            s1Remain=s1Remain.Skip(s1Line.Length);
-            s2Remain=s2Remain.Skip(s2Line.Length);
-            // Skip '\n' if present and trim actual lines
-            s1Line=s1Line.IgnoreLeadingSeparators().IgnoreTrailingChar('\r').IgnoreTrailingSeparators();
-            s2Line=s2Line.IgnoreLeadingSeparators().IgnoreTrailingChar('\r').IgnoreTrailingSeparators();
+
+            // determine index of line in the respective Span
+            s1Index = s1.Length - s1Remain.Length;
+            s2Index = s2.Length - s2Remain.Length;
+
+            // compare the next lines and remove them from the remainder spans
+            // assume that '\r' or '\r''\n' are line spearators (but not '\n')
+
+            // find end of line
+            eol1Index = s1Remain.IndexOf('\r');
+            eol2Index = s2Remain.IndexOf('\r');
+
+            if (eol1Index >= 0)
+               {
+               s1Line = s1Remain.Slice(0, eol1Index); // without trailing '\r'
+               s1Remain = s1Remain[(s1Line.Length + 1)..]; // skip line and trailing '\r'
+               }
+            else
+               {
+               s1Line = s1Remain;
+               s1Remain = ReadOnlySpan<char>.Empty;
+               }
+
+            if (eol2Index >= 0)
+               {
+               s2Line = s2Remain.Slice(0, eol2Index); // without trailing '\r'
+               s2Remain = s2Remain[(s2Line.Length + 1)..]; // skip line and trailing '\r'
+               }
+            else
+               {
+               s2Line = s2Remain;
+               s2Remain = ReadOnlySpan<char>.Empty;
+               }
+
+
+            // In remainders if present skip leading '\n' as part of preceding line separator (ignore diffences of line separators)
+            if (s1Remain.Length > 0 && s1Remain[0] == '\n')
+               s1Remain = s1Remain[1..];
+            if (s2Remain.Length > 0 && s2Remain[0] == '\n')
+               s2Remain = s2Remain[1..];
+
+            // Trim lines to ignore leading and trailing whitespace
+            var s1LineTrimmed = s1Line.Trim(); // IgnoreLeadingSeparators().IgnoreTrailingChar('\r').IgnoreTrailingSeparators();
+            var s2LineTrimmed = s2Line.Trim(); // IgnoreLeadingSeparators().IgnoreTrailingChar('\r').IgnoreTrailingSeparators();
+
             // Compare lines
-            if (s1Line==s2Line)
+            if (s1LineTrimmed.SequenceEqual(s2LineTrimmed))
                continue; // lines are equal
-                         // Test if special lines and allow them to differ after the keywords
-            if (s1Line.StartsWith(GlobalVariables.RegionString)
-                &&s2Line.StartsWith(GlobalVariables.RegionString))
+
+            // Test if special lines and allow them to differ after the keywords
+            if (s1LineTrimmed.StartsWith(GlobalVariables.RegionString)
+                && s2LineTrimmed.StartsWith(GlobalVariables.RegionString))
                {
                continue;
                }
 
-            if (s1Line.StartsWith(GlobalVariables.EndregionString)
-                &&s2Line.StartsWith(GlobalVariables.EndregionString))
+            if (s1LineTrimmed.StartsWith(GlobalVariables.EndregionString)
+                && s2LineTrimmed.StartsWith(GlobalVariables.EndregionString))
                {
                continue;
                }
 
             return false; // the lines differ
             }
-         return true;
+         return s1Remain.Length == 0 && s2Remain.Length == 0;
          }
 
       }

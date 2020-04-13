@@ -10,7 +10,7 @@ namespace Grammlator {
    /// The field Position (LineNumber and ColumnNumber) can be set as parameter of the constructor
    /// and accessed by e.ErrorPosition in exception handlers
    /// </summary>
-   public class ErrorInSourcedataException:Exception {
+   public class ErrorInSourcedataException: Exception {
       private STextPosition Position;
 
       /// <summary>
@@ -65,24 +65,26 @@ namespace Grammlator {
           : base(message, innerException) { }
 
       internal STextPosition ErrorPosition => Position;
-   }
+      }
 
    /// <summary>
    /// Exception thrown in case of program errors
    /// </summary>
-   public class ErrorInGrammlatorProgramException:Exception {
+   public class ErrorInGrammlatorProgramException: Exception {
       /// <summary>
       /// Exception thrown in case of program errors
       /// </summary>
-      public ErrorInGrammlatorProgramException() {
-      }
+      public ErrorInGrammlatorProgramException()
+         {
+         }
 
       /// <summary>
       /// Exception thrown in case of program errors
       /// </summary>
       /// <param name="message"></param>
-      public ErrorInGrammlatorProgramException(String message) : base(message) {
-      }
+      public ErrorInGrammlatorProgramException(String message) : base(message)
+         {
+         }
 
       /// <summary>
       /// Exception thrown in case of program errors
@@ -91,7 +93,7 @@ namespace Grammlator {
       /// <param name="innerException"></param>
       public ErrorInGrammlatorProgramException(String message, Exception innerException)
           : base(message, innerException) { }
-   }
+      }
 
    /// <summary>
    /// LineNumber and ColumnNumber
@@ -103,21 +105,22 @@ namespace Grammlator {
       /// <param name="lineNumber"></param>
       /// <param name="columnNumber"></param>
       /// <param name="position"></param>
-      public STextPosition(Int32 lineNumber, Int32 columnNumber, Int32 position) {
+      public STextPosition(Int32 lineNumber, Int32 columnNumber, Int32 position)
+         {
          LineNumber = lineNumber;
          ColumnNumber = columnNumber;
          Position = position;
-      }
+         }
 
       internal Int32 LineNumber {
          get; set;
-      }
+         }
       internal Int32 ColumnNumber {
          get; set;
-      }
+         }
       internal Int32 Position {
          get; set;
-      }
+         }
 
       /// <summary>
       /// Ergibt den String  "line " + (LineNumber+1).ToString() + " column " + (ColNumber+1).ToString()
@@ -125,13 +128,13 @@ namespace Grammlator {
       /// <returns>String "line ... column ... "  </returns>
       public override String ToString()
           => $"line {LineNumber + 1} column {ColumnNumber + 1}";
-   };
+      };
 
    internal enum MessageTypeOrDestinationEnum {
       noMessageType,
       SymbolProtocol, ConflictProtocol, StateProtocol1, StateProtocol2,
       Information, Warning, Status, Error, AbortIfErrors, Abort
-   };
+      };
 
    /// <summary>
    ///  A definition is empty if it contains no elements or if all contained elements are empty
@@ -158,30 +161,33 @@ namespace Grammlator {
       /// contains an empty definition or or a definition with all symbols IsOrContainsEmptyDefinition
       /// </summary>
       IsOrContainsEmptyDefinition
-   }
+      }
 
    internal interface IUniqueIndex {
       Int32 IdNumber {
          get;
+         }
       }
-   }
 
    /// <summary>
    /// The <see cref="SymmetricRelation{T}"/> is a dictionary 
    /// </summary>
    /// <typeparam name="T"></typeparam>
    [Serializable]
-   internal class SymmetricRelation<T>:Dictionary<Int32, HashSet<T>>
+   internal class SymmetricRelation<T>: Dictionary<Int32, HashSet<T>>
        where T : IUniqueIndex {
-      internal SymmetricRelation(Int32 size) : base(size / 4) {
+      internal SymmetricRelation(Int32 size) : base(size / 4)
+         {
          // try a quarter of the size (if needed, dictionary will be expanded)
          // the full size will be needed, if the implementation uses an array
-      }
+         }
 
-      protected SymmetricRelation(SerializationInfo info, StreamingContext context) : base(info, context) {
-      }
+      protected SymmetricRelation(SerializationInfo info, StreamingContext context) : base(info, context)
+         {
+         }
 
-      internal Boolean Contains(T element1, T element2) {
+      internal Boolean Contains(T element1, T element2)
+         {
          return this.ContainsKey(element1.IdNumber)
                && this[element1.IdNumber].Contains(element2);
          //return (element1.IdNumber < element2.IdNumber)
@@ -189,7 +195,7 @@ namespace Grammlator {
          //      && this[element1.IdNumber].Contains(element2)
          //    : this.ContainsKey(element2.IdNumber)
          //      && this[element2.IdNumber].Contains(element1);
-      }
+         }
 
       /// <summary>
       /// ContainsKey may be used to test the element if it is part of some relation, 
@@ -197,12 +203,13 @@ namespace Grammlator {
       /// </summary>
       /// <param name="element"></param>
       /// <returns>true if added, false if already contained</returns>
-      internal Boolean Add(T element) {
+      internal Boolean Add(T element)
+         {
          if (ContainsKey(element.IdNumber))
             return false;
          base.Add(element.IdNumber, new HashSet<T>());
          return true;
-      }
+         }
 
       /// <summary>
       /// adds element1->element2 and element2->element1 to the symmetric relation
@@ -210,7 +217,8 @@ namespace Grammlator {
       /// <param name="element1"></param>
       /// <param name="element2"></param>
       /// <returns>true if new relation, false if existing relation or element1==element2</returns>
-      internal Boolean Add(T element1, T element2) {
+      internal Boolean Add(T element1, T element2)
+         {
          if (element1.IdNumber == element2.IdNumber)
             return false;
 
@@ -243,7 +251,7 @@ namespace Grammlator {
          HashSetOfElement2.Add(element1);
 
          return true;
-      }
+         }
 
 #pragma warning disable IDE0051 // Nicht verwendete private Member entfernen
 #pragma warning disable IDE0060 // Nicht verwendete private Member entfernen
@@ -256,23 +264,24 @@ namespace Grammlator {
       /// <param name="hashSetIsIgnored">doesn't matter</param>
       /// <returns>always false</returns>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
-      new private static Boolean Add(Int32 keyIsIgnored, HashSet<T> hashSetIsIgnored) {
+      new private static Boolean Add(Int32 keyIsIgnored, HashSet<T> hashSetIsIgnored)
+         {
          Debug.Fail("this private method must not be called");
          throw new ErrorInGrammlatorProgramException
              ($"SymmetricRelation<>.Add({keyIsIgnored}, {hashSetIsIgnored} must not be called.");
-      }
+         }
 #pragma warning restore RCS1213 // Remove unused member declaration.
 #pragma warning restore RCS1163 // Unused parameter.
 #pragma warning disable IDE0060 // Nicht verwendete private Member entfernen
 #pragma warning restore IDE0051 // Nicht verwendete private Member entfernen
-   }
+      }
 
    internal struct AttributeStruct {
       /// <summary>
       /// The type of the attribute e.g."Int32"
       /// </summary>
-      internal String Type;
-      internal String Name;
+      internal Int32 TypeStringIndex;
+      internal Int32 NameStringIndex;
 
       /// <summary>
       /// true if the attribute occurs as attribute of the defined nonterminal (in the left side of a definition), default is false
@@ -325,7 +334,7 @@ namespace Grammlator {
          /// Access by "PeekRef".
          /// </summary>
          inOutAttribute
-      }
+         }
 
       /// <summary>
       /// outAttribute, inAttribute (default), inOutAttribute
@@ -338,9 +347,9 @@ namespace Grammlator {
       internal ParameterImplementation Implementation;
 
       internal void ToStringbuilder(StringBuilder sb)
-          => sb.Append(Type)
+          => sb.Append(GlobalVariables.GetStringOfIndex(TypeStringIndex))
                .Append(' ')
-               .Append(Name);
+               .Append(GlobalVariables.GetStringOfIndex(NameStringIndex));
 
       /// <summary>
       /// returns an attribute struct with <see cref="LeftSide"/> == false,
@@ -351,21 +360,22 @@ namespace Grammlator {
       /// <param name="name">The name / identifier  of the attribute</param>
       /// <param name="level">the level of parenthesis (lowest level is level 0)</param>
       /// <param name="positionInProduction">first attribute of left side has position 1, 1st attribute of right side equally has position 1</param>
-      internal AttributeStruct(String type, String name, Int32 level, Int32 positionInProduction) {
-         Type = type;
-         Name = name;
+      internal AttributeStruct(Int32 typeStringIndex, Int32 nameStringIndex, Int32 level, Int32 positionInProduction)
+         {
+         TypeStringIndex = typeStringIndex;
+         NameStringIndex = nameStringIndex;
          LeftSide = false; // has to be added later (as soon as the left side is recognized)
          Level = level;
          PositionInProduction = positionInProduction;
          OverlayType = OverlayEnum.inAttribute;
          Implementation = ParameterImplementation.NotAssigned;
+         }
       }
-   }
 
    /// <summary>
    /// Stores the attributes while parsing a (maybe nested) definition
    /// </summary>
-   internal class ListOfAttributes:List<AttributeStruct> {
+   internal class ListOfAttributes: List<AttributeStruct> {
       /// <summary>
       /// returns an attribute struct with LeftSide == true and Usage == inAttribute (to be updated later)
       /// </summary>
@@ -374,64 +384,71 @@ namespace Grammlator {
       /// <param name="level">the level of parenthesis (lowest level is level 0)</param>
       /// <param name="positionInProduction">first attribute of left side has position 1, 1st attribute of right side equally has position 1</param>
 
-      internal Int32 Add(String type, String name, Int32 level, Int32 positionInProduction) {
+      internal Int32 Add(Int32 typeStringIndex, Int32 nameStringIndex, Int32 level, Int32 positionInProduction)
+         {
          Debug.Assert(Count == 0 || level >= this[Count - 1].Level, "Level nicht aufsteigend.");
          // if (!(this.Count == 0 || level >= this[this.Count - 1].Level)) throw new Exception("Leveltest: Fehler");
-         Add(new AttributeStruct(type, name, level, positionInProduction));
+
+         Add(new AttributeStruct(typeStringIndex, nameStringIndex, level, positionInProduction));
          return Count;
-      }
+         }
 
       /// <summary>
       /// removes  the given number of elements (>=0) from the end of the list of attributes
       /// </summary>
       /// <param name="numberOfElementsToRemove"></param>
-      internal void RemoveFromEnd(Int32 numberOfElementsToRemove) {
+      internal void RemoveFromEnd(Int32 numberOfElementsToRemove)
+         {
          if (numberOfElementsToRemove > 0)
             RemoveRange(Count - numberOfElementsToRemove, numberOfElementsToRemove);
-      }
+         }
 
-      internal void ToStringBuilder(StringBuilder sb) {
+      internal void ToStringBuilder(StringBuilder sb)
+         {
          Boolean isFirstElement = true;
-         foreach (AttributeStruct p in this) {
+         foreach (AttributeStruct p in this)
+            {
             if (!isFirstElement)
                sb.Append(", ");
             p.ToStringbuilder(sb);
             isFirstElement = false;
+            }
          }
-      }
 
       /// <summary>
       /// Returns an array of the identifiers of the last count attributes.  The array may be empty.
       /// </summary>
       /// <param name="count">The number of attributes to copy from the end of the ListOfAttributes, may be 0</param>
       /// <returns>array of the type identifiers</returns>
-      internal String[] GetAttributeIdentifiers(Int32 count) {
+      internal Int32[] GetAttributeIdentifierStringIndexes(Int32 count)
+         {
          if (count == 0)
-            return Array.Empty<String>();
+            return Array.Empty<Int32>();
 
-         var AttributeIdentifiers = new String[count];
+         var AttributeIdentifierStringIndexes = new Int32[count];
          for (Int32 i = 0; i < count; i++)
-            AttributeIdentifiers[i] = this[Count - count + i].Name;
+            AttributeIdentifierStringIndexes[i] = this[Count - count + i].NameStringIndex;
 
-         return AttributeIdentifiers;
-      }
+         return AttributeIdentifierStringIndexes;
+         }
 
       /// <summary>
       /// Returns an array of the type identifiers of the last count attributes.  The array may be empty.
       /// </summary>
       /// <param name="count">The number of attributes to copy from the end of the ListOfAttributes, may be 0</param>
       /// <returns>array of the type identifiers</returns>
-      internal String[] GetAttributeTypes(Int32 count) {
+      internal Int32[] GetAttributeTypeStringIndexes(Int32 count)
+         {
          if (count == 0)
-            return Array.Empty<String>();
+            return Array.Empty<Int32>();
 
-         var AttributeTypes = new String[count];
+         var AttributeTypesStringIndex = new Int32[count];
          for (Int32 i = 0; i < count; i++)
-            AttributeTypes[i] = this[Count - count + i].Type;
+            AttributeTypesStringIndex[i] = this[Count - count + i].TypeStringIndex;
 
-         return AttributeTypes;
+         return AttributeTypesStringIndex;
+         }
       }
-   }
 
    /// <summary>
    /// Modifier used for the formal parameter of the method,
@@ -477,21 +494,21 @@ namespace Grammlator {
       /// The actual parameter will be "PeekClear(..)".
       /// </summary>
       ValueOrInClearCall
-   }
+      }
 
    /// <summary>
    /// Describes the characteristics of a formal method parameter assiciated to a grammlator attribute
    /// </summary>
    internal struct MethodParameterStruct {
-      internal String Name;
-      internal String Type;
+      internal Int32 NameStringIndex;
+      internal Int32 TypeStringIndex;
 
       /// <summary>
       /// The negative distance from the top of the attribute stack
       /// </summary>
       internal Int32 Offset;
       internal ParameterImplementation Implementation;
-   }
+      }
 
    /// <summary>
    /// Stores the name and the parameters of a semantic method or priority specified in the grammar
@@ -503,19 +520,19 @@ namespace Grammlator {
       /// Array with one entry for each of the formal parameters of the method
       /// </summary>
       internal MethodParameterStruct[] MethodParameters;
-   }
+      }
 
    /// <summary>
    /// Stores the name and the parameters of a semantic method specified in the grammar
    /// </summary>
-   internal class VoidMethodClass:MethodClass {
-   }
+   internal class VoidMethodClass: MethodClass {
+      }
 
    /// <summary>
    /// Stores the name and the parameters of a semantic priority specified in the grammar
    /// </summary>
-   internal class IntMethodClass:MethodClass {
-   }
+   internal class IntMethodClass: MethodClass {
+      }
 
    /// <summary>
    ///  Extensions to Symbol[]
@@ -527,85 +544,102 @@ namespace Grammlator {
       /// <param name="SymbolArray"></param>
       /// <returns>One of the values of <see cref="EmptyComputationResultEnum"/></returns>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
-      internal static EmptyComputationResultEnum OneOfTheSymbolsContainsAnEmptyDefinition(this Symbol[] SymbolArray) {
+      internal static EmptyComputationResultEnum OneOfTheSymbolsContainsAnEmptyDefinition(this Symbol[] SymbolArray)
+         {
          // Search for a symbol with an empty definition, assume it will be not found
          var Result = EmptyComputationResultEnum.NotEmpty;
-         foreach (Symbol Symbol in SymbolArray) {
-            switch (Symbol.SymbolContainsAnEmptyDefinitionComputation()) {
+         foreach (Symbol Symbol in SymbolArray)
+            {
+            switch (Symbol.SymbolContainsAnEmptyDefinitionComputation())
+               {
             case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
                return EmptyComputationResultEnum.IsOrContainsEmptyDefinition; // Success
 
             case EmptyComputationResultEnum.NotEmpty:
                break; // this symbol doesn't contain an empty definition, check next symbol of list
 
-            case EmptyComputationResultEnum.NotYetComputedOrRecursion: {
-               Result = EmptyComputationResultEnum.NotYetComputedOrRecursion;
-               break; // this computation ended in recursion, check next symbol of list
-            }
+            case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+                  {
+                  Result = EmptyComputationResultEnum.NotYetComputedOrRecursion;
+                  break; // this computation ended in recursion, check next symbol of list
+                  }
 
-            default: {
-               Debug.Fail($"Error in {nameof(OneOfTheSymbolsContainsAnEmptyDefinition)}");
-               throw new ErrorInGrammlatorProgramException(
-                   $"Error in {nameof(OneOfTheSymbolsContainsAnEmptyDefinition)}: illegal value");
+            default:
+                  {
+                  Debug.Fail($"Error in {nameof(OneOfTheSymbolsContainsAnEmptyDefinition)}");
+                  throw new ErrorInGrammlatorProgramException(
+                      $"Error in {nameof(OneOfTheSymbolsContainsAnEmptyDefinition)}: illegal value");
+                  }
+               }
             }
-            }
-         }
 
          // The computation ended without finding an empty alternative.
          return Result;
-      }
+         }
 
-      internal static Int32 MarkAndCountAllUsedSymbols(this Symbol[] Symbolliste) {
+      internal static Int32 MarkAndCountAllUsedSymbols(this Symbol[] Symbolliste)
+         {
          Int32 Zähler = 0;
          foreach (Symbol s in Symbolliste)
             Zähler += s.MarkAndCountAllUsedSymbols();
 
          return Zähler;
-      }
+         }
 
       internal static void ToStringbuilder(this Symbol[] SymbolArray, StringBuilder sb, String separator = ", ")
           => SymbolArray.ToStringbuilder(sb, Int32.MaxValue, null, separator); // am Ende markieren
 
-      internal static void ToStringbuilder(this Symbol[] SymbolArray, StringBuilder sb, Int32 Markierung, String[] Attributnamen, String separator = ", ") {
+      internal static void ToStringbuilder(this Symbol[] SymbolArray, StringBuilder sb, Int32 Markierung, Int32[] AttributnameStringIndexes, String separator = ", ")
+         {
          Int32 Elementzähler = 0;
-         Int32 Parameternummer = 0;
+         Int32 NumberOfParameter = 0;
 
-         foreach (Symbol s in SymbolArray) {
-            String[] Namen = Attributnamen;
-            if (Namen == null) {
-               Namen = s.AttributenameList;
-               Parameternummer = 0; // Zählen pro Symbol statt ab Listenanfang
-            }
+         foreach (Symbol s in SymbolArray)
+            {
+            Int32[] NameStringIndexes = AttributnameStringIndexes;
+            if (NameStringIndexes == null)
+               {
+               NameStringIndexes = s.AttributenameStringIndexList;
 
-            if (Elementzähler != 0) {
+               NumberOfParameter = 0; // Zählen pro Symbol statt ab Listenanfang
+               }
+
+            if (Elementzähler != 0)
+               {
                sb.Append(separator);
-            }
+               }
             if (Elementzähler == Markierung)
                sb.Append("►");
             sb.Append(s.Identifier);
 
-            if (s.NumberOfAttributes > 0) {
+            if (s.NumberOfAttributes > 0)
+               {
                sb.Append('(')
                  //.Append(Parameternummer + 1);
                  //.Append(':');
-                 .Append(s.AttributetypeList[0])
+                 .Append(GlobalVariables.GetStringOfIndex(s.AttributetypeStringIndexList[0]))
                  .Append(' ')
-                 .Append(Namen[Parameternummer++]);
+                 .Append(
+                  GlobalVariables.GetStringOfIndex(NameStringIndexes[NumberOfParameter++])
+                 );
 
-               for (Int32 i = 1; i < s.NumberOfAttributes; i++) {
+               for (Int32 i = 1; i < s.NumberOfAttributes; i++)
+                  {
                   sb.Append(", ")
                     //.Append(Parameternummer + 1);
                     //.Append(':');
-                    .Append(s.AttributetypeList[i])
+                    .Append(GlobalVariables.GetStringOfIndex(s.AttributetypeStringIndexList[i]))
                     .Append(' ')
-                    .Append(Namen[Parameternummer++]);
-               }
+                    .Append(
+                     GlobalVariables.GetStringOfIndex(NameStringIndexes[NumberOfParameter++])
+                     );
+                  }
 
                sb.Append(')');
-            }
+               }
             // nicht s.ToStringBuilder(sb), da sonst endlose Rekursion über terminale Symbole!
             Elementzähler++;
-         }
+            }
 
          if (Markierung == SymbolArray.Length)
             sb.Append("●;"); // Enditem
@@ -613,15 +647,16 @@ namespace Grammlator {
             sb.Append(";◄"); // Reduktion
          else
             sb.Append(';'); // Standard
+         }
       }
-   }
 
    internal abstract class Symbol {
       /// <summary>
       /// Constructor 
       /// </summary>
-      private Symbol() {
-      }
+      private Symbol()
+         {
+         }
 
       /// <summary>
       /// Constructor sets identifier of symbol
@@ -629,7 +664,15 @@ namespace Grammlator {
       /// <param name="identifier"></param>
       internal Symbol(String identifier) => this.Identifier = identifier;
 
+      internal Symbol(String identifier, Int32 position)
+         {
+         this.Identifier = identifier;
+         this.FirstPosition = position;
+         }
+
       internal readonly String Identifier;
+
+      public readonly Int32 FirstPosition;
 
       public override String ToString() => Identifier;
 
@@ -649,29 +692,31 @@ namespace Grammlator {
             if (_EmptyComputationResult == EmptyComputationResultEnum.NotYetComputedOrRecursion)
                _EmptyComputationResult = SymbolContainsAnEmptyDefinitionComputation(); // will be called only once
 
-            switch (_EmptyComputationResult) {
+            switch (_EmptyComputationResult)
+               {
             case EmptyComputationResultEnum.NotEmpty:
                return false;
 
             case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
                return true;
 
-            case EmptyComputationResultEnum.NotYetComputedOrRecursion: {
-               /* computation hase bean started from outside any recursion, 
-* so recursion means that no empty alternative has been found */
-               _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;
-               return false;
-            }
+            case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+                  {
+                  /* computation hase bean started from outside any recursion, 
+   * so recursion means that no empty alternative has been found */
+                  _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;
+                  return false;
+                  }
 
             default: // case eEmptyComputationResult.IsJustBeingComputed 
-                {
-               Debug.Fail($"Error in {nameof(IsNullabel)}");
-               throw new ErrorInGrammlatorProgramException(
-                   $"Error in {nameof(IsNullabel)}");
-            }
+                  {
+                  Debug.Fail($"Error in {nameof(IsNullabel)}");
+                  throw new ErrorInGrammlatorProgramException(
+                      $"Error in {nameof(IsNullabel)}");
+                  }
+               }
             }
          }
-      }
 
       /// <summary>
       /// abstract method, overriden in TerminalSymbol and NonterminalSymbol, 
@@ -686,10 +731,10 @@ namespace Grammlator {
       /// The terminal symbols are numbered starting with 1, the nonterminal symbols are also numbered starting with 1
       /// </summary>
       internal Int32 SymbolNumber;
-      internal String[] AttributetypeList;
-      internal String[] AttributenameList;
+      internal Int32[] AttributetypeStringIndexList;
+      internal Int32[] AttributenameStringIndexList;
 
-      internal Int32 NumberOfAttributes => AttributetypeList.Length;
+      internal Int32 NumberOfAttributes => AttributetypeStringIndexList.Length;
 
       internal Boolean isUsed = false;
 
@@ -700,43 +745,49 @@ namespace Grammlator {
 
       internal abstract String SymboltypeString {
          get;
-      }
+         }
 
       /// <summary>
       /// Bestimmt, wie viele Symbole von diesem Symbol ausgehen erreichbar sind und
       /// setzt jeweils IstErreichbar auf true. Voraussetzung: IstErreichbar muss vorher false sein.
       /// </summary>
       /// <returns>Anzahl der von false auf true gesetzten IstErreichbar</returns>
-      internal virtual Int32 MarkAndCountAllUsedSymbols() {
+      internal virtual Int32 MarkAndCountAllUsedSymbols()
+         {
          Int32 Zähler = 0;
-         if (!isUsed) {
+         if (!isUsed)
+            {
             Zähler++;
             isUsed = true;
-         }
+            }
          return Zähler;
-      }
-
-      internal StringBuilder IdentifierAndAttributesToSB(StringBuilder sb) {
-         sb.Append(Identifier);
-         if (NumberOfAttributes <= 0) {
-            return sb;
          }
+
+      internal StringBuilder IdentifierAndAttributesToSB(StringBuilder sb)
+         {
+         sb.Append(Identifier);
+         if (NumberOfAttributes <= 0)
+            {
+            return sb;
+            }
 
          sb.Append('(')
-           .Append(AttributetypeList[0])
+           .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[0]))
            .Append(' ')
-           .Append(AttributenameList[0]);
-         for (Int32 i = 2; i <= NumberOfAttributes; i++) {
+           .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[0]));
+         for (Int32 i = 2; i <= NumberOfAttributes; i++)
+            {
             sb.Append(", ")
-              .Append(AttributetypeList[i - 1])
+              .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[i - 1]))
               .Append(' ')
-              .Append(AttributenameList[i - 1]);
-         }
+              .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[i - 1]));
+            }
          sb.Append(')');
          return sb;
-      }
+         }
 
-      internal virtual void ToStringbuilder(StringBuilder sb) {
+      internal virtual void ToStringbuilder(StringBuilder sb)
+         {
          sb.Append(SymboltypeString)
            .Append(" nr. ")
            .Append(SymbolNumber + 1)
@@ -748,11 +799,11 @@ namespace Grammlator {
 
          if (!isUsed)
             sb.Append(", is not used in any definition");
+         }
       }
-   }
 
-   internal sealed class TerminalSymbol:Symbol {
-      internal TerminalSymbol(String s) : base(s)
+   internal sealed class TerminalSymbol: Symbol {
+      internal TerminalSymbol(String s, Int32 Position) : base(s, Position)
           => _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;
 
       internal Int32 Weight;
@@ -762,7 +813,8 @@ namespace Grammlator {
       internal override EmptyComputationResultEnum SymbolContainsAnEmptyDefinitionComputation()
           => EmptyComputationResultEnum.NotEmpty;
 
-      internal override void ToStringbuilder(StringBuilder sb) {
+      internal override void ToStringbuilder(StringBuilder sb)
+         {
          sb.Append(SymboltypeString)
              .Append(" nr. ")
              .Append((SymbolNumber + 1).ToString("D2"))
@@ -775,11 +827,11 @@ namespace Grammlator {
 
          if (!isUsed)
             sb.Append(", is not used  in any definition");
+         }
       }
-   }
 
-   internal sealed class NonterminalSymbol:Symbol {
-      internal NonterminalSymbol(String identifier) : base(identifier) { }
+   internal sealed class NonterminalSymbol: Symbol {
+      internal NonterminalSymbol(String identifier, Int32 position) : base(identifier, position) { }
 
       /// <summary>
       /// returns <see cref="NontrivalDefinitionsList"/>.Count == 0;
@@ -796,31 +848,36 @@ namespace Grammlator {
       /// in the nonterminal symbols DefinitionLists are marked and counted.
       /// </summary>
       /// <returns>number of directly and indirectly used symbols</returns>
-      internal override Int32 MarkAndCountAllUsedSymbols() {
+      internal override Int32 MarkAndCountAllUsedSymbols()
+         {
          Int32 Counter = 0;
-         if (!isUsed) {
+         if (!isUsed)
+            {
             Counter++;
             isUsed = true;
             Counter += NontrivalDefinitionsList?.MarkAndCountAllUsedSymbols() ?? 0;
             Counter += TrivalDefinitionsArray?.MarkAndCountAllUsedSymbols() ?? 0;
-         }
+            }
          return Counter;
-      }
+         }
 
-      internal override void ToStringbuilder(StringBuilder sb) {
+      internal override void ToStringbuilder(StringBuilder sb)
+         {
          base.ToStringbuilder(sb);
          sb.AppendLine();
-         if (TrivalDefinitionsArray?.Length > 0) {
+         if (TrivalDefinitionsArray?.Length > 0)
+            {
             sb.Append("    0. trivial rule(s): ");
             TrivalDefinitionsArray.ToStringbuilder(sb, separator: " | ");
             sb.AppendLine();
-         }
-         if (NontrivalDefinitionsList.Count == 0) {
+            }
+         if (NontrivalDefinitionsList.Count == 0)
+            {
             return;
-         }
+            }
          // sb.AppendLine("    rules:");
          NontrivalDefinitionsList.ToStringbuilder(sb);
-      }
+         }
 
       /// <summary>
       /// Test the trivial and nontrivial definitions of the nonterminal symbol for an empty definition,
@@ -828,8 +885,10 @@ namespace Grammlator {
       /// </summary>
       /// <returns>One of the values of <see cref="EmptyComputationResultEnum"/></returns>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
-      internal override EmptyComputationResultEnum SymbolContainsAnEmptyDefinitionComputation() {
-         switch (_EmptyComputationResult) {
+      internal override EmptyComputationResultEnum SymbolContainsAnEmptyDefinitionComputation()
+         {
+         switch (_EmptyComputationResult)
+            {
          // if value has been already computed then return value
          case EmptyComputationResultEnum.NotEmpty:
          case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
@@ -839,7 +898,7 @@ namespace Grammlator {
          case EmptyComputationResultEnum.IsJustBeingComputed:
             return EmptyComputationResultEnum.NotYetComputedOrRecursion;
             /* default: break; */
-         }
+            }
 
          Debug.Assert(_EmptyComputationResult == EmptyComputationResultEnum.NotYetComputedOrRecursion);
          // Try to compute the value. The computaton may be limited by recursion.
@@ -848,69 +907,73 @@ namespace Grammlator {
          Boolean SearchLimitedByRecursion = false;
 
          switch (NontrivalDefinitionsList.ListContainsEmptyAlternativeComputation() // this computation may cause recursion
-             ) {
+             )
+            {
          case EmptyComputationResultEnum.IsOrContainsEmptyDefinition: // an empty alternative has been found
-             {
-            _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-            return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-         }
+               {
+               _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+               return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+               }
 
          case EmptyComputationResultEnum.NotEmpty: // the symbol does not contain an empty alternative 
             break; // Search descendants
 
-         case EmptyComputationResultEnum.NotYetComputedOrRecursion: {
-            // Die Suche wurde wegen Rekursion abgebrochen, ohne eine leere Alternative zu finden.
-            // Bei Aufruf von außen bedeutet das, es wurde keine leere Alternative gefunden.
-            // Bei Aufruf aus erzeugtLeere Zeichenkette bedeutet das, es muss weiter gesucht werden und
-            // beim nächsten Aufruf dieser Instanz ist wieder zu suchen. Die Chance ist besser, da dann das Ergebnis für den von
-            // außen erfolgten Aufruf vorliegt
-            SearchLimitedByRecursion = true;
-            // TODO effizientere Lösung für erzeugtLeereZeichenkette mit Digraph-Suche implementieren
-            break; // Search descendants
-         }
+         case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+               {
+               // Die Suche wurde wegen Rekursion abgebrochen, ohne eine leere Alternative zu finden.
+               // Bei Aufruf von außen bedeutet das, es wurde keine leere Alternative gefunden.
+               // Bei Aufruf aus erzeugtLeere Zeichenkette bedeutet das, es muss weiter gesucht werden und
+               // beim nächsten Aufruf dieser Instanz ist wieder zu suchen. Die Chance ist besser, da dann das Ergebnis für den von
+               // außen erfolgten Aufruf vorliegt
+               SearchLimitedByRecursion = true;
+               // TODO effizientere Lösung für erzeugtLeereZeichenkette mit Digraph-Suche implementieren
+               break; // Search descendants
+               }
 
          case EmptyComputationResultEnum.IsJustBeingComputed:
             break;
          default: // case eEmptyComputationResult.IsJustBeingComputed:
-             {
-            Debug.Fail($"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
-            throw new ErrorInGrammlatorProgramException(
-                $"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
-         }
-         }
+               {
+               Debug.Fail($"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
+               throw new ErrorInGrammlatorProgramException(
+                   $"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
+               }
+            }
 
          switch (TrivalDefinitionsArray.OneOfTheSymbolsContainsAnEmptyDefinition()
-             ) {
+             )
+            {
          // this computation may cause recursion
          case EmptyComputationResultEnum.IsOrContainsEmptyDefinition: // a descendant contains an empty alternative
-             {
-            _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-            return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-         }
+               {
+               _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+               return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+               }
 
          case EmptyComputationResultEnum.NotEmpty: // es wurde keine leere Alternative gefunden, bei den Alternativen trat eventuell Rekursion auf
             break;
 
-         case EmptyComputationResultEnum.NotYetComputedOrRecursion: {
-            SearchLimitedByRecursion = true;
-            break;
-         }
+         case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+               {
+               SearchLimitedByRecursion = true;
+               break;
+               }
 
          default: //  case eEmptyComputationResult.IsJustBeingComputed:
-             {
-            Debug.Fail($"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
-            throw new ErrorInGrammlatorProgramException(
-                $"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
-         }
-         }
+               {
+               Debug.Fail($"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
+               throw new ErrorInGrammlatorProgramException(
+                   $"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
+               }
+            }
 
          // keine Alternative bzw. Nachfolger gefunden, die bzw. der die leere Zeichenkette erzeugt
          _EmptyComputationResult = SearchLimitedByRecursion
              ? EmptyComputationResultEnum.NotYetComputedOrRecursion : EmptyComputationResultEnum.NotEmpty;
 
          return _EmptyComputationResult;
+         }
       }
    }
-}
 
 

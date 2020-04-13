@@ -324,7 +324,7 @@ namespace Grammlator
       {
          if (!BeginHasBeenGenerated && nestingLevel > 0)
          {
-            codegen.GenerateBeginOfBlock(nestingLevel);
+            codegen.GenerateBeginOfBlock();
             BeginHasBeenGenerated = true;
          }
          codegen.IndentExactly(nestingLevel);
@@ -736,7 +736,7 @@ namespace Grammlator
             // gegebenenfalls Blockanfang erzeugen
             if (!BeginOfBlockHasBeenGenerated && nestingLevel > 0)
             {
-               codegen.GenerateBeginOfBlock(nestingLevel);
+               codegen.GenerateBeginOfBlock();
                BeginOfBlockHasBeenGenerated = true;
             }
 
@@ -1188,7 +1188,7 @@ namespace Grammlator
          codegen.AppendWithOptionalLinebreak("switch (");
          codegen.Append(GlobalVariables.VariableNameSymbol);
          codegen.Append(")");
-         codegen.GenerateBeginOfBlock(nestingLevel + 1);
+         codegen.GenerateBeginOfBlock();
 
          Int32 LeadingCount = 0, TrailingCount = 0, TerminalsCount = 0;
          ConditionalAction LeadingAction = null, TrailingAction = null;

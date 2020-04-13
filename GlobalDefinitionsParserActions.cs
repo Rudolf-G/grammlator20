@@ -124,7 +124,7 @@ namespace Grammlator
       /// <param name="accept"></param>
       /// <returns>the next action to generate or null</returns>
       internal virtual ParserAction Generate(ICodegen codegen, out Boolean accept)
-         => throw new NotImplementedException($"Codegeneration is not mplemented for {ParserActionType.ToString()}");
+         => throw new NotImplementedException($"Codegeneration is not mplemented for {ParserActionType}");
 
       internal virtual StringBuilder ToStringbuilder(StringBuilder sb)
       {
@@ -237,7 +237,7 @@ namespace Grammlator
       /// </summary>
       internal Int32 AttributestackAdjustment;
       internal Symbol[] Elements;
-      internal String[] AttributidentifierArray;
+      internal Int32[] AttributIdentifierStringIndexArray;
       //   function ist_geordnet (v: t_Aktion): boolean; override;
 
       /// <summary>
@@ -261,7 +261,7 @@ namespace Grammlator
       internal override void NameToSb(StringBuilder sb) => ToStringbuilder(sb);
 
       internal void ElementsToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
-          => Elements.ToStringbuilder(sb, MarkiertesElement, this.AttributidentifierArray);
+          => Elements.ToStringbuilder(sb, MarkiertesElement, this.AttributIdentifierStringIndexArray);
 
       internal StringBuilder ToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
       {
@@ -866,7 +866,7 @@ namespace Grammlator
 
       internal override void CountUsage(Boolean Accept)
           => throw new ErrorInGrammlatorProgramException(
-              $"Program error: NonterminalTransition.CountUsage({Accept.ToString()}) must never be called.");
+              $"Program error: NonterminalTransition.CountUsage({Accept}) must never be called.");
    }
 
    /// <summary>

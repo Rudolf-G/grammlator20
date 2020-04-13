@@ -7,8 +7,9 @@ using System.Text;
 
 namespace Grammlator {
    internal static class InitialSettings {
-      static readonly Dictionary<string, string> InitialValues = new Dictionary<string, string>();
-      static InitialSettings() {
+      static readonly Dictionary<string, string> InitialValues = new Dictionary<string, string>(40);
+      static InitialSettings()
+         {
          InitialValues.Add("AttributeStack", "_a");
          InitialValues.Add("CSharpCommentlineMarker", "//");
          InitialValues.Add("CSharpPragmaMarker", "#pragma");
@@ -31,11 +32,37 @@ namespace Grammlator {
          InitialValues.Add("VariableErrorStateNumber", "ErrorStateNumber");
          InitialValues.Add("VariableSymbol", "PeekSymbol()");
          InitialValues.Add("VariableStateStackInitialCount", "StateStackInitialCount");
-      }
+         }
 
       public static String GetString(String name) => InitialValues[name]; // TODO check not dound
       public static Int32 GetInt(String name) => Int32.Parse(GetString(name)); // TODO check conversion error
-   }
+      }
+
+   class MemoryComparer: IEqualityComparer<ReadOnlyMemory<char>> {
+      public bool Equals(ReadOnlyMemory<char> rom1, ReadOnlyMemory<char> rom2)
+         {
+         //if (b2 == null && b1 == null)
+         //   return true;
+         //if (b1 == null || b2 == null)
+         //   return false;
+         if (rom1.Span.SequenceEqual(rom2.Span))
+            return true;
+         
+            return false;
+         }
+
+      public int GetHashCode(ReadOnlyMemory<char> rom)
+         {
+         // TODO find better hash
+         int max = 16, hCode=0;
+         if (max > rom.Length)
+            max = rom.Length;
+         for (int i = 0; i < max; i++)
+            hCode = (hCode << 1) ^ rom.Span[0];
+         return hCode.GetHashCode();
+         }
+      }
+
 
    internal static class GlobalVariables {
       private static String GetVersioninfo {
@@ -51,37 +78,37 @@ namespace Grammlator {
             /* FileVersion is used instead of Version because Version generally should  be changed only to reflect major changes.
              */
 
-             /*
-            DateTimeOffset dto = (new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Local));
-            dto = (dto.AddDays(AVersion.Build).AddSeconds(AVersion.Revision * 2));
-            String buildTime = dto.ToUniversalTime().ToString("r");
-            // ToUniversalTime().ToString();
+            /*
+           DateTimeOffset dto = (new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Local));
+           dto = (dto.AddDays(AVersion.Build).AddSeconds(AVersion.Revision * 2));
+           String buildTime = dto.ToUniversalTime().ToString("r");
+           // ToUniversalTime().ToString();
 
-            // https://msdn.microsoft.com/de-de/library/system.reflection.assemblyversionattribute%28v=vs.110%29.aspx
+           // https://msdn.microsoft.com/de-de/library/system.reflection.assemblyversionattribute%28v=vs.110%29.aspx
 
-            // File version: Die Fileversion wird in Visual Studio (an gleicher Stelle) gesondert festgelegt
+           // File version: Die Fileversion wird in Visual Studio (an gleicher Stelle) gesondert festgelegt
 
-            // In Visual Studio kann unter Projekt / ... Eigenschaften // Veröffentlichen 
-            // die Produktversion eingestellt werden, optional so, dass die Revision bei jeder Veröffentlichung erhöht wird
-            // Info dazu bietet die Hilfeseite zur Eingabe in "Veröffentlichen"
-            // if (ApplicationDeployment.IsNetworkDeployed) {
-            //    string Version_Label = "Version " + ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString() +
-            //        " (Click-Once-Installation)" + buildTime;
-            //    }
+           // In Visual Studio kann unter Projekt / ... Eigenschaften // Veröffentlichen 
+           // die Produktversion eingestellt werden, optional so, dass die Revision bei jeder Veröffentlichung erhöht wird
+           // Info dazu bietet die Hilfeseite zur Eingabe in "Veröffentlichen"
+           // if (ApplicationDeployment.IsNetworkDeployed) {
+           //    string Version_Label = "Version " + ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString() +
+           //        " (Click-Once-Installation)" + buildTime;
+           //    }
 
-            String VersionInfo = new StringBuilder(100)
-               .Append(" by ")
-               .Append(AssemblyName.Name)
-               .Append(" version ")
-               .Append(AVersion.Major.ToString())
-               .Append(':')
-               .Append(AVersion.Minor.ToString())
-               .Append(" (build ")
-               .Append(buildTime)
-               .Append(')')
-               .ToString();
-            return VersionInfo;
-            */
+           String VersionInfo = new StringBuilder(100)
+              .Append(" by ")
+              .Append(AssemblyName.Name)
+              .Append(" version ")
+              .Append(AVersion.Major.ToString())
+              .Append(':')
+              .Append(AVersion.Minor.ToString())
+              .Append(" (build ")
+              .Append(buildTime)
+              .Append(')')
+              .ToString();
+           return VersionInfo;
+           */
             return new StringBuilder(100)
                .Append(" (")
                .Append(AssemblyName.Name)
@@ -91,8 +118,8 @@ namespace Grammlator {
                .Append(FileWrittenDate)
                .Append(")")
                .ToString();
+            }
          }
-      }
 
       private static readonly String VersionInfo = GetVersioninfo;
       internal static String TranslationInfo => DateTime.Now.ToString("r") + VersionInfo;
@@ -101,37 +128,79 @@ namespace Grammlator {
       internal const Int32 InitialCapacityOfListOfAllBranchActions = 200;
       internal const Int32 InitialCapacityOfListOfAllHaltActions = 20;
 
+      static readonly Dictionary<ReadOnlyMemory<char>, Int32> StringToIndexDictionary
+         = new Dictionary<ReadOnlyMemory<char>, Int32>(1000, new MemoryComparer());
+
+      static readonly List<string> IndexToString = new List<string>(1000);
+
+      static public Int32 GetIndexOfString(ReadOnlyMemory<char> MemorySpan)
+         {
+         if (StringToIndexDictionary.TryGetValue(MemorySpan, out int result))
+            return result;
+
+         IndexToString.Add(MemorySpan.ToString());
+         StringToIndexDictionary.Add(MemorySpan, IndexToString.Count - 1);
+         return IndexToString.Count - 1;
+         }
+
+      static public Int32 GetIndexOfString(String s)
+         {
+         return GetIndexOfString(
+            new ReadOnlyMemory<char>(s.ToCharArray()));
+         } 
+
+      static public Int32 GetIndexOfEmptyString()
+         {
+         return GetIndexOfString(ReadOnlyMemory<char>.Empty);
+         }
+
+      static public string GetStringOfIndex(Int32 i) => IndexToString[i];
+
       public static void ResetGlobalVariables(
                 Action<MessageTypeOrDestinationEnum, String> OutputMessage,
-                Action<MessageTypeOrDestinationEnum, String, STextPosition> OutputPositionAndMessage) {
+                Action<MessageTypeOrDestinationEnum, String, STextPosition> OutputPositionAndMessage)
+         {
          // Reset all static variables 
-         /* Reset initial values of all variables which can be modified by grammlator settings in P1Parser */
 
-         // TODO Settings To core ???
-         //IfToSwitchBorder = InitialSettings.GetInt("IfToSwitchBorder");
-         //VariableNameStateDescription = InitialSettings.GetString("VariablePrefixStateDescription");
-         //VariableNameSymbol = InitialSettings.GetString("VariableNameSymbol");
-         //TerminalSymbolEnum = InitialSettings.GetString("TerminalSymbolEnum");
-         //InstructionAssignSymbol = InitialSettings.GetString("InstructionAssignSymbol");
-         //InstructionAcceptSymbol = InitialSettings.GetString("InstructionAcceptSymbol");
-         //InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
-         //ErrorHandlerMethod = InitialSettings.GetString("ErrorHandlerMethod");
-         //StateStackInitialCountVariable = InitialSettings.GetString("VariableStateStackInitialCount");
-         //StateStack = InitialSettings.GetString("StateStack");
-         //AttributeStack = InitialSettings.GetString("AttributeStack");
-         //AttributeStackInitialCountVariable = InitialSettings.GetString("VariableAttributeStackInitialCount");
+         /* Reset initial values of all variables which can be modified by grammlator settings in P1Parser */
+         // TODO there remain global variables which should be made modifyabel by the user
+         AttributeStack = InitialSettings.GetString("AttributeStack");
+         // "CSharpCommentlineMarker"
+         // "CSharpPragmaMarker"
+         // "EndregionString"
+         ErrorHandlerMethod = InitialSettings.GetString("ErrorHandlerMethod");
+         // "GeneratedString"
+         // "GrammarlineMarker"
+         // "GrammarString"
+         // "GrammlatorString"
+         IfToSwitchBorder = InitialSettings.GetInt("IfToSwitchBorder");
+         InstructionAcceptSymbol = InitialSettings.GetString("InstructionAcceptSymbol");
+         InstructionAssignSymbol = InitialSettings.GetString("InstructionAssignSymbol");
+         InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
+         // "NewLineConstant"
+         VariableNameStateDescription = InitialSettings.GetString("PrefixStateDescription");
+         // "RegionString"
+         StateStack = InitialSettings.GetString("StateStack");
+         TerminalSymbolEnum = InitialSettings.GetString("TerminalSymbolEnum");
+         AttributeStackInitialCountVariable = InitialSettings.GetString("VariableAttributeStackInitialCount");
+         // "VariableErrorStateNumber"
+         VariableNameSymbol = InitialSettings.GetString("VariableSymbol");
+         StateStackInitialCountVariable = InitialSettings.GetString("VariableStateStackInitialCount");
 
          GlobalVariables.OutputMessage = OutputMessage;
          GlobalVariables.OutputPositionAndMessage = OutputPositionAndMessage;
          NumberOfTerminalSymbols = 0;
          NumberOfNonterminalSymbols = 0;
-         Startsymbol = new NonterminalSymbol("*Startsymbol") {
+         Startsymbol = new NonterminalSymbol("*Startsymbol", 0) {
             SymbolNumber = 0,
             TrivalDefinitionsArray = Array.Empty<Symbol>(), // the startsymbol will not have any trival definitions
             NontrivalDefinitionsList = null, // will be set by after the startsymbol is recognized in the source
-            AttributetypeList = Array.Empty<String>(),
-            AttributenameList = Array.Empty<String>()
-         };
+            AttributetypeStringIndexList = Array.Empty<Int32>(),
+            AttributenameStringIndexList = Array.Empty<Int32>()
+            };
+
+         StringToIndexDictionary.Clear();
+         IndexToString.Clear();
 
          Startaction = null;
          TerminalSymbolByIndex = null;
@@ -147,7 +216,7 @@ namespace Grammlator {
          ListOfAllHaltActions.Clear();
          ListOfAllHaltActions.Capacity = InitialCapacityOfListOfAllHaltActions;
          ListOfAllHaltActions.Add(new HaltAction(IdNumber: 0, AttributestackAdjustement: 0));
-      }
+         }
       /* Options:
        * */
 
@@ -255,25 +324,25 @@ namespace Grammlator {
 
       internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage {
          get; private set;
-      }
+         }
 
       internal static Action<MessageTypeOrDestinationEnum, String, STextPosition> OutputPositionAndMessage {
          get; private set;
-      }
+         }
 
       /// <summary>
       ///  The number of terminal symbols is defined in phase1. It may be zero.
       /// </summary>
       internal static Int32 NumberOfTerminalSymbols {
          get; set;
-      } // wird beim Erkennen des ersten nichtterminalen Symbols bestimmt
+         } // wird beim Erkennen des ersten nichtterminalen Symbols bestimmt
 
       /// <summary>
       /// The number of nonterminal symbols ist defined at the end of phase1.
       /// </summary>
       internal static Int32 NumberOfNonterminalSymbols {
          get; set;
-      }
+         }
 
       /// <summary>
       /// The <see cref="Startsymbol"/> "*Startsymbol" with all its definitions and used symbols is the result of phase1.
@@ -282,7 +351,7 @@ namespace Grammlator {
       /// </summary>
       internal static NonterminalSymbol Startsymbol {
          get; private set;
-      }
+         }
 
       /// <summary>
       /// Used to get terminal symbols by its indexes
@@ -295,13 +364,15 @@ namespace Grammlator {
       /// which is used to get the instance of a terminal symbol by its index (SymbolNumber+1).
       /// </summary>
       /// <param name="symbolDictionary"></param>
-      internal static void DefineArrayTerminalSymbolByIndex(Dictionary<String, Symbol> symbolDictionary) {
+      internal static void DefineArrayTerminalSymbolByIndex(Dictionary<String, Symbol> symbolDictionary)
+         {
          TerminalSymbolByIndex = new TerminalSymbol[NumberOfTerminalSymbols];
-         foreach (KeyValuePair<String, Symbol> pair in symbolDictionary) {
+         foreach (KeyValuePair<String, Symbol> pair in symbolDictionary)
+            {
             if (pair.Value is TerminalSymbol terminal)
                TerminalSymbolByIndex[terminal.SymbolNumber] = terminal;
+            }
          }
-      }
 
       /// <summary>
       /// Gets a terminal symbol by its index, which is the symbols number
@@ -363,5 +434,5 @@ namespace Grammlator {
       /// berechnet in Phase4, verwendet in Phase5
       /// </summary>
       internal static Int32 CountOfStatesWithStateStackNumber;
-   } // class GlobalDeclarations
-}
+      } // class GlobalDeclarations
+   }

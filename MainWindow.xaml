@@ -15,8 +15,8 @@
         SnapsToDevicePixels="True" ResizeMode="CanResize" SizeToContent="Manual" IsManipulationEnabled="True">
 
     <Grid x:Name="GrammlatorMainGrid"
-          UseLayoutRounding="True" MinHeight="175" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-          ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True"
+          UseLayoutRounding="True" MinHeight="175" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+          ScrollViewer.VerticalScrollBarVisibility="Auto"
           IsManipulationEnabled="True" Margin="5,5,5,5">
         <Grid.RowDefinitions>
             <RowDefinition x:Name="GridRowMenu" Height="24" MinHeight="24"/>
@@ -80,17 +80,12 @@
                 <TextBox x:Name="ResultTextBox" Text="No result"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas"/>
+                         Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="ResultTextBox_MouseEnter"/>
             </TabItem>
         </TabControl>
-        <ListBox Name="lb" Grid.Row="3" Grid.ColumnSpan="1" SelectionMode="Single" SizeChanged="lb_SizeChanged">
+        <ListBox Name="lb" Grid.Row="3" Grid.ColumnSpan="1" SelectionMode="Single" SizeChanged="lb_SizeChanged"
+                 HorizontalContentAlignment="Left" VerticalContentAlignment="Top"/>
 
-            <TextBox x:Name="E0" 
-                         TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
-                         UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas" VerticalAlignment="Bottom" HorizontalAlignment="Right"> </TextBox>
-           
-        </ListBox>
         <Menu x:Name="GrammlatorMenu">
             <MenuItem Header="_File" UseLayoutRounding="True">
                 <MenuItem x:Name="MenuItemLoadSourceFile" Header="_Load source file ..." Click="MenuItemLoadSourceFile_Click">

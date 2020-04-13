@@ -4,30 +4,32 @@ using System.Text;
 
 namespace Grammlator {
    /// <summary>
-   /// <see cref="StringReaderWithLineCounter"/> is a StringReader which counts the read lines and makes the actual <see cref="LineNumber"/> available
+   /// <see cref="GrammlatorMemoryReader"/> is a StringReader which counts the read lines and makes the actual <see cref="LineNumber"/> available
    /// </summary>
-   public class StringReaderWithLineCounter:System.IO.StringReader {
+   public class GrammlatorMemoryReader: System.IO.StringReader {
+
       /// <summary>
-      /// Contructor of the <see cref="System.IO.StringReader"/> <see cref="StringReaderWithLineCounter"/>, assigning a string to read from
+      /// Contructor of the <see cref="System.IO.StringReader"/> <see cref="GrammlatorMemoryReader"/>, assigning a string to read from
       /// </summary>
       /// <param name="input">The input of the reader</param>
-      public StringReaderWithLineCounter(String input) : base(input) => LineNumber = -1;
+      public GrammlatorMemoryReader(String input) : base(input) => LineNumber = -1;
 
       /// <summary>
       /// the number of the actual line (0 if no line has been read)
       /// </summary>
       public Int32 LineNumber {
          get; private set;
-      }
+         }
 
       /// <summary>
       /// Increment <see cref="LineNumber"/> and <see cref="ReadLine"/>
       /// </summary>
       /// <returns>The next line from the current input (string) or null if the end of the input is reached</returns>
-      public override String ReadLine() {
+      public override String ReadLine()
+         {
          LineNumber++;
          return base.ReadLine();
-      }
+         }
 
       /// <summary>
       /// Read and depending on <paramref name="copy"/> and <paramref name="copyFoundLine"/> copy
@@ -39,7 +41,8 @@ namespace Grammlator {
       /// <param name="copyFoundLine">if true, also the found line will be copied to <paramref name="sb"/> else not</param>
       /// <param name="markers"><paramref name="markers"/> is a sequence of strings</param>
       /// <exception cref="ErrorInSourcedataException">exception thrown if end of input reached</exception>
-      public Boolean ReadAndCopyUntilMarkedLineFound(StringBuilder sb, Boolean copy, Boolean copyFoundLine, params String[] markers) {
+      public Boolean ReadAndCopyUntilMarkedLineFound(StringBuilder sb, Boolean copy, Boolean copyFoundLine, params String[] markers)
+         {
          String inputLine;
 
          if (sb == null)
@@ -48,46 +51,50 @@ namespace Grammlator {
          if (markers == null)
             throw new ArgumentNullException(nameof(markers));
 
-         void OutputLine(String s) {
+         void OutputLine(String s)
+            {
             if (sb.Length > 0)
                sb.AppendLine();
             sb.Append(s);
-         }
+            }
 
-         while (true) {
+         while (true)
+            {
             inputLine = ReadLine();
             if (inputLine == null)
                return false;
 
-            if (inputLine.StartsWith(markers)) {
+            if (inputLine.StartsWith(markers))
+               {
                if (copyFoundLine)
                   OutputLine(inputLine);
                break;
-            }
+               }
             if (copy)
                OutputLine(inputLine);
-         }
+            }
 
          return true;
+         }
       }
-   }
 
    public class SpanReaderWithCharacterAndLineCounter {
 
       /// <summary>
-      /// Contructor of the <see cref="System.IO.StringReader"/> <see cref="StringReaderWithLineCounter"/>,
+      /// Contructor of the <see cref="System.IO.StringReader"/> <see cref="GrammlatorMemoryReader"/>,
       /// assigning a string to read from
       /// </summary>
       /// <param name="source">The input of the reader</param>
-      public SpanReaderWithCharacterAndLineCounter(ReadOnlyMemory<char> source) {
+      public SpanReaderWithCharacterAndLineCounter(ReadOnlyMemory<char> source)
+         {
          Source = source;
          SourceRemainder = source;
          Position = 0;
          LineNumber = -1;
          EoLLength = -1;
-      }
+         }
 
-      private readonly ReadOnlyMemory<char> Source;
+      public ReadOnlyMemory<char> Source { get; private set; }
       public ReadOnlyMemory<char> SourceRemainder { get; private set; }
 
       /// <summary>
@@ -105,32 +112,44 @@ namespace Grammlator {
       /// </summary>
       public Int32 Position { get; private set; }
 
-      public ReadOnlyMemory<char> ReadLine() {
+      /// <summary>
+      /// Finds the end of the line
+      /// </summary>
+      /// <returns>Returns a slice of Source starting at Position and ending after the next '\r', '\n' or '\r''\n' or end of Source. Sets Position to the next character after the line. </returns>
+
+      public ReadOnlyMemory<char> ReadLine()
+         {
+
+         if (Position >= Source.Length)
+            return ReadOnlyMemory<char>.Empty;
+
          LineNumber++;
-         int i = SourceRemainder.Span.IndexOfAny<char>('\r', '\n');
+
+         ReadOnlySpan<char> Remainder = Source.Span.Slice(Position);
+
+         // Find end of line
+         int eolIndex = Remainder.IndexOfAny<char>('\r', '\n');
 
          // Cases: no end of line, '\r', "\r\n" or '\n' 
-         ReadOnlyMemory<char> result;
-         EoLLength = 1;
-         if (i < 0) { // no end of line => end of input
+         EoLLength = 1; // default: /r or /n
+         if (eolIndex < 0)
+            { // no end of line
             EoLLength = 0;
-            result = SourceRemainder;
-            Position += result.Length;
-            Debug.Assert(Position==Source.Length, "ReadLine: computed and real endposition differ");
-            SourceRemainder = ReadOnlyMemory<char>.Empty;
-            return result;
-         }
+            Position = Source.Length; // last line of input
+            return Source[Position..^1];
+            }
          // else
-         if (SourceRemainder.Span[i] == '\r'
-            && SourceRemainder.Length > i
-            && SourceRemainder.Span[i + 1] == '\n')
-            EoLLength = 2;
+         if (Remainder[eolIndex] == '\r'
+            && eolIndex + 1 < Remainder.Length
+            && Remainder[eolIndex + 1] == '\n')
+            {
+            EoLLength = 2; // "\r\n"
+            }
 
-         result = SourceRemainder.Slice(0, i + EoLLength);
+         ReadOnlyMemory<char> result = Source[Position..(Position + eolIndex + EoLLength)];
          Position += result.Length;
-         SourceRemainder = SourceRemainder.Slice(i + EoLLength);
          return result;
-      }
+         }
 
       /// <summary>
       /// Read and depending on <paramref name="copy"/> and <paramref name="copyLineWithMarkers"/> copy
@@ -143,7 +162,8 @@ namespace Grammlator {
       /// <param name="copyLineWithMarkers">if true, also the found line will be copied to <paramref name="sb"/> else not</param>
       /// <param name="markers"><paramref name="markers"/> is a sequence of strings</param>
       /// <returns>Position of the 1st character of the 1st marker in the source</returns>
-      public Int32 ReadAndCopyUntilMarkedLineFound(StringBuilder sb, Boolean copy, Boolean copyLineWithMarkers, params String[] markers) {
+      public Int32 ReadAndCopyUntilMarkedLineFound(StringBuilder sb, Boolean copy, Boolean copyLineWithMarkers, params String[] markers)
+         {
 
          if (sb == null)
             throw new ArgumentNullException(nameof(sb));
@@ -155,7 +175,8 @@ namespace Grammlator {
          int StartOfLine;
          ReadOnlySpan<char> lineSpan;
 
-         while (true) {
+         while (true)
+            {
 
             StartOfLine = Position;
 
@@ -164,32 +185,35 @@ namespace Grammlator {
             if (lineSpan.IsEmpty)
                return -1; // end of Source: didn't find the markers
 
-            if (lineSpan.IndexBehindMarkers(0, markers) > 0) {
+            if (lineSpan.IndexBehindMarkers(0, markers) > 0)
+               {
                // found line starting with the markers
-               if (copy) {
+               if (copy)
+                  {
                   if (copyLineWithMarkers)
                      sb.Append(Source[StartPosition..Position]);
                   else // copy only the lines up to the line with markers
                      sb.Append(Source[StartPosition..StartOfLine]);
-               } // else skip the lines
+                  } // else skip the lines
                break; // end of search
-            }
+               }
             // continue searching
-         }
+            }
 
          return StartOfLine + lineSpan.IndexBehindSeparators(0);
          ;
-      }
+         }
 
       public void CopyFromTo(StringBuilder sb, Int32 from, Int32 to)
          => sb.Append(Source[from..to]);
 
-      public void ReadAndCopyToEnd(StringBuilder sb) {
+      public void ReadAndCopyToEnd(StringBuilder sb)
+         {
          sb.Append(Source[Position..Source.Length]);
          Position = Source.Length;
+         }
+
+
       }
-
-
    }
-}
 
