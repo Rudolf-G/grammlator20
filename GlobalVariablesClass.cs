@@ -40,27 +40,10 @@ namespace Grammlator {
 
    class MemoryComparer: IEqualityComparer<ReadOnlyMemory<char>> {
       public bool Equals(ReadOnlyMemory<char> rom1, ReadOnlyMemory<char> rom2)
-         {
-         //if (b2 == null && b1 == null)
-         //   return true;
-         //if (b1 == null || b2 == null)
-         //   return false;
-         if (rom1.Span.SequenceEqual(rom2.Span))
-            return true;
-         
-            return false;
-         }
+         => rom1.Span.SequenceEqual(rom2.Span);
 
-      public int GetHashCode(ReadOnlyMemory<char> rom)
-         {
-         // TODO find better hash
-         int max = 16, hCode=0;
-         if (max > rom.Length)
-            max = rom.Length;
-         for (int i = 0; i < max; i++)
-            hCode = (hCode << 1) ^ rom.Span[0];
-         return hCode.GetHashCode();
-         }
+      public int GetHashCode(ReadOnlyMemory<char> rom) 
+         => string.GetHashCode(rom.Span);
       }
 
 
@@ -128,26 +111,38 @@ namespace Grammlator {
       internal const Int32 InitialCapacityOfListOfAllBranchActions = 200;
       internal const Int32 InitialCapacityOfListOfAllHaltActions = 20;
 
-      static readonly Dictionary<ReadOnlyMemory<char>, Int32> StringToIndexDictionary
+      static readonly Dictionary<ReadOnlyMemory<char>, Int32> MemoryToIndexDictionary
          = new Dictionary<ReadOnlyMemory<char>, Int32>(1000, new MemoryComparer());
 
       static readonly List<string> IndexToString = new List<string>(1000);
 
       static public Int32 GetIndexOfString(ReadOnlyMemory<char> MemorySpan)
          {
-         if (StringToIndexDictionary.TryGetValue(MemorySpan, out int result))
+         if (MemoryToIndexDictionary.TryGetValue(MemorySpan, out int result))
             return result;
 
-         IndexToString.Add(MemorySpan.ToString());
-         StringToIndexDictionary.Add(MemorySpan, IndexToString.Count - 1);
+         String s = MemorySpan.ToString(); // allocation of string which usually will be used for output later
+         ReadOnlyMemory<char> newSpan = s.AsMemory(); // keep bytes referenced from dictionary together:  (don't use reference to source)
+
+         // Discussion: This solution allocates all strings as soon as they are known and avoids multiple instances of those strings.
+         // An alternate method would be, to access the MemorySpans (scattered around the source) and to generate strings not before they are used.
+         // A third method would be to allocate copies of the Spans in a large array to keep them together
+         //   so that dictionary searches would have good local access behaviour.
+         IndexToString.Add(s); // allocation of string which usually will be used later for output
+         MemoryToIndexDictionary.Add(newSpan, IndexToString.Count - 1);
          return IndexToString.Count - 1;
          }
 
       static public Int32 GetIndexOfString(String s)
          {
-         return GetIndexOfString(
-            new ReadOnlyMemory<char>(s.ToCharArray()));
-         } 
+         ReadOnlyMemory<char> m = s.AsMemory();
+         if (MemoryToIndexDictionary.TryGetValue(m, out int result))
+            return result;
+
+         IndexToString.Add(s); // string is alrady available
+         MemoryToIndexDictionary.Add(m, IndexToString.Count - 1);
+         return IndexToString.Count - 1;
+         }
 
       static public Int32 GetIndexOfEmptyString()
          {
@@ -199,7 +194,7 @@ namespace Grammlator {
             AttributenameStringIndexList = Array.Empty<Int32>()
             };
 
-         StringToIndexDictionary.Clear();
+         MemoryToIndexDictionary.Clear();
          IndexToString.Clear();
 
          Startaction = null;

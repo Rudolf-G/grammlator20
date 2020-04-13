@@ -389,7 +389,7 @@ namespace Grammlator {
           */
          if (SymbolDictionary.Count == 0)
             TerminalSymbolDeclaration(
-               GlobalVariables.GetIndexOfString(new ReadOnlyMemory<char>(new char[] { '*' })),
+               GlobalVariables.GetIndexOfString("*".AsMemory()),
                numberOfAttributes: 0,
                weight: 0);
          GlobalVariables.NumberOfTerminalSymbols = SymbolDictionary.Count;
@@ -704,7 +704,7 @@ namespace Grammlator {
       //|    Name(Int32 methodTypeStringIndex), Name(Int32 methodNameStringIndex)
       private void MethodTypeAndNameRecognized(out MethodClass method, Int32 methodTypeStringIndex, Int32 methodNameStringIndex)
           => MethodProperties(out method,
-             GlobalVariables.GetIndexOfString(ReadOnlyMemory<char>.Empty), methodTypeStringIndex, methodNameStringIndex);
+             GlobalVariables.GetIndexOfString("".AsMemory()), methodTypeStringIndex, methodNameStringIndex);
 
       //|    | Name(Int32 modifierStringIndex), Name(Int32 methodTypeStringIndex), Name(Int32 methodNameStringIndex) /* AccessModifier (private, public ...), type, methodname */
       private void MethodModifierTypeAndNameRecognized(
