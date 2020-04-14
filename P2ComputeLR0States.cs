@@ -380,33 +380,6 @@ namespace Grammlator
             }
         }
 
-        // moved to declaation of ParserState and called at end of Phase 4
-        ///// <summary>
-        ///// if inputSymbol is not a terminal symbol do nothing else 
-        ///// assign its ProcedurePrefix to the actualState and do some checks
-        ///// </summary>
-        ///// <param name="actualState"></param>
-        ///// <param name="inputSymbol"></param>
-        //private void AssignPrefixToStateAndDoSomeChecks(ParserState actualState, Symbol inputSymbol) {
-
-        //    if (inputSymbol is TerminalSymbol terminalesEingabesymbol) {
-        //        // assign prefix of terminal symbol to state and check: all terminal symbols of the state must have the same prefix
-        //        if (actualState.InputClass == null) {
-        //            actualState.InputClass = terminalesEingabesymbol.InputClass;
-
-        //            // TODO Provisorium: g.LetzterProzedurpräfix wird (noch) zum Generieren von Accept-Aufrufen verwendet
-        //            if (GlobalVariables.LetzterProzedurpräfix != null && GlobalVariables.LetzterProzedurpräfix != terminalesEingabesymbol.InputClass)
-        //                OutputMessage(MessageTypeOrDestinationEnum.Error, "Different Methods for terminal symbols are not yet completely implemented");
-        //            else
-        //                GlobalVariables.LetzterProzedurpräfix = terminalesEingabesymbol.InputClass;
-        //            // End of provisorium bis in Phase5 (und entsprechend zuvor die Daten für) die Coderzeugung von Accept überarbeitet ist
-
-        //            }
-        //        else if (actualState.InputClass != terminalesEingabesymbol.InputClass) {
-        //            OutputMessage(MessageTypeOrDestinationEnum.Error, ("state " + actualState.IdNumber + " has terminal input symbols from different classes"));
-        //            }
-        //        }
-        //    }
 
         /// <summary>
         /// Construct state 1 using all alternatives of the startsymbol as startitems 

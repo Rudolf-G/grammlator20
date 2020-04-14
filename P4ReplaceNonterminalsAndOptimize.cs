@@ -392,7 +392,7 @@ namespace Grammlator
              auf -1 gesetzt. */
 
          // TODO Die Eigenschaft, nicht zu kellern, kann eventuell als Eigenschaft der Klasse implementiert werden!
-         // Das setzt allerdings eine andere Implemeniterung der Klassen voraus
+         // Das setzt allerdings eine andere Implementierung der Klassen voraus
 
          Int32 NotPushingStatesCount = 0;
 

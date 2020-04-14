@@ -38,12 +38,12 @@ namespace Grammlator {
          }
 
       /// <summary>
-      /// Stores all elements of the last C# enum.
+      /// Stores the StringIndexes of all elements of the last C# enum.
       /// Is null if the last optional enum has been omitted.
       /// Is the empty list, if an enum with no elements has been recognized. 
       /// Is null or empty after the last enum has been evaluated.
       /// </summary>
-      public List<String> Enumlist = new List<String>();
+      public List<Int32> Enumlist = new List<Int32>();
 
       /// <summary>
       /// The StringIndex of the name of the last enum the parser found in the source.
@@ -74,7 +74,7 @@ namespace Grammlator {
          String Name = GlobalVariables.GetStringOfIndex(nameIndex);  // TODO use nameIndex as Key in SymbolDictionary
          Debug.Assert(!String.IsNullOrEmpty(Name), $"{nameof(Name)} is 0 or empty");
 
-         if (SymbolDictionary.ContainsKey(Name))
+         if (SymbolDictionary.ContainsKey(nameIndex))
             {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                 $"The terminal symbol {Name} has been already defined");
@@ -82,7 +82,7 @@ namespace Grammlator {
             }
          else
             {
-            SymbolDictionary[Name] =
+            SymbolDictionary[nameIndex] =
                new TerminalSymbol(Name, Lexer.LexerTextPos.Position) {
                   Weight = weight,
                   SymbolNumber = SymbolDictionary.Count,
@@ -108,17 +108,17 @@ namespace Grammlator {
       /// <param name="symbolName"></param>
       /// <param name="numberOfAttributes"></param>
       /// <returns>The <see cref="NonterminalSymbol"/></returns>
-      private NonterminalSymbol NonterminalSymbolDefinition(Int32 stringIndex, Int32 numberOfAttributes)
+      private NonterminalSymbol NonterminalSymbolDefinition(Int32 symbolNameIndex, Int32 numberOfAttributes)
          {
          // The parser recognized the left side of a rule and has not yet evaluated any right side
 
-         string symbolName = GlobalVariables.GetStringOfIndex(stringIndex);
+         string symbolName = GlobalVariables.GetStringOfIndex(symbolNameIndex);
 
          Debug.Assert(!String.IsNullOrEmpty(symbolName), "Identifier IsNullOrEmpty");
 
          NonterminalSymbol ns;
 
-         if (!SymbolDictionary.TryGetValue(symbolName, out Symbol Symbol))
+         if (!SymbolDictionary.TryGetValue(symbolNameIndex, out Symbol Symbol))
             {
             // The nonterminal symbol has not yet been used,  Symbol == null
             ns = new NonterminalSymbol(symbolName, Lexer.LexerTextPos.Position) {
@@ -126,7 +126,7 @@ namespace Grammlator {
                AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
                AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
                };
-            SymbolDictionary[symbolName] = ns;
+            SymbolDictionary[symbolNameIndex] = ns;
             }
          else
             {
@@ -191,11 +191,11 @@ namespace Grammlator {
       /// <param name="Name">the name of the nonterminal symbol</param>
       /// <param name="NumberOfAttributes">the number of attributes of the nonterminal symbol</param>
       /// <returns>The found or created <see cref="Symbol"/> instance</returns>
-      private Symbol EvaluateSymbolnameFoundInRightSide(Int32 stringIndex, Int32 NumberOfAttributes)
+      private Symbol EvaluateSymbolnameFoundInRightSide(Int32 nameIndex, Int32 NumberOfAttributes)
          {
-         string Name = GlobalVariables.GetStringOfIndex(stringIndex);
+         string Name = GlobalVariables.GetStringOfIndex(nameIndex);
 
-         if (SymbolDictionary.TryGetValue(Name, out Symbol symbol) /*Symbol == null*/)
+         if (SymbolDictionary.TryGetValue(nameIndex, out Symbol symbol) /*Symbol == null*/)
             {
             if (symbol.NumberOfAttributes != NumberOfAttributes)
                {
@@ -215,7 +215,7 @@ namespace Grammlator {
             // New symbol: create instance
             symbol = new NonterminalSymbol(Name, Lexer.LexerTextPos.Position) { SymbolNumber = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols };
 
-            SymbolDictionary[Name] = symbol;
+            SymbolDictionary[nameIndex] = symbol;
             // Assign AttributetypeList, let AttributenameList undefined until the symbol becomes defined in left side
             symbol.AttributetypeStringIndexList
                 = NumberOfAttributes == 0
@@ -391,12 +391,13 @@ namespace Grammlator {
 
          // Create (synthetic) name of new nonterminal symbol by adding postfix to existing name
          string NewName = MakeNewName(type, existingSymbol.Identifier);
+         Int32 NewNameIndex = GlobalVariables.GetIndexOfString(NewName);
 
          // use existing (synthetic) symbol / definition if name already has been defined
-         if (!SymbolDictionary.TryGetValue(NewName, out Symbol MadeSymbol))
+         if (!SymbolDictionary.TryGetValue(NewNameIndex, out Symbol MadeSymbol))
             {
             // else create, store in dictionary and define new symbol
-            MadeSymbol = DefineNewSymbol(existingSymbol, type, NewName);
+            MadeSymbol = DefineNewSymbol(existingSymbol, type, NewNameIndex, NewName);
             }
          ListOfAttributesOfGrammarRule.RemoveFromEnd(existingSymbol.NumberOfAttributes);
          AttributeCounter -= existingSymbol.NumberOfAttributes;
@@ -404,16 +405,16 @@ namespace Grammlator {
          return MadeSymbol;
          }
 
-      private NonterminalSymbol DefineNewSymbol(Symbol existingSymbol, TypeOfGrammarRule type, String NewName)
+      private NonterminalSymbol DefineNewSymbol(Symbol existingSymbol, TypeOfGrammarRule type, Int32 newNameIndex, string newName)
          {
-         var newSymbol = new NonterminalSymbol(NewName, Lexer.LexerTextPos.Position) {
+         var newSymbol = new NonterminalSymbol(newName, Lexer.LexerTextPos.Position) {
             SymbolNumber = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
             AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
             AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0),
             TrivalDefinitionsArray = Array.Empty<Symbol>() // preset: no trival definition
             };
 
-         SymbolDictionary[newSymbol.Identifier] = newSymbol;
+         SymbolDictionary[newNameIndex] = newSymbol;
 
          switch (type)
             {
@@ -909,9 +910,13 @@ namespace Grammlator {
                );
             }
 
-         foreach (KeyValuePair<String, Symbol> KeyValue in SymbolDictionary)
+         foreach (KeyValuePair<Int32, Symbol> KeyValue in SymbolDictionary)
             {
             Symbol Symbol = KeyValue.Value;
+
+            string GetNameOfSymbol() 
+               => GlobalVariables.GetStringOfIndex(KeyValue.Key);
+
             if (Symbol != null)
                {
                if (Symbol is NonterminalSymbol nt)
@@ -919,7 +924,7 @@ namespace Grammlator {
                   if (nt.NontrivalDefinitionsList == null) // null != empty list !
                      {
                      OutputMessage(MessageTypeOrDestinationEnum.Error,
-                        $"{KeyValue.Key} is used as terminal or nonterminal symbol but not defined.",
+                        $"{GetNameOfSymbol()} is used as terminal or nonterminal symbol but not defined.",
                         new Grammlator.STextPosition(-1, 0, nt.FirstPosition)
                         );
                      }
@@ -927,7 +932,7 @@ namespace Grammlator {
                   if (!nt.isUsed)
                      {
                      OutputMessage(MessageTypeOrDestinationEnum.Warning,
-                        $"The nonterminal symbol {KeyValue.Key} is not used.",
+                        $"The nonterminal symbol {GetNameOfSymbol()} is not used.",
                         new Grammlator.STextPosition(-1, 0, nt.FirstPosition)
                         );
                      }
@@ -936,7 +941,7 @@ namespace Grammlator {
                if ((Symbol is TerminalSymbol t) && !t.isUsed)
                   {
                   OutputMessage(MessageTypeOrDestinationEnum.Information,
-                     $"The terminal symbol {KeyValue.Key} is not used in any definition (may be used in look ahead)",
+                     $"The terminal symbol {GetNameOfSymbol()} is not used in any definition (may be used in look ahead)",
                      new Grammlator.STextPosition(-1, 0, t.FirstPosition)
                      );
                   }
@@ -1129,6 +1134,7 @@ namespace Grammlator {
          for (Int32 parameterIndex = 0; parameterIndex < MethodParameters.Length; parameterIndex++)
             {
             ref MethodParameterStruct MethodParameter = ref MethodParameters[parameterIndex];
+            string methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
 
             // find last attribute in the list of attributes which has the same name
             Int32 AttributeIndex =
@@ -1140,7 +1146,7 @@ namespace Grammlator {
                {
                // no attribute with the same name as the formal parameter
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-              $"There is no attribute with the same name as the formal parameter \"{MethodParameter.NameStringIndex}\""
+              $"There is no attribute with the same name as the formal parameter \"{methodParameterName}\""
               + $" of method \"{semanticMethod.MethodName }\".");
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
@@ -1155,7 +1161,7 @@ namespace Grammlator {
                {
                // last attribute with same name as formal parameter is defined at a different level
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The attribute \"{MethodParameter.NameStringIndex}\", "
+                   $"The attribute \"{methodParameterName}\", "
                    + $"which is used as formal parameter of method \"{semanticMethod.MethodName}\", "
                    + "is outside of the paranthesized grammar rule. "
                    );
@@ -1170,7 +1176,7 @@ namespace Grammlator {
             if (!string.IsNullOrEmpty(errorDescription))
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The attribute \"{MethodParameter.NameStringIndex}\", "
+                   $"The attribute \"{methodParameterName}\", "
                    + $"and the associated formal parameter of method \"{semanticMethod.MethodName}\", "
                    + "are not compatible: "
                    + errorDescription

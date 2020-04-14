@@ -359,10 +359,10 @@ namespace Grammlator {
       /// which is used to get the instance of a terminal symbol by its index (SymbolNumber+1).
       /// </summary>
       /// <param name="symbolDictionary"></param>
-      internal static void DefineArrayTerminalSymbolByIndex(Dictionary<String, Symbol> symbolDictionary)
+      internal static void DefineArrayTerminalSymbolByIndex(Dictionary<Int32, Symbol> symbolDictionary)
          {
          TerminalSymbolByIndex = new TerminalSymbol[NumberOfTerminalSymbols];
-         foreach (KeyValuePair<String, Symbol> pair in symbolDictionary)
+         foreach (KeyValuePair<Int32, Symbol> pair in symbolDictionary)
             {
             if (pair.Value is TerminalSymbol terminal)
                TerminalSymbolByIndex[terminal.SymbolNumber] = terminal;

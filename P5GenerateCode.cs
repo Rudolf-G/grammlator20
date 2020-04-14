@@ -717,7 +717,7 @@ namespace Grammlator
          ParserAction ActionToGenerate = actionToGenerate;
          Boolean Accept = accept;
          Boolean GotoHasBeenGenerated = labelMustBeGenerated;
-         var sbTemp = new StringBuilder();   // TODO Der sb sollte als Parametrer übergeben werden oder global sein
+         var sbTemp = new StringBuilder();   // TODO Der sb sollte als Parameter übergeben werden oder global sein
          Boolean BeginOfBlockHasBeenGenerated = false;
 
          while (ActionToGenerate != null)
@@ -790,7 +790,7 @@ namespace Grammlator
                default:
                {
                   Debug.Fail("illegal or unknown type in Phase5.CodefolgeErzeugen.");
-                  codegen.OutputandclearLine(); // TODO Wie reagieren, wenn kein Debug-Modus?
+                  codegen.OutputandClearLine(); // TODO Wie reagieren, wenn kein Debug-Modus?
                   codegen.AppendLineWithOptionalLinebreak(ActionToGenerate.ToString());
                   ActionToGenerate = (ActionToGenerate as ParserActionWithNextAction)?.NextAction;
                   break;
@@ -934,7 +934,7 @@ namespace Grammlator
             codegen.Append(", aStack: ");
             codegen.Append(ReduceActionToGenerate.AttributeStackAdjustment);
          }
-         codegen.OutputandclearLine();
+         codegen.OutputandClearLine();
          codegen.IndentAndAppendLines(ReduceActionToGenerate.Description, " * ");
          codegen.IndentAndAppendLine(" */");
 
@@ -971,7 +971,7 @@ namespace Grammlator
 
          // Gegebenenfalls die Zeile beenden
          if (codegen.LineLength > 0)
-            codegen.OutputandclearLine();
+            codegen.OutputandClearLine();
 
          // return next action
          Accept = false;
@@ -1019,7 +1019,7 @@ namespace Grammlator
             codegen.Append(GlobalVariables.VariableNameStateDescription);
             codegen.Append(State.IdNumber + 1);
             codegen.Append(" =");
-            codegen.OutputandclearLine();
+            codegen.OutputandClearLine();
 
             // Generate the item descriptions to be assigned to the variable
             sbTemp.Replace("\\", "\\\\").Replace("\"", "\\\""); // escape the symbols which are not allowed in strings
@@ -1035,7 +1035,7 @@ namespace Grammlator
          }
          else
          {
-            codegen.OutputandclearLine(); // continue comment
+            codegen.OutputandClearLine(); // continue comment
 
             sbTemp.Replace("*/", "* /"); // escape the symbols which are not allowed in comment
 

@@ -52,7 +52,7 @@ namespace Grammlator {
 
          // ----- Set initial values
          ResetGlobalVariables(outputMessage, outputMessageAndPos);
-         var SymbolDictionary = new Dictionary<String, Symbol>(1000);
+         var SymbolDictionary = new Dictionary<Int32, Symbol>(1000);
 
          // ----- Copy input up to and including line starting with "#region" GrammarString
          Int32 StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, true, RegionString, GrammarString);
@@ -164,8 +164,8 @@ namespace Grammlator {
              "Done. Don't forget to check the messages and the protocol of the conflicts.");
       }
 
-      public static void ProtocolSymbols(StringBuilder sb, Dictionary<String, Symbol> symbolDictionary) {
-         foreach (KeyValuePair<String, Symbol> p in symbolDictionary) {
+      public static void ProtocolSymbols(StringBuilder sb, Dictionary<Int32, Symbol> symbolDictionary) {
+         foreach (KeyValuePair<Int32, Symbol> p in symbolDictionary) {
             Symbol Symbol = p.Value;
 
             if (Symbol != null)

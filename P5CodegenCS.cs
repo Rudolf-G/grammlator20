@@ -116,7 +116,7 @@ namespace Grammlator
       {
          // new line if length is already beyond column
          if (LineLength > column)
-            OutputandclearLine();
+            OutputandClearLine();
          // fill up to column with space 
          CodeLine.Insert(CodeLine.Length, " ", column - LineLength);
       }
@@ -172,7 +172,7 @@ namespace Grammlator
             Append(s);
          }
          IndentAndAppend(stringAtEndOfLastLine);
-         OutputandclearLine();
+         OutputandClearLine();
       }
 
       public P5CodegenCS Append(Char c)
@@ -184,14 +184,14 @@ namespace Grammlator
       public void AppendLine(Char c)
       {
          CodeLine.Append(c);
-         OutputandclearLine();
+         OutputandClearLine();
       }
 
       public void AppendWithOptionalLinebreak(Char c)
       {
          if (LineLength > 10 && (LineLength + 1) >= LineLengthLimit)
          {
-            OutputandclearLine();
+            OutputandClearLine();
             Indent();
          }
          CodeLine.Append(c);
@@ -262,7 +262,7 @@ namespace Grammlator
       /// </summary>
       public P5CodegenCS AppendLineAndIndent()
       {
-         OutputandclearLine();
+         OutputandClearLine();
          IndentExactly();
          return this;
       }
@@ -285,7 +285,7 @@ namespace Grammlator
       public P5CodegenCS AppendLine(String s)
       {
          CodeLine.Append(s);
-         OutputandclearLine();
+         OutputandClearLine();
          return this;
       }
 
@@ -296,13 +296,13 @@ namespace Grammlator
       public void AppendLineWithOptionalLinebreak(params String[] stringsToAppend)
       {
          AppendWithOptionalLinebreak(stringsToAppend);
-         OutputandclearLine();
+         OutputandClearLine();
       }
 
       /// <summary>
       /// Output the code line, if not empty, and clear the code line
       /// </summary>
-      public void OutputandclearLine() =>
+      public void OutputandClearLine() =>
           OutputAndClearCodeLine();
 
       public void AppendWithPrefix(String Prefix, String s)
@@ -393,7 +393,7 @@ namespace Grammlator
          if (!string.IsNullOrEmpty(comment))
             Append(" // ").
                Append(comment);
-         OutputandclearLine();
+         OutputandClearLine();
       }
 
       // keine neue Zeile anfangen
@@ -468,7 +468,7 @@ namespace Grammlator
       public void GenerateSemanticMethodCall(VoidMethodClass semantischeAktion)
       {
          IndentExactly();
-         OutputandclearLine(); // empty line preceding method call
+         OutputandClearLine(); // empty line preceding method call
          IndentAndAppend(semantischeAktion.MethodName);
          Append("(");
 
@@ -480,7 +480,7 @@ namespace Grammlator
          {
             string ParameterTypeString=GlobalVariables.GetStringOfIndex(Parameter.TypeStringIndex);
 
-            OutputandclearLine();
+            OutputandClearLine();
             IndentAndAppend(GlobalVariables.GetStringOfIndex(Parameter.NameStringIndex));
             Append(": ");
             switch (Parameter.Implementation)
@@ -535,7 +535,7 @@ namespace Grammlator
          AppendLine("); ");
          IndentationLevel--;
 
-         OutputandclearLine(); // empty line following method call
+         OutputandClearLine(); // empty line following method call
       }
 
       public void GenerateAttributeStackAdjustment(Int32 AttributkellerKorrektur)

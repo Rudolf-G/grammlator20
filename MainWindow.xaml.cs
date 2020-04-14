@@ -428,7 +428,6 @@ namespace grammlator {
                // li.Width is OK !
                containedTb.Width = li.ActualWidth - ListboxDistanceAtRight;
                }
-         // Is too large if there is a scrollbar
          }
 #pragma warning restore IDE1006 // Benennungsstile
 
@@ -443,7 +442,7 @@ namespace grammlator {
       /// <returns></returns>
       string ReferenceToBox(String m)
        => m.AsSpan(0, m.Length > 35 ? 35 : m.Length).ToString()
-          + $"...   see error messages {ErrorPositions.Count + 1}";
+          + $"...   see message box {ErrorPositions.Count + 1}";
 
 
 
