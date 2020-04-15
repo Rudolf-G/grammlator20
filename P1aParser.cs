@@ -56,7 +56,7 @@ namespace Grammlator {
             else
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Abort,
-                  $"Missing \"{EndregionString} {GrammarString}\"");
+                  $"Expected \"{EndregionString} {GrammarString}\"");
                }
 
             GlobalVariables.NumberOfNonterminalSymbols = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols;
@@ -784,11 +784,18 @@ namespace Grammlator {
 
       private bool ErrorHandler(Int32 stateNumber, String stateDescription, LexerResult symbol)
          {
+
+
+         // _s.Discard(_s.Count - StateStackInitialCount); // need this ??
+         var aCountBeforeAccept = _a.Count;
+         Lexer.AcceptSymbol(); // accept the wrong symbol to make its position available in Lexer.Lex1TextPos and to discard it
+         _a.Free(_a.Count - aCountBeforeAccept);  // discard the attributes of the discarded terminal symbol
+
          String nl = Environment.NewLine;
-         Lexer.AcceptSymbol(); // accept the wrong symbol to make its position available in Lexer.Lex1TextPos
-         P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Abort,
-             $"Grammar analysis error:{nl}input symbol \"{symbol.MyToString()}\" not allowed in state {stateNumber}{nl}{stateDescription}{nl}");
-         return false;
+         P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Information,
+             $"Grammar analysis error:{nl}input symbol \"{symbol.MyToString()}\" ignored: not allowed in state {stateNumber}{nl}{stateDescription}{nl}");
+         return true; // true: continue analysis (goto state ...), else "goto EndWithError..."
+         // TODO: design and implement a concept to insert a missing character (e.g. if state accepts only a single terminal symbol)
          }
 
 #pragma warning disable CA1505 // Avoid unmaintainable code

@@ -893,8 +893,21 @@ namespace Grammlator
                .Append(errorhandlingAction.State.IdNumber + 1)
                .Append(", ")
                .Append(GlobalVariables.VariableNameSymbol)
-               .AppendLine("))")
-               .GenerateGoto(errorhandlingAction.State, accept: false, nestingLevel + 1);
+               .AppendLine("))");
+
+               if (errorhandlingAction.State.StateStackNumber >= 0)
+                  { // generate {_s.POP(..); goto state...;}
+                  codegen
+                     .Indent(nestingLevel + 1)
+                     .AppendLine("{")
+                     .IndentAndAppend(GlobalVariables.StateStack)
+                     .AppendLine(".Pop(); ")
+                     .GenerateGoto(errorhandlingAction.State, accept: false, nestingLevel + 1)
+                     .IndentAndAppendLine("};");
+                  }
+               else
+                  { // generate goto state...;}
+                  codegen.GenerateGoto(errorhandlingAction.State, accept: false, nestingLevel + 1);
             }
          }
 
@@ -1084,7 +1097,7 @@ namespace Grammlator
          }
          else // State.Actions.Count = 0
          {
-            // Dieser Fall sollte nicht vorkommen. Jeder Zustand sollte zumindest eine Fehleraktion enthalten.
+            // This shouldn't happen 'cause each state should at least contain one action (may be error action) 
 
             // TODO ist die Behandlung von Zuständen ohne terminale Aktion so ok?
             // Sind Zustände, die keine erlaubte Aktion enthalten (resultierend aus z.B *=A; A=B; B=A;), entsprechend berücksichtigt

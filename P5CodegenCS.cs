@@ -357,11 +357,12 @@ namespace Grammlator
       /// Set indentation level and indent to actual indentation position only, if actual position is smaller
       /// </summary>
       /// <param name="newIndentation">new indentation level</param>
-      public void Indent(Int32 newIndentation)
+      public P5CodegenCS Indent(Int32 newIndentation)
       {
          IndentationLevel = newIndentation;
          if (LineLength < (IndentationLevel * IndentationWidth) + 2)
             SetCol((IndentationLevel * IndentationWidth) + 2);
+         return this;
       }
 
       public void IncrementIndentationLevel()
@@ -440,12 +441,13 @@ namespace Grammlator
              nestingLevel);
       }
 
-      public void GenerateGoto(ParserAction action, Boolean accept, Int32 nestingLevel)
+      public P5CodegenCS GenerateGoto(ParserAction action, Boolean accept, Int32 nestingLevel)
       {
          IndentExactly(nestingLevel);
          CodeLine.Append("goto ")
              .Append(GotoLabel(action, accept));
          AppendLine("; ");
+         return this;
       }
 
       public void GenerateIfSPeek(Int32 NewIndentationLevel, Boolean inverse, String condition)
