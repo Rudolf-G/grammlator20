@@ -34,7 +34,7 @@ namespace Grammlator {
          InitialValues.Add("VariableStateStackInitialCount", "StateStackInitialCount");
          }
 
-      public static String GetString(String name) => InitialValues[name]; // TODO check not dound
+      public static String GetString(String name) => InitialValues[name]; // TODO check not found
       public static Int32 GetInt(String name) => Int32.Parse(GetString(name)); // TODO check conversion error
       }
 

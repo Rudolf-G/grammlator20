@@ -411,6 +411,8 @@ namespace Grammlator
       private static String GotoLabel(ParserAction action, Boolean accept)
       {
          string MapActiontypeToString = GlobalVariables.LabelPrefixes[(int)action.ParserActionType];
+         if (action.ParserActionType==ParserActionEnum.isErrorhaltAction) // There is only one ErrorHaltAction
+            return (accept ? "Accept" : "") + MapActiontypeToString.ToString();
          return (accept ? "Accept" : "") + MapActiontypeToString + (action.IdNumber + 1).ToString();
       }
 

@@ -785,15 +785,20 @@ namespace Grammlator {
       private bool ErrorHandler(Int32 stateNumber, String stateDescription, LexerResult symbol)
          {
 
-
-         // _s.Discard(_s.Count - StateStackInitialCount); // need this ??
          var aCountBeforeAccept = _a.Count;
          Lexer.AcceptSymbol(); // accept the wrong symbol to make its position available in Lexer.Lex1TextPos and to discard it
-         _a.Free(_a.Count - aCountBeforeAccept);  // discard the attributes of the discarded terminal symbol
 
          String nl = Environment.NewLine;
-         P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Information,
+         P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
              $"Grammar analysis error:{nl}input symbol \"{symbol.MyToString()}\" ignored: not allowed in state {stateNumber}{nl}{stateDescription}{nl}");
+
+         if (symbol == LexerResult.CSharpStart)
+            {
+            Lexer.SkipToEndOfCSLines(); // if C#Start no allowed then skip the totral C# code
+            if (symbol == LexerResult.CSharpStart)
+               Lexer.AcceptSymbol();
+            }
+         _a.Free(_a.Count - aCountBeforeAccept);  // discard the attributes of the discarded terminal symbol
          return true; // true: continue analysis (goto state ...), else "goto EndWithError..."
          // TODO: design and implement a concept to insert a missing character (e.g. if state accepts only a single terminal symbol)
          }
@@ -808,7 +813,7 @@ namespace Grammlator {
          LexerResult ParserInput;
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Tue, 14 Apr 2020 19:10:09 GMT (grammlator, File version 2020.04.07.1 14.04.2020 19:09:56)
+#region grammlator generated Wed, 15 Apr 2020 17:31:32 GMT (grammlator, File version 2020.04.07.1 15.04.2020 17:31:19)
   Int32 StateStackInitialCount = _s.Count;
   Int32 AttributeStackInitialCount = _a.Count;
   /* State 1
@@ -831,8 +836,11 @@ State2:
   if (ParserInput != LexerResult.StarEqual)
      {
      if (ErrorHandler(2, StateDescription2, ParserInput))
+        {
+        _s.Pop();
         goto State2;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.StarEqual);
 State22:
@@ -844,7 +852,7 @@ State22:
      {
      if (ErrorHandler(22, StateDescription22, ParserInput))
         goto State22;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.StarEqual);
   Lexer.AcceptSymbol();
@@ -905,7 +913,7 @@ State28:
      {
      if (ErrorHandler(28, StateDescription28, ParserInput))
         goto State28;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
 AcceptBranch5:
@@ -947,8 +955,11 @@ State76:
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.StringResult)
      {
      if (ErrorHandler(76, StateDescription76, ParserInput))
+        {
+        _s.Pop();
         goto State76;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
 AcceptState82:
@@ -967,8 +978,11 @@ State82:
      || ParserInput == LexerResult.NumberSign)
      {
      if (ErrorHandler(82, StateDescription82, ParserInput))
+        {
+        _s.Pop();
         goto State82;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput != LexerResult.Colon
      && (ParserInput < LexerResult.CSharpEnd || ParserInput > LexerResult.StarEqual)
@@ -1060,7 +1074,7 @@ State24:
      {
      if (ErrorHandler(24, StateDescription24, ParserInput))
         goto State24;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput >= LexerResult.GroupStart);
@@ -1147,7 +1161,7 @@ State32:
      {
      if (ErrorHandler(32, StateDescription32, ParserInput))
         goto State32;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
 AcceptReduce38:
@@ -1195,7 +1209,7 @@ State17:
      {
      if (ErrorHandler(17, StateDescription17, ParserInput))
         goto State17;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
@@ -1233,7 +1247,7 @@ State30:
      {
      if (ErrorHandler(30, StateDescription30, ParserInput))
         goto State30;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.NumberSign
      || ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
@@ -1260,7 +1274,7 @@ State44:
      {
      if (ErrorHandler(44, StateDescription44, ParserInput))
         goto State44;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
@@ -1383,7 +1397,7 @@ State34:
      {
      if (ErrorHandler(34, StateDescription34, ParserInput))
         goto State34;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.NumberSign
      || ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
@@ -1410,7 +1424,7 @@ State54:
      {
      if (ErrorHandler(54, StateDescription54, ParserInput))
         goto State54;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
@@ -1429,7 +1443,7 @@ State55:
      {
      if (ErrorHandler(55, StateDescription55, ParserInput))
         goto State55;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.NumberSign
      || ParserInput >= LexerResult.CSharpStart);
@@ -1459,8 +1473,11 @@ State27:
      && ParserInput < LexerResult.GroupEnd)
      {
      if (ErrorHandler(27, StateDescription27, ParserInput))
+        {
+        _s.Pop();
         goto State27;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.NumberSign
      || ParserInput >= LexerResult.GroupEnd);
@@ -1531,8 +1548,11 @@ State60:
   Debug.Assert(ParserInput <= LexerResult.NumberSign || ParserInput >= LexerResult.TerminatorSymbol);
 
   if (ErrorHandler(60, StateDescription60, ParserInput))
+     {
+     _s.Pop();
      goto State60;
-  goto EndWithError1;
+     };
+  goto EndWithError;
 
 Reduce58:
   /* Reduction 58, aStack: 2
@@ -1582,7 +1602,7 @@ State71:
      {
      if (ErrorHandler(71, StateDescription71, ParserInput))
         goto State71;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatEnd);
   Lexer.AcceptSymbol();
@@ -1689,8 +1709,11 @@ State65:
 
 HandleError65:
   if (ErrorHandler(65, StateDescription65, ParserInput))
+     {
+     _s.Pop();
      goto State65;
-  goto EndWithError1;
+     };
+  goto EndWithError;
 
 Reduce80:
   /* Reduction 80, sStack: -1
@@ -1725,7 +1748,7 @@ State3:
      {
      if (ErrorHandler(3, StateDescription3, ParserInput))
         goto State3;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpStart
      || ParserInput >= LexerResult.DefinitionSeparatorSymbol);
@@ -1786,7 +1809,7 @@ State5:
      {
      if (ErrorHandler(5, StateDescription5, ParserInput))
         goto State5;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpStart);
   Lexer.AcceptSymbol();
@@ -1805,7 +1828,7 @@ State8:
      {
      if (ErrorHandler(8, StateDescription8, ParserInput))
         goto State8;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
@@ -1826,7 +1849,7 @@ State4:
      {
      if (ErrorHandler(4, StateDescription4, ParserInput))
         goto State4;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Number);
   Lexer.AcceptSymbol();
@@ -1841,8 +1864,11 @@ State7:
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.StringResult)
      {
      if (ErrorHandler(7, StateDescription7, ParserInput))
+        {
+        _s.Pop();
         goto State7;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
   goto AcceptState82;
@@ -1861,7 +1887,7 @@ State9:
      {
      if (ErrorHandler(9, StateDescription9, ParserInput))
         goto State9;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatStart);
 State10:
@@ -1873,7 +1899,7 @@ State10:
      {
      if (ErrorHandler(10, StateDescription10, ParserInput))
         goto State10;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatStart);
   Lexer.AcceptSymbol();
@@ -1901,7 +1927,7 @@ State11:
      {
      if (ErrorHandler(11, StateDescription11, ParserInput))
         goto State11;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatEnd);
   Lexer.AcceptSymbol();
@@ -1931,7 +1957,7 @@ State12:
      {
      if (ErrorHandler(12, StateDescription12, ParserInput))
         goto State12;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatEnd);
   goto AcceptReduce8;
@@ -1947,7 +1973,7 @@ State13:
      {
      if (ErrorHandler(13, StateDescription13, ParserInput))
         goto State13;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
@@ -1972,7 +1998,7 @@ State15:
      {
      if (ErrorHandler(15, StateDescription15, ParserInput))
         goto State15;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatEnd);
   goto AcceptReduce8;
@@ -1986,7 +2012,7 @@ State14:
      {
      if (ErrorHandler(14, StateDescription14, ParserInput))
         goto State14;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
@@ -2005,7 +2031,7 @@ State16:
      {
      if (ErrorHandler(16, StateDescription16, ParserInput))
         goto State16;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
@@ -2026,7 +2052,7 @@ State18:
      {
      if (ErrorHandler(18, StateDescription18, ParserInput))
         goto State18;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
@@ -2047,7 +2073,7 @@ State19:
      {
      if (ErrorHandler(19, StateDescription19, ParserInput))
         goto State19;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Colon
      || ParserInput == LexerResult.RepeatStart);
@@ -2089,7 +2115,7 @@ State20:
      {
      if (ErrorHandler(20, StateDescription20, ParserInput))
         goto State20;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Colon
      || ParserInput == LexerResult.RepeatStart);
@@ -2129,7 +2155,7 @@ State25:
      {
      if (ErrorHandler(25, StateDescription25, ParserInput))
         goto State25;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput >= LexerResult.GroupStart);
@@ -2167,7 +2193,7 @@ State26:
      {
      if (ErrorHandler(26, StateDescription26, ParserInput))
         goto State26;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput >= LexerResult.GroupStart);
@@ -2198,8 +2224,11 @@ State29:
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.StringResult)
      {
      if (ErrorHandler(29, StateDescription29, ParserInput))
+        {
+        _s.Pop();
         goto State29;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
   goto AcceptState82;
@@ -2221,8 +2250,11 @@ State33:
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.StringResult)
      {
      if (ErrorHandler(33, StateDescription33, ParserInput))
+        {
+        _s.Pop();
         goto State33;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
   goto AcceptState82;
@@ -2244,8 +2276,11 @@ State35:
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.StringResult)
      {
      if (ErrorHandler(35, StateDescription35, ParserInput))
+        {
+        _s.Pop();
         goto State35;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
   goto AcceptState82;
@@ -2264,8 +2299,11 @@ State36:
   if (ParserInput != LexerResult.CSharpEnd)
      {
      if (ErrorHandler(36, StateDescription36, ParserInput))
+        {
+        _s.Pop();
         goto State36;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
@@ -2290,7 +2328,7 @@ State37:
      {
      if (ErrorHandler(37, StateDescription37, ParserInput))
         goto State37;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupStart);
   Lexer.AcceptSymbol();
@@ -2305,8 +2343,11 @@ State38:
   if (ParserInput != LexerResult.GroupEnd)
      {
      if (ErrorHandler(38, StateDescription38, ParserInput))
+        {
+        _s.Pop();
         goto State38;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
 State41:
@@ -2318,7 +2359,7 @@ State41:
      {
      if (ErrorHandler(41, StateDescription41, ParserInput))
         goto State41;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce43;
@@ -2335,7 +2376,7 @@ State39:
      {
      if (ErrorHandler(39, StateDescription39, ParserInput))
         goto State39;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce43;
@@ -2351,8 +2392,11 @@ State40:
   if (ParserInput != LexerResult.Name)
      {
      if (ErrorHandler(40, StateDescription40, ParserInput))
+        {
+        _s.Pop();
         goto State40;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
 AcceptState42:
@@ -2367,7 +2411,7 @@ State42:
      {
      if (ErrorHandler(42, StateDescription42, ParserInput))
         goto State42;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
@@ -2398,7 +2442,7 @@ State43:
      {
      if (ErrorHandler(43, StateDescription43, ParserInput))
         goto State43;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput == LexerResult.GroupEnd);
@@ -2444,7 +2488,7 @@ State52:
      {
      if (ErrorHandler(52, StateDescription52, ParserInput))
         goto State52;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce51;
@@ -2462,7 +2506,7 @@ State45:
      {
      if (ErrorHandler(45, StateDescription45, ParserInput))
         goto State45;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
@@ -2482,7 +2526,7 @@ State46:
      {
      if (ErrorHandler(46, StateDescription46, ParserInput))
         goto State46;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupStart);
   /* Reduction 48, aStack: -1
@@ -2510,7 +2554,7 @@ State50:
      {
      if (ErrorHandler(50, StateDescription50, ParserInput))
         goto State50;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupStart);
   Lexer.AcceptSymbol();
@@ -2525,8 +2569,11 @@ State51:
   if (ParserInput != LexerResult.GroupEnd)
      {
      if (ErrorHandler(51, StateDescription51, ParserInput))
+        {
+        _s.Pop();
         goto State51;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
 State53:
@@ -2538,7 +2585,7 @@ State53:
      {
      if (ErrorHandler(53, StateDescription53, ParserInput))
         goto State53;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce51;
@@ -2571,7 +2618,7 @@ State47:
      {
      if (ErrorHandler(47, StateDescription47, ParserInput))
         goto State47;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupStart);
   /* Reduction 49, aStack: -2
@@ -2612,7 +2659,7 @@ State48:
      {
      if (ErrorHandler(48, StateDescription48, ParserInput))
         goto State48;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Plus);
   Lexer.AcceptSymbol();
@@ -2625,7 +2672,7 @@ State56:
      {
      if (ErrorHandler(56, StateDescription56, ParserInput))
         goto State56;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Number);
 AcceptState57:
@@ -2639,7 +2686,7 @@ State57:
      {
      if (ErrorHandler(57, StateDescription57, ParserInput))
         goto State57;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.DoubleQuestionmark);
   Lexer.AcceptSymbol();
@@ -2663,8 +2710,11 @@ State49:
   if (ParserInput != LexerResult.Name)
      {
      if (ErrorHandler(49, StateDescription49, ParserInput))
+        {
+        _s.Pop();
         goto State49;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   goto AcceptState45;
@@ -2678,7 +2728,7 @@ State58:
      {
      if (ErrorHandler(58, StateDescription58, ParserInput))
         goto State58;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Number);
   Lexer.AcceptSymbol();
@@ -2713,7 +2763,7 @@ State61:
      {
      if (ErrorHandler(61, StateDescription61, ParserInput))
         goto State61;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
   goto Reduce58;
@@ -2735,8 +2785,11 @@ State62:
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.StringResult)
      {
      if (ErrorHandler(62, StateDescription62, ParserInput))
+        {
+        _s.Pop();
         goto State62;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
   goto AcceptState82;
@@ -2754,7 +2807,7 @@ State63:
      {
      if (ErrorHandler(63, StateDescription63, ParserInput))
         goto State63;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
   /* Reduction 61, sStack: -1
@@ -2789,8 +2842,11 @@ State64:
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.StringResult)
      {
      if (ErrorHandler(64, StateDescription64, ParserInput))
+        {
+        _s.Pop();
         goto State64;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
   goto AcceptState82;
@@ -2808,7 +2864,7 @@ State66:
      {
      if (ErrorHandler(66, StateDescription66, ParserInput))
         goto State66;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
   goto Reduce58;
@@ -2853,8 +2909,11 @@ State67:
   Debug.Assert(ParserInput <= LexerResult.NumberSign || ParserInput >= LexerResult.TerminatorSymbol);
 
   if (ErrorHandler(67, StateDescription67, ParserInput))
+     {
+     _s.Pop();
      goto State67;
-  goto EndWithError1;
+     };
+  goto EndWithError;
 
 State68:
   /* State 68 */
@@ -2869,7 +2928,7 @@ State68:
      {
      if (ErrorHandler(68, StateDescription68, ParserInput))
         goto State68;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
   goto Reduce67;
@@ -2887,7 +2946,7 @@ State69:
      {
      if (ErrorHandler(69, StateDescription69, ParserInput))
         goto State69;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
   goto Reduce67;
@@ -2919,7 +2978,7 @@ State70:
      {
      if (ErrorHandler(70, StateDescription70, ParserInput))
         goto State70;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput > LexerResult.MinusEqual
      && ParserInput != LexerResult.NumberSign
@@ -2943,7 +3002,7 @@ State73:
      {
      if (ErrorHandler(73, StateDescription73, ParserInput))
         goto State73;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.OptionEnd);
   Lexer.AcceptSymbol();
@@ -2975,7 +3034,7 @@ State75:
      {
      if (ErrorHandler(75, StateDescription75, ParserInput))
         goto State75;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
@@ -3000,7 +3059,7 @@ State77:
      {
      if (ErrorHandler(77, StateDescription77, ParserInput))
         goto State77;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.MinusEqual);
   Lexer.AcceptSymbol();
@@ -3013,7 +3072,7 @@ State78:
      {
      if (ErrorHandler(78, StateDescription78, ParserInput))
         goto State78;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
@@ -3041,7 +3100,7 @@ State79:
      {
      if (ErrorHandler(79, StateDescription79, ParserInput))
         goto State79;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
   Lexer.AcceptSymbol();
@@ -3062,7 +3121,7 @@ State80:
      {
      if (ErrorHandler(80, StateDescription80, ParserInput))
         goto State80;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
@@ -3111,8 +3170,11 @@ State81:
 
 HandleError81:
   if (ErrorHandler(81, StateDescription81, ParserInput))
+     {
+     _s.Pop();
      goto State81;
-  goto EndWithError1;
+     };
+  goto EndWithError;
 
 AcceptState83:
   Lexer.AcceptSymbol();
@@ -3128,8 +3190,11 @@ State83:
   if (ParserInput != LexerResult.GroupEnd)
      {
      if (ErrorHandler(83, StateDescription83, ParserInput))
+        {
+        _s.Pop();
         goto State83;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
@@ -3174,7 +3239,7 @@ State84:
      {
      if (ErrorHandler(84, StateDescription84, ParserInput))
         goto State84;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
@@ -3225,8 +3290,11 @@ State85:
   if (ParserInput != LexerResult.Name)
      {
      if (ErrorHandler(85, StateDescription85, ParserInput))
+        {
+        _s.Pop();
         goto State85;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
 AcceptState86:
@@ -3240,7 +3308,7 @@ State86:
      {
      if (ErrorHandler(86, StateDescription86, ParserInput))
         goto State86;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
@@ -3277,8 +3345,11 @@ State87:
      && ParserInput < LexerResult.DefinitionSeparatorSymbol)
      {
      if (ErrorHandler(87, StateDescription87, ParserInput))
+        {
+        _s.Pop();
         goto State87;
-     goto EndWithError1;
+        };
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Percent
      || ParserInput == LexerResult.CSharpStart
@@ -3304,7 +3375,7 @@ State88:
      {
      if (ErrorHandler(88, StateDescription88, ParserInput))
         goto State88;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.StringResult);
   Lexer.AcceptSymbol();
@@ -3323,7 +3394,7 @@ State89:
      {
      if (ErrorHandler(89, StateDescription89, ParserInput))
         goto State89;
-     goto EndWithError1;
+     goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.StarEqual
      || ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
@@ -3395,22 +3466,28 @@ Branch15:
 
 HandleError23:
   if (ErrorHandler(23, StateDescription23, ParserInput))
+     {
+     _s.Pop();
      goto State23;
-  goto EndWithError1;
+     };
+  goto EndWithError;
 
 HandleError31:
   if (ErrorHandler(31, StateDescription31, ParserInput))
+     {
+     _s.Pop();
      goto State31;
-  goto EndWithError1;
+     };
+  goto EndWithError;
 
-EndWithError1:
+EndWithError:
   // This point is reached after an input error has been found
   _s.Discard(_s.Count - StateStackInitialCount);
   _a.Free(_a.Count - AttributeStackInitialCount);
 
 EndOfGeneratedCode1:
   ;
-#endregion grammlator generated Tue, 14 Apr 2020 19:10:09 GMT (grammlator, File version 2020.04.07.1 14.04.2020 19:09:56)
+#endregion grammlator generated Wed, 15 Apr 2020 17:31:32 GMT (grammlator, File version 2020.04.07.1 15.04.2020 17:31:19)
          /* ************************ code written by programmer ******************** */
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }

@@ -906,9 +906,10 @@ namespace Grammlator
                      .IndentAndAppendLine("};");
                   }
                else
-                  { // generate goto state...;}
+                  { // generate goto state...;
                   codegen.GenerateGoto(errorhandlingAction.State, accept: false, nestingLevel + 1);
-            }
+                  }
+               }
          }
 
          Accept = false;
