@@ -1004,7 +1004,7 @@ CheckNextExistingBranch:
          // for each state
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
          {
-            Int32 max(Int32 a, Int32 b)
+            static Int32 max(Int32 a, Int32 b)
                 => a > b ? a : b;
 
             // Remove not longer used actions of this state

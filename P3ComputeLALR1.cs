@@ -290,7 +290,7 @@ namespace Grammlator {
                         elements = definition.Elements;
                         Lookback(State,
                             waybackAcceptsEmpty: // if the nonterminal is nullable
-                            ((elements[elements.Length - 1] as NonterminalSymbol)?.IsNullabel) ?? false,
+                            ((elements[^1] as NonterminalSymbol)?.IsNullabel) ?? false,
                             definedSymbol: definition.DefinedSymbol,
                             elements: elements,
                             distanceToGoBack: elements.Length - 1); // -1 because SHIFT-reduce
@@ -442,18 +442,16 @@ namespace Grammlator {
        * */
       private void Digraph2()
          {
-         NonterminalTransition ActionXasNT;
-         LookaheadAction ActionXasLA;
          foreach (ParserState Zustand in GlobalVariables.ListOfAllStates)
             {
             foreach (ParserAction ActionX in Zustand.Actions.
                Where(a => a.Codenumber >= 0))
                {
-               if ((ActionXasNT = ActionX as NonterminalTransition) != null)
+               if (ActionX is NonterminalTransition ActionXasNT)
                   {
                   Traverse2(ActionXasNT);
                   }
-               else if ((ActionXasLA = ActionX as LookaheadAction) != null)
+               else if (ActionX is LookaheadAction ActionXasLA)
                   {
                   LookaheadDigraph2(ActionXasLA);
                   }

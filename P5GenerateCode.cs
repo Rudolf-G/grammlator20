@@ -620,11 +620,9 @@ namespace Grammlator
          // a1 < a2 => <0
          // a1 == a2 => 0
          // a1 > a2 => >0 
-         var ActionA = a1 as ConditionalAction;
-         var ActionB = a2 as ConditionalAction;
-         if (ActionA == null)
+         if (a1 as ConditionalAction == null)
             return (a2 == null) ? 0 : 1;
-         if (ActionB == null)
+         if (!(a2 is ConditionalAction ActionB))
             return -1;
 
          /* prefer symbols with highest weight, so that the user can influence 
@@ -642,9 +640,9 @@ namespace Grammlator
           *  
           */
 
-         Single PositionA = ActionA is ErrorhandlingAction
-             ? ActionA.Complexity * 100_000
-             : (ActionA.Complexity * 100_000) - ActionA.SumOfWeights;
+         Single PositionA = a1 as ConditionalAction is ErrorhandlingAction
+             ? (a1 as ConditionalAction).Complexity * 100_000
+             : ((a1 as ConditionalAction).Complexity * 100_000) - (a1 as ConditionalAction).SumOfWeights;
 
          Single PositionB = ActionB is ErrorhandlingAction
              ? ActionB.Complexity * 100_000
@@ -653,7 +651,7 @@ namespace Grammlator
          if (PositionA != PositionB)
             return (Int32)(PositionA - PositionB);
 
-         return ActionA.IdNumber - ActionB.IdNumber;
+         return (a1 as ConditionalAction).IdNumber - ActionB.IdNumber;
       }
 
       /// <summary>
@@ -664,11 +662,9 @@ namespace Grammlator
       /// <returns></returns>
       private static Int32 CompareIndexOfFirstTrueElement(ParserAction a, ParserAction b)
       {
-         var ActionA = a as ConditionalAction;
-         var ActionB = b as ConditionalAction;
-         if (ActionA == null)
+         if (!(a is ConditionalAction ActionA))
             return (b == null) ? 0 : 1;
-         if (ActionB == null)
+         if (!(b is ConditionalAction ActionB))
             return -1;
 
          Int32 First1 = ActionA.TerminalSymbols.IndexOfFirstTrueElement();
@@ -702,8 +698,7 @@ namespace Grammlator
              );
       }
 
-
-      StringBuilder CodeSequenceBuilder = new StringBuilder(4000);
+      readonly StringBuilder CodeSequenceBuilder = new StringBuilder(4000);
 
       /// <summary>
       /// Generates nothing if .Calls (resp. .AccepCalls) &lt;=0.
@@ -1162,11 +1157,11 @@ namespace Grammlator
 
          // Eine Fehleraktion am Ende möglichst mit der vorletzten Aktion tauschen,
          // da eine Fehleraktion immer die Sequenz unterbricht
-         if (state.Actions.Count > 1 && state.Actions[state.Actions.Count - 1] is ErrorhandlingAction)
+         if (state.Actions.Count > 1 && state.Actions[^1] is ErrorhandlingAction)
          {
-            ParserAction temp = state.Actions[state.Actions.Count - 2];
-            state.Actions[state.Actions.Count - 2] = state.Actions[state.Actions.Count - 1];
-            state.Actions[state.Actions.Count - 1] = temp;
+            ParserAction temp = state.Actions[^2];
+            state.Actions[^2] = state.Actions[^1];
+            state.Actions[^1] = temp;
          }
 
          // Test the state if it contains an unconditional action
@@ -1421,7 +1416,7 @@ namespace Grammlator
             GenerateOneConditionalAction(a, relevantSymbols, NestingLevel); // Modifies relevantSymbols
          }
 
-         var LastAction = (ConditionalAction)State.Actions[State.Actions.Count - 1];
+         var LastAction = (ConditionalAction)State.Actions[^1];
 
          ParserAction nextAction;
          if (LastAction is ErrorhandlingAction)
@@ -1432,7 +1427,7 @@ namespace Grammlator
          BitArray suppressedCondition = LastAction.TerminalSymbols;
          if (nextAction != null && suppressedCondition != null)
          {
-            GenerateConditionAsComment(suppressedCondition, NestingLevel);
+            GenerateConditionAsComment(suppressedCondition);
          }
 
          Accept = LastAction is TerminalTransition;

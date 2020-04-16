@@ -31,8 +31,8 @@ namespace Grammlator
          codegen.DecrementIndentationLevel();
       }
 
-      private void GenerateConditionAsComment(BitArray Condition, Int32 nestingLevel)
-      {
+      private void GenerateConditionAsComment(BitArray Condition)
+         {
          codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("Debug.Assert(");
          codegen.IncrementIndentationLevel();
@@ -189,7 +189,7 @@ namespace Grammlator
          var complexity = new Int32[2] { 0, 0 };
 
          Int32 first = BlockList[0].blockStart;
-         Int32 last = BlockList[BlockList.Count - 1].blockEnd;
+         Int32 last = BlockList[^1].blockEnd;
 
          BlockOfEqualBits block;
 
@@ -322,7 +322,7 @@ namespace Grammlator
          }
 
          Int32 first = BlockList[0].blockStart;
-         Int32 last = BlockList[BlockList.Count - 1].blockEnd;
+         Int32 last = BlockList[^1].blockEnd;
 
          /// blockType==0 if the block contains 0s else 1
          BlockOfEqualBits block;
@@ -449,7 +449,7 @@ namespace Grammlator
          }
 
          Int32 first = BlockList[0].blockStart;
-         Int32 last = BlockList[BlockList.Count - 1].blockEnd;
+         Int32 last = BlockList[^1].blockEnd;
 
          BlockOfEqualBits block;
 

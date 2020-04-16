@@ -175,15 +175,10 @@ namespace Grammlator {
          }
 
       /// <summary>
-      /// Returns Reader.LineNumber and InputClassifier.CurrentColumn, with special cases
-      /// inputLine.Length (end of line) and inputLine.Length+1 (end of line accepted)
+      /// Returns CurrentPosition
       /// </summary>
-      public STextPosition InputPosition // CHECK  replace InputPosition by CurrentPosition (without lineNumber and columnNumber)
-          => new STextPosition(
-             lineNumber: SourceReader.LineNumber,
-             columnNumber: CurrentColumn,
-             position: CurrentPosition
-             );
+      public Int32 InputPosition // CHECK  replace InputPosition by CurrentPosition (without lineNumber and columnNumber)
+          => CurrentPosition;
 
       /// <summary>
       /// Checks if actual line  starts with the sequence of strings optionally separated by withespace
@@ -348,9 +343,9 @@ namespace Grammlator {
          if (inputLine.IsEmpty)
             {
             // end of source: Output message and throw exception
-            GlobalVariables.OutputPositionAndMessage(MessageTypeOrDestinationEnum.Abort,
+            GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
                 "The end of file has been reached prematurely by the lexical analyzer",
-                 new STextPosition(SourceReader.LineNumber, CurrentColumn, SourceReader.Position));
+                 SourceReader.Position);
 
             Debug.Fail("This Debug line should be never executed, because ...Message(..Abort..) has been called");
             }

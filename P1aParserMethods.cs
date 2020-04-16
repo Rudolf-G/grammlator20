@@ -83,7 +83,7 @@ namespace Grammlator {
          else
             {
             SymbolDictionary[nameIndex] =
-               new TerminalSymbol(Name, Lexer.LexerTextPos.Position) {
+               new TerminalSymbol(Name, Lexer.LexerTextPos) {
                   Weight = weight,
                   SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
@@ -121,7 +121,7 @@ namespace Grammlator {
          if (!SymbolDictionary.TryGetValue(symbolNameIndex, out Symbol Symbol))
             {
             // The nonterminal symbol has not yet been used,  Symbol == null
-            ns = new NonterminalSymbol(symbolName, Lexer.LexerTextPos.Position) {
+            ns = new NonterminalSymbol(symbolName, Lexer.LexerTextPos) {
                SymbolNumber = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
                AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
                AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
@@ -213,7 +213,7 @@ namespace Grammlator {
          else
             {
             // New symbol: create instance
-            symbol = new NonterminalSymbol(Name, Lexer.LexerTextPos.Position) { SymbolNumber = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols };
+            symbol = new NonterminalSymbol(Name, Lexer.LexerTextPos) { SymbolNumber = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols };
 
             SymbolDictionary[nameIndex] = symbol;
             // Assign AttributetypeList, let AttributenameList undefined until the symbol becomes defined in left side
@@ -407,7 +407,7 @@ namespace Grammlator {
 
       private NonterminalSymbol DefineNewSymbol(Symbol existingSymbol, TypeOfGrammarRule type, Int32 newNameIndex, string newName)
          {
-         var newSymbol = new NonterminalSymbol(newName, Lexer.LexerTextPos.Position) {
+         var newSymbol = new NonterminalSymbol(newName, Lexer.LexerTextPos) {
             SymbolNumber = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
             AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
             AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0),
@@ -886,10 +886,10 @@ namespace Grammlator {
        *                    C h e c k    U s a g e    O f    S y m b o l s                               *
        * ************************************************************************************************* */
 
-      public MessageTypeOrDestinationEnum CheckUsageOfSymbols(Action<MessageTypeOrDestinationEnum, String, Grammlator.STextPosition> outputMessage)
+      public MessageTypeOrDestinationEnum CheckUsageOfSymbols(Action<MessageTypeOrDestinationEnum, String, Int32> outputMessage)
          {
          var maxMessageType = MessageTypeOrDestinationEnum.noMessageType;
-         void OutputMessage(MessageTypeOrDestinationEnum type, String message, Grammlator.STextPosition position)
+         void OutputMessage(MessageTypeOrDestinationEnum type, String message, Int32 position)
             {
             outputMessage(type, message, position);
             if (maxMessageType < type)
@@ -925,7 +925,7 @@ namespace Grammlator {
                      {
                      OutputMessage(MessageTypeOrDestinationEnum.Error,
                         $"{GetNameOfSymbol()} is used as terminal or nonterminal symbol but not defined.",
-                        new Grammlator.STextPosition(-1, 0, nt.FirstPosition)
+                        nt.FirstPosition
                         );
                      }
 
@@ -933,7 +933,7 @@ namespace Grammlator {
                      {
                      OutputMessage(MessageTypeOrDestinationEnum.Warning,
                         $"The nonterminal symbol {GetNameOfSymbol()} is not used.",
-                        new Grammlator.STextPosition(-1, 0, nt.FirstPosition)
+                        nt.FirstPosition
                         );
                      }
                   }
@@ -942,7 +942,7 @@ namespace Grammlator {
                   {
                   OutputMessage(MessageTypeOrDestinationEnum.Information,
                      $"The terminal symbol {GetNameOfSymbol()} is not used in any definition (may be used in look ahead)",
-                     new Grammlator.STextPosition(-1, 0, t.FirstPosition)
+                     t.FirstPosition
                      );
                   }
                }

@@ -44,7 +44,7 @@ namespace grammlator {
       private Int32 warnings, errors, firstErrorIndex;
       private Boolean aborted;
 
-      Stopwatch Watch = new Stopwatch();
+      readonly Stopwatch Watch = new Stopwatch();
 
       private void ClearAllResults()
          {
@@ -247,7 +247,7 @@ namespace grammlator {
             // show message in new Errorbox
             if (errors++ == 0)
                firstErrorIndex = ErrorPositions.Count;
-            AddErrorBox(e.Message, e.ErrorPosition.Position);
+            AddErrorBox(e.Message, e.Position);
             }
          catch (Exception ex)
             {
@@ -453,7 +453,7 @@ namespace grammlator {
       /// <param name="f"></param>
       /// <param name="message"></param>
       private void BufferMessage(MessageTypeOrDestinationEnum f, String message)
-         => BufferPositionAndMessage(f, message, new STextPosition(-1, -1, 0));
+         => BufferPositionAndMessage(f, message, 0);
 
       /// <summary>
       /// Store messagetype, message and text position for later display in UI.
@@ -463,24 +463,22 @@ namespace grammlator {
       /// <param name="message"></param>
       /// <param name="pos">Position of the input file, where the error occured</param>
       /// <exception cref="ErrorInSourcedataException">will be thrown if Abort</exception>
-      private void BufferPositionAndMessage(MessageTypeOrDestinationEnum messageType, String message, STextPosition pos)
+      private void BufferPositionAndMessage(MessageTypeOrDestinationEnum messageType, String message, Int32 pos)
          {
-         GrammlatorTabControl.SelectedIndex = 0; // without correct selection of the TabControl with the SourceTextBox the program will crash
-         pos.LineNumber = SourceTextBox.GetLineIndexFromCharacterIndex(pos.Position);
-         pos.ColumnNumber = pos.Position - SourceTextBox.GetCharacterIndexFromLineIndex(pos.LineNumber);
+         Int32 LineNumber, ColumnNumber;
+         String MessageIncludingPosition = message;
 
-         //if (pos.LineNumber < 0) // STextPosition will be replaced by Int32
-         //   {
-         //   GrammlatorTabControl.SelectedIndex = 0; // without correct selection of the TabControl with the SourceTextBox the program will crash
-         //   pos.LineNumber = SourceTextBox.GetLineIndexFromCharacterIndex(pos.Position);
-         //   pos.ColumnNumber = pos.Position - SourceTextBox.GetCharacterIndexFromLineIndex(pos.LineNumber);
-         //   }
-
-         // local method to add line and column number to message
-         String MessageIncludingPosition()
-            => pos.LineNumber < 0 ?
-            message :
-            $"Line {pos.LineNumber + 1,5} column {pos.ColumnNumber + 1,3} {message}";
+         if (pos >= 0)
+            {
+            GrammlatorTabControl.SelectedIndex = 0; // without correct selection of the TabControl with the SourceTextBox the program will crash
+            if (pos >= SourceTextBox.Text.Length)
+               pos = SourceTextBox.Text.Length - 1;
+            LineNumber = SourceTextBox.GetLineIndexFromCharacterIndex(pos);
+            ColumnNumber = pos - SourceTextBox.GetCharacterIndexFromLineIndex(LineNumber);
+            MessageIncludingPosition = $"Line {LineNumber + 1,5} column {ColumnNumber + 1,3} {message}";
+            }
+         else
+            pos = 0;
 
          // local method to format the message type for output
          string messageHeader()
@@ -516,8 +514,8 @@ namespace grammlator {
 
          case MessageTypeOrDestinationEnum.Status:
             // display shortened message in log and complete message in ErrorList
-            AppendLine(Log, messageHeader(), ReferenceToBox(MessageIncludingPosition()));
-            AddErrorBox(MessageIncludingPosition(), pos.Position);
+            AppendLine(Log, messageHeader(), ReferenceToBox(MessageIncludingPosition));
+            AddErrorBox(MessageIncludingPosition, pos);
             return;
 
          case MessageTypeOrDestinationEnum.AbortIfErrors:
@@ -527,12 +525,12 @@ namespace grammlator {
 
          case MessageTypeOrDestinationEnum.Abort:
             // The exception handler will display the message
-            throw new ErrorInSourcedataException(pos, MessageIncludingPosition());
+            throw new ErrorInSourcedataException(pos, MessageIncludingPosition);
 
          // Information, Warning, noMessageTyp (noMessageTyp should not be used)
          default:
             // show complete message in log but not in ErrorList
-            AppendLine(Log, messageHeader(), MessageIncludingPosition());
+            AppendLine(Log, messageHeader(), MessageIncludingPosition);
             return;
             }
          }

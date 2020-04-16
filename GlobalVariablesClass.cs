@@ -153,7 +153,7 @@ namespace Grammlator {
 
       public static void ResetGlobalVariables(
                 Action<MessageTypeOrDestinationEnum, String> OutputMessage,
-                Action<MessageTypeOrDestinationEnum, String, STextPosition> OutputPositionAndMessage)
+                Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPosition)
          {
          // Reset all static variables 
 
@@ -183,7 +183,7 @@ namespace Grammlator {
          StateStackInitialCountVariable = InitialSettings.GetString("VariableStateStackInitialCount");
 
          GlobalVariables.OutputMessage = OutputMessage;
-         GlobalVariables.OutputPositionAndMessage = OutputPositionAndMessage;
+         GlobalVariables.OutputMessageAndPosition = outputMessageAndPosition;
          NumberOfTerminalSymbols = 0;
          NumberOfNonterminalSymbols = 0;
          Startsymbol = new NonterminalSymbol("*Startsymbol", 0) {
@@ -321,7 +321,7 @@ namespace Grammlator {
          get; private set;
          }
 
-      internal static Action<MessageTypeOrDestinationEnum, String, STextPosition> OutputPositionAndMessage {
+      internal static Action<MessageTypeOrDestinationEnum, String, Int32> OutputMessageAndPosition {
          get; private set;
          }
 

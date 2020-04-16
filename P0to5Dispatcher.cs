@@ -14,13 +14,13 @@ namespace Grammlator {
       /// <param name="Resultbuilder"></param>
       /// <param name="SourceReader">The source</param>
       /// <param name="outputMessage">A method to output messages </param>
-      /// <param name="outputPositionAndMessage">A method to output messages with an associated poition in the source</param>
+      /// <param name="outputMessageAndPosition">A method to output messages with an associated poition in the source</param>
       public static void Execute(
          StringBuilder Resultbuilder,
          SpanReaderWithCharacterAndLineCounter SourceReader,
          Action<MessageTypeOrDestinationEnum, String> outputMessage,
-         Action<MessageTypeOrDestinationEnum, String, STextPosition> outputPositionAndMessage)
-          => Go(Resultbuilder, SourceReader, outputMessage, outputPositionAndMessage);
+         Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPosition)
+          => Go(Resultbuilder, SourceReader, outputMessage, outputMessageAndPosition);
 
       /* TODO bei Grammlator:
        *
@@ -48,7 +48,7 @@ namespace Grammlator {
          StringBuilder Resultbuilder,
          SpanReaderWithCharacterAndLineCounter SourceReader,
          Action<MessageTypeOrDestinationEnum, String> outputMessage,
-         Action<MessageTypeOrDestinationEnum, String, STextPosition> outputMessageAndPos) {
+         Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPos) {
 
          // ----- Set initial values
          ResetGlobalVariables(outputMessage, outputMessageAndPos);
@@ -57,17 +57,17 @@ namespace Grammlator {
          // ----- Copy input up to and including line starting with "#region" GrammarString
          Int32 StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, true, RegionString, GrammarString);
          if (StartOfMarkedLine >= 0) {
-            OutputPositionAndMessage(MessageTypeOrDestinationEnum.Status,
+            OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
                 $"Found \"{RegionString} {GrammarString}\", grammlator will start translation at next line.",
-                new STextPosition(lineNumber: SourceReader.LineNumber, columnNumber: 0, position: StartOfMarkedLine));
+                StartOfMarkedLine);
             ;
             ;
          }
          else {
-            OutputPositionAndMessage(
+            OutputMessageAndPosition(
                MessageTypeOrDestinationEnum.Abort,
                $"Missing \"{RegionString} {GrammarString}\".",
-               new STextPosition(SourceReader.LineNumber, columnNumber: 0, SourceReader.Position));
+               SourceReader.Position);
             ;
          }
 
@@ -86,27 +86,27 @@ namespace Grammlator {
          // Copy part between grammar and generated string to Resultbuilder
          StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, false, RegionString, GrammlatorString, GeneratedString);
          if (StartOfMarkedLine >= 0) {
-            OutputPositionAndMessage(MessageTypeOrDestinationEnum.Status,
+            OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
                  $"Found \"{RegionString} {GrammlatorString} {GeneratedString}\", the first line of generated code, which will be replaced.",
-                new STextPosition(lineNumber: SourceReader.LineNumber, columnNumber: 0, position: StartOfMarkedLine));
+                StartOfMarkedLine);
          }
          else {
-            OutputPositionAndMessage(MessageTypeOrDestinationEnum.Abort,
+            OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
                $"Missing \"{RegionString} {GrammlatorString}\".",
-                new STextPosition(lineNumber: SourceReader.LineNumber, columnNumber: 0, position: SourceReader.Position));
+               SourceReader.Position);
          }
 
          // Skip generated part
          StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, false, false, EndregionString, GrammlatorString, GeneratedString);
          if (StartOfMarkedLine>=0) {
-            OutputPositionAndMessage(MessageTypeOrDestinationEnum.Status,
+            OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
                  $"Found \"{EndregionString} {GrammlatorString} {GeneratedString}\", the last line of replaced code.",
-                new STextPosition(lineNumber: SourceReader.LineNumber, columnNumber: 0, position: StartOfMarkedLine));
+                StartOfMarkedLine);
          }
          else {
-            OutputPositionAndMessage(MessageTypeOrDestinationEnum.Abort,
+            OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
                $"Missing \"{EndregionString} {GrammlatorString} {GeneratedString}\".",
-               new STextPosition(lineNumber: SourceReader.LineNumber, columnNumber: 0, position: SourceReader.Position));
+               SourceReader.Position);
          }
 
          // ----- Do phase 2

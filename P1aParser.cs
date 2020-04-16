@@ -62,7 +62,7 @@ namespace Grammlator {
             GlobalVariables.NumberOfNonterminalSymbols = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols;
 
             // Check usage of symbols
-            if (CheckUsageOfSymbols(GlobalVariables.OutputPositionAndMessage) >= MessageTypeOrDestinationEnum.Error)
+            if (CheckUsageOfSymbols(GlobalVariables.OutputMessageAndPosition) >= MessageTypeOrDestinationEnum.Error)
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Abort, "translation aborted: error(s) in source"); // throws an exception
                Debug.Fail("This debug instruction should never be executed");
@@ -139,7 +139,7 @@ namespace Grammlator {
       /// <param name="messageType"></param>
       /// <param name="message"></param>
       private void P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum messageType, String message)
-          => GlobalVariables.OutputPositionAndMessage(messageType, message, Lexer.LexerTextPos);
+          => GlobalVariables.OutputMessageAndPosition(messageType, message, Lexer.LexerTextPos);
 
       #region grammar
       //| /* ---- Start of grammlator grammar as control structure  ---- */
@@ -241,7 +241,7 @@ namespace Grammlator {
          {
          string name = GlobalVariables.GetStringOfIndex(nameIndex);
          string value = GlobalVariables.GetStringOfIndex(stringIndex);
-         value = value.Substring(1, value.Length - 2); // remove leading and trailing "
+         value = value[1..^1]; // remove leading and trailing "
 
          switch (name.ToLower())
             {

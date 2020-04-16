@@ -11,30 +11,20 @@ namespace Grammlator {
    /// and accessed by e.ErrorPosition in exception handlers
    /// </summary>
    public class ErrorInSourcedataException: Exception {
-      private STextPosition Position;
+      internal Int32 Position { get; private set; }
 
       /// <summary>
       /// Exception without additional information, sets Position to undefined
       /// </summary>
       public ErrorInSourcedataException()
-          => Position = new STextPosition(-1, 0, 0);
+          => Position = 0;
 
       /// <summary>
       /// Exception with message, sets Position to undefined
       /// </summary>
       /// <param name = "message" ></param>
       public ErrorInSourcedataException(String message) : base(message)
-          => Position = new STextPosition(-1, 0, 0);
-
-      ///// <summary>
-      ///// Exception with position, stores position, addes message with position
-      ///// </summary>
-      ///// <param name="position"></param>
-      //public ErrorInSourcedataException(STextPosition position)
-      //    //: base(String.Format("Line {0} column {1}", position.LineNumber + 1, position.ColumnNumber + 1)) 
-      //    {
-      //    Position = position;
-      //    }
+          => Position = 0;
 
       /// <summary>
       /// Is thrown when grammlator detects an error in the source.
@@ -42,7 +32,7 @@ namespace Grammlator {
       /// </summary>
       /// <param name="position">The position where the error has been detected in the source</param>
       /// <param name="message"></param>
-      public ErrorInSourcedataException(STextPosition position, String message)
+      public ErrorInSourcedataException(Int32 position, String message)
           //: base(String.Format("Line {1} column {2} {0}", message, position.LineNumber + 1, position.ColumnNumber + 1)) 
           : base(message) => Position = position;
 
@@ -53,8 +43,8 @@ namespace Grammlator {
       /// <param name="position"></param>
       /// <param name="message"></param>
       /// <param name="innerException"></param>
-      public ErrorInSourcedataException(STextPosition position, String message, Exception innerException)
-          : base(String.Format("{0} in source line {1} column {2}.", message, position.LineNumber + 1, position.ColumnNumber + 1), innerException) => Position = position;
+      public ErrorInSourcedataException(Int32 position, String message, Exception innerException)
+          : base(String.Format("{0} in source position {1}}.", message, position + 1), innerException) => Position = position;
 
       /// <summary>
       /// Exception caused by some unknown inner exception
@@ -64,7 +54,6 @@ namespace Grammlator {
       public ErrorInSourcedataException(String message, Exception innerException)
           : base(message, innerException) { }
 
-      internal STextPosition ErrorPosition => Position;
       }
 
    /// <summary>
@@ -94,41 +83,6 @@ namespace Grammlator {
       public ErrorInGrammlatorProgramException(String message, Exception innerException)
           : base(message, innerException) { }
       }
-
-   /// <summary>
-   /// LineNumber and ColumnNumber
-   /// </summary>
-   public struct STextPosition {
-      /// <summary>
-      /// Construct a structure containing LineNumber, ColumnNumber and Position
-      /// </summary>
-      /// <param name="lineNumber"></param>
-      /// <param name="columnNumber"></param>
-      /// <param name="position"></param>
-      public STextPosition(Int32 lineNumber, Int32 columnNumber, Int32 position)
-         {
-         LineNumber = lineNumber;
-         ColumnNumber = columnNumber;
-         Position = position;
-         }
-
-      internal Int32 LineNumber {
-         get; set;
-         }
-      internal Int32 ColumnNumber {
-         get; set;
-         }
-      internal Int32 Position {
-         get; set;
-         }
-
-      /// <summary>
-      /// Ergibt den String  "line " + (LineNumber+1).ToString() + " column " + (ColNumber+1).ToString()
-      /// </summary>
-      /// <returns>String "line ... column ... "  </returns>
-      public override String ToString()
-          => $"line {LineNumber + 1} column {ColumnNumber + 1}";
-      };
 
    internal enum MessageTypeOrDestinationEnum {
       noMessageType,

@@ -51,35 +51,17 @@ namespace Grammlator {
 
          if (result != 'x')
             return result.ToString();
-
-         string s;
-         switch (lr)
+         String s = lr switch
             {
-         case LexerResult.MinusEqual:
-            s = "-=";
-            break;
-         case LexerResult.DoubleQuestionmark:
-            s = "??";
-            break;
-         case LexerResult.StarEqual:
-            s = "*=";
-            break;
-         case LexerResult.StringResult:
-            s = "string";
-            break;
-         case LexerResult.Name:
-            s = "name";
-            break;
-         case LexerResult.CSharpStart:
-            s = "C# code";
-            break;
-         case LexerResult.CSharpEnd:
-            s = "end of C# Code";
-            break;
-         default:
-            s = lr.ToString();
-            break;
-            }
+               LexerResult.MinusEqual => "-=",
+               LexerResult.DoubleQuestionmark => "??",
+               LexerResult.StarEqual => "*=",
+               LexerResult.StringResult => "string",
+               LexerResult.Name => "name",
+               LexerResult.CSharpStart => "C# code",
+               LexerResult.CSharpEnd => "end of C# Code",
+               _ => lr.ToString(),
+               };
          return s;
          }
       }
@@ -101,7 +83,7 @@ namespace Grammlator {
          //this._a = attributeStack;
          //this._s = stateStack;
 
-         LexerTextPos = new STextPosition { LineNumber = -1, ColumnNumber = 0, Position = 0 };
+         LexerTextPos = 0;
          Accepted = true;
          }
 
@@ -110,7 +92,7 @@ namespace Grammlator {
       /// <summary>
       /// Current Position
       /// </summary>
-      public STextPosition LexerTextPos {
+      public Int32 LexerTextPos {
          get; private set;
          }
 
@@ -178,7 +160,7 @@ namespace Grammlator {
          LexerTextPos = inputClassifier.InputPosition;
          inputClassifier.AcceptSymbol(); // make the attribute (the character) available in the stack and to discard the classifiers result
 
-         GlobalVariables.OutputPositionAndMessage(MessageTypeOrDestinationEnum.Error,
+         GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
              "Lexical analysis error " + LexerStateNumber.ToString()
              + ": input character \'" + Source.Span[_a.PeekRef(0)._Int32]
              + "\' classified as \"" + symbol.MyToString() +
