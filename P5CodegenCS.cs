@@ -121,10 +121,6 @@ namespace Grammlator
          CodeLine.Insert(CodeLine.Length, " ", column - LineLength);
       }
 
-      // public int AktuelleZeilennummer() { return fCode.Count; } // TODO die Position in sb für die Labelanweisung bestimmen
-
-      // TODO  Der Zeilenumbruch kann die Kommentarzeilen massiv zerstören. außerdem müsste er einrücken !!!
-
       public Int32 LineLength => CodeLine.Length;
 
       private readonly String[] lineSeparators = new String[] { Environment.NewLine };
@@ -234,7 +230,7 @@ namespace Grammlator
          Indent();
          foreach (String s in stringsToAppend)
          {
-            if (LineLength > 10 && (LineLength + s.Length) >= LineLengthLimit) // CHECK 10
+            if (LineLength > 10 && (LineLength + s.Length) >= LineLengthLimit) // CHECK LineLength > 10
                AppendLineAndIndent();
             CodeLine.Append(s);
          }
@@ -251,7 +247,7 @@ namespace Grammlator
       {
          //AppendWithOptionalLinebreak(i.ToString());
          Indent();
-         if (LineLength > 10 && (LineLength + 5) >= LineLengthLimit) // CHECK 10 and 5
+         if (LineLength > 10 && (LineLength + 5) >= LineLengthLimit) // CHECK (LineLength > 10 && (LineLength + 5) >= LineLengthLimit
             AppendLineAndIndent();
          CodeLine.Append(i);
          return this;

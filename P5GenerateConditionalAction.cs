@@ -196,7 +196,7 @@ namespace Grammlator
          // default: start the loop below with the first block
          Int32 blockIndex = 0;
 
-         // check for special handling of 1st block
+         //  1st block may need special handling
          block = BlockList[0];
 
          if (blockIndex == 0 && block.blockLength >= 2)
@@ -332,7 +332,7 @@ namespace Grammlator
          // Enclose condition in parentheses if there is one more block of the same type
          Boolean useParentheses = BlockList.Count > blockIndex + 2; // example: Count==3, blockIndex=1 => no parentheses
 
-         // check for special handling of 1st block
+         // 1st block may need special handling
          block = BlockList[0];
          if (blockIndex == 0) //  && block.blockLength >= 2 && blockList.Count > 1)
          {
@@ -458,7 +458,7 @@ namespace Grammlator
          // Enclose condition in parentheses if there is one more block of the same type
          Boolean useParentheses = BlockList.Count > blockIndex + 2; // example: Count==3, blockIndex=1 => no parentheses
 
-         // check for special handling of 1st block
+         // 1st block may need special handling
          block = BlockList[0];
 
          if (blockIndex == 0) // && block.blockLength >= 2 && blockList.Count > 1)

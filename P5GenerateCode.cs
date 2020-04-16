@@ -702,6 +702,9 @@ namespace Grammlator
              );
       }
 
+
+      StringBuilder CodeSequenceBuilder = new StringBuilder(4000);
+
       /// <summary>
       /// Generates nothing if .Calls (resp. .AccepCalls) &lt;=0.
       /// Generates goto xxx, if the code has been generated or can not be generated at the actual nesting leve.
@@ -717,7 +720,9 @@ namespace Grammlator
          ParserAction ActionToGenerate = actionToGenerate;
          Boolean Accept = accept;
          Boolean GotoHasBeenGenerated = labelMustBeGenerated;
-         var sbTemp = new StringBuilder();   // TODO Der sb sollte als Parameter übergeben werden oder global sein
+
+         Debug.Assert(CodeSequenceBuilder.Length == 0, $"sbCodeSequence should be cleared at end of {nameof(GenerateCodeSequence)}");
+
          Boolean BeginOfBlockHasBeenGenerated = false;
 
          while (ActionToGenerate != null)
@@ -744,7 +749,7 @@ namespace Grammlator
             {
                case ParserState state:
                {
-                  ActionToGenerate = GenerateState(out Accept, state, sbTemp, nestingLevel);
+                  ActionToGenerate = GenerateState(out Accept, state, CodeSequenceBuilder, nestingLevel);
                   break;
                }
 
@@ -789,11 +794,8 @@ namespace Grammlator
 
                default:
                {
-                  Debug.Fail("illegal or unknown type in Phase5.CodefolgeErzeugen.");
-                  codegen.OutputandClearLine(); // TODO Wie reagieren, wenn kein Debug-Modus?
-                  codegen.AppendLineWithOptionalLinebreak(ActionToGenerate.ToString());
-                  ActionToGenerate = (ActionToGenerate as ParserActionWithNextAction)?.NextAction;
-                  break;
+                  throw new ErrorInGrammlatorProgramException
+                     ($"illegal or unknown type {ActionToGenerate} in {nameof(P5GenerateCode.GenerateCodeSequence)}");
                }
             } // switch
          } // while (ActionToGenerate != null)
@@ -808,6 +810,8 @@ namespace Grammlator
          // Generate an empty line preceding the label that will be generated.
          if (nestingLevel == 0)
             codegen.AppendLine(' ');
+
+         this.CodeSequenceBuilder.Clear();
       } // private ... CodefolgeErzeugen(...)
 
       private ParserAction GenerateHalt(Int32 nestingLevel, HaltAction haltaction)
@@ -1070,13 +1074,10 @@ namespace Grammlator
          if (State.StateStackNumber >= 0)
             codegen.GenerateStateStackPushWithOptionalLinebreak(State.StateStackNumber);
 
-         // TODO "FetchSymbol();" sollte nicht generiert werden, wenn ...
-         // a) wenn zuvor keine A()-Aktion ausgeführt wurde, sofern es sich nicht um den Startzustand handelt
-         // b) wenn anschließend eine Halt-Aktion ausgeführt wird (?)
-         // c) wenn es keine terminalen Symbole gibt ?????
-
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
          // This is prepared  by shortening chains in phase 4 und implemented by the following.
+         // CHECK 05 (low priority) Not yet implemented: "FetchSymbol();" needs not to be generated if all pathes leading to the state
+         //   contain a "FetchSymbol();" and then not a "Accept(...)"
 
          if (State.Actions.Count == 1 && !(State.Actions[0] is TerminalTransition))
          {
@@ -1100,7 +1101,7 @@ namespace Grammlator
          {
             // This shouldn't happen 'cause each state should at least contain one action (may be error action) 
 
-            // TODO ist die Behandlung von Zuständen ohne terminale Aktion so ok?
+            // Check 5 (low priority) ist die Behandlung von Zuständen ohne terminale Aktion so ok?
             // Sind Zustände, die keine erlaubte Aktion enthalten (resultierend aus z.B *=A; A=B; B=A;), entsprechend berücksichtigt
             GlobalVariables.OutputMessage(
                 MessageTypeOrDestinationEnum.Error, "Check your grammar: no actions in state " + (State.IdNumber + 1).ToString());

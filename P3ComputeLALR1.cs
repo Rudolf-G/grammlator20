@@ -187,7 +187,7 @@ namespace Grammlator {
          // The actualTransition is the root of an SCC.
          // The elements of the SCC are in the stack and have all the same set of read symbols to be assigned.
 
-         // TODO document non trivial SCC
+         // TODO log non trivial SCC
 
          NonterminalTransition TopOfStack;
          do

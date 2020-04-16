@@ -391,12 +391,10 @@ namespace Grammlator
              Falls die Annahme gilt, wird fuer alle Zustände der Klasse die Kennung
              auf -1 gesetzt. */
 
-         // TODO Die Eigenschaft, nicht zu kellern, kann eventuell als Eigenschaft der Klasse implementiert werden!
-         // Das setzt allerdings eine andere Implementierung der Klassen voraus
-
          Int32 NotPushingStatesCount = 0;
 
          // Schleife über alle Klassen benachbarter Zustände
+
          // TODO es sollte einen Enumerator geben, so dass möglich ist foreach(cAktionZustand Repräsentant in ZustandPartition)
          //    und foreach(cAktionZustand Nachbar in ZustandPartition.Klasse[Repräsentant])
 
@@ -462,7 +460,7 @@ namespace Grammlator
             ParserAction ActionI = SimplifiedNextAction(StateI.ActionCausedBy(inputSymbol));
             AddCase(ListOfCases, StateI.StateStackNumber, ActionI);
 
-            // Check if this is equivalent to the first action
+            // Determine if this Action is equivalent to the first action
             Equivalent &= ActionsDoTheSame(State1, StateI, Action1, ActionI);
          }
 
@@ -478,7 +476,7 @@ namespace Grammlator
          var NewCase = new BranchcaseStruct(StateStackNumber, f1);
 
          if (listOfCases.Contains(NewCase))
-            return; // CHECK comparision used by Contains
+            return;
          listOfCases.Add(NewCase);
          return;
       }
@@ -684,7 +682,7 @@ namespace Grammlator
                {
                   BranchcaseStruct branchCase = branchCaseList[i];
                   branchCase.BranchcaseAction = SimplifiedNextAction(branchCase.BranchcaseAction);
-                  // TODO CHECK may this cause endless recursion ?? 
+                  // CHECK may this cause endless recursion ?? 
                   branchCaseList[i] = branchCase;
                }
 
@@ -731,7 +729,7 @@ namespace Grammlator
             // The semantic method of nextReduction can be copied to reduction
             // and the nextReduction be skipped. This may cause duplication of generated code!
 
-            return; // return to avoid duplication of code; therfore the following code is commented out
+            return; // return to avoid duplication of code; therefore the following code is commented out
 
             //TODO Test if a reference count can be introduced (if 1 try to combine)
 

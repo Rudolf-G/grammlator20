@@ -195,11 +195,11 @@ namespace Grammlator {
 
             for (Int32 i = 0; i < elementlist.Count; i++) {
                 if (elementlist[i].IdNumber != i)
-                    throw new ArgumentException("elementlist[i].IDNumber != i");
+                    throw new ArgumentException($"{nameof(PartitionInfoArray<T>)}.elementlist[{i}].IDNumber != {i}");
                 }
             foreach (T Element in elementlist) {
                 if (Elementlist[Element.IdNumber] != Element)
-                    throw new ErrorInGrammlatorProgramException("Argument Error: ID-Numbers are not unique "); // TODO genauere Exception-Meldung !!!                
+                    throw new ErrorInGrammlatorProgramException("Argument Error: ID-Numbers are not unique ");
                 }
 #endif
 

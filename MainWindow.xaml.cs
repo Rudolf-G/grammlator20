@@ -465,12 +465,16 @@ namespace grammlator {
       /// <exception cref="ErrorInSourcedataException">will be thrown if Abort</exception>
       private void BufferPositionAndMessage(MessageTypeOrDestinationEnum messageType, String message, STextPosition pos)
          {
-         if (pos.LineNumber < 0)
-            {
-            GrammlatorTabControl.SelectedIndex = 0; // without correct selection of the TabControl with the SourceTextBox the program will crash
-            pos.LineNumber = SourceTextBox.GetLineIndexFromCharacterIndex(pos.Position);
-            pos.ColumnNumber = pos.Position - SourceTextBox.GetCharacterIndexFromLineIndex(pos.LineNumber);
-            }
+         GrammlatorTabControl.SelectedIndex = 0; // without correct selection of the TabControl with the SourceTextBox the program will crash
+         pos.LineNumber = SourceTextBox.GetLineIndexFromCharacterIndex(pos.Position);
+         pos.ColumnNumber = pos.Position - SourceTextBox.GetCharacterIndexFromLineIndex(pos.LineNumber);
+
+         //if (pos.LineNumber < 0) // STextPosition will be replaced by Int32
+         //   {
+         //   GrammlatorTabControl.SelectedIndex = 0; // without correct selection of the TabControl with the SourceTextBox the program will crash
+         //   pos.LineNumber = SourceTextBox.GetLineIndexFromCharacterIndex(pos.Position);
+         //   pos.ColumnNumber = pos.Position - SourceTextBox.GetCharacterIndexFromLineIndex(pos.LineNumber);
+         //   }
 
          // local method to add line and column number to message
          String MessageIncludingPosition()
