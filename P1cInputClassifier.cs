@@ -171,13 +171,13 @@ namespace Grammlator {
       /// The position in SourceReader of the last peeked Symbol. Accepting the symbol by AcceptSymbol will increment the value by 1.
       /// </summary>
       public Int32 CurrentPosition {
-         get { return SourceReader.Position - inputLine.Length + CurrentColumn; } // CHECK replace CurrentPosition by a local variable
+         get { return SourceReader.Position - inputLine.Length + CurrentColumn; } // TOCHECK replace CurrentPosition by a local variable
          }
 
       /// <summary>
       /// Returns CurrentPosition
       /// </summary>
-      public Int32 InputPosition // CHECK  replace InputPosition by CurrentPosition (without lineNumber and columnNumber)
+      public Int32 InputPosition // TOCHECK  replace InputPosition by CurrentPosition (without lineNumber and columnNumber)
           => CurrentPosition;
 
       /// <summary>

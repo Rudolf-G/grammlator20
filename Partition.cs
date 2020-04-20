@@ -143,7 +143,7 @@ namespace Grammlator {
    /// This class must implement the interface <see cref="IELementOfPartition"/>
    /// </typeparam>
    public class PartitionInfoArray<T>:
-       PartitionInfoArrayInt where T : class, IELementOfPartition {
+      PartitionInfoArrayInt where T : class, IELementOfPartition {
       private static Int32 MaxOfIdNumber(IEnumerable<T> elementlist)
          {
          Int32 count = 0, max = Int32.MinValue, min = Int32.MaxValue;
@@ -193,14 +193,16 @@ namespace Grammlator {
 
 #if DEBUG
 
-            for (Int32 i = 0; i < elementlist.Count; i++) {
-                if (elementlist[i].IdNumber != i)
-                    throw new ArgumentException($"{nameof(PartitionInfoArray<T>)}.elementlist[{i}].IDNumber != {i}");
-                }
-            foreach (T Element in elementlist) {
-                if (Elementlist[Element.IdNumber] != Element)
-                    throw new ErrorInGrammlatorProgramException("Argument Error: ID-Numbers are not unique ");
-                }
+         for (Int32 i = 0; i < elementlist.Count; i++)
+            {
+            if (elementlist[i].IdNumber != i)
+               throw new ArgumentException($"{nameof(PartitionInfoArray<T>)}.elementlist[{i}].IDNumber != {i}");
+            }
+         foreach (T Element in elementlist)
+            {
+            if (Elementlist[Element.IdNumber] != Element)
+               throw new ErrorInGrammlatorProgramException("Argument Error: ID-Numbers are not unique ");
+            }
 #endif
 
          }
@@ -231,7 +233,7 @@ namespace Grammlator {
       public T NextElement(T element) => Elementlist[NextElementsId(element)];
 
       /// <summary>
-      /// Combines the partition classes of to elements; no effext, if the elements are already in the same class
+      /// Combines the partition classes of two elements; no effect, if the elements are already in the same class
       /// </summary>
       /// <param name="memberOfClass1"></param>
       /// <param name="memberOfClass2"></param>
@@ -250,5 +252,27 @@ namespace Grammlator {
           => IsClassRepresentative(
               (memberOfClass ?? throw new ArgumentNullException(nameof(memberOfClass))).IdNumber
               );
+
+      public IEnumerable<T> ClassRepresentatives {
+         get {
+            foreach (T classRepresentative in Elementlist)
+               {
+               if (IsClassRepresentative(classRepresentative))
+                  yield return classRepresentative;
+               }
+            }
+         }
+
+      public IEnumerable<T> ElementsOfClass(T element)
+         {
+         T result = element;
+         do
+            {
+            yield return result;
+            result = NextElement(result);
+            }
+         while (result != element);
+         }
+
       }
    }

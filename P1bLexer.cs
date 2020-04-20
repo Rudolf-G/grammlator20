@@ -394,7 +394,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
       private void AssignDoubleQuestionmarkToSymbol() => Symbol = LexerResult.DoubleQuestionmark;
 
       //| Gap= GapString
-      private void AdvanceTextPos() => LexerTextPos = inputClassifier.InputPosition; // CHECK inputClassifier.InputPosition will be obsolete
+      private void AdvanceTextPos() => LexerTextPos = inputClassifier.InputPosition; // TOCHECK inputClassifier.InputPosition will be obsolete
 
       //| GapString=
       //|      /*empty */

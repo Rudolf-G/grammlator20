@@ -444,8 +444,6 @@ namespace grammlator {
        => m.AsSpan(0, m.Length > 35 ? 35 : m.Length).ToString()
           + $"...   see message box {ErrorPositions.Count + 1}";
 
-
-
       /// <summary>
       /// Write message into <see langword="abstract"/>buffer which will be displayed later in the UI.
       /// If possible BufferPositionAndMessage(...) should be used!

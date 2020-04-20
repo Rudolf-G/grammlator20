@@ -138,13 +138,18 @@ namespace Grammlator {
          foreach (ParserAction action in Actions)
             {
             LookaheadAction FittingAction;
+
             if (action is TerminalTransition transition)
                {
-               if (transition.TerminalSymbols.Empty()) // may happen if there is a "if( ...ALL())"
-                  continue; // this action will never be executed
-                            // a TerminalTransition, even if caused by all symbols,
-                            // can not be skipped because the accept must be generated
-               return null; // there must be one more action in the state, for example error handling
+               if (!transition.TerminalSymbols.Empty())
+                  {
+                  // a TerminalTransition, even if caused by all symbols,
+                  // can not be skipped because the accept must be generated
+                  return null; // there must be one more action in the state, for example error handling
+                  }
+               // ...TerminalSymbols.Empty(): this transition will never be executed, can be ignored
+               // This may happen if there is also a IF ( ...All()) ...
+               continue;
                }
             else if (action is LookaheadAction lookAction)
                {
@@ -153,15 +158,18 @@ namespace Grammlator {
                else if (lookAction.TerminalSymbols.Empty()) // only correct after preceding "if( ...ALL())"
                   continue; // this action will never be executed
                else
-                  FittingAction = lookAction; // TODO CHECK this may cause late error recognition because the error handling action may not be generated
-                                              // return null; // this variant allows early error recognition
+                  {
+                  FittingAction = lookAction;
+                  // TOCHECK this may cause deferred error recognition because the error handling action may not be generated
+                  // return null; // this variant allows early error recognition
+                  }
                }
             else
                {
                continue; // ignore all other types of actions
                }
 
-            if (theOnlyOneAction == null || theOnlyOneAction.CompareTo(FittingAction) == 0)
+            if (theOnlyOneAction == null || theOnlyOneAction.Equals(FittingAction))
                theOnlyOneAction = FittingAction;
             else if (theOnlyOneAction != FittingAction)
                return null; // more than one action
@@ -287,22 +295,21 @@ namespace Grammlator {
          {
          var State = this;
 
-         // TODO Check whether there should be some more optimizations before solving conflicts            
+         // TOCHECK whether there should be some more optimizations before solving conflicts            
 
          var subsetOfConflictSymbols = new BitArray(ConflictSymbols);
 
-         // TODO die Konfliktlösung überprüfen und die Protokollierung verbessern
-         //   Sind verschiedene Konflikte im gleichen Zustand richtig behandelt?
-         //   Wird der Konflikt so gelöst, dass die Haltaktion erreicht werden kann?
-         //   Können durch die Konfliktlösung Endlosschleifen entstehen?
+         // TOCHECK Should more information about the conflicts be written into the log?
+         // TOCHECK Might there be states - after solving conflicts -  without path to the halt action
+         //         and might solving conflicts lead to endless loops?
 
          int indexOfActionWithPriority = GetHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols);
 
-         // Ausgelöst wird der Konflikt durch subsetOfConflictSymbols.
-         // Diese werden aus den beteiligten Aktionen, ausgenommen diejenige
-         // mit der höchsten Priorität und Aktionen mit dynamischer Priorität, gestrichen.
+         // The subsetOfConflictSymbols cause the conflict
+         // These symbols have to be removed from all participating actions exept 
+         // the one with the highest priority and those with dynamic priority
 
-         // Protocol Conflict
+         // Log the conflict
          sb.AppendLine()
             .Append(" when Symbol == ");
          subsetOfConflictSymbols.BitsToStringbuilder(
@@ -313,9 +320,9 @@ namespace Grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
-         // da Aktion geändert wird, kann hier (und in den umgebenden Schleifen) nicht 
-         // "foreach (cAktion Aktion in Zustand.Aktionen)" verwendet werden.
-         // In der expliziten Schleife steht der Index zur Verfügung.
+         // Action will be modified inside the following loop.
+         // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
+         // Hence a loop with an eplicit index is used.
 
          // For each action in the parser state (ignoring actions with dynamic priority)
          // determine action symbols and priority and determine the action with the highest priority
@@ -377,19 +384,24 @@ namespace Grammlator {
                   conditionalAction.ToStringbuilder(sb)
                     .AppendLine();
 
-                  // Prüfen: was ist die richtige Stelle, um Konflikte zu erkennen und / bzw. zu lösen ???
+                  // TOCHECK What is the right place in the program to solve conflicts (first optimization  or first solve conflicts?)
 
-                  // Die folgenden Zeilen waren zeitweise auskommentiert, damit die Aktion  in der Zustandsliste angezeigt wird.
-                  // Das führt zu nicht erreichbaren Anweisungen im generierten code und zu "IF (true)..."
 
-                  // Aktionen mit leerer Menge terminaler Symbole löschen (nicht mehr erreichbar)
-                  // Das kann dazu führen, dass weitere Aktionen nicht mehr erreichbar sind! ????
+                  // Delete actions with the empty set of terminal input symbols.
+                  // This may cause that other actions can not be reached
+
                   // TODO Check   How is DeletedAction handled in further steps ???
                   if (symbolsOfThisAction.Empty())
                      {
-                     State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
+                     // Delete actions without remaining terminal symbols.
+                     // Otherwise there might result code with If(true)... and code that can be never be reached
+
                      sb.AppendLine("    This action has been deleted because no input symbols remained.");
-                     // State.Actions.RemoveAt(IndexOfAction); würde in der Schleife das nachfolgene Element, das den Index i bekäme, überspringen
+
+                     State.Actions.RemoveAt(IndexOfAction);
+                     IndexOfAction--;
+
+                     //State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
                      }
                   }
                }
@@ -410,16 +422,16 @@ namespace Grammlator {
       /// <returns>Index of action with priority</returns>
       private Int32 GetHighestPriorityActionOfConflictingActions(BitArray subsetOfConflictSymbols)
          {
-         // Alle Aktionen auf Konflikte mit den vorhergehenden Aktionen überprüfen
-         var State = this;
+         // Test each action of the state if it causes a conflict with any preceding action 
+
          var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count);
-         // TODO check how to move allocation out of all loops
+
          Int32 indexOfActionWithPriority = 0;
          Int32 highestPriority = Int32.MinValue;
 
-         for (Int32 IndexOfAction = 0; IndexOfAction < State.Actions.Count; IndexOfAction++)
+         for (Int32 IndexOfAction = 0; IndexOfAction < this.Actions.Count; IndexOfAction++)
             {
-            ParserAction action = State.Actions[IndexOfAction];
+            ParserAction action = this.Actions[IndexOfAction];
 
             // For each action in the parser state (ignoring actions with dynamic priority)
             // determine action symbols and priority and determine the action with the highest priority
@@ -516,22 +528,23 @@ namespace Grammlator {
          {
          var State = this;
 
-         // TODO Check whether there should be some more optimizations before solving conflicts            
+         // TOCHECK Should more information to the conflicts be written into the log?
+         // TOCHECK Might there be states - after solving conflicts -  without path to the halt action
+         //         and might solving conflicts lead to endless loops?
 
          var subsetOfConflictSymbols = new BitArray(ConflictSymbols);
 
-         // TODO die Konfliktlösung überprüfen und die Protokollierung verbessern
-         //   Sind verschiedene Konflikte im gleichen Zustand richtig behandelt?
-         //   Wird der Konflikt so gelöst, dass die Haltaktion erreicht werden kann?
-         //   Können durch die Konfliktlösung Endlosschleifen entstehen?
+         // TOCHECK Should more information about the conflicts be written into the log?
+         // TOCHECK Might there be states - after solving conflicts -  without path to the halt action
+         //         and might solving conflicts lead to endless loops?
 
          /* -------------- */
          int indexOfActionWithPriority = SolveoOneSubsetOfDynamicConflicts(subsetOfConflictSymbols);
          /* -------------- */
 
-         // Ausgelöst wird der Konflikt durch subsetOfConflictSymbols.
-         // Diese werden aus den beteiligten Aktionen, ausgenommen diejenige
-         // mit der höchsten Priorität und Aktionen mit dynamischer Priorität, gestrichen.
+         // The subsetOfConflictSymbols cause the conflict
+         // These symbols have to be removed from all participating actions exept 
+         // the one with the highest priority and those with dynamic priority
 
          sb.AppendLine()
            .Append("Conflict in state ")
@@ -593,12 +606,15 @@ namespace Grammlator {
 
                   // Aktionen mit leerer Menge terminaler Symbole löschen (nicht mehr erreichbar)
                   // Das kann dazu führen, dass weitere Aktionen nicht mehr erreichbar sind! ????
-                  // TODO Check   How is DeletedAction handled in further steps ???
+                  // TODO Check   no longer generated DeletedAction  - any consequence? How is DeletedAction handled in further steps ???
                   if (symbolsOfThisAction.Empty())
                      {
-                     State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
                      sb.AppendLine("This action has been deleted because no input symbols remained after conflict resolution.");
-                     // State.Actions.RemoveAt(IndexOfAction); würde in der Schleife das nachfolgene Element, das den Index i bekäme, überspringen
+
+                     State.Actions.RemoveAt(IndexOfAction);
+                     IndexOfAction--;
+
+                     //State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
                      }
                   }
                }
@@ -836,9 +852,9 @@ namespace Grammlator {
       public Int32 CompareTo(ItemStruct other)
          {
          /* Is used in P2 to sort the items of each new state.
-          * The resulting order influences the orde rin which new states are computed 
+          * The resulting order influences the order in which new states are computed 
           * and hence the numbers assigned to states.
-          * The resuslting order of actions is essential for comparing states.
+          * The resulting order of actions is essential for comparing states.
           */
          // TODO Check nachdem CompareErzeugtesSymbolFirst getrennt implementiert ist, könnte hier wieder die Elementnummer als erstes Kriterium genommen werden
          if (this.SymbolDefinition.DefinedSymbol.SymbolNumber < other.SymbolDefinition.DefinedSymbol.SymbolNumber)
@@ -862,14 +878,14 @@ namespace Grammlator {
          }
 
       /// <summary>
-      /// Used to sort items by their input symbols 
-      /// (items with terminal input symbols ahead of items with nonterminal input symbols),
+      /// Used in P2 to sort items by their input symbols when computing LR0 states. 
+      /// Orders items with terminal input symbols ahead of items with nonterminal input symbols,
       /// then by the defined symbols, 
       /// then the definitions id-nr, then the items element-nr
       /// </summary>
-      /// <param name="Item"></param>
-      /// <returns>0 if equal, -1 if this less ther, +1 if this greater other</returns>
-      internal Int32 CompareInputSymbols(ItemStruct Item)
+      /// <param name="item"></param>
+      /// <returns>0 if equal, -1 if this is less, +1 if this is greater than other</returns>
+      internal Int32 CompareInputSymbols(ItemStruct item)
          {
          // This comparision is used in phase 2.
          // Items have to be sorted by their input symbols.
@@ -881,30 +897,30 @@ namespace Grammlator {
          // then by the items element number.
 
          // terminal symbols ahead of nonterminal symbols
-         if (this.InputSymbol.IsTerminalSymbol && !Item.InputSymbol.IsTerminalSymbol)
+         if (this.InputSymbol.IsTerminalSymbol && !item.InputSymbol.IsTerminalSymbol)
             return -1;
-         if (!this.InputSymbol.IsTerminalSymbol && Item.InputSymbol.IsTerminalSymbol)
+         if (!this.InputSymbol.IsTerminalSymbol && item.InputSymbol.IsTerminalSymbol)
             return +1;
 
          // terminal resp. nonterminal inputsymbols with increasing numbers
-         if (this.InputSymbol.SymbolNumber < Item.InputSymbol.SymbolNumber)
+         if (this.InputSymbol.SymbolNumber < item.InputSymbol.SymbolNumber)
             return -1;
-         if (this.InputSymbol.SymbolNumber > Item.InputSymbol.SymbolNumber)
+         if (this.InputSymbol.SymbolNumber > item.InputSymbol.SymbolNumber)
             return +1;
 
-         if (this.SymbolDefinition.DefinedSymbol.SymbolNumber < Item.SymbolDefinition.DefinedSymbol.SymbolNumber)
+         if (this.SymbolDefinition.DefinedSymbol.SymbolNumber < item.SymbolDefinition.DefinedSymbol.SymbolNumber)
             return -1;
-         if (this.SymbolDefinition.DefinedSymbol.SymbolNumber > Item.SymbolDefinition.DefinedSymbol.SymbolNumber)
+         if (this.SymbolDefinition.DefinedSymbol.SymbolNumber > item.SymbolDefinition.DefinedSymbol.SymbolNumber)
             return +1;
 
-         if (this.SymbolDefinition.IdNumber < Item.SymbolDefinition.IdNumber)
+         if (this.SymbolDefinition.IdNumber < item.SymbolDefinition.IdNumber)
             return -1;
-         if (this.SymbolDefinition.IdNumber > Item.SymbolDefinition.IdNumber)
+         if (this.SymbolDefinition.IdNumber > item.SymbolDefinition.IdNumber)
             return +1;
 
-         if (this.ElementNr < Item.ElementNr)
+         if (this.ElementNr < item.ElementNr)
             return -1;
-         if (this.ElementNr > Item.ElementNr)
+         if (this.ElementNr > item.ElementNr)
             return +11;
 
          return 0;

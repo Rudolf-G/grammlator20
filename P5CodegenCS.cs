@@ -30,8 +30,7 @@ namespace Grammlator
       /// </summary>
       private readonly StringBuilder CodeLine = new StringBuilder();
 
-      private const Int32 LineLengthLimit = 120;
-      // TODO allow user to define LimitForLineLength
+      private Int32 LineLengthLimit = GlobalVariables.LineLengthLimit; // TOCHECK can more generated lines be shortened to LineLengthLimit
 
       /// <summary>
       /// number of spaces used per indentation level
@@ -230,7 +229,7 @@ namespace Grammlator
          Indent();
          foreach (String s in stringsToAppend)
          {
-            if (LineLength > 10 && (LineLength + s.Length) >= LineLengthLimit) // CHECK LineLength > 10
+            if (LineLength > 10 && (LineLength + s.Length) >= LineLengthLimit) // TOCHECK LineLength > 10 why 10?
                AppendLineAndIndent();
             CodeLine.Append(s);
          }
@@ -247,7 +246,7 @@ namespace Grammlator
       {
          //AppendWithOptionalLinebreak(i.ToString());
          Indent();
-         if (LineLength > 10 && (LineLength + 5) >= LineLengthLimit) // CHECK (LineLength > 10 && (LineLength + 5) >= LineLengthLimit
+         if (LineLength > 10 && (LineLength + 5) >= LineLengthLimit) // TOCHECK (LineLength > 10 && (LineLength + 5) >= LineLengthLimit
             AppendLineAndIndent();
          CodeLine.Append(i);
          return this;

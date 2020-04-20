@@ -992,7 +992,7 @@ namespace Grammlator {
                NumberOfTrivalDefinitions++;
                }
 
-            // Check if there are assignments to all attributes of the defined symbol
+            // This checks if there are assignments to all attributes of the defined symbol and set their fields
             EvaluateMethodParameters(semanticMethod: null);
 
             // remove the attributes of the trivial definition from ListOfAttributesOfSyntaxRule
@@ -1067,9 +1067,9 @@ namespace Grammlator {
             }
          }
 
-      /*****************************************************************************
-       *******    Check Method Parameters And Compute Stack Offsets        *********
-       *****************************************************************************/
+      /*********************************************************************************
+       *******  This Checks the  Method Parameters And Computes Stack Offsets  *********
+       *********************************************************************************/
 
       /// <summary>
       ///  an empty list of method parameters

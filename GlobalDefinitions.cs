@@ -496,21 +496,26 @@ namespace Grammlator {
       /// Checks if one of the Symbols ContainsAnEmptyAlternative
       /// </summary>
       /// <param name="SymbolArray"></param>
-      /// <returns>One of the values of <see cref="EmptyComputationResultEnum"/></returns>
+      /// <returns>
+      /// <see cref="EmptyComputationResultEnum.IsOrContainsEmptyDefinition"/>,
+      /// <see cref="EmptyComputationResultEnum.NotEmpty"/>
+      /// <see cref="EmptyComputationResultEnum.NotYetComputedOrRecursion"/>
+      /// </returns>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
       internal static EmptyComputationResultEnum OneOfTheSymbolsContainsAnEmptyDefinition(this Symbol[] SymbolArray)
          {
-         // Search for a symbol with an empty definition, assume it will be not found
+         // Search for a symbol with an empty definition, assume there will be none
          var Result = EmptyComputationResultEnum.NotEmpty;
+
          foreach (Symbol Symbol in SymbolArray)
             {
-            switch (Symbol.SymbolContainsAnEmptyDefinitionComputation())
+            switch (Symbol.ContainsAnEmptyDefinition()) // may cause recursion
                {
-            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
-               return EmptyComputationResultEnum.IsOrContainsEmptyDefinition; // Success
-
             case EmptyComputationResultEnum.NotEmpty:
                break; // this symbol doesn't contain an empty definition, check next symbol of list
+
+            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
+               return EmptyComputationResultEnum.IsOrContainsEmptyDefinition; // Success
 
             case EmptyComputationResultEnum.NotYetComputedOrRecursion:
                   {
@@ -525,10 +530,10 @@ namespace Grammlator {
                       $"Error in {nameof(OneOfTheSymbolsContainsAnEmptyDefinition)}: illegal value");
                   }
                }
-            }
+            } // foreach
 
-         // The computation ended without finding an empty alternative.
-         return Result;
+         // Didn't find an empty definition
+         return Result; // NotYetComputedOrRecursion or NotEmpty
          }
 
       internal static Int32 MarkAndCountAllUsedSymbols(this Symbol[] Symbolliste)
@@ -636,31 +641,34 @@ namespace Grammlator {
           => false; // overridden by NonterminalSymbol
 
       /// <summary>
-      /// Only nonterminal symbol may be nullable. A nonterminal is nullable, if it produces the empty string.
+      /// Only nonterminal symbols may be nullable. A nonterminal is nullable, if it produces the empty string.
+      /// If this has not yet been computed
       /// <see cref="IsNullabel"/> checks recursively if the symbol contains an empty definition or a definition
-      /// which contains only symbols for which SymbolContainsAnEmptyDefinition is true
+      /// which contains only symbols for which SymbolContainsAnEmptyDefinition is true.
       /// </summary>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
       internal Boolean IsNullabel {
          get {
-            if (_EmptyComputationResult == EmptyComputationResultEnum.NotYetComputedOrRecursion)
-               _EmptyComputationResult = SymbolContainsAnEmptyDefinitionComputation(); // will be called only once
 
             switch (_EmptyComputationResult)
                {
             case EmptyComputationResultEnum.NotEmpty:
-               return false;
-
             case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
-               return true;
+               return _EmptyComputationResult == EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
 
             case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+               // has not yet been computed: compute it (only once)
+               _EmptyComputationResult = ContainsAnEmptyDefinition();
+
+               if (_EmptyComputationResult == EmptyComputationResultEnum.NotYetComputedOrRecursion)
                   {
                   /* computation hase bean started from outside any recursion, 
-   * so recursion means that no empty alternative has been found */
+                   * so recursion means that no empty alternative has been found */
                   _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;
                   return false;
                   }
+
+               return _EmptyComputationResult == EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
 
             default: // case eEmptyComputationResult.IsJustBeingComputed 
                   {
@@ -674,12 +682,11 @@ namespace Grammlator {
 
       /// <summary>
       /// abstract method, overriden in TerminalSymbol and NonterminalSymbol, 
-      /// recursively computes, whether the symbol contains an empty definition
-      /// result may be ContainsAnEmptyDefinition, DoesNotContainAnEmptyDefinition, 
+      /// recursively computes, whether the symbol contains an empty definition.
+      /// result may be IsOrContainsEmptyDefinition, NotEmpty, 
       /// IsJustBeingComputed (only if called by itself), NotYetComputedOrRecursion (if part of a recursion)
       /// </summary>
-      internal abstract EmptyComputationResultEnum SymbolContainsAnEmptyDefinitionComputation();
-      // TODO CHECK: may be implemented more efficiently
+      internal abstract EmptyComputationResultEnum ContainsAnEmptyDefinition();
 
       /// <summary>
       /// The terminal symbols are numbered starting with 1, the nonterminal symbols are also numbered starting with 1
@@ -754,17 +761,18 @@ namespace Grammlator {
          if (!isUsed)
             sb.Append(", is not used in any definition");
          }
+
       }
 
    internal sealed class TerminalSymbol: Symbol {
       internal TerminalSymbol(String s, Int32 Position) : base(s, Position)
-          => _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;
+          => _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;  // Terminal symbols are never empty
 
       internal Int32 Weight;
 
       internal override String SymboltypeString => "terminal symbol";
 
-      internal override EmptyComputationResultEnum SymbolContainsAnEmptyDefinitionComputation()
+      internal override EmptyComputationResultEnum ContainsAnEmptyDefinition()
           => EmptyComputationResultEnum.NotEmpty;
 
       internal override void ToStringbuilder(StringBuilder sb)
@@ -834,12 +842,12 @@ namespace Grammlator {
          }
 
       /// <summary>
-      /// Test the trivial and nontrivial definitions of the nonterminal symbol for an empty definition,
+      /// Tests the trivial and nontrivial definitions of the nonterminal symbol for an empty definition,
       /// <see cref="Symbol._EmptyComputationResult"/> must have a defined value!
       /// </summary>
       /// <returns>One of the values of <see cref="EmptyComputationResultEnum"/></returns>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
-      internal override EmptyComputationResultEnum SymbolContainsAnEmptyDefinitionComputation()
+      internal override EmptyComputationResultEnum ContainsAnEmptyDefinition()
          {
          switch (_EmptyComputationResult)
             {
@@ -851,49 +859,54 @@ namespace Grammlator {
          // if value is marked as "just beeing computed" do not change the value, but return "NotYetComputedOrRecursion"
          case EmptyComputationResultEnum.IsJustBeingComputed:
             return EmptyComputationResultEnum.NotYetComputedOrRecursion;
-            /* default: break; */
+
             }
 
+         /* default: */
+
          Debug.Assert(_EmptyComputationResult == EmptyComputationResultEnum.NotYetComputedOrRecursion);
-         // Try to compute the value. The computaton may be limited by recursion.
+
+         // Try to compute the value. The computation may be stopped by recursion.
 
          _EmptyComputationResult = EmptyComputationResultEnum.IsJustBeingComputed; // avoid endless recursion
          Boolean SearchLimitedByRecursion = false;
 
-         switch (NontrivalDefinitionsList.ListContainsEmptyAlternativeComputation() // this computation may cause recursion
-             )
+         // Check nontrivial definitions of the nonterminal symbol
+         switch (NontrivalDefinitionsList.ListContainsEmptyDefinition()) // this may cause recursion
             {
-         case EmptyComputationResultEnum.IsOrContainsEmptyDefinition: // an empty alternative has been found
-               {
+         case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
+               {// success: an empty definition has been found
                _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
                return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
                }
 
          case EmptyComputationResultEnum.NotEmpty: // the symbol does not contain an empty alternative 
-            break; // Search descendants
+            break; // Search in nontrivial definitions
 
          case EmptyComputationResultEnum.NotYetComputedOrRecursion:
                {
-               // Die Suche wurde wegen Rekursion abgebrochen, ohne eine leere Alternative zu finden.
-               // Bei Aufruf von außen bedeutet das, es wurde keine leere Alternative gefunden.
-               // Bei Aufruf aus erzeugtLeere Zeichenkette bedeutet das, es muss weiter gesucht werden und
-               // beim nächsten Aufruf dieser Instanz ist wieder zu suchen. Die Chance ist besser, da dann das Ergebnis für den von
-               // außen erfolgten Aufruf vorliegt
+               // The search is stopped caused by recursion without finding an empty definition.
+               // If ContainsAnEmptyDefinition has been called from outside this means there is no empty definition.
+               // If it has been called during another search process that must be continued and
+               // computing the result for the current symbol must be reated later.
+               // Then the chance of finding a result is better.
+               // TODO Expand this simple algorithm to the Digraph algorithm which runs in linear time.
                SearchLimitedByRecursion = true;
-               // TODO effizientere Lösung für erzeugtLeereZeichenkette mit Digraph-Suche implementieren
-               break; // Search descendants
+               break;  // Search in nontrivial definitions
                }
 
          case EmptyComputationResultEnum.IsJustBeingComputed:
             break;
-         default: // case eEmptyComputationResult.IsJustBeingComputed:
+
+         default: // case ... .IsJustBeingComputed:
                {
-               Debug.Fail($"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
+               Debug.Fail($"Error in {nameof(ContainsAnEmptyDefinition)}");
                throw new ErrorInGrammlatorProgramException(
-                   $"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
+                   $"Error in {nameof(ContainsAnEmptyDefinition)}");
                }
             }
 
+         // Check trivial definitions of the nonterminal symbol
          switch (TrivalDefinitionsArray.OneOfTheSymbolsContainsAnEmptyDefinition()
              )
             {
@@ -915,15 +928,17 @@ namespace Grammlator {
 
          default: //  case eEmptyComputationResult.IsJustBeingComputed:
                {
-               Debug.Fail($"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
+               Debug.Fail($"Error in {nameof(ContainsAnEmptyDefinition)}");
                throw new ErrorInGrammlatorProgramException(
-                   $"Error in {nameof(SymbolContainsAnEmptyDefinitionComputation)}");
+                   $"Error in {nameof(ContainsAnEmptyDefinition)}");
                }
             }
 
          // keine Alternative bzw. Nachfolger gefunden, die bzw. der die leere Zeichenkette erzeugt
-         _EmptyComputationResult = SearchLimitedByRecursion
-             ? EmptyComputationResultEnum.NotYetComputedOrRecursion : EmptyComputationResultEnum.NotEmpty;
+         _EmptyComputationResult = 
+            SearchLimitedByRecursion
+             ? EmptyComputationResultEnum.NotYetComputedOrRecursion 
+             : EmptyComputationResultEnum.NotEmpty;
 
          return _EmptyComputationResult;
          }

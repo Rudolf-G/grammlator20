@@ -9,7 +9,8 @@ namespace Grammlator
 {
    internal partial class P5GenerateCode
    {
-      public static void MakeInstanceAndExecute(P5CodegenCS Codegen) => new P5GenerateCode(Codegen).Execute();
+      public static void MakeInstanceAndExecute(P5CodegenCS Codegen) 
+         => new P5GenerateCode(Codegen).Execute();
 
       /// <summary>
       /// Generate code
@@ -63,7 +64,7 @@ namespace Grammlator
        *    --       gleiche Teile (bedingte Aktionen) verschiedener Zustände zusammenfassen}
        *    */
 
-      private const Int32 nestingLevelLimit = 5; // TODO allow user to set NestingLevelLimit
+      private readonly Int32 nestingLevelLimit = GlobalVariables.NestingLevelLimit;
       private Boolean reductionsModifyAttributStack;
 
       private void Execute()
@@ -130,7 +131,7 @@ namespace Grammlator
          codegen.GenerateEndOfCode(); // und den eventuell in cg zwischengespeicherten Code ausgeben
       }
 
-      private static Boolean GeneratesGoto(Boolean generateAccept, ParserAction action, Int32 nestingLevel)
+      private Boolean GeneratesGoto(Boolean generateAccept, ParserAction action, Int32 nestingLevel)
       {
          if (generateAccept)
          {
@@ -1071,7 +1072,7 @@ namespace Grammlator
 
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
          // This is prepared  by shortening chains in phase 4 und implemented by the following.
-         // CHECK 05 (low priority) Not yet implemented: "FetchSymbol();" needs not to be generated if all pathes leading to the state
+         // TOCHECK 05 (low priority) Not yet implemented: "FetchSymbol();" needs not to be generated if all pathes leading to the state
          //   contain a "FetchSymbol();" and then not a "Accept(...)"
 
          if (State.Actions.Count == 1 && !(State.Actions[0] is TerminalTransition))
@@ -1096,7 +1097,7 @@ namespace Grammlator
          {
             // This shouldn't happen 'cause each state should at least contain one action (may be error action) 
 
-            // Check 5 (low priority) ist die Behandlung von Zuständen ohne terminale Aktion so ok?
+            // TOCHECK 05 (low priority) ist die Behandlung von Zuständen ohne terminale Aktion so ok?
             // Sind Zustände, die keine erlaubte Aktion enthalten (resultierend aus z.B *=A; A=B; B=A;), entsprechend berücksichtigt
             GlobalVariables.OutputMessage(
                 MessageTypeOrDestinationEnum.Error, "Check your grammar: no actions in state " + (State.IdNumber + 1).ToString());
@@ -1389,8 +1390,8 @@ namespace Grammlator
          codegen.AppendLine("");
 
          // generate Action2
-         accept = Action2 is TerminalTransition; // CHECK try to avoid the out parameter "accept"?
-         return Action2Generate; // Check: try to avoid the special handling of ErrorhandlingAction?
+         accept = Action2 is TerminalTransition; // TOCHECK try to avoid the out parameter "accept"?
+         return Action2Generate; // TOCHECK: try to avoid the special handling of ErrorhandlingAction?
       }
 
       /// <summary>

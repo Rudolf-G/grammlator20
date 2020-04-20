@@ -23,6 +23,8 @@ namespace Grammlator {
          InitialValues.Add("InstructionAcceptSymbol", "AcceptSymbol");
          InitialValues.Add("InstructionAssignSymbol", "");
          InitialValues.Add("InstructionErrorHalt", "");
+         InitialValues.Add("NestingLevelLimit", "5");
+         InitialValues.Add("LineLengthLimit", "120");
          InitialValues.Add("NewLineConstant", "\\r\\n");
          InitialValues.Add("PrefixStateDescription", "");
          InitialValues.Add("RegionString", "#region");
@@ -35,14 +37,19 @@ namespace Grammlator {
          }
 
       public static String GetString(String name) => InitialValues[name]; // TODO check not found
-      public static Int32 GetInt(String name) => Int32.Parse(GetString(name)); // TODO check conversion error
+      public static Int32 GetInt(String name)
+         {
+         if (Int32.TryParse(GetString(name), out Int32 result))
+            return result; // TODO check conversion error
+         throw new ErrorInSourcedataException($"{name} is not a number");
+         }
       }
 
    class MemoryComparer: IEqualityComparer<ReadOnlyMemory<char>> {
       public bool Equals(ReadOnlyMemory<char> rom1, ReadOnlyMemory<char> rom2)
          => rom1.Span.SequenceEqual(rom2.Span);
 
-      public int GetHashCode(ReadOnlyMemory<char> rom) 
+      public int GetHashCode(ReadOnlyMemory<char> rom)
          => string.GetHashCode(rom.Span);
       }
 
@@ -158,7 +165,7 @@ namespace Grammlator {
          // Reset all static variables 
 
          /* Reset initial values of all variables which can be modified by grammlator settings in P1Parser */
-         // TODO there remain global variables which should be made modifyabel by the user
+         // TODO there remain global variables which the user should be allowed to set
          AttributeStack = InitialSettings.GetString("AttributeStack");
          // "CSharpCommentlineMarker"
          // "CSharpPragmaMarker"
@@ -173,6 +180,8 @@ namespace Grammlator {
          InstructionAssignSymbol = InitialSettings.GetString("InstructionAssignSymbol");
          InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
          // "NewLineConstant"
+         LineLengthLimit = InitialSettings.GetInt("LineLengthLimit");
+         NestingLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
          VariableNameStateDescription = InitialSettings.GetString("PrefixStateDescription");
          // "RegionString"
          StateStack = InitialSettings.GetString("StateStack");
@@ -284,6 +293,9 @@ namespace Grammlator {
       /// <see cref="InstructionErrorHalt"/> is used to generate code
       /// </summary>
       internal static string InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
+
+      internal static Int32 NestingLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
+      internal static Int32 LineLengthLimit = InitialSettings.GetInt("LineLengthLimit");
 
       /// <summary>
       /// <see cref="ErrorHandlerMethod"/> is used to generate code

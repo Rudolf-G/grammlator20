@@ -152,6 +152,7 @@ namespace Grammlator {
       //| TerminalSymbolEnum: "LexerResult";
       //| StateDescription: "StateDescription";
       //| ErrorHandlerMethod: "ErrorHandler";
+      //| LineLengthLimit: "150";
       //|
       //| // Terminal symbols:
       //|     DefiningSymbol%18
@@ -248,13 +249,33 @@ namespace Grammlator {
          case "iftoswitchborder":
             if (!Int32.TryParse(value, out GlobalVariables.IfToSwitchBorder))
                {
-               GlobalVariables.IfToSwitchBorder = (int)grammlator.App.Current.Properties["IfToSwitchBorder"];
+               GlobalVariables.IfToSwitchBorder = InitialSettings.GetInt("IfToSwitchBorder");
                P1OutputMessageAndLexerPosition(
-                   MessageTypeOrDestinationEnum.Warning,
-                   $"Compiler setting iftoswitchborder can be set only to a string representing an integer value"
+                   MessageTypeOrDestinationEnum.Error,
+                   $"Compiler setting IfToSwitchBorder can be set only to a string representing an integer value"
                    );
                }
-            break;
+            break; //NestingLevelLimit
+         case "nestinglevellimit":
+            if (!Int32.TryParse(value, out GlobalVariables.NestingLevelLimit))
+               {
+               GlobalVariables.IfToSwitchBorder = InitialSettings.GetInt("NestingLevelLimit");
+               P1OutputMessageAndLexerPosition(
+                   MessageTypeOrDestinationEnum.Error,
+                   $"Compiler setting NestingLevelLimit can be set only to a string representing an integer value"
+                   );
+               }
+            break; //NestingLevelLimit
+         case "linelengthlimit":
+            if (!Int32.TryParse(value, out GlobalVariables.LineLengthLimit))
+               {
+               GlobalVariables.IfToSwitchBorder = InitialSettings.GetInt("LineLengthLimit");
+               P1OutputMessageAndLexerPosition(
+                   MessageTypeOrDestinationEnum.Error,
+                   $"Compiler setting LineLengthLimit can be set only to a string representing an integer value"
+                   );
+               }
+            break; // LineLengthLimit
          case "assignsymbol":
             GlobalVariables.InstructionAssignSymbol = value;
             break;
@@ -311,7 +332,7 @@ namespace Grammlator {
                {
                string name = GlobalVariables.GetStringOfIndex(dictNameIndex);
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The name \"{name}\" in the terminal definition and the corresponding name \"{Enumlist[enumIndex - 1]}\" in the enum are different.");
+                   $"The name \"{name}\" in the terminal definition and the corresponding name \"{Enumlist[enumIndex]}\" in the enum are different.");
                // break; // no break: test for more errors in the enum
                }
             if (++enumIndex >= Enumlist.Count)
