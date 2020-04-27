@@ -242,7 +242,7 @@ namespace Grammlator {
          if (BitNames != null && BitNames.Length < Bits.Length)
             {
             throw new ArgumentOutOfRangeException
-               ($"Length of {nameof(BitNames)} == {BitNames.Length.ToString()} is less than the number of bits == {Bits.Length.ToString()} in call of {nameof(BitsToStringbuilder)}");
+               ($"Length of {nameof(BitNames)} == {BitNames.Length} is less than the number of bits == {Bits.Length} in call of {nameof(BitsToStringbuilder)}");
             }
 
          Boolean isFirst = true;

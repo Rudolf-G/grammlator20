@@ -51,8 +51,8 @@ namespace Grammlator {
          {
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
             {
-            foreach (ILookaheadOrNonterminalTransition parserAction
-                in state.Actions.OfType<ILookaheadOrNonterminalTransition>())
+            foreach (LookaheadOrNonterminalTransition parserAction
+                in state.Actions.OfType<LookaheadOrNonterminalTransition>())
                {
                Debug.Assert(parserAction.TerminalSymbols == null);
 
@@ -209,7 +209,7 @@ namespace Grammlator {
       /// <see cref="NonterminalTransition"/>s x are collected  in the <see cref="StackOfActionsWithFollow"/>.</para>
       /// When finally an included action y is found alle the relations x Includes y are added
       /// </summary>
-      private Stack<ILookaheadOrNonterminalTransition> StackOfActionsWithFollow;
+      private Stack<LookaheadOrNonterminalTransition> StackOfActionsWithFollow;
 
       /// <summary>
       /// Compute the sets of <see cref="TerminalSymbol"/>s which may follow
@@ -217,7 +217,7 @@ namespace Grammlator {
       /// </summary>
       private void P3b_ComputeFollow()
          {
-         StackOfActionsWithFollow = new Stack<ILookaheadOrNonterminalTransition>(126);
+         StackOfActionsWithFollow = new Stack<LookaheadOrNonterminalTransition>(126);
          ClearCodenumbersOfAllActionsAndAssignEmptyIncludeSets();
          ComputeIncludeSets();
          Digraph2();
@@ -232,14 +232,14 @@ namespace Grammlator {
             foreach (ParserAction Action in State.Actions)
                {
                Action.Codenumber = 0;
-               if (Action is ILookaheadOrNonterminalTransition ActionWithInclude)
+               if (Action is LookaheadOrNonterminalTransition ActionWithInclude)
                   ActionWithInclude.Includes = new HashSet<NonterminalTransition>();
                }
             }
          }
 
       /// <summary>
-      /// <para>Includes is a relation between <see cref="ILookaheadOrNonterminalTransition"/>s x
+      /// <para>Includes is a relation between <see cref="LookaheadOrNonterminalTransition"/>s x
       /// and <see cref="NonterminalTransition"/>s y. </para>
       /// x includes y states that the look ahead symbol sets of y have to be included
       /// in the look ahead sets of x.
@@ -260,8 +260,8 @@ namespace Grammlator {
          Symbol[] elements;
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
             {
-            foreach (ILookaheadOrNonterminalTransition Action
-                in State.Actions.OfType<ILookaheadOrNonterminalTransition>())
+            foreach (LookaheadOrNonterminalTransition Action
+                in State.Actions.OfType<LookaheadOrNonterminalTransition>())
                {
                Debug.Assert(StackOfActionsWithFollow.Count == 0);
 
@@ -307,7 +307,7 @@ namespace Grammlator {
          {
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
             {
-            foreach (ILookaheadOrNonterminalTransition ActionWithFollow in State.Actions.OfType<ILookaheadOrNonterminalTransition>())
+            foreach (LookaheadOrNonterminalTransition ActionWithFollow in State.Actions.OfType<LookaheadOrNonterminalTransition>())
                ActionWithFollow.Includes = null;
             }
          }
@@ -419,7 +419,7 @@ namespace Grammlator {
             return;
             }
 
-         foreach (ILookaheadOrNonterminalTransition ActionX in StackOfActionsWithFollow)
+         foreach (LookaheadOrNonterminalTransition ActionX in StackOfActionsWithFollow)
             ActionX.Includes.Add(TransitionY);
          }
 
@@ -503,7 +503,7 @@ namespace Grammlator {
          // transitionX is root of a SCC
          // The elements of the SCC are in the stack and have all the same set of look ahead symbols to be assigned.
 
-         ILookaheadOrNonterminalTransition ats;
+         LookaheadOrNonterminalTransition ats;
          do
             {
             ats = StackOfActionsWithFollow.Pop();
@@ -528,7 +528,7 @@ namespace Grammlator {
          // Examine all parser states 
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
             statesWithConflict +=
-               State.FindAndResolveStaticConflictsOfState(sb, allowedSymbolsUpToThisAction, dynamicSymbols);
+               State.FindAndSolveStaticConflictsOfState(sb, allowedSymbolsUpToThisAction, dynamicSymbols);
 
          sb.AppendLine()
            .AppendLine($"-- Result of conflict analysis: found {statesWithConflict} states with static conflicts. --");

@@ -179,22 +179,23 @@ namespace Grammlator {
          }
 
       /// <summary>
-      /// Finds and resolves the static conflicts of the state, returns 1, if conflicts have been found
+      /// Finds and resolves the conflicts of the state, returns 1, if conflicts have been found, else 0
       /// </summary>
-      /// <param name="sb"></param>
-      /// <param name="allowedSymbolsUpToThisAction"></param>
-      /// <param name="dynamicSymbols"></param>
-      /// <returns>1 if a conflict has been found, else 0</returns>
-      public Int32 FindAndResolveStaticConflictsOfState(StringBuilder sb, BitArray allowedSymbolsUpToThisAction, BitArray dynamicSymbols)
+      /// <param name="sb">the log of conflicts will be written to <paramref name="sb"/></param>
+      /// <param name="allowedSymbolsUpToThisAction">A Bitarray to store terminal symbols to be used by the method</param>
+      /// <param name="dynamicSymbols">A Bitarray to store terminal symbols to be used by the method</param>
+      /// <returns>1 if conflict have been found, else 0</returns>
+      public Int32 FindAndSolveStaticConflictsOfState(StringBuilder sb, BitArray allowedSymbolsUpToThisAction, BitArray dynamicSymbols)
          {
-         // Find and resolve conflicts for this state and add ErrorAction as appropriate
-         allowedSymbolsUpToThisAction.SetAll(false); // Die im Zustand in den bisher bearbeiten Aktionen erlaubten Symbole
+         // The union of the TerminalSymbols of all the actions up to the action with IndexOfAction-1
+         allowedSymbolsUpToThisAction.SetAll(false);
+
          Int32 numberOfConditionalTransitions = 0;
 
          Boolean writeStateHeader = true;  // false after the header "Conflicts in state ..." has been written
 
          // Find all actions which have at least one terminal symbol in common
-         // with one preceding action. Ignore actions with dynamic priority.
+         // with one of the preceding actions.
          for (Int32 IndexOfAction = 0; IndexOfAction < Actions.Count; IndexOfAction++)
             {
             BitArray symbolsOfThisAction;
@@ -212,8 +213,7 @@ namespace Grammlator {
                   {
                   symbolsOfThisAction = LookAheadAction.TerminalSymbols;
                   numberOfConditionalTransitions++;
-                  if (LookAheadAction.NextAction is Definition d
-                      && d.PriorityFunction != null)
+                  if (LookAheadAction.PriorityFunction != null)
                      {
                      if (symbolsOfThisAction != null)
                         dynamicSymbols.Or(symbolsOfThisAction);
@@ -248,19 +248,29 @@ namespace Grammlator {
       /// <param name="WriteHeadline">If true when there are conflicts a description of the state has to be be written to sb above the conflict description(s)</param>
       /// <param name="IndexOfConflictAction">Index of action which may cause a conflict</param>
       /// <param name="SymbolsOfThisAction">The terminal symbols which are the condition of this action</param>
-      /// <param name="AllowedSymbolsUpToConflictAction">The union of the terminal symbols of all preceding actions of the state: may be modified by conflict 
+      /// <param name="AllowedSymbolsUpToConflictAction">The union of the terminal symbols of all preceding actions
+      /// of the state: may be modified by conflict 
       /// <returns>false, if there have been conflicts and state information has been writte to sb</returns>
       /// solution</param>
       public Boolean SolveConflicts(StringBuilder sb, Boolean WriteHeadline,
           Int32 IndexOfConflictAction, BitArray SymbolsOfThisAction,
           BitArray AllowedSymbolsUpToConflictAction)
          {
-         var conflictSymbols = new BitArray(SymbolsOfThisAction.Count);
+
+         var conflictSymbols = new BitArray(SymbolsOfThisAction.Count); // Allocate outside of the loop
 
          // repeat test and partial solution of conflicts until no more conflicts regarding this action
-         while (!conflictSymbols.Assign(AllowedSymbolsUpToConflictAction).And(SymbolsOfThisAction).Empty())
+         while
+            (!conflictSymbols
+               .Assign(AllowedSymbolsUpToConflictAction)  // Assigns to conflictSymbols
+               .And(SymbolsOfThisAction) // modifies conflictSymbols
+               .Empty()  // Tests conflictSymbols
+               )
             {
             // There is at least one conflict between the action and one of the preceding actions 
+
+            // conflictSymbols is a subset of AllowedSymbolsUpToConflictAction and 
+            // conflictSymbols is a subset of SymbolsOfThisAction
 
             // protocol state
             if (WriteHeadline)
@@ -287,9 +297,10 @@ namespace Grammlator {
       /// </summary>
       /// <param name="sb">The protocol will be writte to sb</param>
       /// <param name="IndexOfFirstConflictAction">Index of action which causes a conflict</param>
-      /// <param name="ConflictSymbols">Terminal symbols causing the conflict(s)</param>
-      /// <param name="AllowedSymbolsUpToFirstConflictAction">The union of the terminal symbols of all preceding actions of the state: may be modified by conflict 
-      /// solution</param>
+      /// <param name="ConflictSymbols">Terminal symbols causing the conflict(s),
+      /// a subset of <paramref name="AllowedSymbolsUpToFirstConflictAction"/></param>
+      /// <param name="AllowedSymbolsUpToFirstConflictAction">The union of the terminal symbols of all preceding actions
+      /// of the state: may be modified by conflict solution</param>
       private void SolveAndProtocolSubsetsOfConflict(StringBuilder sb, Int32 IndexOfFirstConflictAction,
           BitArray ConflictSymbols, BitArray AllowedSymbolsUpToFirstConflictAction)
          {
@@ -298,6 +309,7 @@ namespace Grammlator {
          // TOCHECK whether there should be some more optimizations before solving conflicts            
 
          var subsetOfConflictSymbols = new BitArray(ConflictSymbols);
+         var smallerSubsetOfConflictSymbols = new BitArray(ConflictSymbols.Count);
 
          // TOCHECK Should more information about the conflicts be written into the log?
          // TOCHECK Might there be states - after solving conflicts -  without path to the halt action
@@ -320,7 +332,7 @@ namespace Grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
-         // Action will be modified inside the following loop.
+         // Action will beremoved from State.Actions inside the following loop.
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
          // Hence a loop with an eplicit index is used.
 
@@ -362,24 +374,23 @@ namespace Grammlator {
                sb.Append("  priority ")
                  .Append(priority)
                  .Append(" => not modified: ");
-               // sb.Append(maximalePriorität);
 
                action.ToStringbuilder(sb)
                  .AppendLine();
                }
             else
                {
-               var weiterEingeengteKonfliktsymbole =
-                  (BitArray)new BitArray(subsetOfConflictSymbols).And(symbolsOfThisAction);
+               smallerSubsetOfConflictSymbols
+                  .Assign(subsetOfConflictSymbols)
+                  .And(symbolsOfThisAction);
 
-               if (!weiterEingeengteKonfliktsymbole.Empty())
+               if (!smallerSubsetOfConflictSymbols.Empty())
                   {
                   symbolsOfThisAction.ExceptWith(subsetOfConflictSymbols);
-                  // Protokollieren:
+                  // Write log:
                   sb.Append("  priority ")
                     .Append(priority)
                     .Append(" => modified to: ");
-                  //.Append(maximalePriorität);
 
                   conditionalAction.ToStringbuilder(sb)
                     .AppendLine();
@@ -387,14 +398,13 @@ namespace Grammlator {
                   // TOCHECK What is the right place in the program to solve conflicts (first optimization  or first solve conflicts?)
 
 
-                  // Delete actions with the empty set of terminal input symbols.
-                  // This may cause that other actions can not be reached
 
                   // TODO Check   How is DeletedAction handled in further steps ???
                   if (symbolsOfThisAction.Empty())
                      {
                      // Delete actions without remaining terminal symbols.
-                     // Otherwise there might result code with If(true)... and code that can be never be reached
+                     // This may cause that other actions can not be reached.
+                     // If not deleted there might result code with If(true)... and code that can be never be reached
 
                      sb.AppendLine("    This action has been deleted because no input symbols remained.");
 
@@ -411,8 +421,8 @@ namespace Grammlator {
             {
             return;
             }
-         // die Konfliktsymbole von den erlaubten Symbolen abziehen
-         AllowedSymbolsUpToFirstConflictAction.And(subsetOfConflictSymbols.Not());
+         // Remove the subsetOfConflictSymbols from the superset AllowedSymbolsUpToFirstConflictAction
+         AllowedSymbolsUpToFirstConflictAction.Xor(subsetOfConflictSymbols);
          }
 
       /// <summary>

@@ -30,7 +30,7 @@ namespace Grammlator
       /// </summary>
       private readonly StringBuilder CodeLine = new StringBuilder();
 
-      private Int32 LineLengthLimit = GlobalVariables.LineLengthLimit; // TOCHECK can more generated lines be shortened to LineLengthLimit
+      private readonly Int32 LineLengthLimit = GlobalVariables.LineLengthLimit; // TOCHECK can more generated lines be shortened to LineLengthLimit
 
       /// <summary>
       /// number of spaces used per indentation level

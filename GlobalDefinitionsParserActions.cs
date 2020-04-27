@@ -27,22 +27,12 @@ namespace Grammlator {
       isDeletedParserAction,
       isEndOfGeneratedCode,
       isSomethingElse
-      }
-
-   /// <summary>
-   /// This interface is needed to derive <see cref="ILookaheadOrNonterminalTransition"/>
-   /// </summary>
-   internal interface IParserAction {
-      Int32 Codenumber {
-         get; set;
-         }
-      }
+      }  
 
    internal abstract class ParserAction:
       IEqualityComparer<ParserAction>,
       IComparable<ParserAction>, // implements: Int32 CompareTo([AllowNull] T other);
-      IUniqueIndex,  // implements: Int32 IdNumber {get;}
-      IParserAction  // implements: Int32 Codenumber {get;set;}
+      IUniqueIndex  // implements: Int32 IdNumber {get;}
       {
       // bei Ableitung von IComparer<>  statt von IComparable<> wäre notwendig:
       // internal override int Compare(cAktion Aktion1, cAktion Aktion2) {
@@ -552,15 +542,6 @@ namespace Grammlator {
          }
       }
 
-   internal interface IActionWithNextAction: IParserAction {
-      /// <summary>
-      /// NextAction null means halt
-      /// </summary>
-      ParserAction NextAction {
-         get; set;
-         }
-      }
-
    internal abstract class ParserActionWithNextAction: ParserAction {
       public ParserAction NextAction {
          get; set;
@@ -587,15 +568,6 @@ namespace Grammlator {
          else
             NextAction.NameToSb(sb);
          return sb;
-         }
-      }
-
-   /// <summary>
-   /// This interface is needed to derive <see cref="ILookaheadOrNonterminalTransition"/>
-   /// </summary>
-   internal interface IConditionalAction: IActionWithNextAction {
-      BitArray TerminalSymbols {
-         get; set;
          }
       }
 
@@ -655,7 +627,7 @@ namespace Grammlator {
          }
       }
 
-   internal abstract class ConditionalAction: ParserActionWithNextAction, IConditionalAction {
+   internal abstract class ConditionalAction: ParserActionWithNextAction {
       /// <summary>
       /// <see cref="TerminalSymbols"/> are accepted by <see cref="TerminalTransition"/>s or checked
       /// by other actions e.g. <see cref="LookaheadAction"/>s 
@@ -809,13 +781,13 @@ namespace Grammlator {
          base.ToStringbuilder(sb);
          return sb;
          }
-      }
+      }  
 
-   /// <summary>
-   /// This interface is used in phase 3
+   // <summary>
+   /// This class is used in phase 3
    /// </summary>
-   internal interface ILookaheadOrNonterminalTransition: IConditionalAction {
-      HashSet<NonterminalTransition> Includes {
+   internal abstract class LookaheadOrNonterminalTransition: ConditionalAction {
+      internal abstract HashSet<NonterminalTransition> Includes {
          get; set;
          }
       }
@@ -824,8 +796,8 @@ namespace Grammlator {
    /// A nonterminal transition denotes a parser state change caused by a nonterminal.
    /// In phase 4 all nonterminal transitions are replaced by reduce actions.
    /// </summary>
-   internal sealed class NonterminalTransition: ConditionalAction, ILookaheadOrNonterminalTransition {
-      public HashSet<NonterminalTransition> Includes {
+   internal sealed class NonterminalTransition: LookaheadOrNonterminalTransition {
+      internal override HashSet<NonterminalTransition> Includes {
          get; set;
          }
 
@@ -856,8 +828,8 @@ namespace Grammlator {
    /// <summary>
    /// Look ahead actions are generated in phase 2
    /// </summary>
-   internal sealed class LookaheadAction: ConditionalAction, ILookaheadOrNonterminalTransition {
-      public HashSet<NonterminalTransition> Includes {
+   internal sealed class LookaheadAction: LookaheadOrNonterminalTransition {
+      internal override HashSet<NonterminalTransition> Includes {
          get; set;
          }
 
