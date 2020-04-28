@@ -521,14 +521,16 @@ namespace Grammlator {
       /// <param name="sb">The description of the conflicts will be written to <paramref name="sb"/></param>
       private static Int32 P3c_FindAndResolveAllStaticConflicts(StringBuilder sb)
          {
-         var allowedSymbolsUpToThisAction = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions with constant priority
-         var dynamicSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions with dynamic priority
+         var allowedSymbolsUpToThisAction = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // allocate outside of loop
 
          Int32 statesWithConflict = 0;
          // Examine all parser states 
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
             statesWithConflict +=
-               State.FindAndSolveStaticConflictsOfState(sb, allowedSymbolsUpToThisAction, dynamicSymbols);
+               State.FindAndSolveConflictsOfState(
+                  allowedSymbolsUpToThisAction,
+                  sb
+                  );
 
          sb.AppendLine()
            .AppendLine($"-- Result of conflict analysis: found {statesWithConflict} states with static conflicts. --");

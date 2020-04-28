@@ -27,7 +27,7 @@ namespace Grammlator {
       isDeletedParserAction,
       isEndOfGeneratedCode,
       isSomethingElse
-      }  
+      }
 
    internal abstract class ParserAction:
       IEqualityComparer<ParserAction>,
@@ -67,7 +67,8 @@ namespace Grammlator {
          return result;
          }
 
-      public Boolean Equals(ParserAction a1, ParserAction a2) {
+      public Boolean Equals(ParserAction a1, ParserAction a2)
+         {
          return a1.ParserActionType == a2.ParserActionType && a1.IdNumber == a2.IdNumber;
          }
 
@@ -258,7 +259,9 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
-         DefinedSymbol.IdentifierAndAttributesToSB(sb).Append("= ");
+         sb.Append("recognized ");
+         DefinedSymbol.IdentifierAndAttributesToSB(sb).AppendLine("= ");
+         sb.Append("      ");
          ToStringbuilder(sb, Int32.MaxValue); // do not mark any element
          return sb;
          }
@@ -277,7 +280,7 @@ namespace Grammlator {
          sb.Append(' ');
          if (ConstantPriority != 0)
             {
-            sb.Append("Priority: ")
+            sb.Append("priority: ")
               .Append(ConstantPriority);
             Delimiter = ", ";
             }
@@ -517,7 +520,7 @@ namespace Grammlator {
          }
 
       internal override void NameToSb(StringBuilder sb)
-          => sb.Append("Verzweigung ")
+          => sb.Append("branch ")
                .Append(IdNumber + 1);// kein Bezug zu this.ToStringbuilder, da das zu Rekursion führen könnte
       }
 
@@ -562,7 +565,7 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
-         sb.Append("    next action: ");
+         sb.Append("    then: ");
          if (NextAction == null)
             sb.Append("no action (halt)");
          else
@@ -636,14 +639,33 @@ namespace Grammlator {
          get; set;
          } // als Folgesymbole oder als Eingabesymbole 
 
+      /// <summary>
+      /// Returns Int32.MaxValue if action has dynamic priority, assigned priority of lookadead action, 0 else
+      /// </summary>
+      public Int32 Priority {
+         get {
+            Int32 priority = 0; // priority of terminal transitions is always 0
+            if (this is LookaheadAction laAction)
+               {
+               priority = laAction.ConstantPriority; // use assigned priority if no dynamic priority
+               if (laAction.PriorityFunction != null)
+                  priority = Int32.MinValue; // Test
+               }
+            else if (this is PrioritySelectAction)
+               priority = Int32.MaxValue; // Test
+            return priority;
+            }
+         }
+
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
          if (TerminalSymbols == null)
             {
-            sb.AppendLine(" no terminal symbols ");
+            sb.AppendLine(" no test of terminal symbols ");
             }
          else
             {
+            sb.Append("if Symbol == ");
             TerminalSymbols.BitsToStringbuilder(
                sb, GlobalVariables.TerminalSymbolByIndex, " | ", "all terminal symbols", "no terminal symbols")
                .AppendLine("; ");
@@ -777,11 +799,25 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
-         sb.Append("accept: ");
-         base.ToStringbuilder(sb);
+         if (TerminalSymbols == null)
+            {
+            sb.AppendLine(" no test of terminal symbols ");
+            }
+         else
+            {
+            sb.Append("if Symbol == ");
+            TerminalSymbols.BitsToStringbuilder(
+               sb, GlobalVariables.TerminalSymbolByIndex, " | ", "all terminal symbols", "no terminal symbols")
+               .AppendLine("; ");
+            }
+         sb.Append("    then:  accept; then: ");
+         if (NextAction == null)
+            sb.Append("no action (halt)");
+         else
+            NextAction.NameToSb(sb);
          return sb;
          }
-      }  
+      }
 
    // <summary>
    /// This class is used in phase 3
@@ -813,10 +849,17 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
-         sb.Append("Change state if nonterminal: ")
+         sb.Append("if nonterminal == ")
            .AppendLine(InputSymbol.Identifier)
-           .Append("    terminal symbols following: ");
-         base.ToStringbuilder(sb);
+           // .Append("    terminal symbols following: ")
+           ;
+         // base.ToStringbuilder(sb);
+
+         sb.Append("    then: ");
+         if (NextAction == null)
+            sb.Append("no action (halt)");
+         else
+            NextAction.NameToSb(sb);
          return sb;
          }
 
@@ -848,23 +891,67 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
-         sb.Append("if Symbol ==  ");
          base.ToStringbuilder(sb);
          return sb;
          }
       }
 
    internal sealed class PrioritySelectAction: ConditionalAction {
-      internal PrioritySelectAction(BitArray InputSymbols, ListOfParserActions Actions)
+      internal PrioritySelectAction(BitArray InputSymbols, ConditionalAction constantPriorityAction, ListOfParserActions dynamicPriorityActions)
          {
          TerminalSymbols = InputSymbols;
-         PriorityActions = Actions;
+         ConstantPriorityAction = constantPriorityAction; // may be null
+         PriorityActions = new ListOfParserActions(dynamicPriorityActions);
          }
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isPrioritySelectAction;
-#pragma warning disable IDE0052 // Ungelesene private Member entfernen
+      private readonly ConditionalAction ConstantPriorityAction;
       private readonly ListOfParserActions PriorityActions;
-#pragma warning restore IDE0052 // Ungelesene private Member entfernen
+
+      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+         {
+         if (TerminalSymbols == null)
+            {
+            sb.AppendLine(" no test of terminal symbols ");
+            }
+         else
+            {
+            sb.Append("if Symbol == ");
+            TerminalSymbols.BitsToStringbuilder(
+               sb, GlobalVariables.TerminalSymbolByIndex, " | ", "all terminal symbols", "no terminal symbols")
+               .AppendLine("; ");
+            }
+
+         sb.AppendLine("    then: Select by dynamic priority: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+
+         if (ConstantPriorityAction != null)
+            {
+            sb.Append("    Priority ").Append(ConstantPriorityAction.Priority).Append(": ");
+
+            sb.Append("    ");
+            if (ConstantPriorityAction.NextAction == null)
+               sb.Append("no action (halt)");
+            else
+               ConstantPriorityAction.NextAction.NameToSb(sb);
+            sb.AppendLine();
+            }
+
+         // PriorityActions.ToStringbuilder(sb);
+
+         foreach (ParserAction a in PriorityActions)
+            {
+            sb.Append("    ");
+            if (a is Definition def)
+                 sb.Append(def.PriorityFunction.MethodName);
+            else // TODO dynamic priority log: if (a is )
+               sb.Append("----------------------------------------------");
+            sb.Append(": ");
+            a.NameToSb(sb);
+            }
+
+         return sb;
+         }
+
       }
 
 #pragma warning disable CA1812 // Avoid uninstantiated internal classes
@@ -916,10 +1003,24 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
-         sb.Append("Error ")
+         if (TerminalSymbols == null)
+            {
+            sb.AppendLine(" no test of terminal symbols ");
+            }
+         else
+            {
+            sb.Append("if Symbol == ");
+            TerminalSymbols.BitsToStringbuilder(
+               sb, GlobalVariables.TerminalSymbolByIndex, " | ", "all terminal symbols", "no terminal symbols")
+               .AppendLine("; ");
+            }
+         sb.Append("    then: call error handler ")
            .Append(IdNumber + 1)
-           .Append(" if: ");
-         base.ToStringbuilder(sb);
+           .Append("; then: ");
+         if (NextAction == null)
+            sb.Append("no action (halt)");
+         else
+            NextAction.NameToSb(sb);
          return sb;
          }
 

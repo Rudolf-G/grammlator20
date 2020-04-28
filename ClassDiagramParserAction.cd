@@ -3,9 +3,6 @@
   <Comment CommentText="The AcceptAction is&#xD;&#xA;not yet used">
     <Position X="2.958" Y="6.104" Height="0.531" Width="1.419" />
   </Comment>
-  <Comment CommentText="The PrioritySelectAction is&#xD;&#xA;not yet used">
-    <Position X="11.229" Y="6.188" Height="0.531" Width="1.731" />
-  </Comment>
   <Class Name="Grammlator.ParserAction" Collapsed="true">
     <Position X="7.25" Y="1" Width="1.25" />
     <TypeIdentifier>
@@ -31,7 +28,7 @@
   <Class Name="Grammlator.ConditionalAction" Collapsed="true">
     <Position X="7" Y="3.75" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAEAAAAAAAAAAgAAAIAAAAAAAAAgBAQAAAAAEA=</HashCode>
+      <HashCode>AAAAAAAEAAAAAAAEAAgAAAIAAAAAAAAAgBAQAAAAAEA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -101,14 +98,14 @@
   <Class Name="Grammlator.PrioritySelectAction" Collapsed="true">
     <Position X="11.25" Y="5.25" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAiQAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.ParserState" Collapsed="true">
     <Position X="5" Y="2.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>hACAwAAgJAAASAAAAAAIAAIQABAAAICAiABAAAgAAAA=</HashCode>
+      <HashCode>gAAAgAAAJgAAQAAAAAAAAAIQADAABICAiAAAAAgAAQA=</HashCode>
       <FileName>GlobalDefinitionsParserState.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />

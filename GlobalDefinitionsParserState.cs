@@ -98,7 +98,9 @@ namespace Grammlator {
                return parserAction;
             }
          // There must exist an action also for the Startsymbol: a HaltAction
-         throw new ErrorInGrammlatorProgramException("Found no action");
+         throw new ErrorInGrammlatorProgramException(
+            $"Missing action in state {this.IdNumber+1} for InpuSymbol {InputSymbol.Identifier}"
+            );
          }
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
@@ -181,91 +183,76 @@ namespace Grammlator {
       /// <summary>
       /// Finds and resolves the conflicts of the state, returns 1, if conflicts have been found, else 0
       /// </summary>
+      /// <param name="allowedTerminalsUpToThisAction">A Bitarray to be used by the method</param>
       /// <param name="sb">the log of conflicts will be written to <paramref name="sb"/></param>
-      /// <param name="allowedSymbolsUpToThisAction">A Bitarray to store terminal symbols to be used by the method</param>
-      /// <param name="dynamicSymbols">A Bitarray to store terminal symbols to be used by the method</param>
+      /// 
       /// <returns>1 if conflict have been found, else 0</returns>
-      public Int32 FindAndSolveStaticConflictsOfState(StringBuilder sb, BitArray allowedSymbolsUpToThisAction, BitArray dynamicSymbols)
+      public Int32 FindAndSolveConflictsOfState(BitArray allowedTerminalsUpToThisAction, StringBuilder sb)
          {
          // The union of the TerminalSymbols of all the actions up to the action with IndexOfAction-1
-         allowedSymbolsUpToThisAction.SetAll(false);
-
-         Int32 numberOfConditionalTransitions = 0;
+         allowedTerminalsUpToThisAction.SetAll(false);
+         // Allocate a BitArray to be used for the intersection of the actual actions terminal symbols
+         // and the union of the terminal symbols of all preceding actions
+         var conflictSymbols = new BitArray(allowedTerminalsUpToThisAction); // value doesn't matter
 
          Boolean writeStateHeader = true;  // false after the header "Conflicts in state ..." has been written
+
 
          // Find all actions which have at least one terminal symbol in common
          // with one of the preceding actions.
          for (Int32 IndexOfAction = 0; IndexOfAction < Actions.Count; IndexOfAction++)
             {
-            BitArray symbolsOfThisAction;
 
-            switch (Actions[IndexOfAction])
+            var thisAction = Actions[IndexOfAction];
+            if (!(
+                  thisAction is TerminalTransition
+                  || thisAction is LookaheadAction
+                  ))
+               continue;
+
+            BitArray terminalsOfThisAction = (thisAction as ConditionalAction).TerminalSymbols;
+
+
+            if (!
+               conflictSymbols
+                 .Assign(allowedTerminalsUpToThisAction)  // Assigns to conflictSymbols
+                 .And(terminalsOfThisAction) // modifies conflictSymbols
+                 .Empty()  // no new conflict
+               )
                {
-            case TerminalTransition TerminalTransition:
-                  {
-                  symbolsOfThisAction = TerminalTransition.TerminalSymbols;
-                  numberOfConditionalTransitions++;
-                  break;
-                  }
-
-            case LookaheadAction LookAheadAction:
-                  {
-                  symbolsOfThisAction = LookAheadAction.TerminalSymbols;
-                  numberOfConditionalTransitions++;
-                  if (LookAheadAction.PriorityFunction != null)
-                     {
-                     if (symbolsOfThisAction != null)
-                        dynamicSymbols.Or(symbolsOfThisAction);
-                     continue; // ignore conflicts caused by actions with dynamic priority at the moment
-                     }
-                  break;
-                  }
-
-            default:
-               continue; // no symbolsOfThisAction 
-               }
-
-            // found action with symbolsOfThisAction
-            if (symbolsOfThisAction?.Empty() == false)
-               {
+               // Solve the conflict between thisAction and one or more of the preceding actions 
                writeStateHeader =
-                  SolveConflicts(sb, writeStateHeader, IndexOfAction, symbolsOfThisAction, allowedSymbolsUpToThisAction);
-
-               // allowedSymbols* and symbolsOfThisAction* may be modified by conflict resolution
-               allowedSymbolsUpToThisAction.Or(symbolsOfThisAction);
+                  SolveConflictsOfAction(IndexOfAction, terminalsOfThisAction, conflictSymbols,
+                                         allowedTerminalsUpToThisAction, sb, writeStateHeader);
                }
+
+            // allowedSymbolsUpToThisAction and terminalsOfThisAction might be modified by SolveConflicts
+            allowedTerminalsUpToThisAction.Or(terminalsOfThisAction);
             } // for (int IndexOfAction
 
          return writeStateHeader ? 0 : 1;
          }
 
       /// <summary>
-      /// Tests the state for conflicts regarding the given action, solves the conflicts by modifying
-      /// the terminal symbols of the states actions, writes a protocol to sb and modifies allowedSymbols
+      /// Tests the state for conflicts regarding the given action, solves potential conflicts by modifying
+      /// the terminal symbols of the states actions, writes a protocol to sb and may modify 
+      /// <paramref name="allowedTerminalsUpToConflictAction"/>
       /// </summary>
-      /// <param name="sb">The description of the conflicts will be written to sb</param>
-      /// <param name="WriteHeadline">If true when there are conflicts a description of the state has to be be written to sb above the conflict description(s)</param>
-      /// <param name="IndexOfConflictAction">Index of action which may cause a conflict</param>
-      /// <param name="SymbolsOfThisAction">The terminal symbols which are the condition of this action</param>
-      /// <param name="AllowedSymbolsUpToConflictAction">The union of the terminal symbols of all preceding actions
+      /// <param name="indexOfConflictAction">Index of action which may cause a conflict</param>
+      /// <param name="terminalsOfThisAction">The terminal symbols which are the condition of this action</param>
+      /// <param name="allowedTerminalsUpToConflictAction">The union of the terminal symbols of all preceding actions
       /// of the state: may be modified by conflict 
-      /// <returns>false, if there have been conflicts and state information has been writte to sb</returns>
+      /// <returns>false, if there have been conflicts and state information has been written to sb</returns>
       /// solution</param>
-      public Boolean SolveConflicts(StringBuilder sb, Boolean WriteHeadline,
-          Int32 IndexOfConflictAction, BitArray SymbolsOfThisAction,
-          BitArray AllowedSymbolsUpToConflictAction)
+      /// <param name="sb">The description of the conflicts will be written to sb</param>
+      /// <param name="writeHeadline">If true when there are conflicts a description of the state has to be be written to sb above the conflict description(s)</param>
+      private Boolean SolveConflictsOfAction(Int32 indexOfConflictAction, BitArray terminalsOfThisAction,
+            BitArray conflictSymbols, BitArray allowedTerminalsUpToConflictAction, StringBuilder sb,
+            Boolean writeHeadline)
          {
 
-         var conflictSymbols = new BitArray(SymbolsOfThisAction.Count); // Allocate outside of the loop
-
-         // repeat test and partial solution of conflicts until no more conflicts regarding this action
-         while
-            (!conflictSymbols
-               .Assign(AllowedSymbolsUpToConflictAction)  // Assigns to conflictSymbols
-               .And(SymbolsOfThisAction) // modifies conflictSymbols
-               .Empty()  // Tests conflictSymbols
-               )
+         // find all groups of actions which conflict with the ConflictAction and solve the conflict for each group
+         do
             {
             // There is at least one conflict between the action and one of the preceding actions 
 
@@ -273,9 +260,9 @@ namespace Grammlator {
             // conflictSymbols is a subset of SymbolsOfThisAction
 
             // protocol state
-            if (WriteHeadline)
+            if (writeHeadline)
                {
-               WriteHeadline = false;
+               writeHeadline = false;
                sb.AppendLine()
                  .Append("Conflicts in state ")
                  .Append(IdNumber + 1)
@@ -283,11 +270,23 @@ namespace Grammlator {
                CoreItems.ToStringbuilderMitZusatzinfo(sb);
                }
 
-            SolveAndProtocolSubsetsOfConflict(sb, IndexOfConflictAction, conflictSymbols, AllowedSymbolsUpToConflictAction);
-            // One conflict is solved, allowedSymbols is modified
+            // find one group of actions which conflict with the ConflictAction and solve the conflict for this group
+            SolveAndLogSubsetsOfConflict(indexOfConflictAction,
+                                         conflictSymbols, // will be set to the greatest common subset of the group of conflicting actions
+                                         allowedTerminalsUpToConflictAction, // will be modified if the terminal symbols of one of the prededing actions is modified
+                                         sb);
+            // One conflict is solved, symbolsOfThisAction may be modified
             // There may be more conflicts between the action and the preceding actions
+
             }
-         return WriteHeadline;
+         while
+            (!conflictSymbols
+                .Assign(allowedTerminalsUpToConflictAction)  // Assigns to conflictSymbols
+                .And(terminalsOfThisAction) // modifies conflictSymbols
+                .Empty()  // break if no conflict or all conflicts are solved
+            );
+
+         return writeHeadline;
          }
 
       /// <summary>
@@ -295,35 +294,54 @@ namespace Grammlator {
       /// the conflict between these actions by modifying the x.TerminalSymbols of some of the actions.
       /// This method must be called again until no more conflicting actions remain!
       /// </summary>
-      /// <param name="sb">The protocol will be writte to sb</param>
       /// <param name="IndexOfFirstConflictAction">Index of action which causes a conflict</param>
       /// <param name="ConflictSymbols">Terminal symbols causing the conflict(s),
       /// a subset of <paramref name="AllowedSymbolsUpToFirstConflictAction"/></param>
       /// <param name="AllowedSymbolsUpToFirstConflictAction">The union of the terminal symbols of all preceding actions
       /// of the state: may be modified by conflict solution</param>
-      private void SolveAndProtocolSubsetsOfConflict(StringBuilder sb, Int32 IndexOfFirstConflictAction,
-          BitArray ConflictSymbols, BitArray AllowedSymbolsUpToFirstConflictAction)
+      /// <param name="sb">The protocol will be writte to sb</param>
+      private void SolveAndLogSubsetsOfConflict(Int32 IndexOfFirstConflictAction, BitArray ConflictSymbols,
+         BitArray AllowedSymbolsUpToFirstConflictAction, StringBuilder sb)
          {
-         var State = this;
+         var State = this; // makes method easier to understand
 
-         // TOCHECK whether there should be some more optimizations before solving conflicts            
-
-         var subsetOfConflictSymbols = new BitArray(ConflictSymbols);
-         var smallerSubsetOfConflictSymbols = new BitArray(ConflictSymbols.Count);
+         var subsetOfConflictSymbols = new BitArray(ConflictSymbols); // TODO allocate only once ??
+         var smallerSubsetOfConflictSymbols = new BitArray(ConflictSymbols.Count); // TODO allocate only once ??
 
          // TOCHECK Should more information about the conflicts be written into the log?
-         // TOCHECK Might there be states - after solving conflicts -  without path to the halt action
-         //         and might solving conflicts lead to endless loops?
+         // TOCHECK Might there be states - after solving conflicts -  without path to the halt action,
+         //         might solving conflicts lead to endless loops?
 
-         int indexOfActionWithPriority = GetHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols);
+         var dynamicPriorityActions = new ListOfParserActions(50); // usually will be empty or very short
+         int indexOfActionWithPriority
+            = FindHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols, dynamicPriorityActions);
+         // <<<<<<<<<<<<<<< In work 1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-         // The subsetOfConflictSymbols cause the conflict
+         // The  indexOfActionWithPriority may be -1 if only actions with dynamic priority are in conflict
+         // The subsetOfConflictSymbols causes the conflict.
          // These symbols have to be removed from all participating actions exept 
          // the one with the highest priority and those with dynamic priority
 
+
+         // If there are conflicting actions with dynamic priority a new action has to be added 
+         if (dynamicPriorityActions.Count > 0)
+            {
+            var prioritySelectAction
+               = new PrioritySelectAction(
+                        InputSymbols: subsetOfConflictSymbols,
+                        constantPriorityAction:
+                           indexOfActionWithPriority < 0 ? null
+                           : this.Actions[indexOfActionWithPriority] as ConditionalAction,
+                        dynamicPriorityActions: dynamicPriorityActions // is copied
+                );
+            this.Actions.Add(prioritySelectAction);
+            indexOfActionWithPriority = this.Actions.Count - 1;
+            // <<<<<<<<<<<<<<< In work 2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            }
+
          // Log the conflict
          sb.AppendLine()
-            .Append(" when Symbol == ");
+            .Append(" caused by == ");
          subsetOfConflictSymbols.BitsToStringbuilder(
              sb,
              GlobalVariables.TerminalSymbolByIndex,
@@ -332,7 +350,7 @@ namespace Grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
-         // Action will beremoved from State.Actions inside the following loop.
+         // action might be removed from State.Actions inside the following loop.
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
          // Hence a loop with an eplicit index is used.
 
@@ -341,41 +359,23 @@ namespace Grammlator {
          for (Int32 IndexOfAction = 0; IndexOfAction < State.Actions.Count; IndexOfAction++)
             {
             ParserAction action = State.Actions[IndexOfAction];
-            BitArray symbolsOfThisAction = null;
-
-            Int32 priority = 0;
-
             if (!(action is ConditionalAction conditionalAction))
                continue;
 
-            switch (conditionalAction)
-               {
-            case TerminalTransition ActionAsTerminalTransition:
-                  {
-                  symbolsOfThisAction = ActionAsTerminalTransition.TerminalSymbols;
-                  break;
-                  }
+            if (action is NonterminalTransition)
+               continue;
 
-            case LookaheadAction laAktion:
-                  {
-                  symbolsOfThisAction = laAktion.TerminalSymbols;
-                  if (laAktion.PriorityFunction != null)
-                     continue;
-                  priority = laAktion.ConstantPriority;
-                  break;
-                  }
-               }
-
+            BitArray symbolsOfThisAction = conditionalAction.TerminalSymbols;
             if (symbolsOfThisAction == null)
                continue;
 
             if (IndexOfAction == indexOfActionWithPriority)
                {
                sb.Append("  priority ")
-                 .Append(priority)
+                 .Append(conditionalAction.Priority)
                  .Append(" => not modified: ");
 
-               action.ToStringbuilder(sb)
+               conditionalAction.ToStringbuilder(sb)
                  .AppendLine();
                }
             else
@@ -389,7 +389,7 @@ namespace Grammlator {
                   symbolsOfThisAction.ExceptWith(subsetOfConflictSymbols);
                   // Write log:
                   sb.Append("  priority ")
-                    .Append(priority)
+                    .Append(conditionalAction.Priority)
                     .Append(" => modified to: ");
 
                   conditionalAction.ToStringbuilder(sb)
@@ -408,303 +408,75 @@ namespace Grammlator {
 
                      sb.AppendLine("    This action has been deleted because no input symbols remained.");
 
-                     State.Actions.RemoveAt(IndexOfAction);
-                     IndexOfAction--;
+                     //State.Actions.RemoveAt(IndexOfAction);
+                     //IndexOfAction--;
 
-                     //State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
+                     State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
                      }
                   }
                }
             } // for (int IndexOfAction ...
 
-         if (indexOfActionWithPriority < IndexOfFirstConflictAction)
+         if (indexOfActionWithPriority >= IndexOfFirstConflictAction)
             {
-            return;
+            // Remove the subsetOfConflictSymbols from the superset AllowedSymbolsUpToFirstConflictAction
+            AllowedSymbolsUpToFirstConflictAction.Xor(subsetOfConflictSymbols);
             }
-         // Remove the subsetOfConflictSymbols from the superset AllowedSymbolsUpToFirstConflictAction
-         AllowedSymbolsUpToFirstConflictAction.Xor(subsetOfConflictSymbols);
          }
 
       /// <summary>
-      /// Test all actions with one or more of the conflict symbols and return the action with the highest priority
+      /// Tests all actions with one or more of the conflict symbols and returns the action with the highest priority.
+      /// Reduces the subsetOfConflictSymbols to the intersection of the conflicting actions
       /// </summary>
       /// <param name="subsetOfConflictSymbols"></param>
-      /// <returns>Index of action with priority</returns>
-      private Int32 GetHighestPriorityActionOfConflictingActions(BitArray subsetOfConflictSymbols)
+      /// <returns>Index of action with priority or -1 if only dynamic priorities</returns>
+      private Int32 FindHighestPriorityActionOfConflictingActions(
+            BitArray subsetOfConflictSymbols,
+            ListOfParserActions dynamicPriorityActions)
          {
          // Test each action of the state if it causes a conflict with any preceding action 
 
-         var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count);
+         dynamicPriorityActions.Clear();
+         var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count); // TODO allocate only once
 
-         Int32 indexOfActionWithPriority = 0;
+         Int32 indexOfActionWithPriority = -1;
          Int32 highestPriority = Int32.MinValue;
-
-         for (Int32 IndexOfAction = 0; IndexOfAction < this.Actions.Count; IndexOfAction++)
-            {
-            ParserAction action = this.Actions[IndexOfAction];
-
-            // For each action in the parser state (ignoring actions with dynamic priority)
-            // determine action symbols and priority and determine the action with the highest priority
-            Int32 priority = 0;
-            BitArray symbolsOfThisAction;
-
-            switch (action)
-               {
-            case TerminalTransition ActionAsTerminalTransition:
-                  {
-                  symbolsOfThisAction = ActionAsTerminalTransition.TerminalSymbols;
-                  break;
-                  }
-
-            case LookaheadAction LookAheadAction:
-                  {
-                  symbolsOfThisAction = LookAheadAction.TerminalSymbols;
-                  if (LookAheadAction.PriorityFunction != null)
-                     continue;
-                  priority = LookAheadAction.ConstantPriority;
-                  break;
-                  }
-
-            default: // 
-               continue; // no symbolsOfThisAction 
-               }
-
-            // found action with symbolsOfThisAction
-            if (symbolsOfThisAction == null)
-               continue;
-
-            // Does this action have at least one symbol in common with the conflicting action?
-            thisActionsConflictSymbols.Assign(subsetOfConflictSymbols).And(symbolsOfThisAction);
-
-            if (thisActionsConflictSymbols.Empty())
-               continue; // no, it hasn't
-
-            // Yes, it does
-            // Reduce the set of symbols, handled in this call of the method,
-            // to the symbols this action and the preceding conflicting actions have in common
-            subsetOfConflictSymbols.Assign(thisActionsConflictSymbols);
-
-            // Bookmark the action with the highest priority.
-            // If two actions have the same priortiy, give TerminalTransition higher priority than LookAhead.
-            if (priority > highestPriority
-                || (priority == highestPriority
-                    && action is TerminalTransition))
-               {
-               highestPriority = priority;
-               indexOfActionWithPriority = IndexOfAction;
-               }
-            }
-         return indexOfActionWithPriority;
-         }
-
-      // TODO Redesign the copies of static conflict resolution to handle dynamic conflicts
-
-      /// <summary>
-      /// Tests the state for conflicts regarding the given action, solves the conflicts by modifying
-      /// the terminal symbols of the states actions, writes a protocol to sb and modifies allowedSymbols
-      /// </summary>
-      /// <param name="sb">The protocol will be written to sb</param>
-      /// <param name="IndexOfConflictAction">Index of action which may cause a conflict</param>
-      /// <param name="SymbolsOfThisAction">The terminal symbols which are the condition of this action</param>
-      /// <param name="AllowedSymbolsUpToConflictAction">The union of the terminal symbols of all preceding actions of the state: may be modified by conflict 
-      /// solution</param>
-      public void SolveDynamicConflicts(StringBuilder sb,
-          Int32 IndexOfConflictAction, BitArray SymbolsOfThisAction,
-          BitArray AllowedSymbolsUpToConflictAction)
-         {
-         var conflictSymbols = new BitArray(SymbolsOfThisAction.Count);
-         // repeat test and partial solution of conflicts until no more conflicts regarding this action
-         while (!conflictSymbols.Assign(AllowedSymbolsUpToConflictAction).And(SymbolsOfThisAction).Empty())
-            {
-            // There is at least one conflict between the action and one of the preceding actions  
-            SolveAndProtocolSubsetOfDynamicConflict(sb, IndexOfConflictAction, conflictSymbols, AllowedSymbolsUpToConflictAction);
-            // One conflict is solved, allowedSymbols is modified
-            // There may be more conflicts between the action and the preceding actions
-            }
-         }
-
-      /// <summary>
-      /// Determine one set of terminal symbols common to a set of conflicting actions and solve
-      /// the conflict between these actions by modifying the x.TerminalSymbols of some of the actions.
-      /// This method must be called again until no more conflicting actions remain!
-      /// </summary>
-      /// <param name="sb">The protocol will be writte to sb</param>
-      /// <param name="IndexOfFirstConflictAction">Index of action which causes a conflict</param>
-      /// <param name="ConflictSymbols">Terminal symbols causing the conflict(s)</param>
-      /// <param name="AllowedSymbolsUpToFirstConflictAction">The union of the terminal symbols of all preceding actions of the state: may be modified by conflict 
-      /// solution</param>
-      private void SolveAndProtocolSubsetOfDynamicConflict(StringBuilder sb, Int32 IndexOfFirstConflictAction,
-          BitArray ConflictSymbols, BitArray AllowedSymbolsUpToFirstConflictAction)
-         {
-         var State = this;
-
-         // TOCHECK Should more information to the conflicts be written into the log?
-         // TOCHECK Might there be states - after solving conflicts -  without path to the halt action
-         //         and might solving conflicts lead to endless loops?
-
-         var subsetOfConflictSymbols = new BitArray(ConflictSymbols);
-
-         // TOCHECK Should more information about the conflicts be written into the log?
-         // TOCHECK Might there be states - after solving conflicts -  without path to the halt action
-         //         and might solving conflicts lead to endless loops?
-
-         /* -------------- */
-         int indexOfActionWithPriority = SolveoOneSubsetOfDynamicConflicts(subsetOfConflictSymbols);
-         /* -------------- */
-
-         // The subsetOfConflictSymbols cause the conflict
-         // These symbols have to be removed from all participating actions exept 
-         // the one with the highest priority and those with dynamic priority
-
-         sb.AppendLine()
-           .Append("Conflict in state ")
-           .Append(State.IdNumber + 1)
-           .Append(" when Symbol == ");
-         subsetOfConflictSymbols.BitsToStringbuilder(
-             sb, GlobalVariables.TerminalSymbolByIndex, " | ", "all terminal symbols", "no terminal symbols")
-           .AppendLine("; ");
-         State.CoreItems.ToStringbuilderMitZusatzinfo(sb)
-           .AppendLine();
-
-         // da Aktion geändert wird, kann hier (und in den umgebenden Schleifen) nicht 
-         // "foreach (cAktion Aktion in Zustand.Aktionen)" verwendet werden.
-         // In der expliziten Schleife steht der Index zur Verfügung.
 
          // For each action in the parser state (ignoring actions with dynamic priority)
          // determine action symbols and priority and determine the action with the highest priority
-         for (Int32 IndexOfAction = 0; IndexOfAction < State.Actions.Count; IndexOfAction++)
+         for (Int32 IndexOfAction = 0; IndexOfAction < this.Actions.Count; IndexOfAction++)
             {
-            ParserAction action = State.Actions[IndexOfAction];
-            BitArray symbolsOfThisAction;
-
-            if (!(action is ConditionalAction conditionalAction))
+            if (!(this.Actions[IndexOfAction] is ConditionalAction action))
                continue;
 
-            symbolsOfThisAction = conditionalAction.TerminalSymbols;
-
+            // Has this action at least one symbol in common with the subsetOfConflictSymbols
+            var symbolsOfThisAction = action.TerminalSymbols;
             if (symbolsOfThisAction == null)
-               continue;
+               continue; // it hasn't, no conflict
 
-            sb.AppendLine(" solved at runtime by dynamic priority");
-            if (IndexOfAction == indexOfActionWithPriority)
-               {
-               sb.Append("  priority ")
-                 //.Append(priority);// sb.Append(maximalePriorität)
-                 .Append(" => not modified: ");
-               action.ToStringbuilder(sb)
-                 .AppendLine();
-               }
-            else
-               {
-               var weiterEingeengteKonfliktsymbole =
-               (BitArray)(new BitArray(subsetOfConflictSymbols)).And(symbolsOfThisAction);
-
-               if (!weiterEingeengteKonfliktsymbole.Empty())
-                  {
-                  symbolsOfThisAction.ExceptWith(subsetOfConflictSymbols);
-                  // Protokollieren:
-                  sb.Append("  priority ")
-                    //.Append(priority) .Append(maximalePriorität);
-                    .Append(" => modified to: ");
-                  action.ToStringbuilder(sb)
-                    .AppendLine();
-
-                  // Prüfen: was ist die richtige Stelle, um Konflikte zu erkennen und / bzw. zu lösen ???
-
-                  // Die folgenden Zeilen waren zeitweise auskommentiert, damit die Aktion  in der Zustandsliste angezeigt wird.
-                  // Das führt zu nicht erreichbaren Anweisungen im generierten code und zu "IF (true)..."
-
-                  // Aktionen mit leerer Menge terminaler Symbole löschen (nicht mehr erreichbar)
-                  // Das kann dazu führen, dass weitere Aktionen nicht mehr erreichbar sind! ????
-                  // TODO Check   no longer generated DeletedAction  - any consequence? How is DeletedAction handled in further steps ???
-                  if (symbolsOfThisAction.Empty())
-                     {
-                     sb.AppendLine("This action has been deleted because no input symbols remained after conflict resolution.");
-
-                     State.Actions.RemoveAt(IndexOfAction);
-                     IndexOfAction--;
-
-                     //State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
-                     }
-                  }
-               }
-            } // for (int IndexOfAction ...
-
-         if (indexOfActionWithPriority < IndexOfFirstConflictAction)
-            {
-            return;
-            }
-         // die Konfliktsymbole von den erlaubten Symbolen abziehen
-         AllowedSymbolsUpToFirstConflictAction.And(subsetOfConflictSymbols.Not());
-         }
-
-      /// <summary>
-      /// has to bee implemented for dynamic prioritites !!!
-      /// </summary>
-      /// <param name="subsetOfConflictSymbols"></param>
-      /// <returns>Index of action with priority</returns>
-      private Int32 SolveoOneSubsetOfDynamicConflicts(BitArray subsetOfConflictSymbols)
-         { // TODO implement this for dynamic priorities
-           // Alle Aktionen auf Konflikte mit den vorhergehenden Aktionen überprüfen
-         var State = this;
-         var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count);
-         Int32 indexOfActionWithPriority = 0;
-
-         // ------------------ Test ---------------------
-#pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-         var prioritySelectAction = new PrioritySelectAction(thisActionsConflictSymbols, new ListOfParserActions(10));
-#pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-         Debug.Fail("");
-
-         Int32 highestPriority = Int32.MinValue;
-
-         for (Int32 IndexOfAction = 0; IndexOfAction < State.Actions.Count; IndexOfAction++)
-            {
-            ParserAction action = State.Actions[IndexOfAction];
-
-            // For each action in the parser state (ignoring actions with dynamic priority)
-            // determine action symbols and priority and determine the action with the highest priority
-            Int32 priority = 0;
-            BitArray symbolsOfThisAction;
-
-            switch (action)
-               {
-            case TerminalTransition ActionAsTerminalTransition:
-                  {
-                  symbolsOfThisAction = ActionAsTerminalTransition.TerminalSymbols;
-                  break;
-                  }
-
-            case LookaheadAction LookAheadAction:
-                  {
-                  symbolsOfThisAction = LookAheadAction.TerminalSymbols;
-                  if (LookAheadAction.PriorityFunction != null)
-                     continue;
-                  priority = LookAheadAction.ConstantPriority;
-                  break;
-                  }
-
-            default: // 
-               continue; // no symbolsOfThisAction 
-               }
-
-            // found action with symbolsOfThisAction
-            if (symbolsOfThisAction == null)
-               continue;
-
-            // Does this action have at least one symbol in common with the conflicting action?
             thisActionsConflictSymbols.Assign(subsetOfConflictSymbols).And(symbolsOfThisAction);
-
             if (thisActionsConflictSymbols.Empty())
                continue; // no, it hasn't
 
-            // Yes, it does
+            // Yes, it has
             // Reduce the set of symbols, handled in this call of the method,
             // to the symbols this action and the preceding conflicting actions have in common
             subsetOfConflictSymbols.Assign(thisActionsConflictSymbols);
 
+
+            Int32 priority = 0; // priority of terminal transitions is always 0
+            if (action is LookaheadAction laAction)
+               {
+               priority = laAction.ConstantPriority; // use assigned priority if no dynamic priority
+               if (laAction.PriorityFunction != null)
+                  {
+                  dynamicPriorityActions.Add(laAction.NextAction);
+                  continue; // an action with dynamic priority can not have highest static priority
+                  }
+               }
+
             // Bookmark the action with the highest priority.
-            // If two actions have the same priortiy, give TerminalTransition higher priority than LookAhead.
+            // If two actions have the same priority, give TerminalTransition higher priority than LookAhead.
             if (priority > highestPriority
                 || (priority == highestPriority
                     && action is TerminalTransition))
@@ -713,7 +485,7 @@ namespace Grammlator {
                indexOfActionWithPriority = IndexOfAction;
                }
             }
-         return indexOfActionWithPriority;
+         return indexOfActionWithPriority; // may be -1
          }
 
       /// <summary>
