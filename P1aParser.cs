@@ -1009,7 +1009,7 @@ State82:
      && (ParserInput < LexerResult.CSharpEnd || ParserInput > LexerResult.StarEqual)
      && ParserInput != LexerResult.NumberSign && ParserInput != LexerResult.GroupStart);
   /* Reduction 81, sStack: -1, aStack: 1
-   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ Priority: -10, aStack: 1, method: NameWithoutAttributes
+   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ priority: -10, aStack: 1, method: NameWithoutAttributes
    */
   _s.Pop();
   _a.Allocate();
@@ -3376,7 +3376,7 @@ State87:
      || ParserInput == LexerResult.CSharpStart
      || ParserInput >= LexerResult.DefinitionSeparatorSymbol);
   /* Reduction 88, sStack: -1, aStack: 1
-   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ Priority: -10, aStack: 1, method: NameWithoutAttributes
+   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ priority: -10, aStack: 1, method: NameWithoutAttributes
    */
   _s.Pop();
   _a.Allocate();

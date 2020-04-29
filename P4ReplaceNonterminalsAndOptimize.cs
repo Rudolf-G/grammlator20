@@ -504,19 +504,21 @@ namespace Grammlator {
           Definition Definition,
           ParserAction NextActionOfReduce)
          {
-         Definition.DefinedSymbol.IdentifierAndAttributesToSB(reduceStringBuilderTemp).Append("= ");
-
-         String description =
-             Definition
-             .ToStringbuilder(reduceStringBuilderTemp, Definition.Elements.Length + 1)
-             .ToString();
+         // Compose description
+         Definition.DefinedSymbol
+            .IdentifierAndAttributesToSB(reduceStringBuilderTemp)
+            .Append("= ");         
+         Definition
+             .ToStringbuilder(reduceStringBuilderTemp, Definition.Elements.Length + 1);
+         String description = reduceStringBuilderTemp.ToString();
          reduceStringBuilderTemp.Clear();
 
+         // construct reduceAction
          var reduceAction = new ReduceAction {
             IdNumber = GlobalVariables.ListOfAllReductions.Count,// starting with 0
             Description = description,
             StateStackAdjustment = DepthOfSyntaxStack,
-            PriorityFunction = Definition.PriorityFunction,
+            // PriorityFunction = Definition.PriorityFunction, // has already been copied from Definition to PrioritySelectAction
             SemanticMethod = Definition.SemanticMethod,
             AttributeStackAdjustment = Definition.AttributestackAdjustment,
             // because optimizations may change AttributeStackAdjustment the 
@@ -621,7 +623,7 @@ namespace Grammlator {
              */
             return (
                 state.StateStackNumber == -1
-                && (state.RedundantLookaheadActionOrNull() is LookaheadAction ActionToSkip)
+                && (state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip)
                 && !(ActionToSkip.NextAction is Definition))
                 // definitions must not be moved out of the state
                 ? ActionToSkip.NextAction = SimplifiedNextAction(ActionToSkip.NextAction)
@@ -950,7 +952,7 @@ namespace Grammlator {
             while (IndexOfNextState < GlobalVariables.ListOfAllStates.Count
                 && GlobalVariables.ListOfAllStates[IndexOfNextState].StateStackNumber < 0)
                {
-               ParserAction singleAction = GlobalVariables.ListOfAllStates[IndexOfNextState].RedundantLookaheadActionOrNull();
+               ParserAction singleAction = GlobalVariables.ListOfAllStates[IndexOfNextState].RedundantLookaheadOrSelectActionOrNull();
                if (singleAction == null)
                   break; // Der Zustand ist erreichbar
                if (!(singleAction is LookaheadAction))
@@ -1003,15 +1005,11 @@ namespace Grammlator {
                if (State.Actions[ActionIndex] is NonterminalTransition
                    || State.Actions[ActionIndex] is DeletedParserAction)
                   {
+                  // Count the actions to be deleted
                   DeletedActionsCount++;
                   }
                else
                   {
-                  // Move the remaining action to
-                  // replace first unused action in State.Actions with this action
-                  if (DeletedActionsCount > 0)
-                     State.Actions[ActionIndex - DeletedActionsCount] = State.Actions[ActionIndex];
-
                   // Compute Terminalcount and SumOfWeights of the remaining action
                   if (State.Actions[ActionIndex] is ConditionalAction c)
                      {
@@ -1019,6 +1017,11 @@ namespace Grammlator {
                      MaximumActionComplexity = max(MaximumActionComplexity, c.Complexity);
                      ActionComplexitySum += c.Complexity;
                      }
+
+                  // Shift the action by DeletedActionsCount places to the front
+                  // and replace the first unused action in State.Actions with this action
+                  if (DeletedActionsCount > 0)
+                     State.Actions[ActionIndex - DeletedActionsCount] = State.Actions[ActionIndex];
                   }
                }
 
@@ -1036,7 +1039,7 @@ namespace Grammlator {
                }
 
             /* Ignore the MaximumActionComplexity because the respective action
-             * might be generated as last uncondition action
+             * might be generated as last unconditional action
              */
             State.IfComplexity = ActionComplexitySum - MaximumActionComplexity;
             }

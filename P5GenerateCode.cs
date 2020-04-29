@@ -5,11 +5,9 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 
-namespace Grammlator
-{
-   internal partial class P5GenerateCode
-   {
-      public static void MakeInstanceAndExecute(P5CodegenCS Codegen) 
+namespace Grammlator {
+   internal partial class P5GenerateCode {
+      public static void MakeInstanceAndExecute(P5CodegenCS Codegen)
          => new P5GenerateCode(Codegen).Execute();
 
       /// <summary>
@@ -68,7 +66,7 @@ namespace Grammlator
       private Boolean reductionsModifyAttributStack;
 
       private void Execute()
-      {
+         {
          GlobalVariables.Startaction.CountUsage(Accept: false);
          /* doppelte Aktionen in gleichen Zuständen sollten bereits zusammengefasst sein,
             um die Zahl der Aufrufe der entsprechenden Folgeaktion gering zu halten!}
@@ -77,13 +75,13 @@ namespace Grammlator
          // Determine whether the generated code will modify the attribute stack
          reductionsModifyAttributStack = false;
          foreach (ReduceAction reduction in GlobalVariables.ListOfAllReductions)
-         {
-            if (reduction.Calls > 0 && reduction.AttributeStackAdjustment != 0)
             {
+            if (reduction.Calls > 0 && reduction.AttributeStackAdjustment != 0)
+               {
                reductionsModifyAttributStack = true;
                break;
+               }
             }
-         }
 
          codegen.GenerateStartOfCode(
              GenerateStateStackInitialCountVariable: GlobalVariables.CountOfStatesWithStateStackNumber > 0,
@@ -116,36 +114,36 @@ namespace Grammlator
          GlobalVariables.TheOnlyOneErrorHaltAction.Calls = -GlobalVariables.TheOnlyOneErrorHaltAction.Calls; // war g.Fehlerhaltaktion.Codenummer = 0;
          GlobalVariables.TheEndOfGeneratedCodeAction.Calls = -GlobalVariables.TheEndOfGeneratedCodeAction.Calls;
          if (GlobalVariables.TheOnlyOneErrorHaltAction.Calls > 0)
-         {
+            {
             GenerateCodeSequence(GlobalVariables.TheOnlyOneErrorHaltAction, GlobalVariables.TheOnlyOneErrorHaltAction.AcceptCalls > 0,
                 labelMustBeGenerated: true, nestingLevel: 0);
-         }
+            }
 
          // Generate the 
          if (GlobalVariables.TheEndOfGeneratedCodeAction.Calls > 0)
-         {
+            {
             GenerateCodeSequence(GlobalVariables.TheEndOfGeneratedCodeAction, GlobalVariables.TheEndOfGeneratedCodeAction.AcceptCalls > 0,
                 labelMustBeGenerated: true, nestingLevel: 0);
-         }
+            }
 
          codegen.GenerateEndOfCode(); // und den eventuell in cg zwischengespeicherten Code ausgeben
-      }
+         }
 
       private Boolean GeneratesGoto(Boolean generateAccept, ParserAction action, Int32 nestingLevel)
-      {
-         if (generateAccept)
          {
+         if (generateAccept)
+            {
             if (action.AcceptCalls <= 0
                 || (action.AcceptCalls >= 2 && nestingLevel > 0))
-            {
+               {
                return true;
+               }
             }
-         }
 
          return action.Calls <= 0
              || (action.Calls > 1 && nestingLevel > 0)
              || nestingLevel >= nestingLevelLimit;
-      }
+         }
 
       /// <summary>
       /// Erzeugt einen Sprung oder eine Marke und gibt zurück, ob ein Sprung erzeugt wurde 
@@ -163,7 +161,7 @@ namespace Grammlator
           ParserAction parserAction,
           ref Boolean beginOfBlockHasBeenGenerated,
           Int32 nestingLevel)
-      {
+         {
          /*  --- neue Version vom 20.05.2016 ---
           *  
           *  Abhängig von "akzeptieren" bezieht sich die Methode auf die Akzeptieren-Aktion (mit der darauf folgenden Aktion)
@@ -195,26 +193,26 @@ namespace Grammlator
           */
 
          if (generateAccept)
-         {
+            {
             // Part 1: provide the accept code
             if (canNotBeReachedWithoutLabel)
-            {
+               {
                // if any code is generated now it needs a label 
 
                Debug.Assert(nestingLevel == 0);
                if (parserAction.AcceptCalls <= 0)
-               {
+                  {
                   // no code has to be generated  now
                   // because it has already been generated elsewhere (calls == 0)
                   // or generating this code ist blocked (calls < 0)
                   return true;
-               }
+                  }
 
                // generate the label
                codegen.GenerateLabel(parserAction, accept: true);
-            }
+               }
             else
-            {
+               {
                // generate a goto or a label in special cases
 
                // generate goto, if code for the parsing action must not yet be generated (calls <0)
@@ -226,21 +224,21 @@ namespace Grammlator
                if (parserAction.AcceptCalls <= 0
                    || (parserAction.AcceptCalls > 1 && nestingLevel > 0)
                    || nestingLevel >= nestingLevelLimit)
-               {
+                  {
                   codegen.GenerateGoto(parserAction, accept: true, nestingLevel: nestingLevel);
                   return true; // goto has been generated
-               }
+                  }
 
                // It is necessary to generate a label if the code is referenced more than once (calls > 1) 
                if (parserAction.AcceptCalls > 1)
-               {
+                  {
                   codegen.GenerateLabel(parserAction, accept: true);
-               }
+                  }
 
                // If the code which can be reached without label
                // is referenced exactly once (calls ==1) no label is generated !
 
-            }
+               }
 
             // if this part of the code is executed, a goto had not to be generated, 
             // a label has only been generated, if necessary
@@ -262,7 +260,7 @@ namespace Grammlator
             // this is done by modifying the local variables (formal parameters) 
             canNotBeReachedWithoutLabel = false;
             generateAccept = false;
-         }
+            }
 
          // Part 2: provide the code of the parser action
          Debug.Assert(!generateAccept);
@@ -271,21 +269,21 @@ namespace Grammlator
          // the optional label of the parser action
 
          if (canNotBeReachedWithoutLabel)
-         { // alleine stehendes Codefragment mit Marke erzeugen
+            { // alleine stehendes Codefragment mit Marke erzeugen
             Debug.Assert(nestingLevel == 0);
             if (parserAction.Calls <= 0)
-            {
+               {
                // no code has to be generated  now
                // because it has already been generated elsewhere (calls == 0)
                // or generating this code ist blocked (calls < 0)
                return true; // wurde bereits erzeugt oder das Erzeugen ist geblockt
-            }
+               }
 
             // generate the label
             codegen.GenerateLabel(parserAction, accept: false);
-         }
+            }
          else
-         {
+            {
             // generate a goto or a label in special cases
 
             // generate goto, if code for the parsing action must not yet be generated (calls <0)
@@ -297,21 +295,21 @@ namespace Grammlator
             if (parserAction.Calls <= 0
                 || (parserAction.Calls > 1 && nestingLevel > 0)
                 || nestingLevel >= nestingLevelLimit)
-            {
+               {
                codegen.GenerateGoto(parserAction, false, nestingLevel);
                return true;
-            }
+               }
 
             // It is necessary to generate a label if the code is referenced more than once (calls > 1) 
             if (parserAction.Calls > 1)
-            {
+               {
                codegen.GenerateLabel(parserAction, false);
-            }
+               }
 
             // If the code which can be reached without label
             // is referenced exactly once (calls ==1) no label is generated !
 
-         }
+            }
 
          // if this part of the code is executed, a goto had not to be generated, 
          // a label has only been generated, if necessary
@@ -319,18 +317,18 @@ namespace Grammlator
          parserAction.Calls = 0;  // mark that begin of the parser code has been generated
                                   // the parser code will be generated by the calling method immediately
          return false;
-      } // GenerateLabelOrGoto (...)
+         } // GenerateLabelOrGoto (...)
 
       private void GenerateBeginIfNestedAndGenerateAcceptInstruction(ref Boolean BeginHasBeenGenerated, Int32 nestingLevel)
-      {
-         if (!BeginHasBeenGenerated && nestingLevel > 0)
          {
+         if (!BeginHasBeenGenerated && nestingLevel > 0)
+            {
             codegen.GenerateBeginOfBlock();
             BeginHasBeenGenerated = true;
-         }
+            }
          codegen.IndentExactly(nestingLevel);
          codegen.GenerateAcceptSymbolInstruction();
-      }
+         }
 
       ///// <summary>
       ///// Estimates how many if conditions might be generated to test if a symbol is one of the allowed symbols.
@@ -375,29 +373,27 @@ namespace Grammlator
       //    return result;
       //}
 
-      public struct ActionAndCounter
-      {
+      public struct ActionAndCounter {
          public Int32 Counter;
          public ParserAction Action;
 
          public ActionAndCounter(Int32 Counter, ParserAction Action)
-         {
+            {
             this.Counter = Counter;
             this.Action = Action;
+            }
          }
-      }
 
       /// <summary>
       /// In der BranchToGenerate.ListOfCases kann als Folge der Optimierungen die gleiche Aktion mit verschiedenen Kennungen vorkommen.
       /// In der ActionCounterList kommt jede Aktion daraus genau einmal vor. Der Zähler gibt an, wie oft sie in der ListOfCases vorkommt.
       /// </summary>
-      public class ActionCounterList : List<ActionAndCounter>
-      {
+      public class ActionCounterList: List<ActionAndCounter> {
          private ActionCounterList(Int32 capacity) : base(capacity) { }
 
          private ActionCounterList()
-         {
-         }
+            {
+            }
 
          /// <summary>
          /// Constructs an ActionCounterList with the same length as the ListOfCases of the BranchToGenerate,
@@ -405,38 +401,38 @@ namespace Grammlator
          /// </summary>
          /// <param name="BranchToGenerate"></param>
          public ActionCounterList(BranchAction BranchToGenerate) : this(BranchToGenerate.ListOfCases.Count)
-         {
-            foreach (BranchcaseStruct branchcase in BranchToGenerate.ListOfCases)
             {
+            foreach (BranchcaseStruct branchcase in BranchToGenerate.ListOfCases)
+               {
                // Die Aktion in der Liste suchen:
                Int32 FoundIndex = FindIndex(x => x.Action == branchcase.BranchcaseAction);
 
                if (FoundIndex == -1)
-               { // falls nicht gefunden: die Aktion mit Zähler 1 einfügen
+                  { // falls nicht gefunden: die Aktion mit Zähler 1 einfügen
                   Add(new ActionAndCounter(Counter: 1, Action: branchcase.BranchcaseAction));
-               }
+                  }
                else
-               { // falls gefunden:  den Zähler erhöhen
+                  { // falls gefunden:  den Zähler erhöhen
                   ActionAndCounter actionAndCounter = this[FoundIndex];
                   actionAndCounter.Counter++; // bzw. den Zähler erhöhen
                   this[FoundIndex] = actionAndCounter;
+                  }
                }
-            }
             TrimExcess();
+            }
          }
-      }
 
       private ParserAction GenerateCondionalActionsOfBranch(BranchAction BranchToGenerate, out Boolean Accept, Int32 NestingLevel)
-      {
+         {
          // Create a CounterList which is ready to use preset with one entry and counter for each different action in BranchtoGenerate  
          var CounterList = new ActionCounterList(BranchToGenerate);
 
          // if there is only one action: return it to be generated without condition
          if (CounterList.Count == 1)
-         {
+            {
             Accept = false;
             return CounterList[0].Action;
-         }
+            }
 
          // Select a default action
          // There are different criteria to select the default action:
@@ -448,7 +444,7 @@ namespace Grammlator
          ParserAction defaultAction = null;
 
          foreach (ActionAndCounter actionAndCounter in CounterList)
-         {
+            {
             // Select the most frequent action
             Int32 thisPriority = actionAndCounter.Counter;
 
@@ -461,33 +457,33 @@ namespace Grammlator
                 || (actionAndCounter.Action as ReduceAction)?.NextAction is HaltAction
                 || actionAndCounter.Action is HaltAction
                 )
-            {
+               {
                thisPriority -= 2;
-            }
+               }
 
             if (thisPriority > priority)
-            {
+               {
                priority = thisPriority;
                defaultAction = actionAndCounter.Action;
+               }
             }
-         }
 
          // It is possible to generate an IF condition with one test for equality (or unequality)
          // if there are only 2 different actions one of which has only one condition (Counter==1) to check for
          // If both actiosn have a counter of 1, 
          if (CounterList.Count == 2 && (CounterList[0].Counter == 1 || CounterList[1].Counter == 1))
-         {
+            {
             GenerateBranchAsIFInstruction(BranchToGenerate, CounterList, defaultAction, NestingLevel);
             Accept = false;
             return defaultAction;
-         }
+            }
 
          return GenerateBranchAsSwitch(BranchToGenerate, out Accept, NestingLevel, CounterList, defaultAction);
-      }
+         }
 
       private ParserAction GenerateBranchAsSwitch(
           BranchAction BranchToGenerate, out Boolean Accept, Int32 NestingLevel, ActionCounterList CounterList, ParserAction defaultAction)
-      {
+         {
          // Generate a switch statement
          // Für jede Aktion ungleich Defaultaktion in der Zählliste alle gleichen Aktionen in der Falliste der Verzweigung suchen
          // und eine oder mehrere Case-Anweisungen erzeugen sowie einmal die Codefolge für die Aktion
@@ -500,12 +496,12 @@ namespace Grammlator
             .Append("{");
 
          foreach (ActionAndCounter ElementOFCounterList in CounterList)
-         {
-            if (ElementOFCounterList.Action != defaultAction)
             {
+            if (ElementOFCounterList.Action != defaultAction)
+               {
                // Alle gleichen Aktionen suchen
                foreach (BranchcaseStruct f in BranchToGenerate.ListOfCases)
-               {
+                  {
                   if (f.BranchcaseAction == ElementOFCounterList.Action)
                      codegen.IndentExactly()
                         .Append("case ")
@@ -513,14 +509,14 @@ namespace Grammlator
                         .Append(": ");
 
                   // codegen.AppendInstruction("case ", f.BranchcaseCondition.ToString(), ": ");
-               }
+                  }
 
                // Die zugehörige Codefolge erzeugen
                GenerateCodeSequence(ElementOFCounterList.Action, false, false, NestingLevel + 1);
                codegen.IndentExactly(NestingLevel);
                // Die Codefolge endet immer mit einem GOTO - auch bei Halt !
+               }
             }
-         }
 
          // Für die Defaultaktion analog
 
@@ -529,13 +525,13 @@ namespace Grammlator
          codegen.Append("/*");
          Int32 countOfDefaultCases = 0;
          foreach (BranchcaseStruct f in BranchToGenerate.ListOfCases)
-         {
-            if (f.BranchcaseAction == defaultAction)
             {
+            if (f.BranchcaseAction == defaultAction)
+               {
                countOfDefaultCases++;
                codegen.AppendWithOptionalLinebreak("case ", f.BranchcaseCondition.ToString(), ": ");
+               }
             }
-         }
 
          if (countOfDefaultCases > 1)
             defaultAction.Calls -= countOfDefaultCases - 1;
@@ -546,7 +542,7 @@ namespace Grammlator
          .AppendLine("}");
          Accept = false;
          return defaultAction;
-      }
+         }
 
       /// <summary>
       /// generate an if instruction so that not the default action will be executed conditionally 
@@ -557,25 +553,25 @@ namespace Grammlator
       /// <param name="defaultAction"></param>
       /// <param name="NestingLevel"></param>
       private void GenerateBranchAsIFInstruction(BranchAction BranchToGenerate, ActionCounterList CounterList, ParserAction defaultAction, Int32 NestingLevel)
-      {
+         {
          Int32 simpleCaseIndex = 0, complexCaseIndex = 1; // or vice versa
 
          if (CounterList[simpleCaseIndex].Counter == 1 && CounterList[complexCaseIndex].Counter == 1)
-         {
+            {
             // if each of both action occurs only once use the default-Action as complexCase
             if (CounterList[simpleCaseIndex].Action == defaultAction)
-            {
+               {
                // vice versa
                simpleCaseIndex = 1;
                complexCaseIndex = 0;
+               }
             }
-         }
          else if (CounterList[simpleCaseIndex].Counter != 1)
-         {
+            {
             // vice versa
             simpleCaseIndex = 1;
             complexCaseIndex = 0;
-         }
+            }
 
          ParserAction simpleCase = CounterList[simpleCaseIndex].Action;
          ParserAction complexCase = CounterList[complexCaseIndex].Action;
@@ -587,24 +583,24 @@ namespace Grammlator
          Int32 simpleCaseCondition = BranchToGenerate.ListOfCases.Find(x => x.BranchcaseAction == simpleCase).BranchcaseCondition;
 
          if (complexCase == defaultAction)
-         {
+            {
             codegen.GenerateIfSPeek(NestingLevel, false, simpleCaseCondition.ToString());
             // generate simpleCase
             GenerateCodeSequence(simpleCase, false, false, NestingLevel + 1);
             codegen.IndentExactly(0); // force new line
                                       // return default (complexCase) to be generated in sequence
             complexCase.Calls -= complexCaseCounter - 1; // Die Zahl der Aufrufe korrigieren, da eventuell mehrere Aufrufe zusammengefasst sind
-         }
+            }
          else
-         { // use the complement of the condition of simpleCase 
+            { // use the complement of the condition of simpleCase 
             codegen.GenerateIfSPeek(NestingLevel, true, simpleCaseCondition.ToString());
             // generate complexCase
             complexCase.Calls -= complexCaseCounter - 1; // Adjust the number of calls because some actions are handled together
             GenerateCodeSequence(complexCase, false, false, NestingLevel + 1);
             codegen.IndentExactly(0); // force new line
                                       // return default (simpleCase) to be generated in sequence
+            }
          }
-      }
 
       /// <summary>
       /// Compare a1 and a2 such that sort will place
@@ -617,7 +613,7 @@ namespace Grammlator
       /// <param name="a2"></param>
       /// <returns></returns>
       private static Int32 CompareWeightandConditionComplexity(ParserAction a1, ParserAction a2)
-      {
+         {
          // a1 < a2 => <0
          // a1 == a2 => 0
          // a1 > a2 => >0 
@@ -653,7 +649,7 @@ namespace Grammlator
             return (Int32)(PositionA - PositionB);
 
          return (a1 as ConditionalAction).IdNumber - ActionB.IdNumber;
-      }
+         }
 
       /// <summary>
       /// Compares ActionA.TerminalSymbols.IndexOfFirstTrueElement() with ActionB...
@@ -662,7 +658,7 @@ namespace Grammlator
       /// <param name="b">Action B</param>
       /// <returns></returns>
       private static Int32 CompareIndexOfFirstTrueElement(ParserAction a, ParserAction b)
-      {
+         {
          if (!(a is ConditionalAction ActionA))
             return (b == null) ? 0 : 1;
          if (!(b is ConditionalAction ActionB))
@@ -675,7 +671,7 @@ namespace Grammlator
             return First1 - First2;
 
          return ActionA.IdNumber - ActionB.IdNumber;
-      }
+         }
 
       /// <summary>
       /// Generates nothing if .Calls (resp. .AccepCalls) &lt;=0.
@@ -687,17 +683,31 @@ namespace Grammlator
       /// <param name="labelMustBeGenerated"></param>
       /// <param name="nestingLevel"></param>
       private void GenerateCodeSequence(ParserActionWithNextAction actionToGenerate, Boolean labelMustBeGenerated, Int32 nestingLevel)
-      {
+         {
+         if (actionToGenerate is PrioritySelectAction)
+            {
+
+            GenerateCodeSequence(
+                actionToGenerate:
+                   actionToGenerate,
+                accept: false,
+                labelMustBeGenerated,
+                nestingLevel
+                );
+
+            return;
+            }
+
          GenerateCodeSequence(
              actionToGenerate:
                 actionToGenerate is ErrorhandlingAction && GlobalVariables.ErrorHandlerIsDefined
                    ? actionToGenerate
-                   : actionToGenerate.NextAction, // LookaheadAction | TerminalTransition
+                      : actionToGenerate.NextAction, // LookaheadAction | TerminalTransition
              accept: actionToGenerate is TerminalTransition,
              labelMustBeGenerated,
              nestingLevel
              );
-      }
+         }
 
       readonly StringBuilder CodeSequenceBuilder = new StringBuilder(4000);
 
@@ -712,7 +722,7 @@ namespace Grammlator
       /// <param name="nestingLevel"></param>
       [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "e")]
       private void GenerateCodeSequence(ParserAction actionToGenerate, Boolean accept, Boolean labelMustBeGenerated, Int32 nestingLevel)
-      {
+         {
          ParserAction ActionToGenerate = actionToGenerate;
          Boolean Accept = accept;
          Boolean GotoHasBeenGenerated = labelMustBeGenerated;
@@ -722,7 +732,7 @@ namespace Grammlator
          Boolean BeginOfBlockHasBeenGenerated = false;
 
          while (ActionToGenerate != null)
-         {
+            {
             GotoHasBeenGenerated =
                 GenerateOptionalLabelOptionalAcceptOrGoto(
                     canNotBeReachedWithoutLabel: GotoHasBeenGenerated,
@@ -736,71 +746,75 @@ namespace Grammlator
 
             // gegebenenfalls Blockanfang erzeugen
             if (!BeginOfBlockHasBeenGenerated && nestingLevel > 0)
-            {
+               {
                codegen.GenerateBeginOfBlock();
                BeginOfBlockHasBeenGenerated = true;
-            }
+               }
 
             switch (ActionToGenerate)
-            {
-               case ParserState state:
                {
+            case ParserState state:
+                  {
                   ActionToGenerate = GenerateState(out Accept, state, CodeSequenceBuilder, nestingLevel);
                   break;
-               }
+                  }
 
-               case ReduceAction reduce:
-               {
+            case ReduceAction reduce:
+                  {
                   ActionToGenerate = GenerateReduce(out Accept, reduce, nestingLevel);
                   break;
-               }
+                  }
 
-               case BranchAction branch:
-               {
+            case BranchAction branch:
+                  {
                   ActionToGenerate = GenerateBranch(out Accept, branch, nestingLevel);
                   break;
-               }
+                  }
 
-               case ErrorhandlingAction errorhandlingAction:
-               {
+            case ErrorhandlingAction errorhandlingAction:
+                  {
                   ActionToGenerate = GenerateErrorHandling(out Accept, errorhandlingAction, nestingLevel);
 
                   break;
-               }
+                  }
 
-#pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-               case ErrorHaltAction e: // aus Fehlerhalt wird in der Regel ein Sprung generiert (siehe MarkeOderSprungErzeugen)
-               {
+            case ErrorHaltAction _: // aus Fehlerhalt wird in der Regel ein Sprung generiert (siehe MarkeOderSprungErzeugen)
+                  {
                   ActionToGenerate = GenerateErrorHalt();
                   break;
-               }
+                  }
 
-               case HaltAction haltaction:
-               {
+            case HaltAction haltaction:
+                  {
                   ActionToGenerate = GenerateHalt(nestingLevel, haltaction);
                   break;
-               }
+                  }
 
-               case EndOfGeneratedCodeAction endaction:
-               {
+            case EndOfGeneratedCodeAction endaction:
+                  {
                   ActionToGenerate = endaction.Generate(codegen, out Accept);
                   break;
-               }
-#pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
+                  }
 
-               default:
-               {
+            case PrioritySelectAction ps:
+                  {
+                  ActionToGenerate = GeneratePrioritySelect(out Accept, ps, nestingLevel);
+                  break;
+                  }
+
+            default:
+                  {
                   throw new ErrorInGrammlatorProgramException
                      ($"illegal or unknown type {ActionToGenerate} in {nameof(P5GenerateCode.GenerateCodeSequence)}");
-               }
-            } // switch
-         } // while (ActionToGenerate != null)
+                  }
+               } // switch
+            } // while (ActionToGenerate != null)
 
          if (BeginOfBlockHasBeenGenerated)
-         {
+            {
             codegen.IndentExactly(nestingLevel);
             codegen.GenerateEndOfBlock("");
-         }
+            }
 
          // No action to generate => if topmost level the next code can only be reached by a goto.
          // Generate an empty line preceding the label that will be generated.
@@ -808,10 +822,10 @@ namespace Grammlator
             codegen.AppendLine(' ');
 
          this.CodeSequenceBuilder.Clear();
-      } // private ... CodefolgeErzeugen(...)
+         } // private ... CodefolgeErzeugen(...)
 
       private ParserAction GenerateHalt(Int32 nestingLevel, HaltAction haltaction)
-      {
+         {
          codegen.IndentExactly(nestingLevel);
          Int32 numberOfAttributesToStore = haltaction.AttributestackAdjustment;
          Debug.Assert(numberOfAttributesToStore >= 0);
@@ -824,19 +838,19 @@ namespace Grammlator
                .Append(".Pop();");
 
          if (numberOfAttributesToStore != 0)
-         {
+            {
             codegen.Append("AttributesOfSymbol.CopyAndRemoveFrom(")
                .Append(GlobalVariables.AttributeStack)
                .Append(", ")
                .Append(numberOfAttributesToStore)
                .AppendLine(");");
-         }
+            }
 
          return haltaction.NextAction;
-      }
+         }
 
       private ParserAction GenerateErrorHalt()
-      {
+         {
          codegen.IndentAndAppendLine(
              "// This point is reached after an input error has been found");
 
@@ -866,7 +880,7 @@ namespace Grammlator
             codegen.IndentAndAppendLine(GlobalVariables.InstructionErrorHalt);
 
          return GlobalVariables.TheOnlyOneErrorHaltAction.NextAction;
-      }
+         }
 
       /// <summary>
       /// Generates the assignment to StateNumber and the call of ErrorHandler dependent on the global variables or
@@ -877,13 +891,13 @@ namespace Grammlator
       /// <param name="nestingLevel"></param>
       /// <returns></returns>
       private ParserAction GenerateErrorHandling(out Boolean Accept, ErrorhandlingAction errorhandlingAction, Int32 nestingLevel)
-      {
-         if (!string.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
          {
+         if (!string.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
+            {
             codegen.IndentExactly(nestingLevel);
 
             if (!string.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
-            {   // generate ErrorHandlerCall   ErrorHandler(ErrorStateNumber, StateDescription, ParserInput);
+               {   // generate ErrorHandlerCall   ErrorHandler(ErrorStateNumber, StateDescription, ParserInput);
                codegen.Append("if (")
                .Append(GlobalVariables.ErrorHandlerMethod)
                .Append('(')
@@ -910,15 +924,15 @@ namespace Grammlator
                   codegen.GenerateGoto(errorhandlingAction.State, accept: false, nestingLevel + 1);
                   }
                }
-         }
+            }
 
          Accept = false;
          return errorhandlingAction.NextAction; // errorhandlingAction.NextAction == ErrorHalt  
-      }
+         }
 
       private ParserAction GenerateBranch(
           out Boolean Accept, BranchAction BranchactionToGenerate, Int32 nestingLevel)
-      {
+         {
          // Generate comment
          codegen.IndentExactly(nestingLevel)
          .AppendWithOptionalLinebreak("/* Branch ")
@@ -926,10 +940,10 @@ namespace Grammlator
          .AppendLineWithOptionalLinebreak("*/");
 
          return GenerateCondionalActionsOfBranch(BranchactionToGenerate, out Accept, nestingLevel);
-      }
+         }
 
       private ParserAction GenerateReduce(out Boolean Accept, ReduceAction ReduceActionToGenerate, Int32 nestingLevel)
-      {
+         {
          //if (!BeginOfBlockHasBeenGenerated & NestingLevel > 0) {
          //    cg.BlockanfangErzeugen(); BeginOfBlockHasBeenGenerated = true;
          //    }
@@ -939,35 +953,35 @@ namespace Grammlator
          codegen.Append("/* Reduction ");
          codegen.Append(ReduceActionToGenerate.IdNumber + 1);
          if (ReduceActionToGenerate.StateStackAdjustment != 0)
-         {
+            {
             codegen.Append(", sStack: ");
             codegen.Append(-ReduceActionToGenerate.StateStackAdjustment);
-         }
+            }
          if (ReduceActionToGenerate.AttributeStackAdjustment != 0)
-         {
+            {
             codegen.Append(", aStack: ");
             codegen.Append(ReduceActionToGenerate.AttributeStackAdjustment);
-         }
+            }
          codegen.OutputandClearLine();
          codegen.IndentAndAppendLines(ReduceActionToGenerate.Description, " * ");
          codegen.IndentAndAppendLine(" */");
 
          // Generate instructions to handle the state stack
          if (ReduceActionToGenerate.StateStackAdjustment != 0)
-         {
-            if (ReduceActionToGenerate.StateStackAdjustment == 1)
             {
+            if (ReduceActionToGenerate.StateStackAdjustment == 1)
+               {
                codegen.IndentAndAppend(GlobalVariables.StateStack)
                   .AppendLine(".Pop(); ");
-            }
+               }
             else
-            {
+               {
                codegen.IndentAndAppend(GlobalVariables.StateStack)
                   .Append(".Discard(")
                   .Append(ReduceActionToGenerate.StateStackAdjustment)
                   .Append("); ");
+               }
             }
-         }
 
          // Generate instructions to handle the attribute stack and to call the method
 
@@ -978,10 +992,10 @@ namespace Grammlator
             codegen.GenerateSemanticMethodCall(ReduceActionToGenerate.SemanticMethod);
 
          if (ReduceActionToGenerate.AttributeStackAdjustment != 0 && !ReduceActionToGenerate.FirstAdjustAttributeStackThenCallMethod)
-         {
+            {
             codegen.Indent();
             codegen.GenerateAttributeStackAdjustment(ReduceActionToGenerate.AttributeStackAdjustment);
-         }
+            }
 
          // Gegebenenfalls die Zeile beenden
          if (codegen.LineLength > 0)
@@ -995,7 +1009,54 @@ namespace Grammlator
             );
 
          return ReduceActionToGenerate.NextAction;
-      }
+         }
+
+      private ParserAction GeneratePrioritySelect(out Boolean Accept, PrioritySelectAction ps, Int32 nestingLevel)
+         {
+         // TODO change test to correct program !! Test --------------------------------
+
+         codegen.IndentExactly(nestingLevel);
+         codegen.AppendLine("/* Dynamic priority controlled actions */");
+
+         codegen.AppendInstruction("switch(IndexOfMaximum(");  // TODO IndexOfMaximum ??
+         if (ps.NextAction != null)
+            codegen.Append(ps.NextActionPriority).Append(", ");
+         for (Int32 i = 0; i < ps.PriorityActions.Count; i++)
+            {
+            if (i > 0)
+               codegen.Append(", ");
+            codegen.Append(ps.PriorityFunctions[i].MethodName);
+            }
+         codegen.Append(")){"); // end of switch condition start of switch cases
+         Int32 CaseCount = 0;
+         if (ps.NextAction != null)
+            {
+            codegen.AppendInstruction("case ").Append(CaseCount++).Append(": ");
+            GenerateCodeSequence(
+               ps.NextAction,
+               accept: false,
+               labelMustBeGenerated: false,
+               nestingLevel
+             );
+            codegen.AppendInstruction(" "); // TOCHECK Indent instead of ' '
+            }
+         for (Int32 i = 0; i < ps.PriorityActions.Count; i++)
+            {
+            codegen.Append("case ").Append(CaseCount++).Append(": ");
+            GenerateCodeSequence(
+               ps.PriorityActions[i],
+               accept: false, // TOCHECK ???
+               labelMustBeGenerated: false, // TOCHECK
+               nestingLevel
+             )
+            ;
+            }
+
+         codegen.AppendInstruction("}");
+
+         Accept = false; // TOCHECK priority generation end
+         return null;    // TOCHECK priority generation end
+         }
 
       /// <summary>
       /// generates all actions of the state including nested actions of some other states
@@ -1006,7 +1067,7 @@ namespace Grammlator
       /// <param name="NestingLevel"></param>
       /// <returns>action which has to be generated as next action</returns>
       private ParserAction GenerateState(out Boolean Accept, ParserState State, StringBuilder sbTemp, Int32 NestingLevel)
-      {
+         {
          // Generate description
          State.CoreItems.ToStringbuilder(sbTemp);
 
@@ -1015,14 +1076,14 @@ namespace Grammlator
          codegen.AppendWithOptionalLinebreak(State.IdNumber + 1);
          codegen.AppendWithOptionalLinebreak(' ');
          if (State.StateStackNumber >= 0)
-         { // if it is a stacking state display the number it puts on the stack
+            { // if it is a stacking state display the number it puts on the stack
             codegen.AppendWithOptionalLinebreak("(");
             codegen.AppendWithOptionalLinebreak((State.StateStackNumber).ToString());
             codegen.AppendWithOptionalLinebreak(")");
-         }
+            }
 
          if (State.ContainsErrorHandlerCall && !string.IsNullOrEmpty(GlobalVariables.VariableNameStateDescription))
-         {
+            {
             // Generate 1st state description line "// State xxx (yyy) with xxx=State.IdNumber + 1 
             // and yyy=State.StateStackNumber (if >= 0)
             codegen.AppendLine("*/"); // end comment
@@ -1046,9 +1107,9 @@ namespace Grammlator
                 , stringAtEndOfLastLine: "\";" // after the last string
                 );
             sbTemp.Clear();
-         }
+            }
          else
-         {
+            {
             codegen.OutputandClearLine(); // continue comment
 
             sbTemp.Replace("*/", "* /"); // escape the symbols which are not allowed in comment
@@ -1062,7 +1123,7 @@ namespace Grammlator
                 );
             codegen.AppendInstruction(" */");
             sbTemp.Clear();
-         }
+            }
 
          codegen.Indent();
 
@@ -1076,13 +1137,13 @@ namespace Grammlator
          //   contain a "FetchSymbol();" and then not a "Accept(...)"
 
          if (State.Actions.Count == 1 && !(State.Actions[0] is TerminalTransition))
-         {
+            {
             // generate unconditional action
-         }
+            }
          else if (State.Actions.Count >= 1)
-         {
+            {
             // If the state contains more than one action or one action, which is a terminal transition (all symbols allowed),
-            // "FetchSymbol()" must be generated
+            // "PeekSymbol()" must be generated
             Debug.Assert(State.Actions.Count > 1
                 || State.Actions[0] is LookaheadAction
                 || State.Actions[0] is TerminalTransition
@@ -1092,9 +1153,9 @@ namespace Grammlator
             codegen.IndentExactly();
 
             codegen.AppendWithOptionalLinebreak(GlobalVariables.InstructionAssignSymbol);
-         }
+            }
          else // State.Actions.Count = 0
-         {
+            {
             // This shouldn't happen 'cause each state should at least contain one action (may be error action) 
 
             // TOCHECK 05 (low priority) ist die Behandlung von Zuständen ohne terminale Aktion so ok?
@@ -1110,10 +1171,10 @@ namespace Grammlator
             GlobalVariables.TheOnlyOneErrorHaltAction.Calls++;
             Accept = false;
             return NextActionToGenerate;
-         }
+            }
 
-         return SortAndGenerateConditionalActionsOfState(State, out Accept, NestingLevel); // => Folgaktion oder null
-      }
+         return SortAndGenerateConditionalActionsOfState(State, out Accept, NestingLevel); // => next action to generate or null
+         }
 
       /// <summary>
       /// Sort actions depending on the weight of the terminals symbols and an estimation of the complexity
@@ -1122,10 +1183,10 @@ namespace Grammlator
       /// <param name="state"></param>
       /// <param name="accept"></param>
       /// <param name="nestingLevel"></param>
-      /// <returns>Unconditional action which has to be generated</returns>
+      /// <returns>Unconditional action which has to be generated next</returns>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
       private ParserAction SortAndGenerateConditionalActionsOfState(ParserState state, out Boolean accept, Int32 nestingLevel)
-      {
+         {
          // vorher : Aktion zeigt auf Zustand
          // nachher: result == Folgeaktion == null oder 
          //          result == Folgeaktion und akzeptieren geben die Folgeaktion an    
@@ -1136,12 +1197,12 @@ namespace Grammlator
          */
 
          // Test if the state contains an unconditional action
-         ParserAction unconditionalAction = TestForUnconditionalAction(state, out Int32 NumberOfConditionalActions);
+         ParserAction unconditionalAction = FindUnconditionalAction(state, out Int32 NumberOfConditionalActions);
          if (unconditionalAction != null && NumberOfConditionalActions <= 0)
-         {
+            {
             accept = false;
             return unconditionalAction;
-         }
+            }
 
          Debug.Assert(
             NumberOfConditionalActions == state.Actions.Count,
@@ -1159,11 +1220,11 @@ namespace Grammlator
          // Eine Fehleraktion am Ende möglichst mit der vorletzten Aktion tauschen,
          // da eine Fehleraktion immer die Sequenz unterbricht
          if (state.Actions.Count > 1 && state.Actions[^1] is ErrorhandlingAction)
-         {
+            {
             ParserAction temp = state.Actions[^2];
             state.Actions[^2] = state.Actions[^1];
             state.Actions[^1] = temp;
-         }
+            }
 
          // Test the state if it contains an unconditional action
          // und eine geeignete Folgeaktion heraussuchen, die als letzte Aktion unbedingt
@@ -1171,14 +1232,14 @@ namespace Grammlator
          // TODO diese Optimierung überarbeiten !!! keine Aktionen, die eine Marke erzeugen als Folgeaktion bevorzugen !!! 
 
          return GenerateConditionalActionsOfState(state, out accept, nestingLevel);
-      }
+         }
 
       private static void Swap<T>(ref T a, ref T b)
-      {
+         {
          T temp = a;
          a = b;
          b = temp;
-      }
+         }
 
       /// <summary>
       /// Sort actions depending on the terminal symbols
@@ -1190,7 +1251,7 @@ namespace Grammlator
       /// <returns>Unconditional action which has to be generated</returns>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
       private ParserAction GenerateSwitchWithActionsOfState(ParserState state, out Boolean accept, Int32 nestingLevel)
-      {
+         {
          // Sort the actions by their first symbol to improve readability of the generated code
          if (GlobalVariables.NumberOfTerminalSymbols > 0)
             state.Actions.Sort(CompareIndexOfFirstTrueElement);
@@ -1205,7 +1266,7 @@ namespace Grammlator
          ConditionalAction LeadingAction = null, TrailingAction = null;
 
          for (int i = 0; i < state.Actions.Count; i++)
-         {
+            {
             var ThisAction = (ConditionalAction)state.Actions[i];
             BitArray Terminals = ThisAction.TerminalSymbols;
             TerminalsCount = Terminals.Count;
@@ -1214,7 +1275,7 @@ namespace Grammlator
 
             // Special case if Terminals contains the first terminal
             if (TerminalIndex == 0)
-            {
+               {
                // remember this action and the count of leading terminals
                Debug.Assert(LeadingCount == 0, "Phase5: LeadingCount already != 0");
                LeadingAction = ThisAction;
@@ -1229,11 +1290,11 @@ namespace Grammlator
                    GlobalVariables.TerminalSymbolEnum,
                    GlobalVariables.TerminalSymbolByIndex[LeadingCount - 1].Identifier
                    );
-            }
+               }
 
             // Special case if Terminals contains the last terminal
             if (Terminals[TerminalsCount - 1])
-            {
+               {
                // remember this action and the count of trailing terminals
                Debug.Assert(TrailingCount == 0, "Phase5: TrailingCount already != 0");
                TrailingAction = ThisAction;
@@ -1247,21 +1308,21 @@ namespace Grammlator
                    GlobalVariables.TerminalSymbolEnum,
                    GlobalVariables.TerminalSymbolByIndex[TerminalsCount - TrailingCount].Identifier
                    );
-            }
+               }
 
             if (IsDefaultAction)
-            {
+               {
                // generate second part of comment
                codegen.Append(": ");
                codegen.Append("goto ");
                codegen.Append(P5CodegenCS.GotoLabel(ThisAction));
                codegen.Append(" // see end of switch");
-            }
+               }
 
             // if remaining terminal symbols, for each 
             bool RemainingSymbols = false;
             while (TerminalIndex < TerminalsCount - TrailingCount)
-            {
+               {
                RemainingSymbols = true;
                // generate "case TerminalSymbol: " 
                codegen.IndentExactly(nestingLevel);
@@ -1273,15 +1334,15 @@ namespace Grammlator
                codegen.Append(":");
 
                TerminalIndex = Terminals.FindNextTrue(TerminalIndex);
-            }
+               }
 
             if (RemainingSymbols)
-            {
+               {
                codegen.IncrementIndentationLevel();
                //codegen.Indent(nestingLevel + 1);
 
                if (IsDefaultAction)
-               {
+                  {
                   // adjust the statistics because here a "goto label" will be generated
                   // in addition to the code generated in the default action.
                   // If the statistics are not adjusted those code may be generated without label.
@@ -1291,13 +1352,13 @@ namespace Grammlator
                      ((ThisAction is ErrorhandlingAction && GlobalVariables.ErrorHandlerIsDefined) ? ThisAction : ThisAction.NextAction).Calls++;
                   // generate goto
                   codegen.GenerateGoto(ThisAction, nestingLevel + 1);
-               }
+                  }
                else
                   GenerateCodeSequence(ThisAction, labelMustBeGenerated: false, nestingLevel + 1);
 
                codegen.DecrementIndentationLevel();
+               }
             }
-         }
 
          Debug.Assert(LeadingAction != null && TrailingAction != null, "Leading or Trailing Action is null");
 
@@ -1314,7 +1375,7 @@ namespace Grammlator
 
          // If there are two different default actions
          if (Action1Generate != Action2Generate)
-         {
+            {
             // yes: generate if
             codegen.IndentExactly(nestingLevel);
             codegen.Append("if (");
@@ -1324,7 +1385,7 @@ namespace Grammlator
             // TODO else prefer action which does not generate a label
             if (GeneratesGoto(generateAccept: Action2 is TerminalTransition, Action2Generate, nestingLevel) &&
                 !GeneratesGoto(generateAccept: Action1 is TerminalTransition, Action1Generate, nestingLevel))
-            {
+               {
                Swap(ref Action1, ref Action2);
                Swap(ref Action1Generate, ref Action2Generate);
                ActionsSwapped = true;
@@ -1334,26 +1395,26 @@ namespace Grammlator
                    GlobalVariables.TerminalSymbolEnum,
                    GlobalVariables.TerminalSymbolByIndex[TerminalsCount - TrailingCount].Identifier
                    );
-            }
+               }
             else
-            {
+               {
                codegen.Append(" <= ");
                codegen.AppendWithPrefix(
                    GlobalVariables.TerminalSymbolEnum,
                    GlobalVariables.TerminalSymbolByIndex[LeadingCount - 1].Identifier
                    );
-            }
+               }
 
             codegen.Append(") ");
 
             GenerateCodeSequence(Action1, labelMustBeGenerated: false, nestingLevel + 1);
-         }
+            }
 
          // generate comment as Debug.Assert
          codegen.IndentExactly(nestingLevel);
          codegen.Append("Debug.Assert(");
          if (Action1Generate == Action2Generate)
-         {
+            {
             codegen.Append(GlobalVariables.VariableNameSymbol);
             codegen.Append(" <= ");
             codegen.AppendWithPrefix(
@@ -1367,32 +1428,32 @@ namespace Grammlator
                 GlobalVariables.TerminalSymbolEnum,
                 GlobalVariables.TerminalSymbolByIndex[TerminalsCount - TrailingCount].Identifier
                 );
-         }
+            }
          else if (ActionsSwapped)
-         {
+            {
             codegen.Append(GlobalVariables.VariableNameSymbol);
             codegen.Append(" <= ");
             codegen.AppendWithPrefix(
                 GlobalVariables.TerminalSymbolEnum,
                 GlobalVariables.TerminalSymbolByIndex[LeadingCount - 1].Identifier
                 );
-         }
+            }
          else
-         {
+            {
             codegen.Append(GlobalVariables.VariableNameSymbol);
             codegen.Append(" >= ");
             codegen.AppendWithPrefix(
                 GlobalVariables.TerminalSymbolEnum,
                 GlobalVariables.TerminalSymbolByIndex[TerminalsCount - TrailingCount].Identifier
                 );
-         }
+            }
          codegen.AppendLine(");");
          codegen.AppendLine("");
 
          // generate Action2
          accept = Action2 is TerminalTransition; // TOCHECK try to avoid the out parameter "accept"?
          return Action2Generate; // TOCHECK: try to avoid the special handling of ErrorhandlingAction?
-      }
+         }
 
       /// <summary>
       /// The state contains no unconditional action.
@@ -1406,16 +1467,16 @@ namespace Grammlator
           ParserState State,
           out Boolean Accept,
           Int32 NestingLevel)
-      {
+         {
          // all terminal symbols which are condition of one action can be ignored
          // in the conditions of all following actions (are not relevant)
          var relevantSymbols = new BitArray(GlobalVariables.AllTerminalSymbols);
 
          for (int i = 0; i < State.Actions.Count - 1; i++)
-         {
+            {
             var a = (ConditionalAction)State.Actions[i];
             GenerateOneConditionalAction(a, relevantSymbols, NestingLevel); // Modifies relevantSymbols
-         }
+            }
 
          var LastAction = (ConditionalAction)State.Actions[^1];
 
@@ -1427,22 +1488,22 @@ namespace Grammlator
 
          BitArray suppressedCondition = LastAction.TerminalSymbols;
          if (nextAction != null && suppressedCondition != null)
-         {
+            {
             GenerateConditionAsComment(suppressedCondition);
-         }
+            }
 
          Accept = LastAction is TerminalTransition;
          return nextAction;
-      }
+         }
 
       /// <summary>
-      /// Test the state if it contains an unconditional action and return it (or null) and the number of conditional actions.
+      /// Test the state if it contains an unconditional action and return it (else null) and the number of conditional actions.
       /// </summary>
       /// <param name="state">The state which actions are to be tested</param>
       /// <param name="NumberOfConditionalActions">The number of conditional actions of the state</param>
       /// <returns>The last unconditional action of the state or null</returns>
-      private static ParserAction TestForUnconditionalAction(ParserState state, out Int32 NumberOfConditionalActions)
-      {
+      private static ParserAction FindUnconditionalAction(ParserState state, out Int32 NumberOfConditionalActions)
+         {
          NumberOfConditionalActions = 0;
 
          // If there is only one action which is a lookahead action (this may be the result of optimization)
@@ -1452,58 +1513,57 @@ namespace Grammlator
 
          ParserAction unconditionalAction = null;
          foreach (ParserAction a in state.Actions)
-         {
-            switch (a)
             {
-               case ParserState s:
-               case ReduceAction r:
-               case HaltAction h:
-               case BranchAction b:
+            switch (a)
                {
-                  if (unconditionalAction != null)
+            case ParserState _:
+            case ReduceAction _:
+            case HaltAction _:
+            case BranchAction _:
                   {
+                  if (unconditionalAction != null)
+                     {
                      throw new ErrorInGrammlatorProgramException
                         ($"There must not be a second unconditional action in state {state}");
-                  }
+                     }
 
                   unconditionalAction = a;
                   break;
-               }
+                  }
 
-               case TerminalTransition t:
-               {
+            case TerminalTransition _:
+                  {
                   NumberOfConditionalActions++;
                   // even if all terminal symbols are allowed a terminal transition can not be skipped because 
                   // accept has to be generated
                   break;
-               }
+                  }
 
-               case ErrorhandlingAction e:
-               case LookaheadAction l:
-               {
+            case ErrorhandlingAction _:  // TOCHECK possible optimization has been performed
+            case LookaheadAction _:
+            case PrioritySelectAction _:
+                  {
                   NumberOfConditionalActions++;
                   break;
-               }
+                  }
 
-               case Definition d:
-                  throw new ErrorInGrammlatorProgramException("Programmfehler: Aktion cAktionalternative darf in Phase 5 nicht mehr vorkommen");
-               case DeletedParserAction d:
-               case NonterminalTransition n:
-                  break;
-               default:
-                  throw new ErrorInGrammlatorProgramException("Programmfehler: unbekannte Aktionsart in Phase 5");
+            case Definition _:
+            case DeletedParserAction _:
+            case NonterminalTransition _:
+            default:
+               throw new ErrorInGrammlatorProgramException($"Error: a parser action of type {a.ToString()} must not occur in P5");
+               }
             }
-         }
 
          return unconditionalAction;
-      }
+         }
 
       /// <summary>
       /// Erzeugt Codefolgen für Aktionen mit der geforderten Mindestaufrufanzahl
       /// </summary>
       /// <param name="MinimumOfCalls">Mindestzahl von Aufrufen</param>
       private void GenerateCodeWithLabels(Int32 MinimumOfCalls)
-      {
+         {
          /* Each action a with a.xxxCalls == 1 has a good chance to be generated as part of another action
           * (if not prohibited by the nesting level limit). The generation of these actions is delayed.
           * 
@@ -1522,64 +1582,64 @@ namespace Grammlator
           * Typically the next action of ReduceActions are States.
           */
          foreach (ReduceAction r in GlobalVariables.ListOfAllReductions)
-         {
-            if (r.NextAction.Calls > 1)
             {
+            if (r.NextAction.Calls > 1)
+               {
                if (r.AcceptCalls >= MinimumOfCalls)
                   GenerateCodeSequence(r, accept: true, labelMustBeGenerated: true, nestingLevel: 0);
                if (r.Calls >= MinimumOfCalls)
                   GenerateCodeSequence(r, accept: false, labelMustBeGenerated: true, nestingLevel: 0);
+               }
             }
-         }
 
          /* Generate ParserStates early because they often include other actions or have a next action 
           */
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
-         {
+            {
             if (state.AcceptCalls >= MinimumOfCalls)
                GenerateCodeSequence(state, accept: true, labelMustBeGenerated: true, nestingLevel: 0);
             if (state.Calls >= MinimumOfCalls)
                GenerateCodeSequence(state, accept: false, labelMustBeGenerated: true, nestingLevel: 0);
-         }
+            }
 
          /* Generate the other ReduceActions 
           */
          foreach (ReduceAction r in GlobalVariables.ListOfAllReductions)
-         {
+            {
             if (r.AcceptCalls >= MinimumOfCalls)
                GenerateCodeSequence(r, accept: true, labelMustBeGenerated: true, nestingLevel: 0);
             if (r.Calls >= MinimumOfCalls)
                GenerateCodeSequence(r, accept: false, labelMustBeGenerated: true, nestingLevel: 0);
-         }
+            }
 
          /* Typically branches are next actions of ReduceActions. So generate them after those 
           */
          foreach (BranchAction b in GlobalVariables.ListOfAllBranchActions)
-         {
+            {
             if (b.AcceptCalls >= MinimumOfCalls)
                GenerateCodeSequence(b, accept: true, labelMustBeGenerated: true, nestingLevel: 0);
             if (b.Calls >= MinimumOfCalls)
                GenerateCodeSequence(b, accept: false, labelMustBeGenerated: true, nestingLevel: 0);
-         }
+            }
 
          foreach (ErrorhandlingAction e in GlobalVariables.ListOfAllErrorhandlingActions)
-         {
+            {
             if (e.AcceptCalls >= MinimumOfCalls)
                GenerateCodeSequence(e, accept: true, labelMustBeGenerated: true, nestingLevel: 0);
             if (e.Calls >= MinimumOfCalls)
                GenerateCodeSequence(e, accept: false, labelMustBeGenerated: true, nestingLevel: 0);
-         }
+            }
 
          foreach (HaltAction h in GlobalVariables.ListOfAllHaltActions)
-         {
+            {
             if (h.AcceptCalls >= MinimumOfCalls)
                GenerateCodeSequence(h, accept: true, labelMustBeGenerated: true, nestingLevel: 0);
             if (h.Calls >= MinimumOfCalls)
                GenerateCodeSequence(h, accept: false, labelMustBeGenerated: true, nestingLevel: 0);
-         }
-      } // void FehlendenCodeErzeugen
-   } // class Phase5
-} // namespace ...
+            }
+         } // void FehlendenCodeErzeugen
+      } // class Phase5
+   } // namespace ...
 
 
 

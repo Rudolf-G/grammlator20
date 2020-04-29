@@ -77,14 +77,14 @@ namespace Grammlator
                 }
 
                 // Process each of the core items of the actual state:
-                //    for each enditem add a reduce action to the actual states actions
-                //    copy all other items to ListOfNotAnEnditemOfActualState
+                //    if it is an enditem then add a reduce action to the actual states actions
+                //    esl copy it to ListOfNotAnEnditemOfActualState
                 foreach (ItemStruct CoreItem in ActualState.CoreItems)
                 {
                     if (CoreItem.ElementNr >= CoreItem.SymbolDefinition.Elements.Length) // enditem: add reduce action to ActionsOfActualState
                     {
                         ActionsOfActualState.Add(
-                           new LookaheadAction(number: NumberOfActions++, nextAction: CoreItem.SymbolDefinition)
+                           new LookaheadAction(number: NumberOfActions++, definition: CoreItem.SymbolDefinition)
                            );
                     }
                     else
@@ -364,7 +364,7 @@ namespace Grammlator
                 if (Definition.Elements.Length == 0)
                 {
                     ActionsOfActualState.Add(
-                       new LookaheadAction(number: NumberOfActions++, nextAction: Definition));
+                       new LookaheadAction(number: NumberOfActions++, definition: Definition));
                 }
                 else
                 {

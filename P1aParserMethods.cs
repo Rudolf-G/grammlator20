@@ -297,11 +297,14 @@ namespace Grammlator {
             }
          else
             {
+            // Copy and remove NumberOfNontrivialDefinitions from the ActualListOfNontrivialDefinitions
+            // to a new list nt.NontrivalDefinitionsList
             nt.NontrivalDefinitionsList = new ListOfDefinitions(NumberOfNontrivialDefinitions, ActualListOfNontrivialDefinitions);
-            foreach (Definition thisDefinition in nt.NontrivalDefinitionsList)
-               thisDefinition.DefinedSymbol = nt;
             ActualListOfNontrivialDefinitions.RemoveFromEnd(NumberOfNontrivialDefinitions);
             NumberOfNontrivialDefinitions = 0;
+            // In each copied definition assign nt to .DefinedSymbol (has been null)
+            foreach (Definition thisDefinition in nt.NontrivalDefinitionsList)
+               thisDefinition.DefinedSymbol = nt;
             }
          }
 
@@ -341,7 +344,7 @@ namespace Grammlator {
       ///</summary>
       /// <param name="prefix"></param>
       ///<returns>new name</returns>
-      private Int32 MakeNewNameStringIndex(String prefix) 
+      private Int32 MakeNewNameStringIndex(String prefix)
          => GlobalVariables.GetIndexOfString($"({prefix}{++CountOfGeneratedNames})");
 
       ///<summary>
@@ -426,12 +429,12 @@ namespace Grammlator {
                   newSymbol.NontrivalDefinitionsList      // 1 definition
                       = new ListOfDefinitions(1)
                       {
-                                new Definition { // 1st definition: empty definition
-                                    IdNumber = 0,
-                                    DefinedSymbol = newSymbol,
-                                    Elements = Array.Empty<Symbol>()
-                                    // AttributestackAdjustment = 0
-                                    }
+                                new Definition ( // 1st definition: empty definition
+                                    idNumber: 0,
+                                    definedSymbol: newSymbol,
+                                    elements: Array.Empty<Symbol>(),
+                                    attributestackAdjustment: 0
+                                    )
                        };
                   newSymbol.TrivalDefinitionsArray
                       = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol;
@@ -442,18 +445,19 @@ namespace Grammlator {
                   newSymbol.NontrivalDefinitionsList
                       = new ListOfDefinitions(2) // 2 definitions
                   {
-                                new Definition { // 1st definition: empty definition
-                                    IdNumber = 0,
-                                    DefinedSymbol = newSymbol,
-                                    Elements = Array.Empty<Symbol>()
-                                },
+                                new Definition ( // 1st definition: empty definition
+                                    idNumber: 0,
+                                    definedSymbol: newSymbol,
+                                    elements: Array.Empty<Symbol>(),
+                                    attributestackAdjustment: 0
+                                ),
 
-                                new Definition { // 2nd definition: existingSymbol(xxx)
-                                    IdNumber = 1,
-                                    DefinedSymbol = newSymbol,
-                                    Elements = new Symbol[1] { existingSymbol },
-                                    AttributestackAdjustment = -existingSymbol.NumberOfAttributes
-                                }
+                                new Definition ( // 2nd definition: existingSymbol(xxx)
+                                    idNumber : 1,
+                                    definedSymbol : newSymbol,
+                                    elements : new Symbol[1] { existingSymbol },
+                                    attributestackAdjustment : -existingSymbol.NumberOfAttributes
+                                )
                                 // no trivial definition (as has been preset)
                          };
                   }
@@ -466,18 +470,19 @@ namespace Grammlator {
                newSymbol.NontrivalDefinitionsList
                    = new ListOfDefinitions(2) // 2 definitions
                    {
-                            new Definition { // 1st definition: empty definition
-                            IdNumber = 0,
-                            DefinedSymbol = newSymbol,
-                            Elements = Array.Empty<Symbol>()
-                            },
+                            new Definition ( // 1st definition: empty definition
+                            idNumber: 0,
+                            definedSymbol: newSymbol,
+                            elements: Array.Empty<Symbol>(),
+                            attributestackAdjustment:0
+                            ),
 
-                            new Definition { // 2nd definition: newSymbol, existingSymbol(xxx)
-                                IdNumber = 1,
-                                DefinedSymbol = newSymbol,
-                                Elements = new Symbol[2] { newSymbol, existingSymbol },
-                                AttributestackAdjustment = -existingSymbol.NumberOfAttributes
-                            }
+                            new Definition ( // 2nd definition: newSymbol, existingSymbol(xxx)
+                                idNumber: 1,
+                                definedSymbol: newSymbol,
+                                elements: new Symbol[2] { newSymbol, existingSymbol },
+                                attributestackAdjustment: -existingSymbol.NumberOfAttributes
+                            )
                    };
                // no trivial definition (as has been preset)
                break;
@@ -494,12 +499,12 @@ namespace Grammlator {
                   newSymbol.NontrivalDefinitionsList
                       = new ListOfDefinitions(1) // 1 definition
                       {
-                                new Definition { // 1st definition: newSymbol, existingSymbol()
-                                    IdNumber = 0,
-                                    DefinedSymbol = newSymbol,
-                                    Elements = new Symbol[2] { newSymbol, existingSymbol }
-                                    // AttributestackAdjustment = 0
-                                }
+                                new Definition ( // 1st definition: newSymbol, existingSymbol()
+                                    idNumber: 0,
+                                    definedSymbol: newSymbol,
+                                    elements: new Symbol[2] { newSymbol, existingSymbol },
+                                    attributestackAdjustment: 0
+                                )
                       };
                   }
                else
@@ -508,19 +513,19 @@ namespace Grammlator {
                   newSymbol.NontrivalDefinitionsList
                       = new ListOfDefinitions(1) // 2 definitions 
                       {
-                                new Definition {
-                                    IdNumber = 0,  // 1st definition: existingSymbol(xxx)
-                                    DefinedSymbol = newSymbol,
-                                    Elements = new Symbol[1]{ existingSymbol },
-                                    AttributestackAdjustment = -existingSymbol.NumberOfAttributes
-                                },
+                                new Definition (
+                                    idNumber : 0,  // 1st definition: existingSymbol(xxx)
+                                    definedSymbol : newSymbol,
+                                    elements : new Symbol[1]{ existingSymbol },
+                                    attributestackAdjustment : -existingSymbol.NumberOfAttributes
+                                ),
 
-                                new Definition {
-                                    IdNumber = 1,  // 2nd definition: newSymbol, existingSymbol(xxx);
-                                    DefinedSymbol = newSymbol,
-                                    Elements = new Symbol[2] { newSymbol, existingSymbol },
-                                    AttributestackAdjustment = -existingSymbol.NumberOfAttributes
-                                }
+                                new Definition (
+                                    idNumber : 1,  // 2nd definition: newSymbol, existingSymbol(xxx);
+                                    definedSymbol : newSymbol,
+                                    elements : new Symbol[2] { newSymbol, existingSymbol },
+                                    attributestackAdjustment : -existingSymbol.NumberOfAttributes
+                                )
                       };
 
                   // no trivial definition (as has been preset)
@@ -534,17 +539,18 @@ namespace Grammlator {
                newSymbol.NontrivalDefinitionsList
                    = new ListOfDefinitions(2) // 2 definitions
                    {
-                            new Definition { // 1st definition: empty
-                                IdNumber = 0,
-                                DefinedSymbol = newSymbol,
-                                Elements = Array.Empty<Symbol>()
-                            },
-                            new Definition { // 2nd definition: existingSymbol, newSymbol;
-                                IdNumber = 1,
-                                DefinedSymbol = newSymbol,
-                                Elements = new Symbol[2] { existingSymbol, newSymbol },
-                                AttributestackAdjustment = -existingSymbol.NumberOfAttributes
-                            }
+                            new Definition ( // 1st definition: empty
+                                idNumber: 0,
+                                definedSymbol: newSymbol,
+                                elements: Array.Empty<Symbol>(),
+                                attributestackAdjustment: 0
+                            ),
+                            new Definition ( // 2nd definition: existingSymbol, newSymbol;
+                                idNumber: 1,
+                                definedSymbol: newSymbol,
+                                elements: new Symbol[2] { existingSymbol, newSymbol },
+                                attributestackAdjustment: -existingSymbol.NumberOfAttributes
+                            )
                    };
                // no trivial definition (as has been preset)
                break;
@@ -561,12 +567,12 @@ namespace Grammlator {
                   newSymbol.NontrivalDefinitionsList
                       = new ListOfDefinitions(1) // 1 definition
                       {
-                                new Definition { // 1st definition: existingSymbol(), newSymbol
-                                IdNumber = 0,
-                                DefinedSymbol = newSymbol,
-                                Elements = new Symbol[2] { existingSymbol, newSymbol }
-                                // AttributestackAdjustment = 0
-                                }
+                             new Definition ( // 1st definition: existingSymbol(), newSymbol
+                                idNumber: 0,
+                                definedSymbol: newSymbol,
+                                elements: new Symbol[2] { existingSymbol, newSymbol },
+                                attributestackAdjustment: 0
+                                )
                       };
                   }
                else
@@ -578,19 +584,19 @@ namespace Grammlator {
                   newSymbol.NontrivalDefinitionsList
                       = new ListOfDefinitions(2) // 2 definitions 
                       {
-                                new Definition {
-                                    IdNumber = 0,  // 1st definition: existingSymbol(xxx)
-                                    DefinedSymbol = newSymbol,
-                                    Elements = new Symbol[1]{ existingSymbol },
-                                    AttributestackAdjustment = -existingSymbol.NumberOfAttributes
-                                },
+                                new Definition (
+                                    idNumber: 0,  // 1st definition: existingSymbol(xxx)
+                                    definedSymbol: newSymbol,
+                                    elements: new Symbol[1]{ existingSymbol },
+                                    attributestackAdjustment: -existingSymbol.NumberOfAttributes
+                                ),
 
-                                new Definition {
-                                    IdNumber = 1,  // 2nd definition: existingSymbol(xxx), newSymbol;
-                                    DefinedSymbol = newSymbol,
-                                    Elements = new Symbol[2] { existingSymbol, newSymbol },
-                                    AttributestackAdjustment = -existingSymbol.NumberOfAttributes
-                                }
+                                new Definition (
+                                    idNumber: 1,  // 2nd definition: existingSymbol(xxx), newSymbol;
+                                    definedSymbol: newSymbol,
+                                    elements: new Symbol[2] { existingSymbol, newSymbol },
+                                    attributestackAdjustment: -existingSymbol.NumberOfAttributes
+                                )
                       };
                   }
                break;
@@ -878,7 +884,8 @@ namespace Grammlator {
             }
 
          LastFormalParameterList.Add(new MethodParameterStruct {
-            Implementation = callType, NameStringIndex = nameStringIndex, TypeStringIndex = typeStringIndex }
+            Implementation = callType, NameStringIndex = nameStringIndex, TypeStringIndex = typeStringIndex
+            }
          );
          }
 
@@ -914,7 +921,7 @@ namespace Grammlator {
             {
             Symbol Symbol = KeyValue.Value;
 
-            string GetNameOfSymbol() 
+            string GetNameOfSymbol()
                => GlobalVariables.GetStringOfIndex(KeyValue.Key);
 
             if (Symbol != null)
@@ -1022,14 +1029,15 @@ namespace Grammlator {
                NumberOfAttributesOfNewDefinition += s.NumberOfAttributes;
 
             var NewDefinition =
-                new Definition {
-                   IdNumber = NumberOfNontrivialDefinitions++,
-                   DefinedSymbol = null, // will be assigned when the end of the rule is recognized
-                       ConstantPriority = constantPriority,
+                new Definition(
+                   idNumber: NumberOfNontrivialDefinitions++,
+                   definedSymbol: null, // will be assigned when the end of the rule is recognized
+                   elements: ElementArray,
+                   attributestackAdjustment: AttributestackAdjustment
+                   ) {
+                   ConstantPriority = constantPriority,
                    PriorityFunction = priorityFunction,
                    SemanticMethod = semanticMethod,
-                   AttributestackAdjustment = AttributestackAdjustment,
-                   Elements = ElementArray,
                    AttributIdentifierStringIndexArray = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributesOfNewDefinition)
                    };
 
@@ -1189,7 +1197,7 @@ namespace Grammlator {
             if (Attribute.TypeStringIndex != MethodParameter.TypeStringIndex)
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-              $"The type \"{Attribute.TypeStringIndex}\" of the attribute \"{GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)})\""+
+              $"The type \"{Attribute.TypeStringIndex}\" of the attribute \"{GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)})\"" +
               $" differs from the parameters type \"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)}\" ");
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;

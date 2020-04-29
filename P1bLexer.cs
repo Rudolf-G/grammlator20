@@ -706,7 +706,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
          if (LexerInput < ClassifierResult.Digit)
             {
             /* Reduction 15
-             * StartsymbolNumber(Int32 value)= Number(Int32 value);◄ Priority: -1, method: AssignNumberToSymbol
+             * StartsymbolNumber(Int32 value)= Number(Int32 value);◄ priority: -1, method: AssignNumberToSymbol
              * then: *Startsymbol= Gap, StartsymbolNumber(Int32 value);◄ aStack: -1
              */
 
@@ -796,7 +796,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
          if (LexerInput <= ClassifierResult.Apostrophe)
             {
             /* Reduction 13, aStack: 1
-             * Name(Int32 stringIndex)= SequenceOfLettersOrDigits;◄ Priority: -11, aStack: 1, method: GetNameFromSource
+             * Name(Int32 stringIndex)= SequenceOfLettersOrDigits;◄ priority: -11, aStack: 1, method: GetNameFromSource
              */
             _a.Allocate();
 
@@ -815,7 +815,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
          Debug.Assert(LexerInput >= ClassifierResult.Letter);
          inputClassifier.AcceptSymbol();
          /* Reduction 14, aStack: -1
-          * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, LetterOrDigit(int index);◄ Priority: -12, method: AddCharToName, aStack: -1
+          * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, LetterOrDigit(int index);◄ priority: -12, method: AddCharToName, aStack: -1
           */
 
          AddCharToName(

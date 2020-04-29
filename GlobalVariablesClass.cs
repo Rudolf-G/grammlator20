@@ -20,7 +20,7 @@ namespace Grammlator {
          InitialValues.Add("GrammarString", "grammar");
          InitialValues.Add("GrammlatorString", "grammlator");
          InitialValues.Add("IfToSwitchBorder", "5");
-         InitialValues.Add("InstructionAcceptSymbol", "AcceptSymbol");
+         InitialValues.Add("InstructionAcceptSymbol", "AcceptSymbol();");
          InitialValues.Add("InstructionAssignSymbol", "");
          InitialValues.Add("InstructionErrorHalt", "");
          InitialValues.Add("NestingLevelLimit", "5");

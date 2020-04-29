@@ -99,7 +99,7 @@ namespace Grammlator {
             }
          // There must exist an action also for the Startsymbol: a HaltAction
          throw new ErrorInGrammlatorProgramException(
-            $"Missing action in state {this.IdNumber+1} for InpuSymbol {InputSymbol.Identifier}"
+            $"Missing action in state {this.IdNumber + 1} for InpuSymbol {InputSymbol.Identifier}"
             );
          }
 
@@ -128,18 +128,20 @@ namespace Grammlator {
 
       /// <summary>
       /// Checks the states actions whether there is exactly one action of type
-      /// <see cref="TerminalTransition"/> with all terminal symbols allowed
-      /// or of type <see cref="LookaheadAction"/>.
+      /// <see cref="TerminalTransition"/>
+      /// with all terminal symbols allowed
+      /// or of type <see cref="LookaheadAction"/> or 
+      /// <see cref="PrioritySelectAction"/>.
       /// If yes returns this action else returns null. 
       /// </summary>
       /// <returns>the only one terminal action or null</returns>
-      internal LookaheadAction RedundantLookaheadActionOrNull()
+      internal ConditionalAction RedundantLookaheadOrSelectActionOrNull()
          {
-         LookaheadAction theOnlyOneAction = null;
+         ConditionalAction theOnlyOneAction = null;
 
          foreach (ParserAction action in Actions)
             {
-            LookaheadAction FittingAction;
+            ConditionalAction FittingAction;
 
             if (action is TerminalTransition transition)
                {
@@ -162,6 +164,23 @@ namespace Grammlator {
                else
                   {
                   FittingAction = lookAction;
+                  // TOCHECK this may cause deferred error recognition because the error handling action may not be generated
+                  // return null; // this variant allows early error recognition
+                  }
+               }
+            else if (action is PrioritySelectAction selectAction)
+               {
+               if (selectAction.NextAction is TerminalTransition)
+                  return null; // see above
+
+               // The selectAction contains only Definitions -> LookAheadActions
+               if (selectAction.TerminalSymbols.All())
+                  FittingAction = selectAction; // action with all terminal symbols allowed (or no terminal symbols defined)
+               else if (selectAction.TerminalSymbols.Empty()) // must not occur
+                  continue; // this action will never be executed
+               else
+                  {
+                  FittingAction = selectAction;
                   // TOCHECK this may cause deferred error recognition because the error handling action may not be generated
                   // return null; // this variant allows early error recognition
                   }
@@ -230,6 +249,9 @@ namespace Grammlator {
             allowedTerminalsUpToThisAction.Or(terminalsOfThisAction);
             } // for (int IndexOfAction
 
+         // Remove all actions that have been replaced by DeletedParserAction
+         RemoveDeletedActions();
+
          return writeStateHeader ? 0 : 1;
          }
 
@@ -271,8 +293,8 @@ namespace Grammlator {
                }
 
             // find one group of actions which conflict with the ConflictAction and solve the conflict for this group
-            SolveAndLogSubsetsOfConflict(indexOfConflictAction,
-                                         conflictSymbols, // will be set to the greatest common subset of the group of conflicting actions
+            SolveAndLogSubsetOfConflict(indexOfConflictAction,
+                                         conflictSymbols,
                                          allowedTerminalsUpToConflictAction, // will be modified if the terminal symbols of one of the prededing actions is modified
                                          sb);
             // One conflict is solved, symbolsOfThisAction may be modified
@@ -294,28 +316,28 @@ namespace Grammlator {
       /// the conflict between these actions by modifying the x.TerminalSymbols of some of the actions.
       /// This method must be called again until no more conflicting actions remain!
       /// </summary>
-      /// <param name="IndexOfFirstConflictAction">Index of action which causes a conflict</param>
-      /// <param name="ConflictSymbols">Terminal symbols causing the conflict(s),
-      /// a subset of <paramref name="AllowedSymbolsUpToFirstConflictAction"/></param>
-      /// <param name="AllowedSymbolsUpToFirstConflictAction">The union of the terminal symbols of all preceding actions
+      /// <param name="indexOfFirstConflictAction">Index of action which causes a conflict</param>
+      /// <param name="subsetOfConflictSymbols">Terminal symbols causing the conflict(s),
+      /// a subset of <paramref name="allowedSymbolsUpToFirstConflictAction"/></param>
+      /// <param name="allowedSymbolsUpToFirstConflictAction">The union of the terminal symbols of all preceding actions
       /// of the state: may be modified by conflict solution</param>
       /// <param name="sb">The protocol will be writte to sb</param>
-      private void SolveAndLogSubsetsOfConflict(Int32 IndexOfFirstConflictAction, BitArray ConflictSymbols,
-         BitArray AllowedSymbolsUpToFirstConflictAction, StringBuilder sb)
+      private void SolveAndLogSubsetOfConflict(
+            Int32 indexOfFirstConflictAction,
+            BitArray subsetOfConflictSymbols,
+            BitArray allowedSymbolsUpToFirstConflictAction,
+            StringBuilder sb)
          {
          var State = this; // makes method easier to understand
 
-         var subsetOfConflictSymbols = new BitArray(ConflictSymbols); // TODO allocate only once ??
-         var smallerSubsetOfConflictSymbols = new BitArray(ConflictSymbols.Count); // TODO allocate only once ??
-
-         // TOCHECK Should more information about the conflicts be written into the log?
          // TOCHECK Might there be states - after solving conflicts -  without path to the halt action,
          //         might solving conflicts lead to endless loops?
 
-         var dynamicPriorityActions = new ListOfParserActions(50); // usually will be empty or very short
+         // Reduce the subsetOfConflictSymbols to the intersection of conflicting actions,
+         // find the highest constant priority action of those actions and all  dynamic priotity conflicting actions
+         var dynamicPriorityDefinitions = new ListOfParserActions(10); // usually will be empty or very short
          int indexOfActionWithPriority
-            = FindHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols, dynamicPriorityActions);
-         // <<<<<<<<<<<<<<< In work 1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            = FindHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols, dynamicPriorityDefinitions);
 
          // The  indexOfActionWithPriority may be -1 if only actions with dynamic priority are in conflict
          // The subsetOfConflictSymbols causes the conflict.
@@ -323,20 +345,22 @@ namespace Grammlator {
          // the one with the highest priority and those with dynamic priority
 
 
-         // If there are conflicting actions with dynamic priority a new action has to be added 
-         if (dynamicPriorityActions.Count > 0)
+         // If there are conflicting actions with dynamic priority a new ConditionalAction has to be added
+         // Actions[indexOfActionWithPriority] is a ConditionalAction. As part of a ConditionalAction
+         // the condition is not needed and hence .NextAction is used. 
+         if (dynamicPriorityDefinitions.Count > 0)
             {
             var prioritySelectAction
                = new PrioritySelectAction(
                         InputSymbols: subsetOfConflictSymbols,
                         constantPriorityAction:
-                           indexOfActionWithPriority < 0 ? null
+                           indexOfActionWithPriority < 0
+                           ? null
                            : this.Actions[indexOfActionWithPriority] as ConditionalAction,
-                        dynamicPriorityActions: dynamicPriorityActions // is copied
+                        dynamicPriorityDefinitions: dynamicPriorityDefinitions
                 );
+            indexOfActionWithPriority = this.Actions.Count;
             this.Actions.Add(prioritySelectAction);
-            indexOfActionWithPriority = this.Actions.Count - 1;
-            // <<<<<<<<<<<<<<< In work 2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             }
 
          // Log the conflict
@@ -354,7 +378,7 @@ namespace Grammlator {
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
          // Hence a loop with an eplicit index is used.
 
-         // For each action in the parser state (ignoring actions with dynamic priority)
+         // For each action in the parser state 
          // determine action symbols and priority and determine the action with the highest priority
          for (Int32 IndexOfAction = 0; IndexOfAction < State.Actions.Count; IndexOfAction++)
             {
@@ -380,47 +404,34 @@ namespace Grammlator {
                }
             else
                {
-               smallerSubsetOfConflictSymbols
-                  .Assign(subsetOfConflictSymbols)
-                  .And(symbolsOfThisAction);
+               symbolsOfThisAction.ExceptWith(subsetOfConflictSymbols);
+               // Write log:
+               sb.Append("  priority ")
+                 .Append(conditionalAction.Priority)
+                 .Append(" => modified to: ");
 
-               if (!smallerSubsetOfConflictSymbols.Empty())
+               conditionalAction.ToStringbuilder(sb)
+                 .AppendLine();
+
+               if (symbolsOfThisAction.Empty())
                   {
-                  symbolsOfThisAction.ExceptWith(subsetOfConflictSymbols);
-                  // Write log:
-                  sb.Append("  priority ")
-                    .Append(conditionalAction.Priority)
-                    .Append(" => modified to: ");
+                  // Delete actions without remaining terminal symbols.
+                  // This may cause that other actions can not be reached.
+                  // If not deleted there might result code with If(true)... and code that can be never be reached
 
-                  conditionalAction.ToStringbuilder(sb)
-                    .AppendLine();
+                  sb.AppendLine("    This action has been deleted because no input symbols remained.");
 
-                  // TOCHECK What is the right place in the program to solve conflicts (first optimization  or first solve conflicts?)
-
-
-
-                  // TODO Check   How is DeletedAction handled in further steps ???
-                  if (symbolsOfThisAction.Empty())
-                     {
-                     // Delete actions without remaining terminal symbols.
-                     // This may cause that other actions can not be reached.
-                     // If not deleted there might result code with If(true)... and code that can be never be reached
-
-                     sb.AppendLine("    This action has been deleted because no input symbols remained.");
-
-                     //State.Actions.RemoveAt(IndexOfAction);
-                     //IndexOfAction--;
-
-                     State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
-                     }
+                  State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
+                  // This can not be replaced by State.Actions.RemoveAt(IndexOfAction);
+                  // because then the indexes (which are used in loops) would skip one element
                   }
                }
             } // for (int IndexOfAction ...
 
-         if (indexOfActionWithPriority >= IndexOfFirstConflictAction)
+         if (indexOfActionWithPriority >= indexOfFirstConflictAction)
             {
             // Remove the subsetOfConflictSymbols from the superset AllowedSymbolsUpToFirstConflictAction
-            AllowedSymbolsUpToFirstConflictAction.Xor(subsetOfConflictSymbols);
+            allowedSymbolsUpToFirstConflictAction.Xor(subsetOfConflictSymbols);
             }
          }
 
@@ -432,11 +443,11 @@ namespace Grammlator {
       /// <returns>Index of action with priority or -1 if only dynamic priorities</returns>
       private Int32 FindHighestPriorityActionOfConflictingActions(
             BitArray subsetOfConflictSymbols,
-            ListOfParserActions dynamicPriorityActions)
+            ListOfParserActions dynamicPriorityDefinitions)
          {
          // Test each action of the state if it causes a conflict with any preceding action 
 
-         dynamicPriorityActions.Clear();
+         dynamicPriorityDefinitions.Clear();
          var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count); // TODO allocate only once
 
          Int32 indexOfActionWithPriority = -1;
@@ -470,7 +481,8 @@ namespace Grammlator {
                priority = laAction.ConstantPriority; // use assigned priority if no dynamic priority
                if (laAction.PriorityFunction != null)
                   {
-                  dynamicPriorityActions.Add(laAction.NextAction);
+                  Debug.Assert(laAction.NextAction == null || laAction.NextAction is Definition);
+                  dynamicPriorityDefinitions.Add(laAction.NextAction);
                   continue; // an action with dynamic priority can not have highest static priority
                   }
                }
@@ -539,6 +551,27 @@ namespace Grammlator {
          ContainsErrorHandlerCall = ErrorHandlerIsDefined;
          return e;
          }
+
+      public void RemoveDeletedActions()
+         {
+         Int32 DeletedActionsCount = 0;
+
+         for (Int32 ActionIndex = 0; ActionIndex < this.Actions.Count; ActionIndex++)
+            {
+            if (Actions[ActionIndex] is DeletedParserAction)
+               DeletedActionsCount++;
+            else if (DeletedActionsCount > 0)
+               {
+               // Move the action to
+               // replace first unused action in State.Actions with this action
+               Actions[ActionIndex - DeletedActionsCount] = Actions[ActionIndex];
+               }
+            }
+
+         Actions.RemoveFromEnd(DeletedActionsCount);
+         }
+
+
       } // ParserState
 
    /// <summary>

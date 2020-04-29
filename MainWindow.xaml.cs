@@ -592,8 +592,8 @@ namespace grammlator {
                s2Remain = s2Remain[1..];
 
             // Trim lines to ignore leading and trailing whitespace
-            var s1LineTrimmed = s1Line.Trim(); // IgnoreLeadingSeparators().IgnoreTrailingChar('\r').IgnoreTrailingSeparators();
-            var s2LineTrimmed = s2Line.Trim(); // IgnoreLeadingSeparators().IgnoreTrailingChar('\r').IgnoreTrailingSeparators();
+            var s1LineTrimmed = s1Line.Trim();
+            var s2LineTrimmed = s2Line.Trim();
 
             // Compare lines
             if (s1LineTrimmed.SequenceEqual(s2LineTrimmed))

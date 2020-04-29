@@ -82,7 +82,7 @@ namespace Grammlator {
       /// In protocols IdNumber+1 is used (human friendly).
       /// </summary>
       public Int32 IdNumber {
-         get; internal set;
+         get; set;
          }
 
       /// <summary>
@@ -192,11 +192,22 @@ namespace Grammlator {
          }
       }
 
+   /// <summary>
+   /// Each nonterminal symbol has one ore more (n-1) definitions, numbered from 0 to n-1 by IdNumber.
+   /// Each definition consist of the DefinedSymbol, its Elements and the AttributestackAdjustment.
+   /// </summary>
    internal sealed class Definition: ParserAction {
       //   Nummer gibt an, um die wievielte Alternative des
       //     erzeugten Symbols es sich handelt
-      //             Kontext in dieser Version noch nicht implementiert !!!}
+      //   TOCHECK          Kontext in dieser Version noch nicht implementiert !!!}
 
+      public Definition(Int32 idNumber, NonterminalSymbol definedSymbol, Symbol[] elements, Int32 attributestackAdjustment)
+         {
+         IdNumber = idNumber;
+         DefinedSymbol = definedSymbol;
+         Elements = elements;
+         AttributestackAdjustment = attributestackAdjustment;
+         }
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isDefinition;
 
       /// <summary>
@@ -247,15 +258,17 @@ namespace Grammlator {
       //   function ist_geordnet (v: t_Aktion): boolean; override;
 
       /// <summary>
-      /// Returns true, if no SemanticMethod, no AttributeStackCorrection, no PriorityFunction. 
+      /// Returns true, if no SemanticMethod, no AttributeStackCorrection. 
       /// Does not (!) check, if DefinedSymbol is the startsymbol.
+      /// Does not check PriorityFunction, hence <see cref="HasNoSemantics"/> should only
+      /// used in P4 or later (after solving conflicts and copying PriorityFunctions to 
+      /// PrioritySelectActions in P3).
       /// </summary>
       /// <returns>true if no semantics are associated with the definition</returns>
       internal Boolean HasNoSemantics()
           => (SemanticMethod == null)
-              && (AttributestackAdjustment == 0)
-              && (PriorityFunction == null);
-      // TOCHECK: Must dynamic priority be considered here or has it been evaluated in phase 4 ??
+              && (AttributestackAdjustment == 0);
+              // && (PriorityFunction == null);
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
@@ -393,10 +406,11 @@ namespace Grammlator {
       }
 
    internal class ListOfDefinitions: List<Definition> {
+
       internal ListOfDefinitions(Int32 Anzahlelemente) : base(Anzahlelemente) { }
 
-      internal ListOfDefinitions(Int32 AnzahlAlternativen, ListOfDefinitions Alternativen) :
-          base(Alternativen.GetRange(Alternativen.Count - AnzahlAlternativen, AnzahlAlternativen))
+      internal ListOfDefinitions(Int32 AnzahlAlternativen, ListOfDefinitions definitions) :
+          base(definitions.GetRange(definitions.Count - AnzahlAlternativen, AnzahlAlternativen))
          {
          }
 
@@ -588,7 +602,7 @@ namespace Grammlator {
 
       internal Int32 StateStackAdjustment;
       internal Int32 AttributeStackAdjustment;
-      internal IntMethodClass PriorityFunction;
+      // internal IntMethodClass PriorityFunction; // has already been copied from Definition to PrioritySelectAction
       internal VoidMethodClass SemanticMethod;
 
       /// <summary>
@@ -878,15 +892,20 @@ namespace Grammlator {
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isLookaheadAction;
 
-      internal Int32 ConstantPriority = 0;
-      internal IntMethodClass PriorityFunction = null;
+      internal readonly Int32 ConstantPriority = 0;
+      internal readonly IntMethodClass PriorityFunction = null;
 
-      internal LookaheadAction(Int32 number, Definition nextAction)
+      /// <summary>
+      /// constructor, assigning a definition as NextAction
+      /// </summary>
+      /// <param name="number">a unique number within all look ahead actions</param>
+      /// <param name="definition">the <see cref="Definition"/> to be applied when the parser executes the <see cref="LookaheadAction"/></param>
+      internal LookaheadAction(Int32 number, Definition definition)
          {
          this.IdNumber = number;
-         this.NextAction = nextAction;
-         this.ConstantPriority = nextAction.ConstantPriority;
-         this.PriorityFunction = nextAction.PriorityFunction;
+         this.NextAction = definition;
+         this.ConstantPriority = definition.ConstantPriority;
+         this.PriorityFunction = definition.PriorityFunction;
          }
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
@@ -897,16 +916,37 @@ namespace Grammlator {
       }
 
    internal sealed class PrioritySelectAction: ConditionalAction {
-      internal PrioritySelectAction(BitArray InputSymbols, ConditionalAction constantPriorityAction, ListOfParserActions dynamicPriorityActions)
+
+      /// <summary>
+      /// Constructor
+      /// </summary>
+      /// <param name="InputSymbols"></param>
+      /// <param name="constantPriorityAction"></param>
+      /// <param name="dynamicPriorityDefinitions"></param>
+      internal PrioritySelectAction(
+            BitArray InputSymbols,
+            ConditionalAction constantPriorityAction,
+            ListOfParserActions dynamicPriorityDefinitions
+         )
          {
-         TerminalSymbols = InputSymbols;
-         ConstantPriorityAction = constantPriorityAction; // may be null
-         PriorityActions = new ListOfParserActions(dynamicPriorityActions);
+         TerminalSymbols = new BitArray(InputSymbols);
+         NextAction = constantPriorityAction.NextAction; // may be null
+         NextActionPriority = constantPriorityAction.Priority;
+         PriorityActions = new ListOfParserActions(dynamicPriorityDefinitions);
+         PriorityFunctions = new IntMethodClass[dynamicPriorityDefinitions.Count];
+         for (Int32 i = 0; i < dynamicPriorityDefinitions.Count; i++)
+            {
+            PriorityFunctions[i]
+               = (dynamicPriorityDefinitions[i] as Definition).PriorityFunction;
+            }
          }
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isPrioritySelectAction;
-      private readonly ConditionalAction ConstantPriorityAction;
-      private readonly ListOfParserActions PriorityActions;
+      // NextActionPriority is copied from NextAction because NextAction may be modified later
+      internal readonly Int32 NextActionPriority;
+      internal readonly ListOfParserActions PriorityActions; // the elements of the list may be modified later !
+      // The PriorityFunctions are copied from PriorityActions because those may be modified later
+      internal readonly IntMethodClass[] PriorityFunctions;
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
@@ -924,29 +964,26 @@ namespace Grammlator {
 
          sb.AppendLine("    then: Select by dynamic priority: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 
-         if (ConstantPriorityAction != null)
+         if (NextAction != null)
             {
-            sb.Append("    Priority ").Append(ConstantPriorityAction.Priority).Append(": ");
+            sb.Append("    Priority ").Append(NextActionPriority).Append(": ");
 
             sb.Append("    ");
-            if (ConstantPriorityAction.NextAction == null)
+            if (NextAction == null)
                sb.Append("no action (halt)");
             else
-               ConstantPriorityAction.NextAction.NameToSb(sb);
+               NextAction.NameToSb(sb);
             sb.AppendLine();
             }
 
          // PriorityActions.ToStringbuilder(sb);
 
-         foreach (ParserAction a in PriorityActions)
+         for (int i = 0; i < PriorityActions.Count; i++)
             {
-            sb.Append("    ");
-            if (a is Definition def)
-                 sb.Append(def.PriorityFunction.MethodName);
-            else // TODO dynamic priority log: if (a is )
-               sb.Append("----------------------------------------------");
-            sb.Append(": ");
-            a.NameToSb(sb);
+            sb.Append("    ")
+              .Append(PriorityFunctions[i].MethodName)
+              .Append(": ");
+            PriorityActions[i].NameToSb(sb);
             }
 
          return sb;

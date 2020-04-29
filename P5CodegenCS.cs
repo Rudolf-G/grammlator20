@@ -196,10 +196,11 @@ namespace Grammlator
       /// Indents exactly before appending the strings
       /// </summary>
       /// <param name="stringsToAppend"></param>
-      public void AppendInstruction(params String[] stringsToAppend)
+      public P5CodegenCS AppendInstruction(params String[] stringsToAppend)
       {
          IndentExactly();
          AppendWithOptionalLinebreak(stringsToAppend);
+         return this;
       }
 
       public P5CodegenCS Append(String s)

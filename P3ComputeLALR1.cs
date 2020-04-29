@@ -20,19 +20,18 @@ namespace Grammlator {
          {
          var p3 = new P3ComputeLALR1();
 
+         // compute look ahead terminal symbols
          AssignTerminalSymbolsAndComputeDirectRead();
          p3.P3a_ComputeReadSets();
          p3.P3b_ComputeFollow();
 
+         // solve and log conflicts
          var sb = new StringBuilder(1000);
-
          sb.AppendLine("Protocol of conflicts and conflict resolution")
            .AppendLine();
-
          Int32 statesWithConflicts = P3c_FindAndResolveAllStaticConflicts(sb);
 
-         GlobalVariables.OutputMessage(MessageTypeOrDestinationEnum.ConflictProtocol, sb.ToString());
-         
+         GlobalVariables.OutputMessage(MessageTypeOrDestinationEnum.ConflictProtocol, sb.ToString());         
          if (statesWithConflicts > 0)
             GlobalVariables.OutputMessage(
                MessageTypeOrDestinationEnum.Warning,
@@ -82,7 +81,7 @@ namespace Grammlator {
                      break;
                      }
 
-               case Definition d:
+               case Definition _:
                      {
                      // The nonterminal transition leads to a reduction.
                      // The initial value of the (follow) terminal symbols is empty.
