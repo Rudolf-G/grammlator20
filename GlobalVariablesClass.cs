@@ -195,20 +195,25 @@ namespace Grammlator {
          GlobalVariables.OutputMessageAndPosition = outputMessageAndPosition;
          NumberOfTerminalSymbols = 0;
          NumberOfNonterminalSymbols = 0;
-         Startsymbol = new NonterminalSymbol("*Startsymbol", 0) {
-            SymbolNumber = 0,
-            TrivalDefinitionsArray = Array.Empty<Symbol>(), // the startsymbol will not have any trival definitions
-            NontrivalDefinitionsList = null, // will be set by after the startsymbol is recognized in the source
-            AttributetypeStringIndexList = Array.Empty<Int32>(),
-            AttributenameStringIndexList = Array.Empty<Int32>()
-            };
+         Startsymbol = new NonterminalSymbol("*Startsymbol",
+            position: 0,
+            symbolNumber: 0,
+            attributetypeStringIndexList: Array.Empty<Int32>(),
+            attributenameStringIndexList: Array.Empty<Int32>()
+            // trivalDefinitionsArray: Array.Empty<Symbol>(), // the startsymbol will not have any trival definitions: default
+            // nontrivalDefinitionsList: ... // will be set after the startsymbol: default (empty list)
+            );
 
          MemoryToIndexDictionary.Clear();
          IndexToString.Clear();
 
-         Startaction = null;
-         TerminalSymbolByIndex = null;
-         AllTerminalSymbols = null;
+         ListOfAllHaltActions.Clear();
+         ListOfAllHaltActions.Capacity = InitialCapacityOfListOfAllHaltActions;
+         ListOfAllHaltActions.Add(new HaltAction(IdNumber: 0, AttributestackAdjustement: 0));
+
+         Startaction = ListOfAllHaltActions[0]; // 
+         TerminalSymbolByIndex = Array.Empty<TerminalSymbol>();
+         AllTerminalSymbols = EmptyBitarray;
          ListOfAllStates.Clear();
          ListOfAllStates.Capacity = InitialCapacityOfListOfAllStates;
          ListOfAllErrorhandlingActions.Clear();
@@ -217,9 +222,6 @@ namespace Grammlator {
          ListOfAllReductions.Capacity = InitialCapacityOfListOfAllReductions;
          ListOfAllBranchActions.Clear();
          ListOfAllBranchActions.Capacity = InitialCapacityOfListOfAllBranchActions;
-         ListOfAllHaltActions.Clear();
-         ListOfAllHaltActions.Capacity = InitialCapacityOfListOfAllHaltActions;
-         ListOfAllHaltActions.Add(new HaltAction(IdNumber: 0, AttributestackAdjustement: 0));
          }
       /* Options:
        * */
@@ -315,20 +317,6 @@ namespace Grammlator {
 
       internal static string AttributeStack = InitialSettings.GetString("AttributeStack");
 
-      /// <summary>
-      /// These strings are used to construct labels in the generated program.
-      /// They are indexed by <see cref="ParserActionEnum"/>.
-      /// Some of these will never occur in labels. They are provided for future modifications.
-      /// </summary>
-      internal static readonly string[] LabelPrefixes = new string[]{
-            "ApplyDefinition", "State", "LookAhead", "Reduce",
-            "ApplyStartsymbolDefinition", "EndWithError",
-            "TerminalTransition", "Accept", "NonterminalTransition",
-            "Branch", "PrioritySelect", "HandleError", "Deleted",
-            "EndOfGeneratedCode",
-            "Label"  // Unknown
-            };
-
       internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage {
          get; private set;
          }
@@ -394,10 +382,13 @@ namespace Grammlator {
       /// </summary>
       internal static readonly List<ParserState> ListOfAllStates = new List<ParserState>(InitialCapacityOfListOfAllStates);
 
+      internal readonly static ParserAction DefaultAction = new HaltAction(IdNumber: 0, AttributestackAdjustement: 0);
+      internal readonly static BitArray EmptyBitarray = new BitArray(0);
+
       /// <summary>
       /// is assigned in phase 4 and used as root of all actions in phase5 to count usage and generate the code 
       /// </summary>
-      internal static ParserAction Startaction;
+      internal static ParserAction Startaction = DefaultAction;
 
       /// <summary>
       /// Referenced by actions of type <see cref="ErrorhandlingAction"/>.
@@ -414,7 +405,7 @@ namespace Grammlator {
       /// <summary>
       /// A set of terminal symbols containing all terminal symbols
       /// </summary>
-      internal static BitArray AllTerminalSymbols; // assigned in Phases1to5Controller
+      internal static BitArray AllTerminalSymbols = EmptyBitarray; // assigned in Phases1to5Controller
 
       /// <summary>
       /// Defined in phase 3, used in phase 5

@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Comment CommentText="The AcceptAction is&#xD;&#xA;not yet used">
-    <Position X="2.958" Y="6.104" Height="0.531" Width="1.419" />
+    <Position X="8.999" Y="5.573" Height="0.531" Width="1.419" />
   </Comment>
   <Class Name="Grammlator.ParserAction" Collapsed="true">
-    <Position X="7.25" Y="1" Width="1.25" />
+    <Position X="8" Y="1.25" Width="1.25" />
     <TypeIdentifier>
       <HashCode>gAAAAAQAAAAAAAQAgAAAAAgAAABAAIAAiAAAAEBAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
@@ -26,63 +26,63 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.ConditionalAction" Collapsed="true">
-    <Position X="7" Y="3.75" Width="1.75" />
+    <Position X="7" Y="3.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAEAAAAAAAEAAgAAAIAAAAAAAAAgBAQAAAAAEA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.TerminalTransition" Collapsed="true">
-    <Position X="9.25" Y="5.25" Width="1.75" />
+    <Position X="6.5" Y="4.75" Width="1.75" />
     <TypeIdentifier>
       <HashCode>gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiAAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.NonterminalTransition" Collapsed="true">
-    <Position X="4.5" Y="6.5" Width="2" />
+    <Position X="3.25" Y="6" Width="2" />
     <TypeIdentifier>
       <HashCode>gAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAAiAAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.LookaheadAction" Collapsed="true">
-    <Position X="7" Y="6.5" Width="1.75" />
+    <Position X="5.5" Y="6" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAEAAAAAQAAAAAAAAAAAEAAAiAAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.HaltAction" Collapsed="true">
-    <Position X="11.25" Y="3.75" Width="1.75" />
+    <Position X="5" Y="3.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAQAAAAAAAAAAAAAAAAAAAIAAiAAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.ReduceAction" Collapsed="true">
-    <Position X="5" Y="3.75" Width="1.5" />
+    <Position X="3.25" Y="3.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAABACAAAAkgAAAAAAAAAAAAAAAAAIAAiAAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.ErrorhandlingAction" Collapsed="true">
-    <Position X="13.25" Y="5.25" Width="2.25" />
+    <Position X="11" Y="4.75" Width="2.25" />
     <TypeIdentifier>
       <HashCode>gAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAiAAABAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.ErrorHaltAction" Collapsed="true">
-    <Position X="13.25" Y="3.75" Width="2.25" />
+    <Position X="9" Y="3.5" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAiAAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.DeletedParserAction" Collapsed="true">
-    <Position X="11.25" Y="2.25" Width="1.75" />
+    <Position X="12.5" Y="3.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAiAAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
@@ -96,38 +96,45 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.PrioritySelectAction" Collapsed="true">
-    <Position X="11.25" Y="5.25" Width="1.75" />
+    <Position X="13.75" Y="4.75" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAiQAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiAAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.ParserState" Collapsed="true">
     <Position X="5" Y="2.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>gAAAgAAAJgAAQAAAAAAAAAIQADAABICAiAAAAAgAAQA=</HashCode>
+      <HashCode>gAAAgBAAJgAAQAgAAAAAAAIQACAABICAiAgAAAgAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserState.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="Grammlator.EndOfGeneratedCodeAction" Collapsed="true">
-    <Position X="13.25" Y="2.25" Width="2.25" />
+    <Position X="13.5" Y="2.25" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAiAAAAEAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.AcceptAction" Collapsed="true">
-    <Position X="3" Y="5.25" Width="1.5" />
+    <Position X="9" Y="4.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAABAAAAAACAAAAAAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Grammlator.LookaheadOrNonterminalTransition" Collapsed="true">
-    <Position X="5.5" Y="5.25" Width="2.5" />
+    <Position X="3.25" Y="4.75" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>GlobalDefinitionsParserActions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Grammlator.PriorityBranchAction" Collapsed="true">
+    <Position X="11.25" Y="2.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAQAAAAAAAEAAAiAIAAEAAAAA=</HashCode>
       <FileName>GlobalDefinitionsParserActions.cs</FileName>
     </TypeIdentifier>
   </Class>

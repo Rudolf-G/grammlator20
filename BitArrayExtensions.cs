@@ -237,7 +237,7 @@ namespace Grammlator {
       /// <exception cref="ArgumentOutOfRangeException">if </exception>
       internal static StringBuilder BitsToStringbuilder(
               this BitArray Bits, StringBuilder Sb,
-              Object[] BitNames = null, String Delimiter = ", ", String All = null, String Empty = null)
+              Object[]? BitNames = null, String Delimiter = ", ", String? All = null, String? Empty = null)
          {
          if (BitNames != null && BitNames.Length < Bits.Length)
             {

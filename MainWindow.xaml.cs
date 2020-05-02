@@ -420,7 +420,7 @@ namespace grammlator {
          if (!(sender is ListBox lb))
             return;
 
-         foreach (object o in lb.Items)
+         foreach (object? o in lb.Items)
             if (o is TextBox tb)
                tb.Width = lb.ActualWidth - ListboxDistanceAtRight; // try to avoid horizontal scrollbar in Listbox
             else if (o is ListBoxItem li && li.Content is TextBox containedTb)

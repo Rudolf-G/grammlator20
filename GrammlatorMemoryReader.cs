@@ -25,7 +25,7 @@ namespace Grammlator {
       /// Increment <see cref="LineNumber"/> and <see cref="ReadLine"/>
       /// </summary>
       /// <returns>The next line from the current input (string) or null if the end of the input is reached</returns>
-      public override String ReadLine()
+      public override String? ReadLine()
          {
          LineNumber++;
          return base.ReadLine();
@@ -60,10 +60,11 @@ namespace Grammlator {
 
          while (true)
             {
-            inputLine = ReadLine();
-            if (inputLine == null)
+            String? line = ReadLine();
+            if (line == null)
                return false;
 
+            inputLine = line;
             if (inputLine.StartsWith(markers))
                {
                if (copyFoundLine)

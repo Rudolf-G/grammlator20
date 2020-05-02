@@ -446,7 +446,7 @@ namespace Grammlator {
       private void OneMoreExcludedTerminalSymbol(Int32 nameIndex)
          {
          string name = GlobalVariables.GetStringOfIndex(nameIndex);
-         if (!SymbolDictionary.TryGetValue(nameIndex, out Symbol Symbol))
+         if (!SymbolDictionary.TryGetValue(nameIndex, out Symbol? Symbol))
             {
             P1OutputMessageAndLexerPosition(
                 MessageTypeOrDestinationEnum.Error,

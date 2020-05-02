@@ -53,7 +53,7 @@ namespace Grammlator {
             foreach (LookaheadOrNonterminalTransition parserAction
                 in state.Actions.OfType<LookaheadOrNonterminalTransition>())
                {
-               Debug.Assert(parserAction.TerminalSymbols == null);
+               // Debug.Assert(parserAction.TerminalSymbols == null);
 
                parserAction.TerminalSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
                parserAction.Codenumber = 0; // initial value for DIGRAPH algorithm
@@ -105,7 +105,7 @@ namespace Grammlator {
       /// <summary>
       /// Stack of nonterminal transitions used in ComputeReadSets by Traverse
       /// </summary>
-      private Stack<NonterminalTransition> StackOfNonterminalTransitions;
+      private readonly Stack<NonterminalTransition> StackOfNonterminalTransitions = new Stack<NonterminalTransition>(126);
 
       /// <summary>
       /// For each nonterminal transition of any state compute the terminal symbols 
@@ -113,8 +113,6 @@ namespace Grammlator {
       /// </summary>
       private void P3a_ComputeReadSets()
          {
-         StackOfNonterminalTransitions = new Stack<NonterminalTransition>(126);
-
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
             {
             foreach (NonterminalTransition nonterminalTransition in state.Actions.OfType<NonterminalTransition>())
@@ -123,7 +121,7 @@ namespace Grammlator {
                }
             }
 
-         StackOfNonterminalTransitions = null;
+         StackOfNonterminalTransitions.Clear();
          }
 
       /// <summary>
@@ -155,7 +153,7 @@ namespace Grammlator {
          // Recursively add the read symbol sets
          // of all nonterminal transitions of the next state which have nullable input symbols
          foreach (NonterminalTransition NextTransition in nextState.Actions.OfType<NonterminalTransition>().
-             Where(nt => nt.InputSymbol.IsNullabel))
+             Where(nt => nt.InputSymbol.IsNullable))
             {
             if (NextTransition.Codenumber == 0)
                {
@@ -208,7 +206,8 @@ namespace Grammlator {
       /// <see cref="NonterminalTransition"/>s x are collected  in the <see cref="StackOfActionsWithFollow"/>.</para>
       /// When finally an included action y is found alle the relations x Includes y are added
       /// </summary>
-      private Stack<LookaheadOrNonterminalTransition> StackOfActionsWithFollow;
+      private readonly Stack<LookaheadOrNonterminalTransition> StackOfActionsWithFollow
+         = new Stack<LookaheadOrNonterminalTransition>(126);
 
       /// <summary>
       /// Compute the sets of <see cref="TerminalSymbol"/>s which may follow
@@ -216,12 +215,11 @@ namespace Grammlator {
       /// </summary>
       private void P3b_ComputeFollow()
          {
-         StackOfActionsWithFollow = new Stack<LookaheadOrNonterminalTransition>(126);
          ClearCodenumbersOfAllActionsAndAssignEmptyIncludeSets();
          ComputeIncludeSets();
          Digraph2();
          DiscardAllIncludesSets();
-         StackOfActionsWithFollow = null;
+         StackOfActionsWithFollow.Clear();
          }
 
       private static void ClearCodenumbersOfAllActionsAndAssignEmptyIncludeSets()
@@ -289,7 +287,7 @@ namespace Grammlator {
                         elements = definition.Elements;
                         Lookback(State,
                             waybackAcceptsEmpty: // if the nonterminal is nullable
-                            ((elements[^1] as NonterminalSymbol)?.IsNullabel) ?? false,
+                            ((elements[^1] as NonterminalSymbol)?.IsNullable) ?? false,
                             definedSymbol: definition.DefinedSymbol,
                             elements: elements,
                             distanceToGoBack: elements.Length - 1); // -1 because SHIFT-reduce
@@ -307,7 +305,7 @@ namespace Grammlator {
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
             {
             foreach (LookaheadOrNonterminalTransition ActionWithFollow in State.Actions.OfType<LookaheadOrNonterminalTransition>())
-               ActionWithFollow.Includes = null;
+               ActionWithFollow.Includes.Clear();
             }
          }
 
@@ -351,7 +349,7 @@ namespace Grammlator {
                // NonterminalSymbol nts;
                Lookback(actualState: Predecessor,
                    waybackAcceptsEmpty: // is switched to false if the actual alement is not nullabel
-                       ((elements[distanceToGoBack - 1] as NonterminalSymbol)?.IsNullabel) ?? false,
+                       ((elements[distanceToGoBack - 1] as NonterminalSymbol)?.IsNullable) ?? false,
                    definedSymbol: definedSymbol,
                    elements: elements,
                    distanceToGoBack: distanceToGoBack - 1

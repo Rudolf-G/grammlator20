@@ -12,7 +12,7 @@ namespace Grammlator
 
       void GenerateEndOfCode();
 
-      ParserAction GenerateEndOfCodeAction();
+      ParserAction? GenerateEndOfCodeAction();
    }
 
    /// <summary>
@@ -90,7 +90,7 @@ namespace Grammlator
             AppendLine(GlobalVariables.TranslationInfo);
       }
 
-      public ParserAction GenerateEndOfCodeAction()
+      public ParserAction? GenerateEndOfCodeAction()
       {
          // The label (if needed) has already been generated
         AppendLineAndIndent()
@@ -406,7 +406,7 @@ namespace Grammlator
       /// <returns>The label assigned to the (accept) action</returns>
       private static String GotoLabel(ParserAction action, Boolean accept)
       {
-         string MapActiontypeToString = GlobalVariables.LabelPrefixes[(int)action.ParserActionType];
+         string MapActiontypeToString = ParserEnumExtension.LabelPrefixes[(int)action.ParserActionType];
          if (action.ParserActionType==ParserActionEnum.isErrorhaltAction) // There is only one ErrorHaltAction
             return (accept ? "Accept" : "") + MapActiontypeToString.ToString();
          return (accept ? "Accept" : "") + MapActiontypeToString + (action.IdNumber + 1).ToString();

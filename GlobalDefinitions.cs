@@ -468,24 +468,35 @@ namespace Grammlator {
    /// Stores the name and the parameters of a semantic method or priority specified in the grammar
    /// </summary>
    internal class MethodClass {
-      internal String MethodName;
+      internal readonly String MethodName;
 
       /// <summary>
       /// Array with one entry for each of the formal parameters of the method
       /// </summary>
-      internal MethodParameterStruct[] MethodParameters;
+      internal MethodParameterStruct[] MethodParameters; // TODO make non-nullable (change attributes of grammar!)
+
+      internal MethodClass(String methodName)
+         {
+         MethodName = methodName;
+         }
       }
 
    /// <summary>
    /// Stores the name and the parameters of a semantic method specified in the grammar
    /// </summary>
    internal class VoidMethodClass: MethodClass {
+      internal VoidMethodClass(String methodName) : base(methodName)
+         {
+         }
       }
 
    /// <summary>
    /// Stores the name and the parameters of a semantic priority specified in the grammar
    /// </summary>
    internal class IntMethodClass: MethodClass {
+      internal IntMethodClass(String methodName) : base(methodName)
+         {
+         }
       }
 
    /// <summary>
@@ -548,14 +559,19 @@ namespace Grammlator {
       internal static void ToStringbuilder(this Symbol[] SymbolArray, StringBuilder sb, String separator = ", ")
           => SymbolArray.ToStringbuilder(sb, Int32.MaxValue, null, separator); // am Ende markieren
 
-      internal static void ToStringbuilder(this Symbol[] SymbolArray, StringBuilder sb, Int32 Markierung, Int32[] AttributnameStringIndexes, String separator = ", ")
+      internal static void ToStringbuilder(
+            this Symbol[] SymbolArray,
+            StringBuilder sb,
+            Int32 Markierung,
+            Int32[]? AttributnameStringIndexes,
+            String separator = ", ")
          {
          Int32 Elementzähler = 0;
          Int32 NumberOfParameter = 0;
 
          foreach (Symbol s in SymbolArray)
             {
-            Int32[] NameStringIndexes = AttributnameStringIndexes;
+            Int32[]? NameStringIndexes = AttributnameStringIndexes;
             if (NameStringIndexes == null)
                {
                NameStringIndexes = s.AttributenameStringIndexList;
@@ -610,23 +626,41 @@ namespace Grammlator {
       }
 
    internal abstract class Symbol {
-      /// <summary>
-      /// Constructor 
-      /// </summary>
-      private Symbol()
-         {
-         }
-
-      /// <summary>
-      /// Constructor sets identifier of symbol
-      /// </summary>
-      /// <param name="identifier"></param>
-      internal Symbol(String identifier) => this.Identifier = identifier;
 
       internal Symbol(String identifier, Int32 position)
          {
          this.Identifier = identifier;
          this.FirstPosition = position;
+         this.AttributetypeStringIndexList = Array.Empty<Int32>();
+         this.AttributenameStringIndexList = Array.Empty<Int32>();
+         }
+
+      internal Symbol(
+            String identifier,
+            Int32 position,
+            Int32 symbolNumber,
+            Int32[] attributetypeStringIndexList)
+         {
+         this.Identifier = identifier;
+         this.FirstPosition = position;
+         this.SymbolNumber = symbolNumber;
+         this.AttributetypeStringIndexList = attributetypeStringIndexList;
+         this.AttributenameStringIndexList = Array.Empty<Int32>();
+         }
+
+      internal Symbol(
+            String identifier,
+            Int32 position,
+            Int32 symbolNumber,
+            Int32[] attributetypeStringIndexList,
+            Int32[] attributenameStringIndexList
+         )
+         {
+         this.Identifier = identifier;
+         this.FirstPosition = position;
+         this.SymbolNumber = symbolNumber;
+         this.AttributetypeStringIndexList = attributetypeStringIndexList;
+         this.AttributenameStringIndexList = attributenameStringIndexList;
          }
 
       internal readonly String Identifier;
@@ -643,11 +677,11 @@ namespace Grammlator {
       /// <summary>
       /// Only nonterminal symbols may be nullable. A nonterminal is nullable, if it produces the empty string.
       /// If this has not yet been computed
-      /// <see cref="IsNullabel"/> checks recursively if the symbol contains an empty definition or a definition
+      /// <see cref="IsNullable"/> checks recursively if the symbol contains an empty definition or a definition
       /// which contains only symbols for which SymbolContainsAnEmptyDefinition is true.
       /// </summary>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
-      internal Boolean IsNullabel {
+      internal Boolean IsNullable {
          get {
 
             switch (_EmptyComputationResult)
@@ -672,9 +706,9 @@ namespace Grammlator {
 
             default: // case eEmptyComputationResult.IsJustBeingComputed 
                   {
-                  Debug.Fail($"Error in {nameof(IsNullabel)}");
+                  Debug.Fail($"Error in {nameof(IsNullable)}");
                   throw new ErrorInGrammlatorProgramException(
-                      $"Error in {nameof(IsNullabel)}");
+                      $"Error in {nameof(IsNullable)}");
                   }
                }
             }
@@ -755,7 +789,7 @@ namespace Grammlator {
            .Append(": ");
          IdentifierAndAttributesToSB(sb);
 
-         if (IsNullabel)
+         if (IsNullable)
             sb.Append(", generates the empty string");
 
          if (!isUsed)
@@ -793,16 +827,62 @@ namespace Grammlator {
       }
 
    internal sealed class NonterminalSymbol: Symbol {
-      internal NonterminalSymbol(String identifier, Int32 position) : base(identifier, position) { }
+
+      internal NonterminalSymbol(
+            String identifier,
+            Int32 position,
+            Int32 symbolNumber,
+            Int32[] attributetypeStringIndexList
+         )
+         : base(identifier, position, symbolNumber, attributetypeStringIndexList)
+         {
+            {
+            NontrivialDefinitionsList = EmptyDefinitionsList;
+            TrivalDefinitionsArray = Array.Empty<Symbol>();
+            }
+         }
+
+      internal NonterminalSymbol(
+            String identifier,
+            Int32 position,
+            Int32 symbolNumber,
+            Int32[] attributetypeStringIndexList,
+            Int32[] attributenameStringIndexList
+         )
+         : base(identifier, position, symbolNumber, attributetypeStringIndexList, attributenameStringIndexList)
+         {
+         NontrivialDefinitionsList = EmptyDefinitionsList;
+         TrivalDefinitionsArray = Array.Empty<Symbol>();
+         }
+
+      internal NonterminalSymbol(
+      String identifier,
+      Int32 position,
+      Int32 symbolNumber,
+      Int32[] attributetypeStringIndexList,
+      Int32[] attributenameStringIndexList,
+      ListOfDefinitions nontrivalDefinitionsList,
+      Symbol[] trivalDefinitionsArray
+   )
+   : base(identifier, position, symbolNumber, attributetypeStringIndexList, attributenameStringIndexList)
+         {
+         NontrivialDefinitionsList = nontrivalDefinitionsList;
+         TrivalDefinitionsArray = trivalDefinitionsArray;
+         }
+
+      internal Boolean IsDefined {
+         get { return TrivalDefinitionsArray.Length != 0 || NontrivialDefinitionsList.Count != 0; }
+         }
 
       /// <summary>
-      /// returns <see cref="NontrivalDefinitionsList"/>.Count == 0;
+      /// returns <see cref="NontrivialDefinitionsList"/>.Count == 0;
       /// </summary>
       internal override Boolean IsNonterminalWhichHasOnlyTrivialAlternatives
-          => NontrivalDefinitionsList.Count == 0;
+          => NontrivialDefinitionsList.Count == 0;
 
       internal override String SymboltypeString => "nonterminal symbol";
-      internal ListOfDefinitions NontrivalDefinitionsList;
+      internal ListOfDefinitions NontrivialDefinitionsList;
+      private static ListOfDefinitions EmptyDefinitionsList = new ListOfDefinitions(0);
       internal Symbol[] TrivalDefinitionsArray;
 
       /// <summary>
@@ -817,7 +897,7 @@ namespace Grammlator {
             {
             Counter++;
             isUsed = true;
-            Counter += NontrivalDefinitionsList?.MarkAndCountAllUsedSymbols() ?? 0;
+            Counter += NontrivialDefinitionsList?.MarkAndCountAllUsedSymbols() ?? 0;
             Counter += TrivalDefinitionsArray?.MarkAndCountAllUsedSymbols() ?? 0;
             }
          return Counter;
@@ -827,18 +907,18 @@ namespace Grammlator {
          {
          base.ToStringbuilder(sb);
          sb.AppendLine();
-         if (TrivalDefinitionsArray?.Length > 0)
+         if (TrivalDefinitionsArray.Length > 0)
             {
             sb.Append("    0. trivial rule(s): ");
             TrivalDefinitionsArray.ToStringbuilder(sb, separator: " | ");
             sb.AppendLine();
             }
-         if (NontrivalDefinitionsList.Count == 0)
+         if (NontrivialDefinitionsList.Count == 0)
             {
             return;
             }
          // sb.AppendLine("    rules:");
-         NontrivalDefinitionsList.ToStringbuilder(sb);
+         NontrivialDefinitionsList.ToStringbuilder(sb);
          }
 
       /// <summary>
@@ -872,7 +952,7 @@ namespace Grammlator {
          Boolean SearchLimitedByRecursion = false;
 
          // Check nontrivial definitions of the nonterminal symbol
-         switch (NontrivalDefinitionsList.ListContainsEmptyDefinition()) // this may cause recursion
+         switch (NontrivialDefinitionsList.ListContainsEmptyDefinition()) // this may cause recursion
             {
          case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
                {// success: an empty definition has been found
@@ -935,9 +1015,9 @@ namespace Grammlator {
             }
 
          // keine Alternative bzw. Nachfolger gefunden, die bzw. der die leere Zeichenkette erzeugt
-         _EmptyComputationResult = 
+         _EmptyComputationResult =
             SearchLimitedByRecursion
-             ? EmptyComputationResultEnum.NotYetComputedOrRecursion 
+             ? EmptyComputationResultEnum.NotYetComputedOrRecursion
              : EmptyComputationResultEnum.NotEmpty;
 
          return _EmptyComputationResult;

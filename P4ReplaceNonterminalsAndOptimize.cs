@@ -68,6 +68,7 @@ namespace Grammlator {
 
       public void ComputeStatesStackNumbersAndBranches()
          {
+         // TODO Translate comment
          /*  Für Zustände, die keine Information kellern, wird die Kennung auf -1 gesetzt.
          Alle Zustaende der gleichen Klasse bezüglich der Relation Nachbar
          sind miteinander verkettet.
@@ -112,15 +113,36 @@ namespace Grammlator {
             {
             foreach (ParserAction action in state.Actions)
                {
-               if ((action is ParserActionWithNextAction actionWithNextAction)
-                   && (actionWithNextAction.NextAction is Definition definition))
+               if (action is ParserActionWithNextAction actionWithNextAction)
                   {
-                  WalkBackAndCombineSamePredecessorLevelClasses(
-                      StateToStartFrom: state,
-                      Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1)
-                  );
-                  // In terminal and nonterminal shifts the item is one position before the end:
-                  // depth must be one less than the length of the definitions elementlist
+                  if (actionWithNextAction.NextAction is Definition definition)
+                     {
+                     WalkBackAndCombineSamePredecessorLevelClasses(
+                         StateToStartFrom: state,
+                         Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1)
+                     );
+                     // In terminal and nonterminal shifts the item is one position before the end:
+                     // depth must be one less than the length of the definitions elementlist
+                     }
+                  else if (actionWithNextAction.NextAction is PriorityBranchAction b)
+                     {
+                     if (b.ConstantPriorityAction != null)
+                        {
+                        /* may be (look ahead - ) Definition: reduce-reduce-conflict
+                         * or (terminalTransition - ) Definition (shiftreduce): shift-reduce-conflict
+                         * or (terminalTransition - ) State (shift): shift-reduce-conflict)
+                         * accept ... */
+                        throw new NotImplementedException("Constant priority action in PrioritBranchAction not yet implemented");
+                        }
+                     foreach (ParserAction dynamicPriorityAction in b.DynamicPriorityActions)
+                        {
+                        Debug.Assert(dynamicPriorityAction is Definition);
+                        if (dynamicPriorityAction is Definition d)
+                           WalkBackAndCombineSamePredecessorLevelClasses(
+                               StateToStartFrom: state,
+                               Depth: d.Elements.Length);
+                        }
+                     }
                   }
                }
             }
@@ -140,7 +162,7 @@ namespace Grammlator {
              new List<ParserState>(GlobalVariables.ListOfAllStates.Count)
                  { StateToStartFrom };
 
-         var precedingStates = new List<ParserState>();
+         var precedingStates = new List<ParserState>(30); // TOCHECK size? move allocation out of the method?
 
          // Iterate Depth-1 levels
          for (Int32 remainingLength = Depth; remainingLength > 0; remainingLength--)
@@ -507,14 +529,14 @@ namespace Grammlator {
          // Compose description
          Definition.DefinedSymbol
             .IdentifierAndAttributesToSB(reduceStringBuilderTemp)
-            .Append("= ");         
+            .Append("= ");
          Definition
              .ToStringbuilder(reduceStringBuilderTemp, Definition.Elements.Length + 1);
          String description = reduceStringBuilderTemp.ToString();
          reduceStringBuilderTemp.Clear();
 
          // construct reduceAction
-         var reduceAction = new ReduceAction {
+         var reduceAction = new ReduceAction(NextActionOfReduce) {
             IdNumber = GlobalVariables.ListOfAllReductions.Count,// starting with 0
             Description = description,
             StateStackAdjustment = DepthOfSyntaxStack,
@@ -523,8 +545,7 @@ namespace Grammlator {
             AttributeStackAdjustment = Definition.AttributestackAdjustment,
             // because optimizations may change AttributeStackAdjustment the 
             // value of the condition "AttributeStackAdjustment > 0" must be saved
-            FirstAdjustAttributeStackThenCallMethod = Definition.AttributestackAdjustment > 0,
-            NextAction = NextActionOfReduce
+            FirstAdjustAttributeStackThenCallMethod = Definition.AttributestackAdjustment > 0
             };
 
          /* Handle the special case of definitions of the startsymbol:

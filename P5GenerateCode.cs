@@ -441,7 +441,7 @@ namespace Grammlator {
          //   avoid other simple actions to put them in the conditional part
 
          Int32 priority = Int32.MinValue;
-         ParserAction defaultAction = null;
+         ParserAction defaultAction = CounterList[0].Action;
 
          foreach (ActionAndCounter actionAndCounter in CounterList)
             {
@@ -798,7 +798,13 @@ namespace Grammlator {
 
             case PrioritySelectAction ps:
                   {
-                  ActionToGenerate = GeneratePrioritySelect(out Accept, ps, nestingLevel);
+                  ActionToGenerate = ps.NextAction;
+                  break;
+                  }
+
+            case PriorityBranchAction pb:
+                  {
+                  ActionToGenerate = GeneratePrioritySelect(out Accept, pb, nestingLevel);
                   break;
                   }
 
@@ -1011,7 +1017,7 @@ namespace Grammlator {
          return ReduceActionToGenerate.NextAction;
          }
 
-      private ParserAction GeneratePrioritySelect(out Boolean Accept, PrioritySelectAction ps, Int32 nestingLevel)
+      private ParserAction GeneratePrioritySelect(out Boolean Accept, PriorityBranchAction ps, Int32 nestingLevel)
          {
          // TODO change test to correct program !! Test --------------------------------
 
@@ -1019,32 +1025,38 @@ namespace Grammlator {
          codegen.AppendLine("/* Dynamic priority controlled actions */");
 
          codegen.AppendInstruction("switch(IndexOfMaximum(");  // TODO IndexOfMaximum ??
-         if (ps.NextAction != null)
-            codegen.Append(ps.NextActionPriority).Append(", ");
-         for (Int32 i = 0; i < ps.PriorityActions.Count; i++)
+
+         if (ps.ConstantPriorityAction != null)
+            codegen.Append(ps.ConstantPriority).Append(", ");
+
+         for (Int32 i = 0; i < ps.DynamicPriorityActions.Count; i++)
             {
             if (i > 0)
                codegen.Append(", ");
             codegen.Append(ps.PriorityFunctions[i].MethodName);
             }
-         codegen.Append(")){"); // end of switch condition start of switch cases
+         codegen.Append(")){");
+         // end of generating switch condition
+         // generate switch cases
          Int32 CaseCount = 0;
-         if (ps.NextAction != null)
+         if (ps.ConstantPriorityAction != null)
             {
             codegen.AppendInstruction("case ").Append(CaseCount++).Append(": ");
             GenerateCodeSequence(
-               ps.NextAction,
+               ps.ConstantPriorityAction,
                accept: false,
                labelMustBeGenerated: false,
                nestingLevel
              );
             codegen.AppendInstruction(" "); // TOCHECK Indent instead of ' '
             }
-         for (Int32 i = 0; i < ps.PriorityActions.Count; i++)
+         // do not gnerate a case for the last dynamic priority: this
+         // is returned to be generated after the swirch instruction (default)
+         for (Int32 i = 0; i < ps.DynamicPriorityActions.Count-1; i++)
             {
             codegen.Append("case ").Append(CaseCount++).Append(": ");
             GenerateCodeSequence(
-               ps.PriorityActions[i],
+               ps.DynamicPriorityActions[i],
                accept: false, // TOCHECK ???
                labelMustBeGenerated: false, // TOCHECK
                nestingLevel
@@ -1052,10 +1064,10 @@ namespace Grammlator {
             ;
             }
 
-         codegen.AppendInstruction("}");
+         codegen.Append("}");
 
          Accept = false; // TOCHECK priority generation end
-         return null;    // TOCHECK priority generation end
+         return ps.DynamicPriorityActions[^1];
          }
 
       /// <summary>

@@ -23,10 +23,27 @@ namespace Grammlator {
       isNonterminalTransition,
       isBranchAction,
       isPrioritySelectAction,
+      isPriorityBranchAction,
       isErrorhandlingAction,
       isDeletedParserAction,
       isEndOfGeneratedCode,
       isSomethingElse
+      }
+
+   class ParserEnumExtension {
+      /// <summary>
+      /// These strings are used to construct labels in the generated program.
+      /// They are indexed by <see cref="ParserActionEnum"/>.
+      /// Some of these will never occur in labels. They are provided for future modifications.
+      /// </summary>
+      internal static readonly string[] LabelPrefixes = new string[]{
+            "ApplyDefinition", "State", "LookAhead", "Reduce",
+            "ApplyStartsymbolDefinition", "EndWithError",
+            "TerminalTransition", "Accept", "NonterminalTransition",
+            "Branch", "PrioritySelect", "PriorityBranch", "HandleError", "Deleted",
+            "EndOfGeneratedCode",
+            "Label"  // Unknown
+            };
       }
 
    internal abstract class ParserAction:
@@ -207,6 +224,7 @@ namespace Grammlator {
          DefinedSymbol = definedSymbol;
          Elements = elements;
          AttributestackAdjustment = attributestackAdjustment;
+         AttributeIdentifierStringIndexArray = Array.Empty<Int32>();
          }
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isDefinition;
 
@@ -241,12 +259,12 @@ namespace Grammlator {
       /// <summary>
       /// A Int32 method
       /// </summary>
-      internal IntMethodClass PriorityFunction;
+      internal IntMethodClass? PriorityFunction;
 
       /// <summary>
       /// A void method
       /// </summary>
-      internal VoidMethodClass SemanticMethod;
+      internal VoidMethodClass? SemanticMethod;
 
       /// <summary>
       /// The code for <see cref="AttributestackAdjustment"/> &gt;0 has to be generated before semantic method calls,
@@ -254,7 +272,7 @@ namespace Grammlator {
       /// </summary>
       internal Int32 AttributestackAdjustment;
       internal Symbol[] Elements;
-      internal Int32[] AttributIdentifierStringIndexArray;
+      internal Int32[] AttributeIdentifierStringIndexArray;
       //   function ist_geordnet (v: t_Aktion): boolean; override;
 
       /// <summary>
@@ -268,7 +286,7 @@ namespace Grammlator {
       internal Boolean HasNoSemantics()
           => (SemanticMethod == null)
               && (AttributestackAdjustment == 0);
-              // && (PriorityFunction == null);
+      // && (PriorityFunction == null);
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
@@ -282,7 +300,7 @@ namespace Grammlator {
       internal override void NameToSb(StringBuilder sb) => ToStringbuilder(sb);
 
       internal void ElementsToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
-          => Elements.ToStringbuilder(sb, MarkiertesElement, this.AttributIdentifierStringIndexArray);
+          => Elements.ToStringbuilder(sb, MarkiertesElement, this.AttributeIdentifierStringIndexArray);
 
       internal StringBuilder ToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
          {
@@ -564,6 +582,11 @@ namespace Grammlator {
          get; set;
          }
 
+      public ParserActionWithNextAction(ParserAction nextAction)
+         {
+         NextAction = nextAction;
+         }
+
       internal override void CountUsage(Boolean Accept)
          {
          if (Calls > 0)
@@ -580,10 +603,10 @@ namespace Grammlator {
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
          sb.Append("    then: ");
-         if (NextAction == null)
-            sb.Append("no action (halt)");
-         else
-            NextAction.NameToSb(sb);
+         //if (NextAction == null)
+         //   sb.Append("no action (halt)");
+         //else
+         NextAction.NameToSb(sb);
          return sb;
          }
       }
@@ -593,17 +616,20 @@ namespace Grammlator {
    /// (ParserState, BranchAction ...)
    /// </summary>
    internal sealed class ReduceAction: ParserActionWithNextAction {
+
+      internal ReduceAction(ParserAction nextAction):base (nextAction){}
+
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isReduceAction;
 
       /// <summary>
       /// A comment describing this reduce action
       /// </summary>
-      internal String Description = null;
+      internal String Description = String.Empty;
 
       internal Int32 StateStackAdjustment;
       internal Int32 AttributeStackAdjustment;
       // internal IntMethodClass PriorityFunction; // has already been copied from Definition to PrioritySelectAction
-      internal VoidMethodClass SemanticMethod;
+      internal VoidMethodClass? SemanticMethod;
 
       /// <summary>
       /// If true then the code for correction of the attribute stack has to be generated before the code caling the semantic method.
@@ -652,6 +678,11 @@ namespace Grammlator {
       public BitArray TerminalSymbols {
          get; set;
          } // als Folgesymbole oder als Eingabesymbole 
+
+      public ConditionalAction(BitArray terminalSymbols, ParserAction nextAction): base(nextAction)
+         {
+         TerminalSymbols = terminalSymbols;
+         }
 
       /// <summary>
       /// Returns Int32.MaxValue if action has dynamic priority, assigned priority of lookadead action, 0 else
@@ -719,15 +750,14 @@ namespace Grammlator {
          {
          Terminalcount = 0;
          SumOfWeights = 0;
-         Int32 Index = 0;
-         foreach (bool element in TerminalSymbols)
+
+         for (int index = 0; index < TerminalSymbols.Count; index++)
             {
-            if (element)
-               {
-               Terminalcount++;
-               SumOfWeights += TerminalSymbolByIndex[Index].Weight;
-               }
-            Index++;
+            if (!TerminalSymbols[index])
+               continue;
+
+            Terminalcount++;
+            SumOfWeights += TerminalSymbolByIndex[index].Weight;
             }
 
          if (SumOfWeights == 0)
@@ -783,11 +813,10 @@ namespace Grammlator {
    /// Transition with TerminalSymbols to be accepted 
    /// </summary>
    internal sealed class TerminalTransition: ConditionalAction {
-      internal TerminalTransition(Int32 number, BitArray terminalSymbols, ParserAction nextAction)
+      internal TerminalTransition(Int32 number, BitArray terminalSymbols, ParserAction nextAction):
+         base(terminalSymbols, nextAction)
          {
          this.IdNumber = number;
-         this.TerminalSymbols = terminalSymbols;
-         this.NextAction = nextAction;
          }
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isTerminalTransition;
@@ -837,10 +866,14 @@ namespace Grammlator {
    /// This class is used in phase 3
    /// </summary>
    internal abstract class LookaheadOrNonterminalTransition: ConditionalAction {
+
+      public LookaheadOrNonterminalTransition(BitArray terminalSymbols, ParserAction nextAction)
+         : base(terminalSymbols, nextAction) { }
       internal abstract HashSet<NonterminalTransition> Includes {
          get; set;
          }
       }
+
 
    /// <summary>
    /// A nonterminal transition denotes a parser state change caused by a nonterminal.
@@ -854,11 +887,11 @@ namespace Grammlator {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isNonterminalTransition;
       internal NonterminalSymbol InputSymbol;
 
-      internal NonterminalTransition(Int32 number, NonterminalSymbol inputSymbol, ParserAction nextAction)
+      internal NonterminalTransition(Int32 number, NonterminalSymbol inputSymbol, ParserAction nextAction, BitArray lookAheadSet)
+         : base (lookAheadSet, nextAction)
          {
          this.IdNumber = number;
          this.InputSymbol = inputSymbol;
-         this.NextAction = nextAction;
          }
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
@@ -893,14 +926,15 @@ namespace Grammlator {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isLookaheadAction;
 
       internal readonly Int32 ConstantPriority = 0;
-      internal readonly IntMethodClass PriorityFunction = null;
+      internal readonly IntMethodClass? PriorityFunction = null;
 
       /// <summary>
       /// constructor, assigning a definition as NextAction
       /// </summary>
       /// <param name="number">a unique number within all look ahead actions</param>
       /// <param name="definition">the <see cref="Definition"/> to be applied when the parser executes the <see cref="LookaheadAction"/></param>
-      internal LookaheadAction(Int32 number, Definition definition)
+      internal LookaheadAction(Int32 number, Definition definition, BitArray lookAheadSet, ParserAction nextAction)
+         :base(lookAheadSet, nextAction)
          {
          this.IdNumber = number;
          this.NextAction = definition;
@@ -915,38 +949,76 @@ namespace Grammlator {
          }
       }
 
+   internal sealed class PriorityBranchAction: ParserAction {
+      internal PriorityBranchAction(
+            ConditionalAction? constantPriorityAction,
+            ListOfParserActions dynamicPriorityDefinitions
+         )
+         {
+         ConstantPriorityAction = constantPriorityAction;
+         ConstantPriority = constantPriorityAction?.Priority??0;
+         DynamicPriorityActions = new ListOfParserActions(dynamicPriorityDefinitions);
+
+         PriorityFunctions = new IntMethodClass[dynamicPriorityDefinitions.Count];
+         for (Int32 i = 0; i < dynamicPriorityDefinitions.Count; i++)
+            {
+            PriorityFunctions[i]
+               = ((Definition)dynamicPriorityDefinitions[i]).PriorityFunction!;
+            }
+         }
+
+      internal override ParserActionEnum ParserActionType => ParserActionEnum.isPriorityBranchAction;
+
+      internal ParserAction? ConstantPriorityAction;
+      // ConstantPriority is copied from ConstantPriorityAction because ConstantPriorityAction may be modified later
+      internal readonly Int32 ConstantPriority;
+      internal readonly ListOfParserActions DynamicPriorityActions; // the elements of the list may be modified later !
+      // The PriorityFunctions are copied from PriorityActions because those may be modified later
+      internal readonly IntMethodClass[] PriorityFunctions;
+
+      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+         {
+
+         sb.Append("    Priority ").Append(ConstantPriority).Append(": ")
+           .Append("    ");
+
+         if (ConstantPriorityAction == null) // TOCHECK may be ConstantPriorityAction == null
+            sb.Append("no action (halt)");
+         else
+            ConstantPriorityAction.NameToSb(sb);
+         sb.AppendLine();
+
+         // PriorityFunctions and DynamicPriorityActions ToStringbuilder(sb);
+         for (int i = 0; i < DynamicPriorityActions.Count; i++)
+            {
+            sb.Append("    ")
+              .Append(PriorityFunctions[i].MethodName)
+              .Append(": ");
+            DynamicPriorityActions[i].NameToSb(sb);
+            }
+
+         return sb;
+         }
+
+
+      }
    internal sealed class PrioritySelectAction: ConditionalAction {
 
       /// <summary>
       /// Constructor
       /// </summary>
-      /// <param name="InputSymbols"></param>
-      /// <param name="constantPriorityAction"></param>
-      /// <param name="dynamicPriorityDefinitions"></param>
+      /// <param name="inputSymbols"></param>
+      /// <param name="constantPriorityAction"><see cref="null"/> or <see cref="LookaheadAction"/>
+      /// or <see cref="TerminalTransition"/></param>
+      /// <param name="dynamicPriorityDefinitions">List of <see cref="ConditionalAction"/>s</param>
       internal PrioritySelectAction(
-            BitArray InputSymbols,
-            ConditionalAction constantPriorityAction,
+            BitArray inputSymbols,
+            ConditionalAction? constantPriorityAction,
             ListOfParserActions dynamicPriorityDefinitions
-         )
-         {
-         TerminalSymbols = new BitArray(InputSymbols);
-         NextAction = constantPriorityAction.NextAction; // may be null
-         NextActionPriority = constantPriorityAction.Priority;
-         PriorityActions = new ListOfParserActions(dynamicPriorityDefinitions);
-         PriorityFunctions = new IntMethodClass[dynamicPriorityDefinitions.Count];
-         for (Int32 i = 0; i < dynamicPriorityDefinitions.Count; i++)
-            {
-            PriorityFunctions[i]
-               = (dynamicPriorityDefinitions[i] as Definition).PriorityFunction;
-            }
-         }
+         ): base(new BitArray(inputSymbols), new PriorityBranchAction(constantPriorityAction, dynamicPriorityDefinitions))
+         {}
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isPrioritySelectAction;
-      // NextActionPriority is copied from NextAction because NextAction may be modified later
-      internal readonly Int32 NextActionPriority;
-      internal readonly ListOfParserActions PriorityActions; // the elements of the list may be modified later !
-      // The PriorityFunctions are copied from PriorityActions because those may be modified later
-      internal readonly IntMethodClass[] PriorityFunctions;
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
@@ -964,27 +1036,7 @@ namespace Grammlator {
 
          sb.AppendLine("    then: Select by dynamic priority: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 
-         if (NextAction != null)
-            {
-            sb.Append("    Priority ").Append(NextActionPriority).Append(": ");
-
-            sb.Append("    ");
-            if (NextAction == null)
-               sb.Append("no action (halt)");
-            else
-               NextAction.NameToSb(sb);
-            sb.AppendLine();
-            }
-
-         // PriorityActions.ToStringbuilder(sb);
-
-         for (int i = 0; i < PriorityActions.Count; i++)
-            {
-            sb.Append("    ")
-              .Append(PriorityFunctions[i].MethodName)
-              .Append(": ");
-            PriorityActions[i].NameToSb(sb);
-            }
+         NextAction.ToStringbuilder(sb);
 
          return sb;
          }
@@ -996,7 +1048,9 @@ namespace Grammlator {
 #pragma warning restore CA1812 // Avoid uninstantiated internal classes
    {
       internal readonly String InputClass;
-      internal AcceptAction(String InputClass) => this.InputClass = InputClass;
+      internal AcceptAction(BitArray terminalSymbols, String InputClass, ParserAction nextAction)
+         :base(terminalSymbols, nextAction)
+         => this.InputClass = InputClass;
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isAcceptAction;
       }
 
@@ -1009,14 +1063,13 @@ namespace Grammlator {
       ///<summary>
       /// Constructs the <see cref="ErrorhandlingAction"/> and adds it to the <see cref="GlobalVariables.ListOfAllErrorhandlingActions"/>.
       /// </summary>
-      /// <param name="Folgesymbole"></param>
+      /// <param name="lookAhead"></param>
       /// <param name="idNumber"></param>
       /// <param name="state"></param>
-      internal ErrorhandlingAction(BitArray Folgesymbole, Int32 idNumber, ParserState state)
+      internal ErrorhandlingAction(BitArray lookAhead, Int32 idNumber, ParserState state)
+         :base(lookAhead, GlobalVariables.TheOnlyOneErrorHaltAction)
          {
-         this.TerminalSymbols = new BitArray(Folgesymbole);
          this.IdNumber = idNumber;
-         this.NextAction = GlobalVariables.TheOnlyOneErrorHaltAction;
          GlobalVariables.ListOfAllErrorhandlingActions.Add(this);
          State = state;
          }
@@ -1072,12 +1125,11 @@ namespace Grammlator {
       /// </summary>
       /// <param name="IdNumber">unique number >= 0</param>
       /// <param name="AttributestackAdjustement">=0</param>
-      internal HaltAction(Int32 IdNumber, Int32 AttributestackAdjustement)
+      internal HaltAction(Int32 IdNumber, Int32 AttributestackAdjustement):base(GlobalVariables.TheEndOfGeneratedCodeAction)
          {
          Debug.Assert(AttributestackAdjustement >= 0, $"{nameof(AttributestackAdjustement)} must be >= 0");
          this.AttributestackAdjustment = AttributestackAdjustement;
          this.IdNumber = IdNumber;
-         this.NextAction = GlobalVariables.TheEndOfGeneratedCodeAction;
          }
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isHaltAction;
@@ -1107,7 +1159,7 @@ namespace Grammlator {
    /// This action typically calls a user method, resets the stack pointers and jumps to the end of gnerated code
    /// </summary>
    internal sealed class ErrorHaltAction: ParserActionWithNextAction {
-      internal ErrorHaltAction() => NextAction = GlobalVariables.TheEndOfGeneratedCodeAction;
+      internal ErrorHaltAction():base(GlobalVariables.TheEndOfGeneratedCodeAction){}
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isErrorhaltAction;
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
@@ -1134,7 +1186,7 @@ namespace Grammlator {
          {
          sb.AppendLine("action deleted by optimization: ")
            .Append("      ");
-         return NextAction?.ToStringbuilder(sb);
+         return NextAction.ToStringbuilder(sb);
          }
       }
 

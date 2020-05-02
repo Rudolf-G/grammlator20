@@ -15,6 +15,7 @@
     <Copyright>Dr. Rudolf Gardill</Copyright>
     <PackageReleaseNotes>ported to .Net Core 3.1</PackageReleaseNotes>
     <NeutralLanguage>en</NeutralLanguage>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

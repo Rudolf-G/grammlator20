@@ -13,6 +13,22 @@ namespace Grammlator {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isParserState;
 
       internal ItemList CoreItems = new ItemList();
+
+      /// <summary>
+      /// <list type="table">
+      /// <term>P1 adds the following <see cref="ParserAction"/>s to <see cref="Actions"/>:</term>
+      /// <item> <see cref="NonterminalTransition"/>, NextAction is <see cref="HaltAction"/> (nonterminal shift - halt)</item>
+      /// <item> <see cref="NonterminalTransition"/>, NextAction is <see cref="Definition"/> (nonterminal shift - reduce)</item>
+      /// <item> <see cref="NonterminalTransition"/>, NextAction is <see cref="ParserState"/> (nonterminal shift to state)</item>
+      /// <item> <see cref="LookaheadAction"/>, NextAction is <see cref="Definition"/> (lookahead - reduce) </item>
+      /// <item> <see cref="TerminalTransition"/>, NextAction is <see cref="Definition"/> (shift-reduce)</item>
+      /// <item> <see cref="TerminalTransition"/>, NextAction is <see cref="ParserState"/> (shift to state)</item>
+      /// </list>
+      /// <list type="table">
+      /// <term>P3.Solve..conflicts adds the following <see cref="ParserAction"/>s to <see cref="Actions"/>:</term>
+      /// <item> <see cref="PrioritySelectAction"/>, NextAction is <see cref="PriorityBranchAction"/></item>
+      /// </list>
+      /// </summary>
       internal ListOfParserActions Actions;
 
       /// <summary>
@@ -46,20 +62,14 @@ namespace Grammlator {
          }
 
       /// <summary>
-      /// Constructor, which copies the items to the <see cref="CoreItems"/>
-      /// </summary>
-      /// <param name="Items">The items to be copied to <see cref="CoreItems"/></param>
-      private ParserState(ItemList Items) => this.CoreItems = new ItemList(Items);
-
-      /// <summary>
       /// Constructor which assigns the number (&gt;=1)to the states IdNumber and <see cref="StateStackNumber"/>
       /// and copies the items to the <see cref="CoreItems"/>
       /// </summary>
       /// <param name="Number">Assigned to <see cref="StateStackNumber"/> and to IdNumber</param>
       /// <param name="Items">Core items which will be copied to <see cref="CoreItems"/></param>
       internal ParserState(Int32 Number, ItemList Items)
-          : this(Items)
          {
+         this.CoreItems = new ItemList(Items);
          this.StateStackNumber = Number; // StateStackNumber >= 0
          this.IdNumber = Number; // IDNumber >= 0
          }
@@ -135,9 +145,9 @@ namespace Grammlator {
       /// If yes returns this action else returns null. 
       /// </summary>
       /// <returns>the only one terminal action or null</returns>
-      internal ConditionalAction RedundantLookaheadOrSelectActionOrNull()
+      internal ConditionalAction? RedundantLookaheadOrSelectActionOrNull()
          {
-         ConditionalAction theOnlyOneAction = null;
+         ConditionalAction? theOnlyOneAction = null;
 
          foreach (ParserAction action in Actions)
             {
@@ -222,14 +232,14 @@ namespace Grammlator {
          for (Int32 IndexOfAction = 0; IndexOfAction < Actions.Count; IndexOfAction++)
             {
 
-            var thisAction = Actions[IndexOfAction];
+            ParserAction thisAction = Actions[IndexOfAction];
             if (!(
                   thisAction is TerminalTransition
                   || thisAction is LookaheadAction
                   ))
                continue;
 
-            BitArray terminalsOfThisAction = (thisAction as ConditionalAction).TerminalSymbols;
+            BitArray terminalsOfThisAction = ((ConditionalAction)thisAction).TerminalSymbols;
 
 
             if (!
@@ -352,7 +362,7 @@ namespace Grammlator {
             {
             var prioritySelectAction
                = new PrioritySelectAction(
-                        InputSymbols: subsetOfConflictSymbols,
+                        inputSymbols: subsetOfConflictSymbols,
                         constantPriorityAction:
                            indexOfActionWithPriority < 0
                            ? null
@@ -481,7 +491,7 @@ namespace Grammlator {
                priority = laAction.ConstantPriority; // use assigned priority if no dynamic priority
                if (laAction.PriorityFunction != null)
                   {
-                  Debug.Assert(laAction.NextAction == null || laAction.NextAction is Definition);
+                  Debug.Assert(laAction.NextAction is Definition);
                   dynamicPriorityDefinitions.Add(laAction.NextAction);
                   continue; // an action with dynamic priority can not have highest static priority
                   }
@@ -505,7 +515,7 @@ namespace Grammlator {
       /// and if this is the case add an error action.
       /// </summary>
       /// <returns>The added action or null if none added</returns>
-      public ErrorhandlingAction CheckAndAddErrorAction(Boolean ErrorHandlerIsDefined)
+      public ErrorhandlingAction? CheckAndAddErrorAction(Boolean ErrorHandlerIsDefined)
          {
          // Fehleraktion ergänzen, falls im Zustand nicht alle terminalen Symbole erlaubt sind und 
          // es mehrere Aktionen gibt (Lookahead nötig) oder mindestens einen terminalenÜbergang
@@ -542,7 +552,7 @@ namespace Grammlator {
 
          // Add ErrorhandlingAction
          e = new ErrorhandlingAction(
-             Folgesymbole: notAllowedSymbols,
+             lookAhead: notAllowedSymbols,
              idNumber: this.IdNumber, // use the IdNumber of the ParserState as IdNumber of the ErrorHandlingAction
              state: this
              );
@@ -582,10 +592,11 @@ namespace Grammlator {
    public struct ItemStruct {
       internal readonly Definition SymbolDefinition;
       internal readonly Int32 ElementNr;
-      internal Symbol InputSymbol;
+      internal Symbol InputSymbol; // == EmptySymbol if enditem
 
+      static Symbol EmptySymbol = new TerminalSymbol("", 0);
       /// <summary>
-      /// Constructor returns an new item with definition, elementNr
+      /// Constructor returns a new item with definition, elementNr
       /// and InputSymbol==definition.Elements[elementNr] or InputSymbol==null for enditem
       /// </summary>
       /// <param name="definition"></param>
@@ -594,8 +605,9 @@ namespace Grammlator {
          {
          this.SymbolDefinition = definition;
          this.ElementNr = elementNr;
-         this.InputSymbol = elementNr < definition.Elements.Length
-             ? definition.Elements[elementNr] : null;
+         this.InputSymbol =
+            elementNr < definition.Elements.Length
+             ? definition.Elements[elementNr] : EmptySymbol;
          }
 
       internal ItemStruct NewItemWithAdvancedMarker()
@@ -614,7 +626,8 @@ namespace Grammlator {
       /// gets xor of SymbolDefinition.GetHashCode and ElementNr
       /// </summary>
       /// <returns>HashCode</returns>
-      public override Int32 GetHashCode() => SymbolDefinition.GetHashCode() ^ ElementNr ^ InputSymbol.GetHashCode();
+      public override Int32 GetHashCode()
+         => SymbolDefinition.GetHashCode() ^ ElementNr ^ InputSymbol?.GetHashCode() ?? 0;
 
       // Überladen von Equals und der Operatoren   == und != für sItem
       /// <summary>
@@ -622,7 +635,7 @@ namespace Grammlator {
       /// </summary>
       /// <param name="obj"></param>
       /// <returns>true if equal</returns>
-      public override Boolean Equals(Object obj) =>
+      public override Boolean Equals(Object? obj) =>
           // schneller als der Default
           // siehe https://msdn.microsoft.com/de-de/library/2dts52z7%28v=vs.110%29.aspx
           obj is ItemStruct other

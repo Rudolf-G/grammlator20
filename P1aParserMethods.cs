@@ -43,7 +43,7 @@ namespace Grammlator {
       /// Is the empty list, if an enum with no elements has been recognized. 
       /// Is null or empty after the last enum has been evaluated.
       /// </summary>
-      public List<Int32> Enumlist = new List<Int32>();
+      public List<Int32>? Enumlist = new List<Int32>();
 
       /// <summary>
       /// The StringIndex of the name of the last enum the parser found in the source.
@@ -118,42 +118,32 @@ namespace Grammlator {
 
          NonterminalSymbol ns;
 
-         if (!SymbolDictionary.TryGetValue(symbolNameIndex, out Symbol Symbol))
-            {
-            // The nonterminal symbol has not yet been used,  Symbol == null
-            ns = new NonterminalSymbol(symbolName, Lexer.LexerTextPos) {
-               SymbolNumber = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
-               AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
-               AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
-               };
-            SymbolDictionary[symbolNameIndex] = ns;
-            }
-         else
+         if (SymbolDictionary.TryGetValue(symbolNameIndex, out Symbol? Symbol))
             {
             // The nonterminal symbol has been used already als element of a definition. The types of its attributes are known.
-            ns = Symbol as NonterminalSymbol;
+            ns = (Symbol as NonterminalSymbol)!;
             if (ns == null)
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"{symbolName} has been already used as terminal symbol. ");
-               return null; // TODO check behaviour after error
+               // TODO check behaviour after error
                }
 
-            if (ns.NontrivalDefinitionsList != null || ns.NontrivalDefinitionsList != null)
+            else if (ns.IsDefined)
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"{symbolName} has been already defined as nonterminal symbol. ");
                // TODO check behaviour after error
                }
 
-            if (ns.NumberOfAttributes != numberOfAttributes)
+            else if (ns.NumberOfAttributes != numberOfAttributes)
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"{symbolName} has already been used with a different number of attributes. ");
                // TODO check behaviour after error
                }
 
-            if (!AttributeTypesCoincide(ns))
+            else if (!AttributeTypesCoincide(ns))
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                   $"{symbolName} has already been used with at least one attribute with a different type. ");
@@ -168,6 +158,17 @@ namespace Grammlator {
             Debug.Assert(ns.AttributenameStringIndexList == null || ns.AttributenameStringIndexList.Length == 0);
             ns.AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes);
             }
+
+         // The nonterminal symbol has not yet been used (Symbol == null)
+         // or there has been an error and we proceed as if it has been a new nonterminal symbol
+         // TOCHECK proceed with a modified  symbolname ???
+         ns = new NonterminalSymbol(symbolName,
+            Lexer.LexerTextPos,
+            symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
+            attributetypeStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
+            attributenameStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
+            );
+         SymbolDictionary[symbolNameIndex] = ns;
 
          // Mark the attributes of the left side in the ListOfAttributesOfProduction as LeftSide attributes
          for (Int32 i = 1; i <= numberOfAttributes; i++)
@@ -195,7 +196,7 @@ namespace Grammlator {
          {
          string Name = GlobalVariables.GetStringOfIndex(nameIndex);
 
-         if (SymbolDictionary.TryGetValue(nameIndex, out Symbol symbol) /*Symbol == null*/)
+         if (SymbolDictionary.TryGetValue(nameIndex, out Symbol? symbol) /*Symbol == null*/)
             {
             if (symbol.NumberOfAttributes != NumberOfAttributes)
                {
@@ -213,14 +214,17 @@ namespace Grammlator {
          else
             {
             // New symbol: create instance
-            symbol = new NonterminalSymbol(Name, Lexer.LexerTextPos) { SymbolNumber = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols };
+            symbol = new NonterminalSymbol(Name,
+                  Lexer.LexerTextPos,
+                  symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
+                  attributetypeStringIndexList:
+                     NumberOfAttributes == 0
+                     ? emptyListOfStringIndexes
+                     : ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes)
+                  );
 
             SymbolDictionary[nameIndex] = symbol;
             // Assign AttributetypeList, let AttributenameList undefined until the symbol becomes defined in left side
-            symbol.AttributetypeStringIndexList
-                = NumberOfAttributes == 0
-                ? emptyListOfStringIndexes
-                : ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes);
             }
          return symbol;
          }
@@ -258,28 +262,23 @@ namespace Grammlator {
       /// <param name="Symbol"></param>
       private void EvaluateGrammarRule(Symbol Symbol)
          {
-         var nt = Symbol as NonterminalSymbol;
-
          // The symbol must have been defined (in the left side or by MakeGrammarRule)
-         if (nt == null)
+         if (!(Symbol is NonterminalSymbol nt))
             {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Abort,
                  $"Error in program {nameof(EvaluateGrammarRule)}: Symbol as NonterminalSymbol is null."
                  );
+            return;
             }
 
-         if ((nt.NontrivalDefinitionsList != null) || (nt.TrivalDefinitionsArray != null))
+         if (nt.IsDefined)
             {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The identifier \"{Symbol.Identifier}\" is already defined."
+                   $"The identifier \"{Symbol.Identifier}\" is already defined." // TODO add position
                    );
             }
-
-         if (NumberOfTrivalDefinitions == 0)
-            {
-            nt.TrivalDefinitionsArray = Array.Empty<Symbol>();
-            }
-         else
+         
+         if (NumberOfTrivalDefinitions != 0)
             {
             nt.TrivalDefinitionsArray = new Symbol[NumberOfTrivalDefinitions];
             for (Int32 i = 0; i < NumberOfTrivalDefinitions; i++)
@@ -291,19 +290,15 @@ namespace Grammlator {
             NumberOfTrivalDefinitions = 0;
             }
 
-         if (NumberOfNontrivialDefinitions == 0)
-            {
-            nt.NontrivalDefinitionsList = EmptyListOfNontrivialDefinitions;
-            }
-         else
+         if (NumberOfNontrivialDefinitions != 0)
             {
             // Copy and remove NumberOfNontrivialDefinitions from the ActualListOfNontrivialDefinitions
             // to a new list nt.NontrivalDefinitionsList
-            nt.NontrivalDefinitionsList = new ListOfDefinitions(NumberOfNontrivialDefinitions, ActualListOfNontrivialDefinitions);
+            nt.NontrivialDefinitionsList = new ListOfDefinitions(NumberOfNontrivialDefinitions, ActualListOfNontrivialDefinitions);
             ActualListOfNontrivialDefinitions.RemoveFromEnd(NumberOfNontrivialDefinitions);
             NumberOfNontrivialDefinitions = 0;
-            // In each copied definition assign nt to .DefinedSymbol (has been null)
-            foreach (Definition thisDefinition in nt.NontrivalDefinitionsList)
+            // Assign nt to .DefinedSymbol (has been null) of each copied definition 
+            foreach (Definition thisDefinition in nt.NontrivialDefinitionsList)
                thisDefinition.DefinedSymbol = nt;
             }
          }
@@ -318,7 +313,7 @@ namespace Grammlator {
       /// </summary>
       private void EvaluateDefinitionsOftheStartsymbol()
          {
-         GlobalVariables.Startsymbol.NontrivalDefinitionsList
+         GlobalVariables.Startsymbol.NontrivialDefinitionsList
              = new ListOfDefinitions(
                  NumberOfNontrivialDefinitions,
                  ActualListOfNontrivialDefinitions);
@@ -397,7 +392,7 @@ namespace Grammlator {
          Int32 NewNameIndex = GlobalVariables.GetIndexOfString(NewName);
 
          // use existing (synthetic) symbol / definition if name already has been defined
-         if (!SymbolDictionary.TryGetValue(NewNameIndex, out Symbol MadeSymbol))
+         if (!SymbolDictionary.TryGetValue(NewNameIndex, out Symbol? MadeSymbol))
             {
             // else create, store in dictionary and define new symbol
             MadeSymbol = DefineNewSymbol(existingSymbol, type, NewNameIndex, NewName);
@@ -408,16 +403,22 @@ namespace Grammlator {
          return MadeSymbol;
          }
 
-      private NonterminalSymbol DefineNewSymbol(Symbol existingSymbol, TypeOfGrammarRule type, Int32 newNameIndex, string newName)
+      private NonterminalSymbol DefineNewSymbol(
+            Symbol existingSymbol,
+            TypeOfGrammarRule type,
+            Int32 newNameIndex,
+            string newName)
          {
-         var newSymbol = new NonterminalSymbol(newName, Lexer.LexerTextPos) {
-            SymbolNumber = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
-            AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
-            AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0),
-            TrivalDefinitionsArray = Array.Empty<Symbol>() // preset: no trival definition
-            };
+         var newSymbol = new NonterminalSymbol(newName,
+            Lexer.LexerTextPos,
+            symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
+            attributetypeStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
+            attributenameStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0)
+            );
 
          SymbolDictionary[newNameIndex] = newSymbol;
+         ListOfDefinitions nontrivialDefinitions;
+         Symbol[] trivialDefinitions = Array.Empty<Symbol>(); // preset: no trival definition
 
          switch (type)
             {
@@ -426,7 +427,7 @@ namespace Grammlator {
                if (existingSymbol.NumberOfAttributes == 0)
                   {
                   // make "newSymbol =  || existingSymbol();"
-                  newSymbol.NontrivalDefinitionsList      // 1 definition
+                  nontrivialDefinitions      // 1 definition
                       = new ListOfDefinitions(1)
                       {
                                 new Definition ( // 1st definition: empty definition
@@ -436,13 +437,13 @@ namespace Grammlator {
                                     attributestackAdjustment: 0
                                     )
                        };
-                  newSymbol.TrivalDefinitionsArray
+                  trivialDefinitions
                       = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol;
                   }
                else
                   {
                   //  make "newSymbol =  || existingSymbol(xxx);"
-                  newSymbol.NontrivalDefinitionsList
+                  nontrivialDefinitions
                       = new ListOfDefinitions(2) // 2 definitions
                   {
                                 new Definition ( // 1st definition: empty definition
@@ -467,7 +468,7 @@ namespace Grammlator {
          case TypeOfGrammarRule.repeat0lr:
                {
                // make "newSymbol =  || newSymbol, existingSymbol(xxx);"
-               newSymbol.NontrivalDefinitionsList
+               nontrivialDefinitions
                    = new ListOfDefinitions(2) // 2 definitions
                    {
                             new Definition ( // 1st definition: empty definition
@@ -493,10 +494,10 @@ namespace Grammlator {
                if (existingSymbol.NumberOfAttributes == 0)
                   {
                   // make "newSymbol = existingSymbol() || newSymbol, existingSymbol() ||;"
-                  newSymbol.TrivalDefinitionsArray
+                  trivialDefinitions
                       = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol() 
 
-                  newSymbol.NontrivalDefinitionsList
+                  nontrivialDefinitions
                       = new ListOfDefinitions(1) // 1 definition
                       {
                                 new Definition ( // 1st definition: newSymbol, existingSymbol()
@@ -510,7 +511,7 @@ namespace Grammlator {
                else
                   {
                   // make "newSymbol = existingSymbol(xxx) || newSymbol, existingSymbol(xxx);"
-                  newSymbol.NontrivalDefinitionsList
+                  nontrivialDefinitions
                       = new ListOfDefinitions(1) // 2 definitions 
                       {
                                 new Definition (
@@ -536,7 +537,7 @@ namespace Grammlator {
          case TypeOfGrammarRule.repeat0rr:
                {
                // make "newSymbol =  || existingSymbol, newSymbol;"
-               newSymbol.NontrivalDefinitionsList
+               nontrivialDefinitions
                    = new ListOfDefinitions(2) // 2 definitions
                    {
                             new Definition ( // 1st definition: empty
@@ -561,10 +562,10 @@ namespace Grammlator {
                // make "newSymbol = existingSymbol() || existingSymbol(), newSymbol;"
                if (existingSymbol.NumberOfAttributes == 0)
                   {
-                  newSymbol.TrivalDefinitionsArray
+                  trivialDefinitions
                       = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol()
 
-                  newSymbol.NontrivalDefinitionsList
+                  nontrivialDefinitions
                       = new ListOfDefinitions(1) // 1 definition
                       {
                              new Definition ( // 1st definition: existingSymbol(), newSymbol
@@ -581,7 +582,7 @@ namespace Grammlator {
 
                   // no trivial definition (as has been preset)
 
-                  newSymbol.NontrivalDefinitionsList
+                  nontrivialDefinitions
                       = new ListOfDefinitions(2) // 2 definitions 
                       {
                                 new Definition (
@@ -603,6 +604,8 @@ namespace Grammlator {
                }
             }
 
+         newSymbol.NontrivialDefinitionsList = nontrivialDefinitions;
+         newSymbol.TrivalDefinitionsArray = trivialDefinitions;
          return newSymbol;
          }
 
@@ -808,16 +811,16 @@ namespace Grammlator {
 
          if (type == "int")
             {
-            method = new IntMethodClass { MethodName = name };
+            method = new IntMethodClass(methodName: name);
             }
          else if (type == "void")
             {
-            method = new VoidMethodClass { MethodName = name };
+            method = new VoidMethodClass(methodName: name);
             }
          else
             {
             CreateParserErrorMessage($"expected int or void method, found \"{type}\" method.");
-            method = new VoidMethodClass { MethodName = name };
+            method = new VoidMethodClass(methodName: name);
             }
          }
 
@@ -928,7 +931,7 @@ namespace Grammlator {
                {
                if (Symbol is NonterminalSymbol nt)
                   {
-                  if (nt.NontrivalDefinitionsList == null) // null != empty list !
+                  if (nt.NontrivialDefinitionsList == null) // null != empty list !
                      {
                      OutputMessage(MessageTypeOrDestinationEnum.Error,
                         $"{GetNameOfSymbol()} is used as terminal or nonterminal symbol but not defined.",
@@ -969,7 +972,7 @@ namespace Grammlator {
       /// <param name="priorityFunction">null or C# Int32 method</param>
       /// <param name="semanticMethod">null or C# void method</param>
       /// <param name="optimizeTrivialDefinitions">if false there will be no special handling of trivial definitions</param>
-      private void EvaluateDefinition(Int32 constantPriority, IntMethodClass priorityFunction, VoidMethodClass semanticMethod, bool optimizeTrivialDefinitions)
+      private void EvaluateDefinition(Int32 constantPriority, IntMethodClass? priorityFunction, VoidMethodClass? semanticMethod, bool optimizeTrivialDefinitions)
          {
          // ActualAttributeNumber is the number of the last attribute of the right side
          Int32 AttributestackAdjustment = NumberOfLastAttributeOfLeftSide - AttributeCounter;
@@ -1038,7 +1041,7 @@ namespace Grammlator {
                    ConstantPriority = constantPriority,
                    PriorityFunction = priorityFunction,
                    SemanticMethod = semanticMethod,
-                   AttributIdentifierStringIndexArray = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributesOfNewDefinition)
+                   AttributeIdentifierStringIndexArray = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributesOfNewDefinition)
                    };
 
             ActualListOfNontrivialDefinitions.Add(NewDefinition);

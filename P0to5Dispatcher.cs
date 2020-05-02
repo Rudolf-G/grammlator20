@@ -144,11 +144,8 @@ namespace Grammlator {
            .AppendLine();
          DisplayStates(Protocol); // dazu evtl. die Items der Zustände erweitern ???
          outputMessage(MessageTypeOrDestinationEnum.StateProtocol2, Protocol.ToString());
-#pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          Protocol.Clear();
-         Protocol.Capacity = 0;
-         Protocol = null; // free ressources (optional)
-#pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
+         Protocol.Capacity = 0;         
 
          // ----- Do phase 5 with a specific code generator
          outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 5: generate result");

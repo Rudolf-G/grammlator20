@@ -39,8 +39,6 @@ namespace Grammlator {
       /// <returns>string <paramref name="ThisString"/> to allow catenation of operations</returns>
       internal static String SkipSeparator(this String ThisString, ref Int32 Position)
          {
-         if (ThisString == null)
-            return ThisString;
          if (Position < 0)
             Position = 0;
          while (Position < ThisString.Length && Char.IsSeparator(ThisString[Position]))
@@ -76,8 +74,6 @@ namespace Grammlator {
       /// <returns>The String to allow catenation of operations</returns>
       internal static String SkipWhiteSpace(this String ThisString, ref Int32 Position)
          {
-         if (ThisString == null)
-            return ThisString;
          if (Position < 0)
             Position = 0;
          while (Position < ThisString.Length && Char.IsWhiteSpace(ThisString[Position]))
@@ -96,7 +92,7 @@ namespace Grammlator {
       /// <returns>The String to allow catenation of operations</returns>
       internal static String SkipEqualParts(this String ThisString, ref Int32 StringPosition, String OtherString, ref Int32 OtherPosition)
          {
-         if (ThisString != null && OtherString != null && StringPosition >= 0 && OtherPosition >= 0)
+         if (OtherString != null && StringPosition >= 0 && OtherPosition >= 0)
             {
             while (StringPosition < ThisString.Length
                            && OtherPosition < OtherString.Length
