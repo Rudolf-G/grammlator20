@@ -158,17 +158,20 @@ namespace Grammlator {
             Debug.Assert(ns.AttributenameStringIndexList == null || ns.AttributenameStringIndexList.Length == 0);
             ns.AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes);
             }
+         else
+            {
 
-         // The nonterminal symbol has not yet been used (Symbol == null)
-         // or there has been an error and we proceed as if it has been a new nonterminal symbol
-         // TOCHECK proceed with a modified  symbolname ???
-         ns = new NonterminalSymbol(symbolName,
-            Lexer.LexerTextPos,
-            symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
-            attributetypeStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
-            attributenameStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
-            );
-         SymbolDictionary[symbolNameIndex] = ns;
+            // The nonterminal symbol has not yet been used (Symbol == null)
+            // or there has been an error and we proceed as if it has been a new nonterminal symbol
+            // TOCHECK proceed with a modified  symbolname ???
+            ns = new NonterminalSymbol(symbolName,
+               Lexer.LexerTextPos,
+               symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
+               attributetypeStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
+               attributenameStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
+               );
+            SymbolDictionary[symbolNameIndex] = ns;
+            }
 
          // Mark the attributes of the left side in the ListOfAttributesOfProduction as LeftSide attributes
          for (Int32 i = 1; i <= numberOfAttributes; i++)
@@ -277,7 +280,7 @@ namespace Grammlator {
                    $"The identifier \"{Symbol.Identifier}\" is already defined." // TODO add position
                    );
             }
-         
+
          if (NumberOfTrivalDefinitions != 0)
             {
             nt.TrivalDefinitionsArray = new Symbol[NumberOfTrivalDefinitions];
@@ -1074,7 +1077,7 @@ namespace Grammlator {
                }
             Debug.Assert(NumberOfElements == 0);
             ElementVariantRecognized(s);
-            EndOfDefinitionRecognized(constPriority: 0, dynPriority: null, method: null);
+            EndOfDefinitionWithPriorityAndMethodRecognized(constPriority: 0, dynPriority: null, method: null);
             }
          }
 

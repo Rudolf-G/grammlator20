@@ -397,8 +397,11 @@ namespace Grammlator {
       private static void ConstructFirstState(ItemList ItemsOfActualState)
          {
          ItemsOfActualState.Clear();
-         foreach (Definition definition in GlobalVariables.Startsymbol.NontrivialDefinitionsList)
+         for (Int32 i = 0; i < GlobalVariables.Startsymbol.NontrivialDefinitionsList.Count; i++)
+            {
+            var definition = GlobalVariables.Startsymbol.NontrivialDefinitionsList[i];
             ItemsOfActualState.Add(new ItemStruct(definition));
+            }
 
          // Note: the states will be renumbered later, new ParserState copies(!) the items
          GlobalVariables.ListOfAllStates.Add

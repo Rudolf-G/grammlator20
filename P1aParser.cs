@@ -505,19 +505,28 @@ namespace Grammlator {
       //| EndOfDefinitionWithoutSemantics=
       //|    /* empty */
       private void EndOfDefinitionWithoutSemanticsRecognized()
-          => EndOfDefinitionRecognized(constPriority: 0, dynPriority: null, method: null);
+         {
+         EvaluateDefinition(constantPriority: 0, priorityFunction: null, semanticMethod: null, OptimizeTrivialDefinitions);
+         AttributeCounter = AttributeNumberAtStartOfDefinition;
+         }
 
       //| EndOfDefinitionWithSemantics=
       //|    PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority)
-      private void EndOfDefinitionWithSemanticsRecognized(Int32 constPriority, IntMethodClass dynPriority)
-          => EndOfDefinitionRecognized(constPriority, dynPriority, method: null);
+      private void EndOfDefinitionWithPriorityRecognized(Int32 constPriority, IntMethodClass dynPriority)
+         {
+         EvaluateDefinition(constantPriority: constPriority, priorityFunction: dynPriority, semanticMethod: null, OptimizeTrivialDefinitions);
+         AttributeCounter = AttributeNumberAtStartOfDefinition;
+         }
 
       //|    | SemanticAction(VoidMethodClass method)
-      private void OuterEndOfDefinitionRecognized(VoidMethodClass method)
-          => EndOfDefinitionRecognized(constPriority: 0, dynPriority: null, method: method);
+      private void EndOfDefinitionWithMethodRecognized(VoidMethodClass method)
+         {
+         EvaluateDefinition(constantPriority: 0, priorityFunction: null, semanticMethod: method, OptimizeTrivialDefinitions);
+         AttributeCounter = AttributeNumberAtStartOfDefinition;
+         }
 
       //|    | PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method)
-      private void EndOfDefinitionRecognized(Int32 constPriority, IntMethodClass dynPriority, VoidMethodClass method)
+      private void EndOfDefinitionWithPriorityAndMethodRecognized(Int32 constPriority, IntMethodClass dynPriority, VoidMethodClass method)
          {
          EvaluateDefinition(constPriority, dynPriority, method, OptimizeTrivialDefinitions);
          AttributeCounter = AttributeNumberAtStartOfDefinition;
@@ -1245,10 +1254,10 @@ Reduce5:
 
 Reduce25:
   /* Reduction 25, aStack: -1
-   * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: OuterEndOfDefinitionRecognized, aStack: -1
+   * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
    */
 
-  OuterEndOfDefinitionRecognized(
+  EndOfDefinitionWithMethodRecognized(
      method: _a.PeekRef(0)._VoidMethodClass
      );
 
@@ -1313,10 +1322,10 @@ Branch8:
   case 1:
   {
      /* Reduction 37, aStack: -1
-      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: OuterEndOfDefinitionRecognized, aStack: -1
+      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
       */
 
-     OuterEndOfDefinitionRecognized(
+     EndOfDefinitionWithMethodRecognized(
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
@@ -1326,10 +1335,10 @@ Branch8:
   case 6:
   {
      /* Reduction 59, aStack: -1
-      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: OuterEndOfDefinitionRecognized, aStack: -1
+      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
       */
 
-     OuterEndOfDefinitionRecognized(
+     EndOfDefinitionWithMethodRecognized(
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
@@ -1339,12 +1348,12 @@ Branch8:
   case 3:
   {
      /* Reduction 65, sStack: -1, aStack: -1
-      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: OuterEndOfDefinitionRecognized, aStack: -1
+      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
       * then: Definition= SequenceOfElements, EndOfDefinition;◄
       */
      _s.Pop();
 
-     OuterEndOfDefinitionRecognized(
+     EndOfDefinitionWithMethodRecognized(
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
@@ -1354,10 +1363,10 @@ Branch8:
   case 9:
   {
      /* Reduction 68, aStack: -1
-      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: OuterEndOfDefinitionRecognized, aStack: -1
+      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
       */
 
-     OuterEndOfDefinitionRecognized(
+     EndOfDefinitionWithMethodRecognized(
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
@@ -1369,11 +1378,11 @@ Branch8:
   */
   }
   /* Reduction 34, sStack: -1, aStack: -3
-   * EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionRecognized, aStack: -3
+   * EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithPriorityAndMethodRecognized, aStack: -3
    */
   _s.Pop();
 
-  EndOfDefinitionRecognized(
+  EndOfDefinitionWithPriorityAndMethodRecognized(
      constPriority: _a.PeekRef(-2)._Int32,
      dynPriority: _a.PeekRef(-1)._IntMethodClass,
      method: _a.PeekRef(0)._VoidMethodClass
@@ -1503,11 +1512,11 @@ State27:
   Debug.Assert(ParserInput == LexerResult.NumberSign
      || ParserInput >= LexerResult.GroupEnd);
   /* Reduction 33, sStack: -1, aStack: -2
-   * EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority);◄ method: EndOfDefinitionWithSemanticsRecognized, aStack: -2
+   * EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority);◄ method: EndOfDefinitionWithPriorityRecognized, aStack: -2
    */
   _s.Pop();
 
-  EndOfDefinitionWithSemanticsRecognized(
+  EndOfDefinitionWithPriorityRecognized(
      constPriority: _a.PeekRef(-1)._Int32,
      dynPriority: _a.PeekRef(0)._IntMethodClass
      );
@@ -3410,7 +3419,7 @@ State89:
      Lexer.AcceptSymbol();
      goto Reduce90;
      }
-  if (ParserInput != LexerResult.StarEqual
+  if (ParserInput != LexerResult.StarEqual 
      && ParserInput != LexerResult.Name && ParserInput != LexerResult.StringResult)
      {
      if (ErrorHandler(89, StateDescription89, ParserInput))
