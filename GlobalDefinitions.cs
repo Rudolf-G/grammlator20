@@ -882,7 +882,7 @@ namespace Grammlator {
 
       internal override String SymboltypeString => "nonterminal symbol";
       internal ListOfDefinitions NontrivialDefinitionsList;
-      private static ListOfDefinitions EmptyDefinitionsList = new ListOfDefinitions(0);
+      private static readonly ListOfDefinitions EmptyDefinitionsList = new ListOfDefinitions(0);
       internal Symbol[] TrivalDefinitionsArray;
 
       /// <summary>
