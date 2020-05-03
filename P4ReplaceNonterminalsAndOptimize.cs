@@ -37,28 +37,34 @@ namespace Grammlator {
 
       public static void MakeInstanceAndExecute()
          {
-         var p4 = new P4ReplaceNonterminalsAndOptimize {
-            SamePredecessorLevelPartitionOfStates
-                = new PartitionInfoArray<ParserState>(GlobalVariables.ListOfAllStates),
-            SimilarStatesRelation
-                = new SymmetricRelation<ParserState>(GlobalVariables.ListOfAllStates.Count),
-            DistinguishableStatesRelation
-                = new SymmetricRelation<ParserState>(GlobalVariables.ListOfAllStates.Count)
-            };
+         var p4 = new P4ReplaceNonterminalsAndOptimize ();
 
-         p4.ComputeStatesStackNumbersAndBranches();
-         ShortenChainsOfActions();
-         p4.RemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields();
+         p4.P4aComputeStatesStackNumbersAndBranches();
+         P4bShortenChainsOfActions();
+         p4.P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields();
          }
 
-      private SymmetricRelation<ParserState> SimilarStatesRelation;
-      private SymmetricRelation<ParserState> DistinguishableStatesRelation;
+      /// <summary>
+      /// Constructor
+      /// </summary>
+      private P4ReplaceNonterminalsAndOptimize()
+         {
+         SamePredecessorLevelPartitionOfStates
+            = new PartitionInfoArray<ParserState>(GlobalVariables.ListOfAllStates);
+         SimilarStatesRelation
+             = new SymmetricRelation<ParserState>(GlobalVariables.ListOfAllStates.Count);
+         DistinguishableStatesRelation
+             = new SymmetricRelation<ParserState>(GlobalVariables.ListOfAllStates.Count);
+         }
+
+      private readonly SymmetricRelation<ParserState> SimilarStatesRelation;
+      private readonly SymmetricRelation<ParserState> DistinguishableStatesRelation;
 
       /// <summary>
       /// All states belonging to the same class of <see cref="SamePredecessorLevelPartitionOfStates"/>
       /// either all do not push to the stack of states in the generated code or all push
       /// </summary>
-      private PartitionInfoArray<ParserState> SamePredecessorLevelPartitionOfStates;
+      private readonly PartitionInfoArray<ParserState> SamePredecessorLevelPartitionOfStates;
 
       public enum RelationtypeEnum {
          ComputeDistinguishableStatesRelation,
@@ -66,7 +72,7 @@ namespace Grammlator {
          ComputeBranches
          };
 
-      public void ComputeStatesStackNumbersAndBranches()
+      public void P4aComputeStatesStackNumbersAndBranches()
          {
          // TODO Translate comment
          /*  Für Zustände, die keine Information kellern, wird die Kennung auf -1 gesetzt.
@@ -296,7 +302,7 @@ namespace Grammlator {
           *    Voraussetzung: Kellertiefe_Zaehler = 0
           *  Sonst kann sich die Kellertiefe noch aendern, bis die Verzweigungen berechnet werden */
 
-         NonterminalSymbol definedSymbol = DefinitionToReplace.DefinedSymbol;
+         NonterminalSymbol definedSymbol = DefinitionToReplace.DefinedSymbol!;
 
          switch (TypeOfEvaluation)
             {
@@ -527,11 +533,11 @@ namespace Grammlator {
           ParserAction NextActionOfReduce)
          {
          // Compose description
-         Definition.DefinedSymbol
+         Definition.DefinedSymbol!
             .IdentifierAndAttributesToSB(reduceStringBuilderTemp)
             .Append("= ");
          Definition
-             .ToStringbuilder(reduceStringBuilderTemp, Definition.Elements.Length + 1);
+             .ToStringbuilder(reduceStringBuilderTemp, Definition!.Elements.Length + 1);
          String description = reduceStringBuilderTemp.ToString();
          reduceStringBuilderTemp.Clear();
 
@@ -563,7 +569,7 @@ namespace Grammlator {
                }
             else
                {
-               HaltAction haltAction =
+               HaltAction? haltAction =
                GlobalVariables.ListOfAllHaltActions.Find(h => h.AttributestackAdjustment == -Definition.AttributestackAdjustment);
 
                if (haltAction == null)
@@ -587,7 +593,7 @@ namespace Grammlator {
          SimplifyChainOfReductions(reduceAction);
 
          // gleichartige Reduktion suchen - falls gefunden return
-         ReduceAction gleichartigeReduktion = null;
+         ReduceAction? gleichartigeReduktion = null;
          foreach (ReduceAction vReduktion in GlobalVariables.ListOfAllReductions)
             {
             if (
@@ -623,9 +629,6 @@ namespace Grammlator {
          {
          switch (action)
             {
-         case null:
-            return null;
-
          case NonterminalTransition nonterminalTransition:
                {
                if (nonterminalTransition.NextAction is Definition)
@@ -932,7 +935,7 @@ namespace Grammlator {
       /// <summary>
       /// Kürzen von Ketten von Aktionen, g.Startaktion bestimmen und Codenummern der Zustände auf 0 setzen 
       /// </summary>
-      public static void ShortenChainsOfActions()
+      public static void P4bShortenChainsOfActions()
          {
          for (Int32 StateIndex = 0; StateIndex < GlobalVariables.ListOfAllStates.Count; StateIndex++)
             {
@@ -973,7 +976,7 @@ namespace Grammlator {
             while (IndexOfNextState < GlobalVariables.ListOfAllStates.Count
                 && GlobalVariables.ListOfAllStates[IndexOfNextState].StateStackNumber < 0)
                {
-               ParserAction singleAction = GlobalVariables.ListOfAllStates[IndexOfNextState].RedundantLookaheadOrSelectActionOrNull();
+               ParserAction? singleAction = GlobalVariables.ListOfAllStates[IndexOfNextState].RedundantLookaheadOrSelectActionOrNull();
                if (singleAction == null)
                   break; // Der Zustand ist erreichbar
                if (!(singleAction is LookaheadAction))
@@ -1008,7 +1011,7 @@ namespace Grammlator {
          //do not remove the first state: not  SimplifiedNextAction(GlobalVariables.ListOfAllStates[0]);
          }
 
-      public void RemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields()
+      public void P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields()
          {
          // for each state
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
@@ -1051,7 +1054,7 @@ namespace Grammlator {
                State.Actions.RemoveFromEnd(DeletedActionsCount);
 
             // Add error handling actions and 
-            ErrorhandlingAction e = State.CheckAndAddErrorAction(GlobalVariables.ErrorHandlerIsDefined);
+            ErrorhandlingAction? e = State.CheckAndAddErrorAction(GlobalVariables.ErrorHandlerIsDefined);
             if (e != null)
                {
                e.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);

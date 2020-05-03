@@ -110,7 +110,7 @@ namespace Grammlator {
       /// <returns>The <see cref="NonterminalSymbol"/></returns>
       private NonterminalSymbol NonterminalSymbolDefinition(Int32 symbolNameIndex, Int32 numberOfAttributes)
          {
-         // The parser recognized the left side of a rule and has not yet evaluated any right side
+         // The parser recognized the left side of a rule and has not yet evaluated any definition of this symbol
 
          string symbolName = GlobalVariables.GetStringOfIndex(symbolNameIndex);
 
@@ -121,44 +121,50 @@ namespace Grammlator {
          if (SymbolDictionary.TryGetValue(symbolNameIndex, out Symbol? Symbol))
             {
             // The nonterminal symbol has been used already als element of a definition. The types of its attributes are known.
-            ns = (Symbol as NonterminalSymbol)!;
-            if (ns == null)
+            if (!(Symbol is NonterminalSymbol))
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"{symbolName} has been already used as terminal symbol. ");
-               // TODO check behaviour after error
+               Symbol = null; // will cause the terminal symbol to be replaced in SymbolDictionary
+               // TODO test behaviour after error
                }
-
-            else if (ns.IsDefined)
+            else
                {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"{symbolName} has been already defined as nonterminal symbol. ");
-               // TODO check behaviour after error
+               ns = (NonterminalSymbol) Symbol;
+               if (ns.IsDefined)
+                  {
+                  P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                      $"{symbolName} has been already defined as nonterminal symbol. ");
+                  // TODO test behaviour after error
+                  }
+
+               else if (ns.NumberOfAttributes != numberOfAttributes)
+                  {
+                  P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                      $"{symbolName} has already been used with a different number of attributes. ");
+                  // TODO test behaviour after error
+                  }
+
+               else if (!AttributeTypesCoincide(ns))
+                  {
+                  P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                     $"{symbolName} has already been used with at least one attribute with a different type. ");
+                  // TODO test behaviour after error
+                  }
+               // The AttributtypeList has been assigned at first usage and has just been checked
                }
+            }
 
-            else if (ns.NumberOfAttributes != numberOfAttributes)
-               {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"{symbolName} has already been used with a different number of attributes. ");
-               // TODO check behaviour after error
-               }
-
-            else if (!AttributeTypesCoincide(ns))
-               {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                  $"{symbolName} has already been used with at least one attribute with a different type. ");
-               // TODO check behaviour after error
-               }
-
-            // The AttributtypeList has been assigned at first usage and has just been checked
-
+         if (Symbol != null)
+            {
+            ns = (NonterminalSymbol)Symbol;
             // The names of the attributes are copied now from the ListOfAttributesOfSyntaxRule.
             // They are not removed from ListOfAttributesOfSyntaxRule, because it may be a definition inside another definition.
             // They will be removed when the end of a syntax rule in the syntax rule list or the end of the enclosing definition is recognized.
-            Debug.Assert(ns.AttributenameStringIndexList == null || ns.AttributenameStringIndexList.Length == 0);
+            Debug.Assert(ns!.AttributenameStringIndexList == null || ns.AttributenameStringIndexList.Length == 0);
             ns.AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes);
             }
-         else
+         else // Symbol == null
             {
 
             // The nonterminal symbol has not yet been used (Symbol == null)
@@ -1094,7 +1100,7 @@ namespace Grammlator {
       /// Checks the methods parameters, computes their stack offsets and updates their implementation
       /// </summary>
       /// <param name="semanticMethod"></param>
-      private void EvaluateMethodParameters(VoidMethodClass semanticMethod)
+      private void EvaluateMethodParameters(VoidMethodClass? semanticMethod)
          {
          Int32 NumberOfFirstAttribute = AttributeNumberAtStartOfDefinition + 1;
          Int32 NumberOfLastAttributeOfRightSide = AttributeCounter;

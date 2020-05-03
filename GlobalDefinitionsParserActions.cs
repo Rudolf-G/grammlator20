@@ -142,7 +142,7 @@ namespace Grammlator {
       /// <param name="codegen">The class that implements the generation of the code</param>
       /// <param name="accept"></param>
       /// <returns>the next action to generate or null</returns>
-      internal virtual ParserAction Generate(ICodegen codegen, out Boolean accept)
+      internal virtual ParserAction? Generate(ICodegen codegen, out Boolean accept)
          => throw new NotImplementedException($"Codegeneration is not mplemented for {ParserActionType}");
 
       internal virtual StringBuilder ToStringbuilder(StringBuilder sb)
@@ -207,6 +207,37 @@ namespace Grammlator {
             }
          return sb;
          }
+
+      /// <summary>
+      /// Yields all actions of the state whereby instead of a PrioritySelectActions its
+      /// NextAction is used and if it is a PriorityBranchAction
+      /// </summary>
+      public IEnumerable<ParserAction> PriorityUnwindedSetOfActions {
+         get {
+            for (Int32 i = 0; i < Count; i++)
+               {
+               ParserAction? a = this[i];
+               while (a != null)
+                  {
+                  if (a is PrioritySelectAction psa)
+                     a = psa.NextAction; // this is the reason why a while loop is used
+                  else if (a is PriorityBranchAction pba)
+                     {
+                     if (pba.ConstantPriorityAction != null)
+                        yield return pba.ConstantPriorityAction; // TOCHECK recursion needed? Example? (without terminal symbols?)
+                     foreach (ParserAction dpa in PriorityUnwindedSetOfActions)  // recusion !
+                        yield return dpa;
+                     a = null;
+                     }
+                  else
+                     {
+                     yield return a;
+                     a = null;
+                     }
+                  }
+               }
+            }
+         } //
       }
 
    /// <summary>
@@ -218,7 +249,7 @@ namespace Grammlator {
       //     erzeugten Symbols es sich handelt
       //   TOCHECK          Kontext in dieser Version noch nicht implementiert !!!}
 
-      public Definition(Int32 idNumber, NonterminalSymbol definedSymbol, Symbol[] elements, Int32 attributestackAdjustment)
+      public Definition(Int32 idNumber, NonterminalSymbol? definedSymbol, Symbol[] elements, Int32 attributestackAdjustment)
          {
          IdNumber = idNumber;
          DefinedSymbol = definedSymbol;
@@ -244,13 +275,13 @@ namespace Grammlator {
             return result;
 
          // other is a Definition
-         var otherNumber = ((Definition)other).DefinedSymbol.SymbolNumber;
-         return (result = this.DefinedSymbol.SymbolNumber - otherNumber) != 0
+         var otherNumber = ((Definition)other).DefinedSymbol!.SymbolNumber;
+         return (result = this.DefinedSymbol!.SymbolNumber - otherNumber) != 0
              ? result
              : this.IdNumber - other.IdNumber;
          }
 
-      internal NonterminalSymbol DefinedSymbol {
+      internal NonterminalSymbol? DefinedSymbol {
          get; set;
          }
 
@@ -291,7 +322,7 @@ namespace Grammlator {
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
          {
          sb.Append("recognized ");
-         DefinedSymbol.IdentifierAndAttributesToSB(sb).AppendLine("= ");
+         DefinedSymbol!.IdentifierAndAttributesToSB(sb).AppendLine("= ");
          sb.Append("      ");
          ToStringbuilder(sb, Int32.MaxValue); // do not mark any element
          return sb;
@@ -1198,7 +1229,7 @@ namespace Grammlator {
    internal sealed class EndOfGeneratedCodeAction: ParserAction {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isEndOfGeneratedCode;
 
-      internal override ParserAction Generate(ICodegen codegen, out Boolean accept)
+      internal override ParserAction? Generate(ICodegen codegen, out Boolean accept)
          {
          accept = false;
          return codegen.GenerateEndOfCodeAction();

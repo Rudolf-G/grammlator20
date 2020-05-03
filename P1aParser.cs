@@ -526,7 +526,7 @@ namespace Grammlator {
          }
 
       //|    | PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method)
-      private void EndOfDefinitionWithPriorityAndMethodRecognized(Int32 constPriority, IntMethodClass dynPriority, VoidMethodClass method)
+      private void EndOfDefinitionWithPriorityAndMethodRecognized(Int32 constPriority, IntMethodClass? dynPriority, VoidMethodClass? method)
          {
          EvaluateDefinition(constPriority, dynPriority, method, OptimizeTrivialDefinitions);
          AttributeCounter = AttributeNumberAtStartOfDefinition;

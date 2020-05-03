@@ -581,7 +581,38 @@ namespace Grammlator {
          Actions.RemoveFromEnd(DeletedActionsCount);
          }
 
-
+      /// <summary>
+      /// Yields all actions of the state whereby instead of a PrioritySelectActions its
+      /// NextAction is used and if it is a PriorityBranchAction
+      /// </summary>
+      public IEnumerable<ParserAction> FlatSetOfActions {
+         get {
+            for (Int32 i = 0; i < Actions.Count; i++)
+               {
+               ParserAction? a = Actions[i];
+               while (a != null)
+                  {
+                  if (a is PrioritySelectAction psa)
+                     a = psa.NextAction;
+                  else if (a is PriorityBranchAction pba)
+                     {
+                     if (pba.ConstantPriorityAction != null)
+                        yield return pba.ConstantPriorityAction;
+                     for (Int32 k = 0; k < pba.DynamicPriorityActions.Count; k++)
+                        {
+                        yield return pba.DynamicPriorityActions[k];
+                        }
+                        ;
+                     }
+                  else
+                     {
+                     yield return a;
+                     a = null;
+                     }
+                  }
+               }
+            }
+         } //
       } // ParserState
 
    /// <summary>
@@ -594,7 +625,7 @@ namespace Grammlator {
       internal readonly Int32 ElementNr;
       internal Symbol InputSymbol; // == EmptySymbol if enditem
 
-      static Symbol EmptySymbol = new TerminalSymbol("", 0);
+      static readonly Symbol EmptySymbol = new TerminalSymbol("", 0);
       /// <summary>
       /// Constructor returns a new item with definition, elementNr
       /// and InputSymbol==definition.Elements[elementNr] or InputSymbol==null for enditem
@@ -685,9 +716,9 @@ namespace Grammlator {
           * The resulting order of actions is essential for comparing states.
           */
          // TODO Check nachdem CompareErzeugtesSymbolFirst getrennt implementiert ist, könnte hier wieder die Elementnummer als erstes Kriterium genommen werden
-         if (this.SymbolDefinition.DefinedSymbol.SymbolNumber < other.SymbolDefinition.DefinedSymbol.SymbolNumber)
+         if (this.SymbolDefinition.DefinedSymbol!.SymbolNumber < other.SymbolDefinition.DefinedSymbol!.SymbolNumber)
             return -1;
-         if (this.SymbolDefinition.DefinedSymbol.SymbolNumber > other.SymbolDefinition.DefinedSymbol.SymbolNumber)
+         if (this.SymbolDefinition.DefinedSymbol!.SymbolNumber > other.SymbolDefinition.DefinedSymbol!.SymbolNumber)
             return +1;
          if (this.SymbolDefinition.IdNumber < other.SymbolDefinition.IdNumber)
             return -1;
@@ -697,7 +728,7 @@ namespace Grammlator {
             return -1;
          if (this.ElementNr > other.ElementNr)
             return +1;
-         Debug.Assert(this.SymbolDefinition.DefinedSymbol.SymbolNumber == other.SymbolDefinition.DefinedSymbol.SymbolNumber);
+         Debug.Assert(this.SymbolDefinition.DefinedSymbol!.SymbolNumber == other.SymbolDefinition.DefinedSymbol!.SymbolNumber);
          if (this.SymbolDefinition.IdNumber < other.SymbolDefinition.IdNumber)
             return -1;
          if (this.SymbolDefinition.IdNumber > other.SymbolDefinition.IdNumber)
@@ -736,9 +767,9 @@ namespace Grammlator {
          if (this.InputSymbol.SymbolNumber > item.InputSymbol.SymbolNumber)
             return +1;
 
-         if (this.SymbolDefinition.DefinedSymbol.SymbolNumber < item.SymbolDefinition.DefinedSymbol.SymbolNumber)
+         if (this.SymbolDefinition.DefinedSymbol!.SymbolNumber < item.SymbolDefinition.DefinedSymbol!.SymbolNumber)
             return -1;
-         if (this.SymbolDefinition.DefinedSymbol.SymbolNumber > item.SymbolDefinition.DefinedSymbol.SymbolNumber)
+         if (this.SymbolDefinition.DefinedSymbol!.SymbolNumber > item.SymbolDefinition.DefinedSymbol!.SymbolNumber)
             return +1;
 
          if (this.SymbolDefinition.IdNumber < item.SymbolDefinition.IdNumber)
@@ -790,7 +821,7 @@ namespace Grammlator {
             isfirst = false;
 
             Definition d = Item.SymbolDefinition;
-            d.DefinedSymbol.IdentifierAndAttributesToSB(sb).Append("= ");
+            d.DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
             d.ElementsToStringbuilder(sb, Item.ElementNr);
             }
          }
@@ -800,11 +831,11 @@ namespace Grammlator {
          foreach (ItemStruct Item in this)
             {
             Definition d = Item.SymbolDefinition;
-            d.DefinedSymbol.IdentifierAndAttributesToSB(sb).Append("= ");
+            d.DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
             d.ToStringbuilder(sb, Item.ElementNr);
             sb.AppendLine();
             }
          return sb;
          }
-      }
+      } // class ItemList
    } // namespace

@@ -609,7 +609,7 @@ namespace Grammlator {
       /// sum of weights of its symbols will be placed ahead of the other.
       /// The sum of weights of ErorHandlingActions is ignored.
       /// </summary>
-      /// <param name="a1"></param>
+      /// <param name="ActionA"></param>
       /// <param name="a2"></param>
       /// <returns></returns>
       private static Int32 CompareWeightandConditionComplexity(ParserAction a1, ParserAction a2)
@@ -617,7 +617,7 @@ namespace Grammlator {
          // a1 < a2 => <0
          // a1 == a2 => 0
          // a1 > a2 => >0 
-         if (a1 as ConditionalAction == null)
+         if (!(a1 is ConditionalAction ActionA))
             return (a2 == null) ? 0 : 1;
          if (!(a2 is ConditionalAction ActionB))
             return -1;
@@ -637,9 +637,9 @@ namespace Grammlator {
           *  
           */
 
-         Single PositionA = a1 as ConditionalAction is ErrorhandlingAction
-             ? (a1 as ConditionalAction).Complexity * 100_000
-             : ((a1 as ConditionalAction).Complexity * 100_000) - (a1 as ConditionalAction).SumOfWeights;
+         Single PositionA = ActionA as ConditionalAction is ErrorhandlingAction
+             ? (ActionA).Complexity * 100_000
+             : (ActionA).Complexity * 100_000 - (ActionA).SumOfWeights;
 
          Single PositionB = ActionB is ErrorhandlingAction
              ? ActionB.Complexity * 100_000
@@ -648,7 +648,7 @@ namespace Grammlator {
          if (PositionA != PositionB)
             return (Int32)(PositionA - PositionB);
 
-         return (a1 as ConditionalAction).IdNumber - ActionB.IdNumber;
+         return (ActionA).IdNumber - ActionB.IdNumber;
          }
 
       /// <summary>
@@ -723,7 +723,7 @@ namespace Grammlator {
       [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "e")]
       private void GenerateCodeSequence(ParserAction actionToGenerate, Boolean accept, Boolean labelMustBeGenerated, Int32 nestingLevel)
          {
-         ParserAction ActionToGenerate = actionToGenerate;
+         ParserAction? ActionToGenerate = actionToGenerate;
          Boolean Accept = accept;
          Boolean GotoHasBeenGenerated = labelMustBeGenerated;
 
@@ -1078,7 +1078,7 @@ namespace Grammlator {
       /// <param name="sbTemp"></param>
       /// <param name="NestingLevel"></param>
       /// <returns>action which has to be generated as next action</returns>
-      private ParserAction GenerateState(out Boolean Accept, ParserState State, StringBuilder sbTemp, Int32 NestingLevel)
+      private ParserAction? GenerateState(out Boolean Accept, ParserState State, StringBuilder sbTemp, Int32 NestingLevel)
          {
          // Generate description
          State.CoreItems.ToStringbuilder(sbTemp);
@@ -1197,7 +1197,7 @@ namespace Grammlator {
       /// <param name="nestingLevel"></param>
       /// <returns>Unconditional action which has to be generated next</returns>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
-      private ParserAction SortAndGenerateConditionalActionsOfState(ParserState state, out Boolean accept, Int32 nestingLevel)
+      private ParserAction? SortAndGenerateConditionalActionsOfState(ParserState state, out Boolean accept, Int32 nestingLevel)
          {
          // vorher : Aktion zeigt auf Zustand
          // nachher: result == Folgeaktion == null oder 
@@ -1275,7 +1275,7 @@ namespace Grammlator {
          codegen.GenerateBeginOfBlock();
 
          Int32 LeadingCount = 0, TrailingCount = 0, TerminalsCount = 0;
-         ConditionalAction LeadingAction = null, TrailingAction = null;
+         ConditionalAction? LeadingAction = null, TrailingAction = null;
 
          for (int i = 0; i < state.Actions.Count; i++)
             {
@@ -1475,7 +1475,7 @@ namespace Grammlator {
       /// <param name="Accept"></param>
       /// <param name="NestingLevel"></param>
       /// <returns>next <see cref="ParserAction"/> to generate</returns>
-      private ParserAction GenerateConditionalActionsOfState(
+      private ParserAction? GenerateConditionalActionsOfState(
           ParserState State,
           out Boolean Accept,
           Int32 NestingLevel)
@@ -1523,7 +1523,7 @@ namespace Grammlator {
          if (state.Actions.Count == 1 && state.Actions[0] is LookaheadAction la)
             return la.NextAction;
 
-         ParserAction unconditionalAction = null;
+         ParserAction? unconditionalAction = null;
          foreach (ParserAction a in state.Actions)
             {
             switch (a)
@@ -1563,7 +1563,7 @@ namespace Grammlator {
             case DeletedParserAction _:
             case NonterminalTransition _:
             default:
-               throw new ErrorInGrammlatorProgramException($"Error: a parser action of type {a.ToString()} must not occur in P5");
+               throw new ErrorInGrammlatorProgramException($"Error: a parser action of type {a} must not occur in P5");
                }
             }
 
