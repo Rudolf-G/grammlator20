@@ -16,9 +16,7 @@ namespace Grammlator {
       // TODO Check compatibility with ANTLR https://github.com/antlr/antlr4/blob/master/doc/index.md
       // TODO Analyze the effect of OptimizeTrivialDefinitions
       // TODO Implement terminal symbols from different sources, Accept
-      // TODO Dynamic priorites
       // TODO Additional Analysis of conflicts
-      // TODO CodeGen: allow for different options
       // TODO Phase4 & CodeGen: use variables instead of stack where appopriate
       // TODO Analyse grammar and give recommendations for order of terminals symbols
       // TODO Analyse the grammar and give recommendations to split the grammar
@@ -812,23 +810,23 @@ namespace Grammlator {
       private void MethodProperties(out MethodClass method, Int32 methodModifierStringIndex, Int32 typeStringIndex, Int32 nameStringIndex)
          {
          String methodModifier = GlobalVariables.GetStringOfIndex(methodModifierStringIndex);
-         String type = GlobalVariables.GetStringOfIndex(typeStringIndex);
+         String typeString = GlobalVariables.GetStringOfIndex(typeStringIndex);
          String name = GlobalVariables.GetStringOfIndex(nameStringIndex);
 
          if (!CSharpMethodProperties.Contains(methodModifier))
             CreateParserErrorMessage($"unknown method modifier \"{methodModifier}\"");
 
-         if (type == "int")
+         if (typeString == "int" || typeString == "Int32")
             {
             method = new IntMethodClass(methodName: name);
             }
-         else if (type == "void")
+         else if (typeString == "void")
             {
             method = new VoidMethodClass(methodName: name);
             }
          else
             {
-            CreateParserErrorMessage($"expected int or void method, found \"{type}\" method.");
+            CreateParserErrorMessage($"expected \"int\" or \"Int32\" or \"void\", found \"{typeString}\" (will be interpreted as \"void\").");
             method = new VoidMethodClass(methodName: name);
             }
          }
@@ -1167,7 +1165,7 @@ namespace Grammlator {
                // no attribute with the same name as the formal parameter
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
               $"There is no attribute with the same name as the formal parameter \"{methodParameterName}\""
-              + $" of method \"{semanticMethod.MethodName }\".");
+              + $" of method \"{semanticMethod!.MethodName }\".");
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
                }
@@ -1182,7 +1180,7 @@ namespace Grammlator {
                // last attribute with same name as formal parameter is defined at a different level
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"The attribute \"{methodParameterName}\", "
-                   + $"which is used as formal parameter of method \"{semanticMethod.MethodName}\", "
+                   + $"which is used as formal parameter of method \"{semanticMethod!.MethodName}\", "
                    + "is outside of the paranthesized grammar rule. "
                    );
                // TODO allow restricted access to attributes left of parantheses (restrictions?)
@@ -1197,7 +1195,7 @@ namespace Grammlator {
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"The attribute \"{methodParameterName}\", "
-                   + $"and the associated formal parameter of method \"{semanticMethod.MethodName}\", "
+                   + $"and the associated formal parameter of method \"{semanticMethod!.MethodName}\", "
                    + "are not compatible: "
                    + errorDescription
                    );

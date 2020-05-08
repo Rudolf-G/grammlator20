@@ -28,12 +28,7 @@ namespace Grammlator {
             Info[i].RepresentativeID = i; // and element i being its own representative
             }
          }
-
-      /// <summary>
-      /// This private standard constructor should never be used explicitly
-      /// </summary>
-      private PartitionInfoArrayInt() { }
-
+       
       /// <summary>
       /// The <see cref="ElementDescriptor"/> consists of the index of the next element in the same class
       /// and the index of an element which represents the class.

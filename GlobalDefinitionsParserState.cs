@@ -29,12 +29,12 @@ namespace Grammlator {
       /// <item> <see cref="PrioritySelectAction"/>, NextAction is <see cref="PriorityBranchAction"/></item>
       /// </list>
       /// </summary>
-      internal ListOfParserActions Actions;
+      internal ListOfParserActions? Actions;
 
       /// <summary>
       /// Is computed in phase 2 and used in phase 3 and 4
       /// </summary>
-      internal List<ParserState> PredecessorList;
+      internal List<ParserState>? PredecessorList;
 
       /// <summary>
       ///  The number, the parser state pushes on the state stack.
@@ -84,7 +84,7 @@ namespace Grammlator {
             {
             // Because this ParserState is used all its actions are used
             base.CountUsage(Accept);
-            foreach (ParserAction actionOfParserstate in Actions)
+            foreach (ParserAction actionOfParserstate in Actions!)
                actionOfParserstate.CountUsage(false);
 
             // Generating the error handler will generate a call of the state
@@ -102,7 +102,7 @@ namespace Grammlator {
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
       internal ParserAction ActionCausedBy(NonterminalSymbol InputSymbol)
          {
-         foreach (ParserAction parserAction in Actions)
+         foreach (ParserAction parserAction in Actions!)
             {
             if ((parserAction as NonterminalTransition)?.InputSymbol == InputSymbol)
                return parserAction;
@@ -127,7 +127,7 @@ namespace Grammlator {
            .AppendLine("Items:");
          CoreItems.ToStringbuilderMitZusatzinfo(sb)
            .Append("Actions: ");
-         Actions.ToStringbuilder(sb)
+         Actions?.ToStringbuilder(sb)
            .AppendLine();
          return sb;
          }
@@ -149,7 +149,7 @@ namespace Grammlator {
          {
          ConditionalAction? theOnlyOneAction = null;
 
-         foreach (ParserAction action in Actions)
+         foreach (ParserAction action in Actions!)
             {
             ConditionalAction FittingAction;
 
@@ -345,9 +345,9 @@ namespace Grammlator {
 
          // Reduce the subsetOfConflictSymbols to the intersection of conflicting actions,
          // find the highest constant priority action of those actions and all  dynamic priotity conflicting actions
-         var dynamicPriorityDefinitions = new ListOfParserActions(10); // usually will be empty or very short
+         var dynamicPriorityActions = new ListOfParserActions(10); // usually will be empty or very short
          int indexOfActionWithPriority
-            = FindHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols, dynamicPriorityDefinitions);
+            = FindHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols, dynamicPriorityActions);
 
          // The  indexOfActionWithPriority may be -1 if only actions with dynamic priority are in conflict
          // The subsetOfConflictSymbols causes the conflict.
@@ -358,7 +358,7 @@ namespace Grammlator {
          // If there are conflicting actions with dynamic priority a new ConditionalAction has to be added
          // Actions[indexOfActionWithPriority] is a ConditionalAction. As part of a ConditionalAction
          // the condition is not needed and hence .NextAction is used. 
-         if (dynamicPriorityDefinitions.Count > 0)
+         if (dynamicPriorityActions.Count > 0)
             {
             var prioritySelectAction
                = new PrioritySelectAction(
@@ -366,11 +366,16 @@ namespace Grammlator {
                         constantPriorityAction:
                            indexOfActionWithPriority < 0
                            ? null
-                           : this.Actions[indexOfActionWithPriority] as ConditionalAction,
-                        dynamicPriorityDefinitions: dynamicPriorityDefinitions
+                           : this.Actions![indexOfActionWithPriority] as ConditionalAction,
+                        dynamicPriorityActions: dynamicPriorityActions
                 );
-            indexOfActionWithPriority = this.Actions.Count;
+
+            indexOfActionWithPriority = this.Actions!.Count;
             this.Actions.Add(prioritySelectAction);
+            prioritySelectAction.IdNumber = GlobalVariables.ListOfAllPrioritySelectActions.Count;
+            GlobalVariables.ListOfAllPrioritySelectActions.Add(prioritySelectAction);
+            prioritySelectAction.NextAction.IdNumber = GlobalVariables.ListOfAllPriorityBranchActions.Count;
+            GlobalVariables.ListOfAllPriorityBranchActions.Add((PriorityBranchAction)prioritySelectAction.NextAction);
             }
 
          // Log the conflict
@@ -453,11 +458,11 @@ namespace Grammlator {
       /// <returns>Index of action with priority or -1 if only dynamic priorities</returns>
       private Int32 FindHighestPriorityActionOfConflictingActions(
             BitArray subsetOfConflictSymbols,
-            ListOfParserActions dynamicPriorityDefinitions)
+            ListOfParserActions dynamicPriorityActions)
          {
          // Test each action of the state if it causes a conflict with any preceding action 
 
-         dynamicPriorityDefinitions.Clear();
+         dynamicPriorityActions.Clear();
          var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count); // TODO allocate only once
 
          Int32 indexOfActionWithPriority = -1;
@@ -465,7 +470,7 @@ namespace Grammlator {
 
          // For each action in the parser state (ignoring actions with dynamic priority)
          // determine action symbols and priority and determine the action with the highest priority
-         for (Int32 IndexOfAction = 0; IndexOfAction < this.Actions.Count; IndexOfAction++)
+         for (Int32 IndexOfAction = 0; IndexOfAction < this.Actions!.Count; IndexOfAction++)
             {
             if (!(this.Actions[IndexOfAction] is ConditionalAction action))
                continue;
@@ -492,7 +497,7 @@ namespace Grammlator {
                if (laAction.PriorityFunction != null)
                   {
                   Debug.Assert(laAction.NextAction is Definition);
-                  dynamicPriorityDefinitions.Add(laAction.NextAction);
+                  dynamicPriorityActions.Add(laAction);
                   continue; // an action with dynamic priority can not have highest static priority
                   }
                }

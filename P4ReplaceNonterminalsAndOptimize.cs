@@ -117,7 +117,7 @@ namespace Grammlator {
          {
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
             {
-            foreach (ParserAction action in state.Actions)
+            foreach (ParserAction action in state.Actions!.PriorityUnwindedSetOfActions)
                {
                if (action is ParserActionWithNextAction actionWithNextAction)
                   {
@@ -176,7 +176,7 @@ namespace Grammlator {
             // Add all predecessors of all states of this level to the list of preceding states
             foreach (ParserState stateToEvaluate in statesOfThisLevel)
                {
-               foreach (ParserState predecessor in stateToEvaluate.PredecessorList)
+               foreach (ParserState predecessor in stateToEvaluate.PredecessorList!)
                   precedingStates.Add(predecessor);
                }
 
@@ -204,7 +204,7 @@ namespace Grammlator {
 
       /// <summary>
       /// Visit all states, take all actions which apply a definition,
-      /// and find all predecessor states up to a a search depth given by the definitions length.
+      /// and find all predecessor states up to a search depth given by the definitions length.
       /// Apply the type of evaluation to the predecessors.
       /// </summary> 
       /// <param name="TypeOfEvaluation"></param>
@@ -212,7 +212,7 @@ namespace Grammlator {
          {
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
             {
-            foreach (ParserAction action in state.Actions)
+            foreach (ParserAction action in state.Actions!.PriorityUnwindedSetOfActions)
                {
                if ((action is ParserActionWithNextAction actionWithNextAction)
                    && (actionWithNextAction.NextAction is Definition definition))
@@ -265,12 +265,12 @@ namespace Grammlator {
          for (Int32 Restlänge = Depth; Restlänge > 0; Restlänge--)
             {
             // Die Vorgänger aller Zustande der aktuellen Zustandsliste in die Vorgängerliste aufnehmen
-            foreach (ParserState AktuellerZustand in statesOfThisLevel)
+            foreach (ParserState state in statesOfThisLevel)
                {
-               foreach (ParserState Predecessor in AktuellerZustand.PredecessorList)
+               foreach (ParserState predecessor in state.PredecessorList!)
                   {
-                  if (!precedingStates.Contains(Predecessor))
-                     precedingStates.Add(Predecessor);
+                  if (!precedingStates.Contains(predecessor))
+                     precedingStates.Add(predecessor);
                   }
                }
 
@@ -1053,7 +1053,7 @@ namespace Grammlator {
             if (DeletedActionsCount > 0)
                State.Actions.RemoveFromEnd(DeletedActionsCount);
 
-            // Add error handling actions and 
+            // Add error handling actions
             ErrorhandlingAction? e = State.CheckAndAddErrorAction(GlobalVariables.ErrorHandlerIsDefined);
             if (e != null)
                {

@@ -548,7 +548,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
                AssignCSharpStartToSymbol();
 
                _a.Free();
-               goto EndOfGeneratedCode1;
+               goto EndOfGeneratedCode;
                }
          case ClassifierResult.CSharpEnd:
                {
@@ -561,7 +561,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
                AssignCSharpEndToSymbol();
 
                _a.Free();
-               goto EndOfGeneratedCode1;
+               goto EndOfGeneratedCode;
                }
          case ClassifierResult.Questionmark:
                {
@@ -583,7 +583,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
                AssignDoubleQuestionmarkToSymbol();
 
                _a.Free(2);
-               goto EndOfGeneratedCode1;
+               goto EndOfGeneratedCode;
                }
          case ClassifierResult.Asterisk:
                {
@@ -605,7 +605,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
                AssignStarEqual();
 
                _a.Free(2);
-               goto EndOfGeneratedCode1;
+               goto EndOfGeneratedCode;
                }
          case ClassifierResult.Minus:
                {
@@ -627,7 +627,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
                AssignMinusEqual();
 
                _a.Free(2);
-               goto EndOfGeneratedCode1;
+               goto EndOfGeneratedCode;
                }
          case ClassifierResult.WhiteSpace:
                {
@@ -683,7 +683,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
                );
 
             _a.Free();
-            goto EndOfGeneratedCode1;
+            goto EndOfGeneratedCode;
             }
          Debug.Assert(LexerInput >= ClassifierResult.Digit);
 
@@ -923,18 +923,18 @@ LexerResult.Error // 127; U007F; Cc; DELETE
             );
 
          _a.Free();
-         goto EndOfGeneratedCode1;
+         goto EndOfGeneratedCode;
 
       ApplyStartsymbolDefinition2:
          // Halt: a definition of the startsymbol with 1 attributes has been recognized.
          AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
-         goto EndOfGeneratedCode1;
+         goto EndOfGeneratedCode;
 
       EndWithError:
          // This point is reached after an input error has been found
          _a.Free(_a.Count - AttributeStackInitialCount);
 
-      EndOfGeneratedCode1:
+      EndOfGeneratedCode:
          ;
          #endregion grammlator generated Wed, 15 Apr 2020 17:40:04 GMT (grammlator, File version 2020.04.07.1 15.04.2020 17:32:47)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.

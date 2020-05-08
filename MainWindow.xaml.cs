@@ -480,7 +480,9 @@ namespace grammlator {
 
          // local method to format the message type for output
          string messageHeader()
-            => $"---- {messageType.ToString() + ":",-15}";
+            => messageType==MessageTypeOrDestinationEnum.Error
+            ? $"--<< {messageType.ToString() + ":",-15}"
+            : $"---- {messageType.ToString() + ":",-15}";
 
          switch (messageType)
             {

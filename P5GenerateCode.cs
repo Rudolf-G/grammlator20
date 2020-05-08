@@ -684,25 +684,11 @@ namespace Grammlator {
       /// <param name="nestingLevel"></param>
       private void GenerateCodeSequence(ParserActionWithNextAction actionToGenerate, Boolean labelMustBeGenerated, Int32 nestingLevel)
          {
-         if (actionToGenerate is PrioritySelectAction)
-            {
-
-            GenerateCodeSequence(
-                actionToGenerate:
-                   actionToGenerate,
-                accept: false,
-                labelMustBeGenerated,
-                nestingLevel
-                );
-
-            return;
-            }
-
          GenerateCodeSequence(
              actionToGenerate:
-                actionToGenerate is ErrorhandlingAction && GlobalVariables.ErrorHandlerIsDefined
-                   ? actionToGenerate
-                      : actionToGenerate.NextAction, // LookaheadAction | TerminalTransition
+                actionToGenerate is ErrorhandlingAction || actionToGenerate is PrioritySelectAction
+                   ? actionToGenerate // ErrorhandlingAction | PrioritySelectAction
+                   : actionToGenerate.NextAction, // LookaheadAction | TerminalTransition: condition has been generated already
              accept: actionToGenerate is TerminalTransition,
              labelMustBeGenerated,
              nestingLevel
@@ -804,7 +790,7 @@ namespace Grammlator {
 
             case PriorityBranchAction pb:
                   {
-                  ActionToGenerate = GeneratePrioritySelect(out Accept, pb, nestingLevel);
+                  ActionToGenerate = GeneratePriorityBranch(out Accept, pb, nestingLevel);
                   break;
                   }
 
@@ -1017,15 +1003,16 @@ namespace Grammlator {
          return ReduceActionToGenerate.NextAction;
          }
 
-      private ParserAction GeneratePrioritySelect(out Boolean Accept, PriorityBranchAction ps, Int32 nestingLevel)
+      private ParserAction GeneratePriorityBranch(out Boolean Accept, PriorityBranchAction ps, Int32 nestingLevel)
          {
-         // TODO change test to correct program !! Test --------------------------------
+         // TODO Replace priority switch by If-Then-Else (if 1 constant priority and 1 dynamic priority or no constant and 2 dynamic priorities)
 
          codegen.IndentExactly(nestingLevel);
          codegen.AppendLine("/* Dynamic priority controlled actions */");
 
          codegen.AppendInstruction("switch(IndexOfMaximum(");  // TODO IndexOfMaximum ??
-
+         // IndexOfMaximum should return the index of the 1st occurence of the minimal argument. Then:
+         // TerminalTransition (priority 0) has priority over dynamic priority value 0 because it is generated 1st !! 
          if (ps.ConstantPriorityAction != null)
             codegen.Append(ps.ConstantPriority).Append(", ");
 
@@ -1033,41 +1020,46 @@ namespace Grammlator {
             {
             if (i > 0)
                codegen.Append(", ");
-            codegen.Append(ps.PriorityFunctions[i].MethodName);
+            codegen.Append(ps.PriorityFunctions[i].MethodName); 
             }
-         codegen.Append(")){");
+         codegen.Append("))");
+         codegen.IndentExactly().Append("{");
          // end of generating switch condition
+
+
          // generate switch cases
          Int32 CaseCount = 0;
          if (ps.ConstantPriorityAction != null)
             {
-            codegen.AppendInstruction("case ").Append(CaseCount++).Append(": ");
+            ConditionalAction ca= (ConditionalAction)(ps.ConstantPriorityAction);
+
+            codegen.IndentExactly().Append("case ").Append(CaseCount++).Append(": ");
             GenerateCodeSequence(
-               ps.ConstantPriorityAction,
-               accept: false,
+               ca.NextAction, // ca may be TerminalTransition or LookaheadAction: condition is included in condition of PrioritySelect 
+               accept: ca is TerminalTransition, 
                labelMustBeGenerated: false,
-               nestingLevel
+               nestingLevel + 1
              );
-            codegen.AppendInstruction(" "); // TOCHECK Indent instead of ' '
             }
-         // do not gnerate a case for the last dynamic priority: this
-         // is returned to be generated after the swirch instruction (default)
-         for (Int32 i = 0; i < ps.DynamicPriorityActions.Count-1; i++)
+         // do not generate a case for the last dynamic priority: this
+         // is returned to be generated after the switch instruction (default)
+         for (Int32 i = 0; i < ps.DynamicPriorityActions.Count - 1; i++)
             {
-            codegen.Append("case ").Append(CaseCount++).Append(": ");
-            GenerateCodeSequence(
-               ps.DynamicPriorityActions[i],
-               accept: false, // TOCHECK ???
+            codegen.IndentExactly().Append("case ").Append(CaseCount++).Append(": ");
+            ConditionalAction ca = (ConditionalAction)ps.DynamicPriorityActions[i];
+            GenerateCodeSequence
+               (ca.NextAction,
+               accept: false,  // dynamic priority actions always look ahead: can not be accepting actions
                labelMustBeGenerated: false, // TOCHECK
-               nestingLevel
+               nestingLevel + 1
              )
             ;
             }
 
-         codegen.Append("}");
+         codegen.IndentExactly(nestingLevel).Append("}");
 
-         Accept = false; // TOCHECK priority generation end
-         return ps.DynamicPriorityActions[^1];
+         Accept = false; // dynamic priority actions always look ahead: can not be accepting actions
+         return ((ConditionalAction)ps.DynamicPriorityActions[^1]).NextAction;
          }
 
       /// <summary>
@@ -1179,8 +1171,8 @@ namespace Grammlator {
                 GlobalVariables.AllTerminalSymbols,
                 idNumber: State.IdNumber,
                 State);
-            NextActionToGenerate.Calls++;
-            GlobalVariables.TheOnlyOneErrorHaltAction.Calls++;
+            //NextActionToGenerate.Calls++;
+            //GlobalVariables.TheOnlyOneErrorHaltAction.Calls++;
             Accept = false;
             return NextActionToGenerate;
             }
@@ -1209,7 +1201,7 @@ namespace Grammlator {
          */
 
          // Test if the state contains an unconditional action
-         ParserAction unconditionalAction = FindUnconditionalAction(state, out Int32 NumberOfConditionalActions);
+         ParserAction? unconditionalAction = FindUnconditionalAction(state, out Int32 NumberOfConditionalActions);
          if (unconditionalAction != null && NumberOfConditionalActions <= 0)
             {
             accept = false;
@@ -1359,7 +1351,7 @@ namespace Grammlator {
                   // in addition to the code generated in the default action.
                   // If the statistics are not adjusted those code may be generated without label.
                   if (ThisAction is TerminalTransition)
-                     ThisAction.NextAction.AcceptCalls++;
+                     ThisAction.NextAction.AcceptCalls++;  // TOCHECK may .AcceptCalls++ whilst generating code be a bug (action may have been generated without label?)
                   else
                      ((ThisAction is ErrorhandlingAction && GlobalVariables.ErrorHandlerIsDefined) ? ThisAction : ThisAction.NextAction).Calls++;
                   // generate goto
@@ -1492,11 +1484,9 @@ namespace Grammlator {
 
          var LastAction = (ConditionalAction)State.Actions[^1];
 
-         ParserAction nextAction;
-         if (LastAction is ErrorhandlingAction)
-            nextAction = LastAction;
-         else // TerminalTransition || LookaheadAction
-            nextAction = LastAction.NextAction;
+         ParserAction nextAction = LastAction;
+         if (LastAction is TerminalTransition || LastAction is LookaheadAction)
+            nextAction = LastAction.NextAction; // TOCHECK must nextAction.Calls be reduced by 1 ??
 
          BitArray suppressedCondition = LastAction.TerminalSymbols;
          if (nextAction != null && suppressedCondition != null)
@@ -1514,7 +1504,7 @@ namespace Grammlator {
       /// <param name="state">The state which actions are to be tested</param>
       /// <param name="NumberOfConditionalActions">The number of conditional actions of the state</param>
       /// <returns>The last unconditional action of the state or null</returns>
-      private static ParserAction FindUnconditionalAction(ParserState state, out Int32 NumberOfConditionalActions)
+      private static ParserAction? FindUnconditionalAction(ParserState state, out Int32 NumberOfConditionalActions)
          {
          NumberOfConditionalActions = 0;
 
@@ -1613,6 +1603,26 @@ namespace Grammlator {
             if (state.Calls >= MinimumOfCalls)
                GenerateCodeSequence(state, accept: false, labelMustBeGenerated: true, nestingLevel: 0);
             }
+
+         /* Typically PrioritySelectActions will have PriorityBranchActions as NextAction
+          * and PriorityBranchActions will have ReduceActions as NextActions
+          */
+         foreach (PrioritySelectAction ps in GlobalVariables.ListOfAllPrioritySelectActions)
+            {
+            if (ps.AcceptCalls >= MinimumOfCalls)
+               GenerateCodeSequence(ps, accept: true, labelMustBeGenerated: true, nestingLevel: 0);
+            if (ps.Calls >= MinimumOfCalls)
+               GenerateCodeSequence(ps, accept: false, labelMustBeGenerated: true, nestingLevel: 0);
+            }
+
+         foreach (PriorityBranchAction pb in GlobalVariables.ListOfAllPriorityBranchActions)
+            {
+            if (pb.AcceptCalls >= MinimumOfCalls)
+               GenerateCodeSequence(pb, accept: true, labelMustBeGenerated: true, nestingLevel: 0);
+            if (pb.Calls >= MinimumOfCalls)
+               GenerateCodeSequence(pb, accept: false, labelMustBeGenerated: true, nestingLevel: 0);
+            }
+
 
          /* Generate the other ReduceActions 
           */

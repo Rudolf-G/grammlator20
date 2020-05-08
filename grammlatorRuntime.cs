@@ -68,14 +68,13 @@ namespace GrammlatorRuntime
             Accepted = true;
             }
 
-        /// <summary>
-        /// After the first call of <see cref="PeekSymbol"/> <see cref="Symbol"/> will have a defined value.
-        /// The value can only be changed by <see cref="PeekSymbol"/>.
-        /// </summary>
-        public TTypeOfOutputSymbols Symbol
-            {
-            get; protected set;
-            }
+      /// <summary>
+      /// After the first call of <see cref="PeekSymbol"/> <see cref="Symbol"/> will have a defined value.
+      /// The value can only be changed by <see cref="PeekSymbol"/>.
+      /// </summary>
+      public TTypeOfOutputSymbols Symbol {
+         get; protected set;
+         }
 
         /// <summary>
         /// <para>When <see cref="Accepted"/> is false, then calls to <see cref="PeekSymbol"/> do nothing and </para>

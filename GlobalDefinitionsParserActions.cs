@@ -225,7 +225,7 @@ namespace Grammlator {
                      {
                      if (pba.ConstantPriorityAction != null)
                         yield return pba.ConstantPriorityAction; // TOCHECK recursion needed? Example? (without terminal symbols?)
-                     foreach (ParserAction dpa in PriorityUnwindedSetOfActions)  // recusion !
+                     foreach (ParserAction dpa in pba.DynamicPriorityActions.PriorityUnwindedSetOfActions)  // recusion !
                         yield return dpa;
                      a = null;
                      }
@@ -854,21 +854,21 @@ namespace Grammlator {
 
       internal override void CountUsage(Boolean Accept)
          {
-         Boolean HasNotYetBeenCounted = Calls == 0;
+         Boolean CountNextaction = Calls == 0;
 
          if (Accept)
             {
             AcceptCalls++;
+            // code of accept ... will be generated only once (if any):
+            //    count subsequent code of terminal transition  only once
             if (AcceptCalls == 1)
-               Calls++; // the 1st accept call calls 
+               Calls++; 
             }
          else
-            {
             Calls++;
-            }
 
-         if (HasNotYetBeenCounted)
-            NextAction?.CountUsage(true); // terminal transition => true !!!
+         if (CountNextaction)
+            NextAction?.CountUsage(true); // terminal transition: accept == true !!!
          }
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
@@ -983,18 +983,18 @@ namespace Grammlator {
    internal sealed class PriorityBranchAction: ParserAction {
       internal PriorityBranchAction(
             ConditionalAction? constantPriorityAction,
-            ListOfParserActions dynamicPriorityDefinitions
+            ListOfParserActions dynamicPriorityActions
          )
          {
          ConstantPriorityAction = constantPriorityAction;
          ConstantPriority = constantPriorityAction?.Priority??0;
-         DynamicPriorityActions = new ListOfParserActions(dynamicPriorityDefinitions);
+         DynamicPriorityActions = new ListOfParserActions(dynamicPriorityActions);
 
-         PriorityFunctions = new IntMethodClass[dynamicPriorityDefinitions.Count];
-         for (Int32 i = 0; i < dynamicPriorityDefinitions.Count; i++)
+         PriorityFunctions = new IntMethodClass[dynamicPriorityActions.Count];
+         for (Int32 i = 0; i < dynamicPriorityActions.Count; i++)
             {
             PriorityFunctions[i]
-               = ((Definition)dynamicPriorityDefinitions[i]).PriorityFunction!;
+               = ((Definition)((ConditionalAction)dynamicPriorityActions[i]).NextAction).PriorityFunction!;
             }
          }
 
@@ -1031,7 +1031,14 @@ namespace Grammlator {
          return sb;
          }
 
+      internal override void CountUsage(Boolean Accept)
+         {
+         base.CountUsage(Accept);
 
+         ConstantPriorityAction?.CountUsage(false);
+         foreach (ParserAction a in DynamicPriorityActions)
+            ((ConditionalAction)a).NextAction.CountUsage(false);  // TOCHECK accept of conditional action within prioritybranch ??
+         }
       }
    internal sealed class PrioritySelectAction: ConditionalAction {
 
@@ -1041,12 +1048,12 @@ namespace Grammlator {
       /// <param name="inputSymbols"></param>
       /// <param name="constantPriorityAction"><see cref="null"/> or <see cref="LookaheadAction"/>
       /// or <see cref="TerminalTransition"/></param>
-      /// <param name="dynamicPriorityDefinitions">List of <see cref="ConditionalAction"/>s</param>
+      /// <param name="dynamicPriorityActions">List of <see cref="ConditionalAction"/>s</param>
       internal PrioritySelectAction(
             BitArray inputSymbols,
             ConditionalAction? constantPriorityAction,
-            ListOfParserActions dynamicPriorityDefinitions
-         ): base(new BitArray(inputSymbols), new PriorityBranchAction(constantPriorityAction, dynamicPriorityDefinitions))
+            ListOfParserActions dynamicPriorityActions
+         ): base(new BitArray(inputSymbols), new PriorityBranchAction(constantPriorityAction, dynamicPriorityActions))
          {}
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isPrioritySelectAction;
@@ -1107,17 +1114,12 @@ namespace Grammlator {
 
       internal override void CountUsage(Boolean Accept)
          {
-         if (Calls > 0)
-            {
-            if (GlobalVariables.ErrorHandlerIsDefined)
-               base.CountUsage(Accept);
-            }
-         else
-            {
-            if (GlobalVariables.ErrorHandlerIsDefined)
-               base.CountUsage(Accept);
-            NextAction?.CountUsage(false);
-            }
+         Debug.Assert(this.Calls == 0 && this.AcceptCalls == 0);
+         base.CountUsage(Accept);
+
+         // A goto to State will be generated if and only if ErrorHandlerIsDefined
+         if (GlobalVariables.ErrorHandlerIsDefined)
+            State.CountUsage(false);
          }
 
       internal ParserState State;

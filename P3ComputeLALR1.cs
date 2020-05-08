@@ -226,7 +226,7 @@ namespace Grammlator {
          {
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
             {
-            foreach (ParserAction Action in State.Actions)
+            foreach (ParserAction Action in State.Actions!)
                {
                Action.Codenumber = 0;
                if (Action is LookaheadOrNonterminalTransition ActionWithInclude)
@@ -272,7 +272,7 @@ namespace Grammlator {
                      elements = nextDefinition.Elements;
                      Lookback(State,
                          waybackAcceptsEmpty: true, // because there is not yet any symbol on the way back
-                         definedSymbol: nextDefinition.DefinedSymbol,
+                         definedSymbol: nextDefinition.DefinedSymbol!,
                          elements: elements,
                          distanceToGoBack: elements.Length);
                      break;
@@ -288,7 +288,7 @@ namespace Grammlator {
                         Lookback(State,
                             waybackAcceptsEmpty: // if the nonterminal is nullable
                             ((elements[^1] as NonterminalSymbol)?.IsNullable) ?? false,
-                            definedSymbol: definition.DefinedSymbol,
+                            definedSymbol: definition.DefinedSymbol!,
                             elements: elements,
                             distanceToGoBack: elements.Length - 1); // -1 because SHIFT-reduce
                         }
@@ -336,7 +336,7 @@ namespace Grammlator {
             }
 
          // DistanceToGoBack > 0
-         foreach (ParserState Predecessor in actualState.PredecessorList)
+         foreach (ParserState Predecessor in actualState.PredecessorList!)
             {
             if (waybackAcceptsEmpty)
                {

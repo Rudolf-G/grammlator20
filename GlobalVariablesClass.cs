@@ -55,6 +55,19 @@ namespace Grammlator {
 
 
    internal static class GlobalVariables {
+
+      static GlobalVariables()
+         {
+         Startsymbol = new NonterminalSymbol("*Startsymbol",
+            position: 0,
+            symbolNumber: 0,
+            attributetypeStringIndexList: Array.Empty<Int32>(),
+            attributenameStringIndexList: Array.Empty<Int32>()
+            );
+         TerminalSymbolByIndex = Array.Empty<TerminalSymbol>();
+         OutputMessage = OutputToNirwana;
+         OutputMessageAndPosition = OutputToNirwana;
+         }
       private static String GetVersioninfo {
          get {
 
@@ -117,6 +130,9 @@ namespace Grammlator {
       internal const Int32 InitialCapacityOfListOfAllReductions = 400;
       internal const Int32 InitialCapacityOfListOfAllBranchActions = 200;
       internal const Int32 InitialCapacityOfListOfAllHaltActions = 20;
+      internal const Int32 InitialCapacityOfListOfAllPrioritySelectActions = 20;
+      internal const Int32 InitialCapacityOfListOfAllPriorityBranchActions
+         = InitialCapacityOfListOfAllPrioritySelectActions;
 
       static readonly Dictionary<ReadOnlyMemory<char>, Int32> MemoryToIndexDictionary
          = new Dictionary<ReadOnlyMemory<char>, Int32>(1000, new MemoryComparer());
@@ -222,6 +238,10 @@ namespace Grammlator {
          ListOfAllReductions.Capacity = InitialCapacityOfListOfAllReductions;
          ListOfAllBranchActions.Clear();
          ListOfAllBranchActions.Capacity = InitialCapacityOfListOfAllBranchActions;
+         ListOfAllPrioritySelectActions.Clear();
+         ListOfAllPrioritySelectActions.Capacity = InitialCapacityOfListOfAllPrioritySelectActions;
+         ListOfAllPriorityBranchActions.Clear();
+         ListOfAllPriorityBranchActions.Capacity = InitialCapacityOfListOfAllPriorityBranchActions;
          }
       /* Options:
        * */
@@ -321,6 +341,9 @@ namespace Grammlator {
          get; private set;
          }
 
+      private static void  OutputToNirwana(MessageTypeOrDestinationEnum a, String s) { }
+      private static void OutputToNirwana(MessageTypeOrDestinationEnum a, String s, Int32 i) { }
+
       internal static Action<MessageTypeOrDestinationEnum, String, Int32> OutputMessageAndPosition {
          get; private set;
          }
@@ -408,11 +431,6 @@ namespace Grammlator {
       internal static BitArray AllTerminalSymbols = EmptyBitarray; // assigned in Phases1to5Controller
 
       /// <summary>
-      /// Defined in phase 3, used in phase 5
-      /// </summary>
-      internal static readonly List<ErrorhandlingAction> ListOfAllErrorhandlingActions = new List<ErrorhandlingAction>(InitialCapacityOfListOfAllStates);
-
-      /// <summary>
       /// Defined an used in phase 4, used in phase 5
       /// </summary>
       internal static readonly List<ReduceAction> ListOfAllReductions = new List<ReduceAction>(InitialCapacityOfListOfAllReductions);
@@ -423,13 +441,31 @@ namespace Grammlator {
       internal static readonly List<BranchAction> ListOfAllBranchActions = new List<BranchAction>(InitialCapacityOfListOfAllBranchActions);
 
       /// <summary>
-      /// <see cref="ListOfAllHaltActions"/>[0] is defined for use as standard <see cref="HaltAction"/>,
+      /// Defined and used in phase 4, used in phase 5
+      /// </summary>
+      internal static readonly List<PrioritySelectAction> ListOfAllPrioritySelectActions
+         = new List<PrioritySelectAction>(InitialCapacityOfListOfAllPrioritySelectActions);
+
+      /// <summary>
+      /// Defined and used in phase 4, used in phase 5
+      /// </summary>
+      internal static readonly List<PriorityBranchAction> ListOfAllPriorityBranchActions
+         = new List<PriorityBranchAction>(InitialCapacityOfListOfAllPriorityBranchActions);
+
+      /// <summary>
+      /// Defined in phase 3, used in phase 5
+      /// </summary>
+      internal static readonly List<ErrorhandlingAction> ListOfAllErrorhandlingActions = new List<ErrorhandlingAction>(InitialCapacityOfListOfAllStates);
+
+      /// <summary>
+      /// <see cref="ListOfAllHaltActions"/>[0] is defined for use as initial <see cref="HaltAction"/>,
       /// all other entries are defined and used in phase 4 and used in phase 5.
       /// </summary>
       internal static readonly List<HaltAction> ListOfAllHaltActions = new List<HaltAction>(InitialCapacityOfListOfAllHaltActions);
+      // TODO declare an explicit initial halt action
 
       /// <summary>
-      /// berechnet in Phase4, verwendet in Phase5
+      /// Defined in Phase4, used in Phase5
       /// </summary>
       internal static Int32 CountOfStatesWithStateStackNumber;
       } // class GlobalDeclarations
