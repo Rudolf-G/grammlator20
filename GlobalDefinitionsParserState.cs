@@ -14,6 +14,8 @@ namespace Grammlator {
 
       internal ItemList CoreItems = new ItemList();
 
+      private static readonly ListOfParserActions emptyListOfParserActions = new ListOfParserActions(0);
+
       /// <summary>
       /// <list type="table">
       /// <term>P1 adds the following <see cref="ParserAction"/>s to <see cref="Actions"/>:</term>
@@ -29,20 +31,14 @@ namespace Grammlator {
       /// <item> <see cref="PrioritySelectAction"/>, NextAction is <see cref="PriorityBranchAction"/></item>
       /// </list>
       /// </summary>
-      internal ListOfParserActions? Actions;
+      internal ListOfParserActions Actions=emptyListOfParserActions;
+
+      private static readonly List<ParserState> emptyPredecessorList = new List<ParserState>(0);
 
       /// <summary>
       /// Is computed in phase 2 and used in phase 3 and 4
       /// </summary>
-      internal List<ParserState>? PredecessorList;
-
-      /// <summary>
-      ///  The number, the parser state pushes on the state stack.
-      ///  -1 if the state doesn't push its number on the stack.
-      /// </summary>
-      internal Int32 StateStackNumber {
-         get; set;
-         }
+      internal List<ParserState> PredecessorList = emptyPredecessorList;
 
       internal Boolean ContainsErrorHandlerCall {
          get;
@@ -229,7 +225,7 @@ namespace Grammlator {
 
          // Find all actions which have at least one terminal symbol in common
          // with one of the preceding actions.
-         for (Int32 IndexOfAction = 0; IndexOfAction < Actions.Count; IndexOfAction++)
+         for (Int32 IndexOfAction = 0; IndexOfAction < Actions!.Count; IndexOfAction++)
             {
 
             ParserAction thisAction = Actions[IndexOfAction];
@@ -395,7 +391,7 @@ namespace Grammlator {
 
          // For each action in the parser state 
          // determine action symbols and priority and determine the action with the highest priority
-         for (Int32 IndexOfAction = 0; IndexOfAction < State.Actions.Count; IndexOfAction++)
+         for (Int32 IndexOfAction = 0; IndexOfAction < State!.Actions!.Count; IndexOfAction++)
             {
             ParserAction action = State.Actions[IndexOfAction];
             if (!(action is ConditionalAction conditionalAction))
@@ -561,7 +557,7 @@ namespace Grammlator {
              idNumber: this.IdNumber, // use the IdNumber of the ParserState as IdNumber of the ErrorHandlingAction
              state: this
              );
-         Actions.Add(e);
+         Actions!.Add(e);
 
          ContainsErrorHandlerCall = ErrorHandlerIsDefined;
          return e;
@@ -571,7 +567,7 @@ namespace Grammlator {
          {
          Int32 DeletedActionsCount = 0;
 
-         for (Int32 ActionIndex = 0; ActionIndex < this.Actions.Count; ActionIndex++)
+         for (Int32 ActionIndex = 0; ActionIndex < this.Actions!.Count; ActionIndex++)
             {
             if (Actions[ActionIndex] is DeletedParserAction)
                DeletedActionsCount++;
@@ -592,6 +588,7 @@ namespace Grammlator {
       /// </summary>
       public IEnumerable<ParserAction> FlatSetOfActions {
          get {
+            Debug.Assert(Actions != null);
             for (Int32 i = 0; i < Actions.Count; i++)
                {
                ParserAction? a = Actions[i];

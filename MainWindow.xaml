@@ -12,12 +12,14 @@
         IsEnabled="True" MinWidth="500" MinHeight="200" Margin="5,5,5,5" 
         Foreground="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" 
         MaxWidth="2000" MaxHeight="2000" WindowStyle="ThreeDBorderWindow" BorderThickness="1,1,1,1"
-        SnapsToDevicePixels="True" ResizeMode="CanResize" SizeToContent="Manual" IsManipulationEnabled="True">
-
+        SnapsToDevicePixels="True" ResizeMode="CanResize" SizeToContent="Manual" IsManipulationEnabled="True" RenderTransformOrigin="0.5,0.5">
     <Grid x:Name="GrammlatorMainGrid"
           UseLayoutRounding="True" MinHeight="175" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
           ScrollViewer.VerticalScrollBarVisibility="Auto"
-          IsManipulationEnabled="True" Margin="5,5,5,5">
+          IsManipulationEnabled="True" Margin="5,5,5,5" RenderTransformOrigin="0.5,0.5">
+        <Grid.LayoutTransform>
+            <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
+        </Grid.LayoutTransform>
         <Grid.RowDefinitions>
             <RowDefinition x:Name="GridRowMenu" Height="24" MinHeight="24"/>
             <RowDefinition x:Name="GridRowTop" MinHeight="75" Height="4*"/>

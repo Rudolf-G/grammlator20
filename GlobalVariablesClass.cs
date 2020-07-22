@@ -34,6 +34,7 @@ namespace Grammlator {
          InitialValues.Add("VariableErrorStateNumber", "ErrorStateNumber");
          InitialValues.Add("VariableSymbol", "PeekSymbol()");
          InitialValues.Add("VariableStateStackInitialCount", "StateStackInitialCount");
+         InitialValues.Add("MethodIndexOfMaximum", "Method.IndexOfMaximum");
          }
 
       public static String GetString(String name) => InitialValues[name]; // TODO check not found
@@ -206,6 +207,7 @@ namespace Grammlator {
          // "VariableErrorStateNumber"
          VariableNameSymbol = InitialSettings.GetString("VariableSymbol");
          StateStackInitialCountVariable = InitialSettings.GetString("VariableStateStackInitialCount");
+         MethodIndexOfMaximum = InitialSettings.GetString("MethodIndexOfMaximum");
 
          GlobalVariables.OutputMessage = OutputMessage;
          GlobalVariables.OutputMessageAndPosition = outputMessageAndPosition;
@@ -328,6 +330,8 @@ namespace Grammlator {
       /// ErrorHandlerIsDefined => !string.IsNullOrEmpty(ErrorHandlerMethod);
       /// </summary>
       internal static bool ErrorHandlerIsDefined => !string.IsNullOrEmpty(ErrorHandlerMethod);
+
+      internal static string MethodIndexOfMaximum = InitialSettings.GetString("MethodIndexOfMaximum");
 
       internal static string StateStackInitialCountVariable = InitialSettings.GetString("VariableStateStackInitialCount");
 

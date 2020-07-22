@@ -381,7 +381,7 @@ namespace Grammlator {
 
          var AttributeIdentifierStringIndexes = new Int32[count];
          for (Int32 i = 0; i < count; i++)
-            AttributeIdentifierStringIndexes[i] = this[Count - count + i].NameStringIndex;
+            AttributeIdentifierStringIndexes[i] = this[Count - count + i].NameStringIndex; // PROBLEM ??? if==0, ..[].Legth==3, this.Count==2, count == 3
 
          return AttributeIdentifierStringIndexes;
          }
@@ -405,8 +405,8 @@ namespace Grammlator {
       }
 
    /// <summary>
-   /// Modifier used for the formal parameter of the method,
-   /// specifying the actual parameter to be used
+   /// Values that may be assigned to the implementation field of formal parameters of semantic methods,
+   /// specifying conditions for generating the the actual parameter
    /// </summary>
    internal enum ParameterImplementation {
       /// <summary>
@@ -473,11 +473,12 @@ namespace Grammlator {
       /// <summary>
       /// Array with one entry for each of the formal parameters of the method
       /// </summary>
-      internal MethodParameterStruct[] MethodParameters; // TODO make non-nullable (change attributes of grammar!)
+      internal MethodParameterStruct[] MethodParameters;
 
       internal MethodClass(String methodName)
          {
          MethodName = methodName;
+         MethodParameters = Array.Empty<MethodParameterStruct>();
          }
       }
 
@@ -767,15 +768,15 @@ namespace Grammlator {
             }
 
          sb.Append('(')
-           .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[0]))
+           .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[0]))  // PROBLEM 2 elements
            .Append(' ')
-           .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[0]));
+           .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[0])); // Problem but here no element
          for (Int32 i = 2; i <= NumberOfAttributes; i++)
             {
             sb.Append(", ")
               .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[i - 1]))
               .Append(' ')
-              .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[i - 1]));
+              .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[i - 1])); // Problem but hereno element 
             }
          sb.Append(')');
          return sb;

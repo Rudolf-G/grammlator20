@@ -36,26 +36,26 @@ namespace Grammlator {
        * */
 
       public static void MakeInstanceAndExecute()
-         {
-         var p4 = new P4ReplaceNonterminalsAndOptimize ();
+      {
+         var p4 = new P4ReplaceNonterminalsAndOptimize();
 
          p4.P4aComputeStatesStackNumbersAndBranches();
          P4bShortenChainsOfActions();
          p4.P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields();
-         }
+      }
 
       /// <summary>
       /// Constructor
       /// </summary>
       private P4ReplaceNonterminalsAndOptimize()
-         {
+      {
          SamePredecessorLevelPartitionOfStates
             = new PartitionInfoArray<ParserState>(GlobalVariables.ListOfAllStates);
          SimilarStatesRelation
              = new SymmetricRelation<ParserState>(GlobalVariables.ListOfAllStates.Count);
          DistinguishableStatesRelation
              = new SymmetricRelation<ParserState>(GlobalVariables.ListOfAllStates.Count);
-         }
+      }
 
       private readonly SymmetricRelation<ParserState> SimilarStatesRelation;
       private readonly SymmetricRelation<ParserState> DistinguishableStatesRelation;
@@ -70,10 +70,10 @@ namespace Grammlator {
          ComputeDistinguishableStatesRelation,
          ComputeSimilarStatesRelation,
          ComputeBranches
-         };
+      };
 
       public void P4aComputeStatesStackNumbersAndBranches()
-         {
+      {
          // TODO Translate comment
          /*  Für Zustände, die keine Information kellern, wird die Kennung auf -1 gesetzt.
          Alle Zustaende der gleichen Klasse bezüglich der Relation Nachbar
@@ -106,7 +106,7 @@ namespace Grammlator {
 
          // nicht mehr benötigt werden jetzt: FallListe, aktuelleZustände; Vorgänger
 
-         }
+      }
 
       /// <summary>
       /// Visit all states, take all actions which apply a definition,
@@ -114,45 +114,45 @@ namespace Grammlator {
       /// Assign all states found at the same depth to the same class of the NeighborPartition.
       /// </summary>
       private void ComputeSamePredecessorLevelPartitionOfStates()
-         {
+      {
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
-            {
+         {
             foreach (ParserAction action in state.Actions!.PriorityUnwindedSetOfActions)
-               {
+            {
                if (action is ParserActionWithNextAction actionWithNextAction)
-                  {
+               {
                   if (actionWithNextAction.NextAction is Definition definition)
-                     {
+                  {
                      WalkBackAndCombineSamePredecessorLevelClasses(
                          StateToStartFrom: state,
                          Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1)
                      );
                      // In terminal and nonterminal shifts the item is one position before the end:
                      // depth must be one less than the length of the definitions elementlist
-                     }
+                  }
                   else if (actionWithNextAction.NextAction is PriorityBranchAction b)
-                     {
+                  {
                      if (b.ConstantPriorityAction != null)
-                        {
+                     {
                         /* may be (look ahead - ) Definition: reduce-reduce-conflict
                          * or (terminalTransition - ) Definition (shiftreduce): shift-reduce-conflict
                          * or (terminalTransition - ) State (shift): shift-reduce-conflict)
                          * accept ... */
                         throw new NotImplementedException("Constant priority action in PrioritBranchAction not yet implemented");
-                        }
+                     }
                      foreach (ParserAction dynamicPriorityAction in b.DynamicPriorityActions)
-                        {
+                     {
                         Debug.Assert(dynamicPriorityAction is Definition);
                         if (dynamicPriorityAction is Definition d)
                            WalkBackAndCombineSamePredecessorLevelClasses(
                                StateToStartFrom: state,
                                Depth: d.Elements.Length);
-                        }
                      }
                   }
                }
             }
          }
+      }
 
       /// <summary>
       /// Start with <paramref name="StateToStartFrom"/> and walk <paramref name="Depth"/> levels
@@ -162,7 +162,7 @@ namespace Grammlator {
       /// <param name="StateToStartFrom">state from where to walk back</param>
       /// <param name="Depth">number of levels to walk back</param>
       private void WalkBackAndCombineSamePredecessorLevelClasses(ParserState StateToStartFrom, Int32 Depth)
-         {
+      {
          // start with StateWithDefinition as single element of the set of states to evaluate 
          var statesOfThisLevel =
              new List<ParserState>(GlobalVariables.ListOfAllStates.Count)
@@ -172,13 +172,13 @@ namespace Grammlator {
 
          // Iterate Depth-1 levels
          for (Int32 remainingLength = Depth; remainingLength > 0; remainingLength--)
-            {
+         {
             // Add all predecessors of all states of this level to the list of preceding states
             foreach (ParserState stateToEvaluate in statesOfThisLevel)
-               {
+            {
                foreach (ParserState predecessor in stateToEvaluate.PredecessorList!)
                   precedingStates.Add(predecessor);
-               }
+            }
 
             Debug.Assert(precedingStates.Count != 0, "Error in phase4: no predecessor)");
 
@@ -199,8 +199,8 @@ namespace Grammlator {
 
             // As new empty list of preceding states the old cleared list of states to evaluate is reused 
             precedingStates = temp;
-            }
          }
+      }
 
       /// <summary>
       /// Visit all states, take all actions which apply a definition,
@@ -209,14 +209,14 @@ namespace Grammlator {
       /// </summary> 
       /// <param name="TypeOfEvaluation"></param>
       private void EvaluatePrecedingStates(RelationtypeEnum TypeOfEvaluation)
-         {
+      {
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
-            {
+         {
             foreach (ParserAction action in state.Actions!.PriorityUnwindedSetOfActions)
-               {
+            {
                if ((action is ParserActionWithNextAction actionWithNextAction)
                    && (actionWithNextAction.NextAction is Definition definition))
-                  {
+               {
                   actionWithNextAction.NextAction =
                       EvaluatePredecessors(
                           TypeOfEvaluation,
@@ -229,10 +229,10 @@ namespace Grammlator {
 
                   actionWithNextAction.NextAction =
                       SimplifiedNextAction(actionWithNextAction.NextAction);
-                  }
                }
             }
          }
+      }
 
       /// <summary>
       /// Start with <paramref name="StateToStartFrom"/> and walk <paramref name="Depth"/> levels
@@ -250,7 +250,7 @@ namespace Grammlator {
           ParserState StateToStartFrom,
           Definition DefinitionToReplace,
           Int32 Depth)
-         {
+      {
          ParserAction result = DefinitionToReplace; // Voreinstellung: gleiche (also keine geänderte Aktion) zurückgeben
 
          var statesOfThisLevel =
@@ -259,20 +259,20 @@ namespace Grammlator {
 
          var precedingStates = new List<ParserState>();
 
-         Int32 numberOfStatemarkersToPop = 0; // used only if RelationtypeEnum.ComputeBranches
+         Int32 countOfStatemarkersToPop = 0; // used only if RelationtypeEnum.ComputeBranches
 
          // Stufenweise alle Vorgänger des Zustands bestimmen und dabei die Nachbarrelation und die Kellertiefe berechnen            
-         for (Int32 Restlänge = Depth; Restlänge > 0; Restlänge--)
-            {
+         for (Int32 remainingDepth = Depth; remainingDepth > 0; remainingDepth--)
+         {
             // Die Vorgänger aller Zustande der aktuellen Zustandsliste in die Vorgängerliste aufnehmen
             foreach (ParserState state in statesOfThisLevel)
-               {
+            {
                foreach (ParserState predecessor in state.PredecessorList!)
-                  {
+               {
                   if (!precedingStates.Contains(predecessor))
                      precedingStates.Add(predecessor);
-                  }
                }
+            }
 
             Debug.Assert(precedingStates.Count != 0, "Error in phase4: no predecessor)");
 
@@ -280,9 +280,9 @@ namespace Grammlator {
             // States with <=0 won't push and are not counted 
             if (TypeOfEvaluation == RelationtypeEnum.ComputeBranches
                 && statesOfThisLevel[0].StateStackNumber >= 0)
-               {
-               numberOfStatemarkersToPop++;
-               }
+            {
+               countOfStatemarkersToPop++;
+            }
 
             // The contents of statesToEvaluate is no longer needed, the lists capacity will be reused
             statesOfThisLevel.Clear();
@@ -293,7 +293,7 @@ namespace Grammlator {
 
             // As new empty list of preceding states the old cleared list of states to evaluate is reused 
             precedingStates = temp;
-            }
+         }
 
          /*  Die durch die gegebene Alternative aus dem gegebenen Zustand erreichbaren Zustände,
           *  die das Startitem der anzuwendenden Alternative enthalten, sind gefunden.
@@ -305,8 +305,7 @@ namespace Grammlator {
          NonterminalSymbol definedSymbol = DefinitionToReplace.DefinedSymbol!;
 
          switch (TypeOfEvaluation)
-            {
-         // case RelationtypeEnum.PrepareDistinguishableStatesRelation:
+         {
          case RelationtypeEnum.ComputeDistinguishableStatesRelation:
          case RelationtypeEnum.ComputeSimilarStatesRelation:
             FolgeaktionenPaarweiseVergleichen(TypeOfEvaluation, statesOfThisLevel, definedSymbol);
@@ -319,22 +318,22 @@ namespace Grammlator {
                     ? ListOfBranchcases[0].BranchcaseAction
                     : FindOrConstructBranch(ListOfBranchcases);
 
-            if (DefinitionToReplace.HasNoSemantics() && (numberOfStatemarkersToPop == 0)
+            if (DefinitionToReplace.HasNoSemantics() && (countOfStatemarkersToPop == 0)
                 && DefinitionToReplace.DefinedSymbol != GlobalVariables.Startsymbol)
-               {
+            {
                result = NextAction;
-               }
+            }
             else
                result = MakeReduceAction(
-                   numberOfStatemarkersToPop,
+                   countOfStatemarkersToPop,
                    DefinitionToReplace,
                    NextActionOfReduce: NextAction);
             return result;
 
          default:
             throw new ErrorInGrammlatorProgramException("unknown argument " + nameof(TypeOfEvaluation));
-            }
-         } // Ende von VorgängerSindNachbarn
+         }
+      } // Ende von VorgängerSindNachbarn
 
       /// <summary>
       /// Feststellen, welche der aktuellen Zustände unterschieden werden müssen
@@ -347,60 +346,60 @@ namespace Grammlator {
           RelationtypeEnum TypeOfEvaluation,
           List<ParserState> StatesWhichAcceptTheNonterminal,
           NonterminalSymbol NonterminalToInputInStates)
-         {
+      {
          // for all pairs of states with state1Index < state2Index
          for (Int32 state1Index = 0; state1Index < StatesWhichAcceptTheNonterminal.Count; state1Index++)
-            {
+         {
             ParserAction nextAction1 = SimplifiedNextAction(
                    StatesWhichAcceptTheNonterminal[state1Index].ActionCausedBy(NonterminalToInputInStates));
 
             for (Int32 state2Index = state1Index + 1; state2Index < StatesWhichAcceptTheNonterminal.Count; state2Index++)
-               {
+            {
                ParserAction nextAction2 = SimplifiedNextAction(
                    StatesWhichAcceptTheNonterminal[state2Index].ActionCausedBy(NonterminalToInputInStates));
 
                switch (TypeOfEvaluation)
-                  {
+               {
                case RelationtypeEnum.ComputeDistinguishableStatesRelation:
-                     {
-                     // 2. Schritt: die ZustandsRelationVerschieden bestimmen
-                     // Prüfen: wäre es sinnvoll, zuvor eine Äquivalenz-Klasseneinteilung für die Zustände 
-                     // zu ermitteln und zu verwenden?
-                     if (
-                         !ActionsDoTheSame(
+               {
+                  // 2. Schritt: die ZustandsRelationVerschieden bestimmen
+                  // Prüfen: wäre es sinnvoll, zuvor eine Äquivalenz-Klasseneinteilung für die Zustände 
+                  // zu ermitteln und zu verwenden?
+                  if (
+                      !ActionsDoTheSame(
+                      StatesWhichAcceptTheNonterminal[state1Index],
+                      StatesWhichAcceptTheNonterminal[state2Index],
+                      nextAction1,
+                      nextAction2))
+                  {
+                     DistinguishableStatesRelation.Add(
                          StatesWhichAcceptTheNonterminal[state1Index],
-                         StatesWhichAcceptTheNonterminal[state2Index],
-                         nextAction1,
-                         nextAction2))
-                        {
-                        DistinguishableStatesRelation.Add(
-                            StatesWhichAcceptTheNonterminal[state1Index],
-                            StatesWhichAcceptTheNonterminal[state2Index]);
-                        }
-                     break;
-                     }
-               case RelationtypeEnum.ComputeSimilarStatesRelation:
-                     {
-                     // 3. Schritt: die ZustandsRelationÄhnlich bestimmen
-                     if (!DistinguishableStatesRelation.Contains(
-                         StatesWhichAcceptTheNonterminal[state1Index],
-                         StatesWhichAcceptTheNonterminal[state2Index])
-                         && ActionsDoTheSame(
-                             StatesWhichAcceptTheNonterminal[state1Index],
-                             StatesWhichAcceptTheNonterminal[state2Index],
-                             nextAction1,
-                             nextAction2))
-                        {
-                        SimilarStatesRelation.Add(
-                            StatesWhichAcceptTheNonterminal[state1Index],
-                            StatesWhichAcceptTheNonterminal[state2Index]);
-                        }
-                     break;
-                     }
+                         StatesWhichAcceptTheNonterminal[state2Index]);
                   }
+                  break;
+               }
+               case RelationtypeEnum.ComputeSimilarStatesRelation:
+               {
+                  // 3. Schritt: die ZustandsRelationÄhnlich bestimmen
+                  if (!DistinguishableStatesRelation.Contains(
+                      StatesWhichAcceptTheNonterminal[state1Index],
+                      StatesWhichAcceptTheNonterminal[state2Index])
+                      && ActionsDoTheSame(
+                          StatesWhichAcceptTheNonterminal[state1Index],
+                          StatesWhichAcceptTheNonterminal[state2Index],
+                          nextAction1,
+                          nextAction2))
+                  {
+                     SimilarStatesRelation.Add(
+                         StatesWhichAcceptTheNonterminal[state1Index],
+                         StatesWhichAcceptTheNonterminal[state2Index]);
+                  }
+                  break;
+               }
                }
             }
          }
+      }
 
       /// <summary>
       /// Without optimization each generated state pushes its number on the state stack.
@@ -409,22 +408,22 @@ namespace Grammlator {
       /// </summary>
       /// <returns>number of states with StateStackNumber == -1</returns>
       private Int32 DetermineNotStackingStates()
-         {
+      {
          Int32 NotPushingStatesCount = 0;
 
          // for all classes of the SamePredecessorLevelPartitionOfStates
          foreach (ParserState classRepresentative in SamePredecessorLevelPartitionOfStates.ClassRepresentatives)
-            {
+         {
             // Search a member of this class that must push a number on the states stack
             Boolean foundPushing = false;
             foreach (ParserState Neighbor in SamePredecessorLevelPartitionOfStates.ElementsOfClass(classRepresentative))
-               {
+            {
                if (DistinguishableStatesRelation.ContainsKey(Neighbor.IdNumber))
-                  {
+               {
                   foundPushing = true;
                   break;
-                  }
                }
+            }
 
             if (foundPushing)
                continue;
@@ -433,18 +432,18 @@ namespace Grammlator {
             // Each member of this class does not need to push a value on the state stack
             // Their StateStackNumbers are set to 0
             foreach (ParserState Neighbor in SamePredecessorLevelPartitionOfStates.ElementsOfClass(classRepresentative))
-               {
+            {
                if (Neighbor.StateStackNumber >= 0)
-                  {
+               {
                   NotPushingStatesCount++;
                   Neighbor.StateStackNumber = -1;
-                  }
                }
-
             }
 
-         return NotPushingStatesCount;
          }
+
+         return NotPushingStatesCount;
+      }
 
       /// <summary>
       /// Construct a list (action/StateStacknumber) which contains for each state the action resulting if the inputSymbol is input into this state.
@@ -454,7 +453,7 @@ namespace Grammlator {
       /// <param name="inputSymbol">The nonterminal symbol which is allowed as input in each of the states</param>
       /// <returns></returns>
       private static BranchcasesList ConstructListOfBranchcases(List<ParserState> listOfStates, NonterminalSymbol inputSymbol)
-         {
+      {
          // wird aufgerufen aus VorgängerSindNacharn,nach günstigeKennungenBerechnen()
          var ListOfCases = new BranchcasesList(listOfStates.Count);
 
@@ -468,7 +467,7 @@ namespace Grammlator {
 
          // for each other state in the list of states
          for (Int32 StateIndex = 1; StateIndex < listOfStates.Count; StateIndex++)
-            {
+         {
             // Find the action caused by inputSymbol and add it to the list of cases
             ParserState StateI = listOfStates[StateIndex];
             ParserAction ActionI = SimplifiedNextAction(StateI.ActionCausedBy(inputSymbol));
@@ -476,31 +475,31 @@ namespace Grammlator {
 
             // Determine if this Action is equivalent to the first action
             Equivalent &= ActionsDoTheSame(State1, StateI, Action1, ActionI);
-            }
+         }
 
          // if all cases are equivalent: remove all except the first one from the list
          if (Equivalent)
             ListOfCases.RemoveRange(1, ListOfCases.Count - 1);
 
          return ListOfCases;
-         }
+      }
 
       private static void AddCase(BranchcasesList listOfCases, Int32 StateStackNumber, ParserAction f1)
-         {
+      {
          var NewCase = new BranchcaseStruct(StateStackNumber, f1);
 
          if (listOfCases.Contains(NewCase))
             return;
          listOfCases.Add(NewCase);
          return;
-         }
+      }
 
       private static Boolean ActionsDoTheSame(
           ParserState state1,
           ParserState state2,
           ParserAction action1,
           ParserAction action2)
-         {
+      {
          if (action1 == null || action2 == null)
             return false; // should not occur
          if (action1 is Definition)
@@ -511,9 +510,9 @@ namespace Grammlator {
          if (action1 is HaltAction a1HaltAction
              && action2 is HaltAction a2HaltAction
              && a1HaltAction.AttributestackAdjustment == a2HaltAction.AttributestackAdjustment)
-            {
+         {
             return true;
-            }
+         }
 
          return action1 is NonterminalTransition a1AsNonterminalTransition
              && action2 is NonterminalTransition a2AsNonterminalTransition
@@ -523,100 +522,119 @@ namespace Grammlator {
                      state2,
                      a1AsNonterminalTransition.NextAction,
                      a2AsNonterminalTransition.NextAction);
-         }
+      }
 
-      private static readonly StringBuilder reduceStringBuilderTemp = new StringBuilder(80);
+      private static readonly StringBuilder reduceStringBuilder = new StringBuilder(80);
 
+      /// <summary>
+      /// Constructs a <see cref="ReduceAction"/> with special handling of the Startsymbol.
+      /// </summary>
+      /// <param name="stateStackAdjustment">ge 0</param>
+      /// <param name="Definition"></param>
+      /// <param name="NextActionOfReduce"></param>
+      /// <returns>Returns the reduce action or an </returns>
       private static ParserAction MakeReduceAction(
-          Int32 DepthOfSyntaxStack,
+          Int32 stateStackAdjustment,
           Definition Definition,
           ParserAction NextActionOfReduce)
-         {
+      {
+         Debug.Assert(stateStackAdjustment >= 0);
+
          // Compose description
          Definition.DefinedSymbol!
-            .IdentifierAndAttributesToSB(reduceStringBuilderTemp)
+            .IdentifierAndAttributesToSB(reduceStringBuilder)
             .Append("= ");
          Definition
-             .ToStringbuilder(reduceStringBuilderTemp, Definition!.Elements.Length + 1);
-         String description = reduceStringBuilderTemp.ToString();
-         reduceStringBuilderTemp.Clear();
+             .ToStringbuilder(reduceStringBuilder, Definition!.Elements.Length + 1);
+         String description = reduceStringBuilder.ToString();
+         reduceStringBuilder.Clear();
 
          // construct reduceAction
-         var reduceAction = new ReduceAction(NextActionOfReduce) {
+         var newReduceAction = new ReduceAction(NextActionOfReduce) {
             IdNumber = GlobalVariables.ListOfAllReductions.Count,// starting with 0
             Description = description,
-            StateStackAdjustment = DepthOfSyntaxStack,
+            StateStackAdjustment = stateStackAdjustment,
             // PriorityFunction = Definition.PriorityFunction, // has already been copied from Definition to PrioritySelectAction
             SemanticMethod = Definition.SemanticMethod,
             AttributeStackAdjustment = Definition.AttributestackAdjustment,
             // because optimizations may change AttributeStackAdjustment the 
             // value of the condition "AttributeStackAdjustment > 0" must be saved
             FirstAdjustAttributeStackThenCallMethod = Definition.AttributestackAdjustment > 0
-            };
+         };
 
          /* Handle the special case of definitions of the startsymbol:
           *   The reduce action shall not remove the attributes of the definition from the parsers attribute stack.
           *   Those attributes shall be copied by the parsers halt action to the attributes of the result.
           */
          if (Definition.DefinedSymbol == GlobalVariables.Startsymbol)
-            {
+         {
             Debug.Assert(NextActionOfReduce == GlobalVariables.ListOfAllHaltActions[0]);
             Debug.Assert(Definition.AttributestackAdjustment <= 0); // because the startsymbol has no attributes
 
             if (Definition.AttributestackAdjustment == 0 && GlobalVariables.ListOfAllStates[0].StateStackNumber < 0)
-               {
-               reduceAction.NextAction = GlobalVariables.TheEndOfGeneratedCodeAction;
-               }
+            {
+               newReduceAction.NextAction = GlobalVariables.TheEndOfGeneratedCodeAction;
+            }
             else
-               {
+            {
                HaltAction? haltAction =
                GlobalVariables.ListOfAllHaltActions.Find(h => h.AttributestackAdjustment == -Definition.AttributestackAdjustment);
 
                if (haltAction == null)
-                  {
+               {
                   haltAction =
                       new HaltAction(
                           GlobalVariables.ListOfAllHaltActions.Count,
                           -Definition.AttributestackAdjustment
                           );
                   GlobalVariables.ListOfAllHaltActions.Add(haltAction);
-                  }
-
-               reduceAction.NextAction = haltAction;
                }
 
-            reduceAction.AttributeStackAdjustment = 0; // the halt action will remove the attributes from the stack (if any)
+               newReduceAction.NextAction = haltAction;
             }
 
-         reduceAction.NextAction = SimplifiedNextAction(reduceAction.NextAction);
+            newReduceAction.AttributeStackAdjustment = 0; // the halt action will remove the attributes from the stack (if any)
+         }
 
-         SimplifyChainOfReductions(reduceAction);
+         newReduceAction.NextAction = SimplifiedNextAction(newReduceAction.NextAction);
+
+         SimplifyChainOfReductions(newReduceAction);
 
          // gleichartige Reduktion suchen - falls gefunden return
-         ReduceAction? gleichartigeReduktion = null;
-         foreach (ReduceAction vReduktion in GlobalVariables.ListOfAllReductions)
-            {
+         ReduceAction? foundReduceAction = null;
+         foreach (ReduceAction existingReduceAction in GlobalVariables.ListOfAllReductions)
+         {
             if (
-            vReduktion.StateStackAdjustment == reduceAction.StateStackAdjustment
-            && vReduktion.SemanticMethod == reduceAction.SemanticMethod
-            && vReduktion.AttributeStackAdjustment == reduceAction.AttributeStackAdjustment
-            && vReduktion.NextAction == reduceAction.NextAction
-            && !(vReduktion.NextAction is Definition)
+            existingReduceAction.StateStackAdjustment == newReduceAction.StateStackAdjustment
+            && existingReduceAction.SemanticMethod == newReduceAction.SemanticMethod
+            && existingReduceAction.AttributeStackAdjustment == newReduceAction.AttributeStackAdjustment
+            && existingReduceAction.NextAction == newReduceAction.NextAction
+            && !(existingReduceAction.NextAction is Definition)
             )
-               {   //gefunden
-               gleichartigeReduktion = vReduktion;
+            {   //found 
+               foundReduceAction = existingReduceAction;
                break;
-               }
             }
+         }
 
-         // TODO: welcher Verweis auf eine Alternative sollte zurück gegeben werden? siehe oben unter Prüfen:
-         if (gleichartigeReduktion != null)
-            return gleichartigeReduktion;
+         if (foundReduceAction != null)
+         {
+            // combine descriptions
+            if (!foundReduceAction.Description.Contains(newReduceAction.Description)) // CHECK 
+            {
+               reduceStringBuilder.AppendLine(foundReduceAction.Description);
+               reduceStringBuilder.Append("or: ");
+               reduceStringBuilder.Append(newReduceAction.Description);
+               foundReduceAction.Description = reduceStringBuilder.ToString();
+               reduceStringBuilder.Clear();
+            }
+            return foundReduceAction;
+         }
 
          // nicht gefunden => aufnehmen
-         GlobalVariables.ListOfAllReductions.Add(reduceAction);
-         return reduceAction;
-         }
+         GlobalVariables.ListOfAllReductions.Add(newReduceAction);
+         return newReduceAction;
+      }
 
       /// <summary>
       /// If action has a chain of unambigous next actions the last of these will be returned,
@@ -626,15 +644,16 @@ namespace Grammlator {
       /// <param name="action">the action to start from</param>
       /// <returns>the last action of the chain of redundant actions</returns>
       internal static ParserAction SimplifiedNextAction(ParserAction action)
-         {
+      {
          switch (action)
-            {
+         {
          case NonterminalTransition nonterminalTransition:
-               {
-               if (nonterminalTransition.NextAction is Definition)
-                  return action;
-               return nonterminalTransition.NextAction = SimplifiedNextAction(nonterminalTransition.NextAction);
-               }
+         {
+            if (nonterminalTransition.NextAction is Definition)
+               return action;
+            // CHECK can it be guaranteed that the following recursion ends?
+            return nonterminalTransition.NextAction = SimplifiedNextAction(nonterminalTransition.NextAction);
+         }
 
          case ParserState state:
             /* if the parser state does not push on the state stack
@@ -654,74 +673,81 @@ namespace Grammlator {
                 : action;
 
          case ReduceAction reduceAction:
+         {
+            /* After replacing all Definitions by reduceActions
+             * there may exist identical reduce actions in the list of all reduce actions. 
+             * Replace all references by a reference to the first one
+             */
+
+            if (reduceAction.NextAction == GlobalVariables.TheEndOfGeneratedCodeAction
+               && reduceAction.StateStackAdjustment == 0
+               && reduceAction.AttributeStackAdjustment == 0
+               && reduceAction.SemanticMethod == null)
+               return GlobalVariables.TheEndOfGeneratedCodeAction;
+
+            foreach (ReduceAction listedReduceAction in GlobalVariables.ListOfAllReductions)
+            {
+               if (
+               listedReduceAction.StateStackAdjustment == reduceAction.StateStackAdjustment
+               && listedReduceAction.SemanticMethod == reduceAction.SemanticMethod
+               && listedReduceAction.AttributeStackAdjustment == reduceAction.AttributeStackAdjustment
+               && listedReduceAction.NextAction == reduceAction.NextAction
+               && !(listedReduceAction.NextAction is Definition)
+               )
                {
-               /* After replacing all Definitions by reduceActions
-* there may exist identical reduce actions in the list of all reduce actions. 
-* Replace all references by a reference to the first one
-*/
-               foreach (ReduceAction listedReduceAction in GlobalVariables.ListOfAllReductions)
+                  if (listedReduceAction.Description != reduceAction.Description)
                   {
-                  if (
-                  listedReduceAction.StateStackAdjustment == reduceAction.StateStackAdjustment
-                  && listedReduceAction.SemanticMethod == reduceAction.SemanticMethod
-                  && listedReduceAction.AttributeStackAdjustment == reduceAction.AttributeStackAdjustment
-                  && listedReduceAction.NextAction == reduceAction.NextAction
-                  && !(listedReduceAction.NextAction is Definition)
-                  )
-                     {
-                     if (listedReduceAction.Description != reduceAction.Description)
-                        {
-                        listedReduceAction.Description = String.Concat(
-                           listedReduceAction.Description,
-                           Environment.NewLine,
-                           "or: ",
-                           reduceAction.Description);
-                        }
-
-                     return listedReduceAction;
-                     }
-                  }
-               Debug.Fail("ReduceAction not found in list");
-               return reduceAction;
-               }
-
-         case BranchAction branch:
-               {
-               List<BranchcaseStruct> branchCaseList = branch.ListOfCases;
-
-               // Simplify the actions of a branch 
-               for (Int32 i = 0; i < branchCaseList.Count; i++)
-                  {
-                  BranchcaseStruct branchCase = branchCaseList[i];
-                  branchCase.BranchcaseAction = SimplifiedNextAction(branchCase.BranchcaseAction);
-                  // TOCHECK may this cause endless recursion ?? 
-                  branchCaseList[i] = branchCase;
+                     listedReduceAction.Description = String.Concat(
+                        listedReduceAction.Description,
+                        Environment.NewLine,
+                        "or: ",
+                        reduceAction.Description);
                   }
 
-               Debug.Assert(branchCaseList.Count > 0);
-
-               // test if all cases now (after optimization) have the same action
-               BranchcaseStruct branchCase0 = branchCaseList[0];
-               for (Int32 i = 1; i < branchCaseList.Count; i++)
-                  {
-                  if (branchCaseList[i].BranchcaseAction != branchCase0.BranchcaseAction)
-                     return branch; // at least one is different: return the (optimized) branch
-                  }
-
-               // all cases have the same action 
-               return branchCase0.BranchcaseAction;
+                  return listedReduceAction;
                }
             }
+            Debug.Fail("ReduceAction not found in list");
+            return reduceAction;
+         }
+
+         case BranchAction branch:
+         {
+            List<BranchcaseStruct> branchCaseList = branch.ListOfCases;
+
+            // Simplify the actions of a branch 
+            for (Int32 i = 0; i < branchCaseList.Count; i++)
+            {
+               BranchcaseStruct branchCase = branchCaseList[i];
+               branchCase.BranchcaseAction = SimplifiedNextAction(branchCase.BranchcaseAction);
+               // TOCHECK may this cause endless recursion ?? 
+               branchCaseList[i] = branchCase;
+            }
+
+            Debug.Assert(branchCaseList.Count > 0);
+
+            // test if all cases now (after optimization) have the same action
+            BranchcaseStruct branchCase0 = branchCaseList[0];
+            for (Int32 i = 1; i < branchCaseList.Count; i++)
+            {
+               if (branchCaseList[i].BranchcaseAction != branchCase0.BranchcaseAction)
+                  return branch; // at least one is different: return the (optimized) branch
+            }
+
+            // all cases have the same action 
+            return branchCase0.BranchcaseAction;
+         }
+         }
 
          return action;
-         } // SimplyfiedNextAction(ParserAction action) 
+      } // SimplyfiedNextAction(ParserAction action) 
 
       /// <summary>
       /// Test if <paramref name="Reduction"/>.NextAction is also a <see cref="ReduceAction"/> and combine them if possible
       /// </summary>
       /// <param name="Reduction"></param>
       private static void SimplifyChainOfReductions(ReduceAction Reduction)
-         {
+      {
          if (!(Reduction.NextAction is ReduceAction nextReduction))
             return;
 
@@ -729,19 +755,25 @@ namespace Grammlator {
 
          // TODO add correct handling of semantic PriorityFunction
 
+         // do not include nextReduction, if nextReduction has a semantic method (which might be duplicated)
+         if (nextReduction.SemanticMethod != null)
+            return;
+
+         // do not combine, if this will cause an additional AttributeStackAdjustment
+         if (Reduction.AttributeStackAdjustment == 0 && nextReduction.AttributeStackAdjustment != 0)
+            return;
+
          if (Reduction.SemanticMethod == null && nextReduction.SemanticMethod == null)
-            {
+         {
             // The reductions can be combined: both have no semantic action
             // AttributeStackAdjustment s can be added
-            }
-         else
-         if (Reduction.SemanticMethod == null)
-            {
-            // nextReduction.SemanticMethod != null
+         }
+         else if (Reduction.SemanticMethod == null)
+         {
+            Debug.Assert(Reduction.SemanticMethod == null && nextReduction.SemanticMethod != null);
+
             // The semantic method of nextReduction can be copied to reduction
             // and the nextReduction be skipped. This may cause duplication of generated code!
-
-            return; // return to avoid duplication of code; therefore the following code is commented out
 
             //TODO Test if a reference count can be introduced (if 1 try to combine)
 
@@ -770,31 +802,32 @@ namespace Grammlator {
             //    return; // do not combine because the atribute stack has to be adjusted before and after the method
 
             //Reduction.SemanticMethod = nextReduction.SemanticMethod;
-            }
-         else // at least one of the reductions has a semantic method assigned
+         }
+         else
          if (nextReduction.SemanticMethod == null)
-            {
+         {
+            // Reduction.SemanticMethod != null && nextReduction.SemanticMethod == null
             Debug.Assert(Reduction.SemanticMethod != null);
             // combined Reduction.SemanticMethod
             if (nextReduction.AttributeStackAdjustment == 0)
-               {
+            {
                // combined Reduction.AttributeStackAdjustment += 0;
                // combined Reduction.FirstAdjustAttributeStackThenCallMethod
-               }
+            }
             else if (Reduction.AttributeStackAdjustment == 0 || !Reduction.FirstAdjustAttributeStackThenCallMethod)
-               {
+            {
                // the combined reduction has no AttributeStackAdjustment to be done before the method call
                Reduction.FirstAdjustAttributeStackThenCallMethod = false;
-               }
+            }
             else
-               {
-               return; // do not combine
-               }
-            }
-         else
             {
-            return; // do not combine
+               return; // do not combine
             }
+         }
+         else
+         { // both have semantic methods
+            return; // do not combine
+         }
 
          // Combine into Reduction
 
@@ -804,10 +837,10 @@ namespace Grammlator {
          Reduction.Description = Reduction.Description + Environment.NewLine + "then: " + nextReduction.Description;
 
          SimplifyChainOfReductions(Reduction);
-         }
+      }
 
       public static BranchAction FindOrConstructBranch(BranchcasesList newListOfCases)
-         {
+      {
          /* Optimierungsmöglichkeit (derzeit teils realisiert ??):
           * es können bereits vorhandene Verzweigungen gesucht werden, die die
           * neue Verzweigung enthalten oder mit ihr zu einer komplexeren ver-
@@ -817,7 +850,7 @@ namespace Grammlator {
 
          // Search: compare with all existing branches
          foreach (BranchAction NextExistingBranch in GlobalVariables.ListOfAllBranchActions)
-            {
+         {
             BranchcasesList NextExistingBranchCases = NextExistingBranch.ListOfCases;
 
             // zutreffend sind auch Obermengen von FallListe
@@ -825,16 +858,16 @@ namespace Grammlator {
 
             // test all cases of the new list whether they are contained in NextExistingBranch
             for (Int32 NewCaseindex = 0; NewCaseindex < newListOfCases.Count; NewCaseindex++)
-               {
+            {
                NextNewCase = newListOfCases[NewCaseindex];
 
                // search the BranchcaseCondition of the new list in the existing brach
                Boolean NewCaseIsContainedInBranch = false;
                for (Int32 ExistingCaseindex = 0; ExistingCaseindex < NextExistingBranchCases.Count; ExistingCaseindex++)
-                  { // nächsten Vergleichsfall wählen, dabei alle Vergleichsfälle mit kleinerer Kennung ignorieren
+               { // nächsten Vergleichsfall wählen, dabei alle Vergleichsfälle mit kleinerer Kennung ignorieren
                   BranchcaseStruct NextExistingCase = NextExistingBranchCases[ExistingCaseindex];
                   if (NextExistingCase.BranchcaseCondition == NextNewCase.BranchcaseCondition)
-                     {
+                  {
                      // The following simplifiing reduces the number of generated lines.
                      // Is this the right place to do it???
                      NextExistingCase.BranchcaseAction = SimplifiedNextAction(NextExistingCase.BranchcaseAction);
@@ -844,14 +877,14 @@ namespace Grammlator {
                         NextExistingCase.BranchcaseAction == NextNewCase.BranchcaseAction;
 
                      break; // found the unique NextExistingCase with .BranchcaseCondition == NextNewCase.BranchcaseCondition
-                     }
                   }
+               }
 
                if (!NewCaseIsContainedInBranch)
                   goto CheckNextExistingBranch; // NextNewCase is not contained in NextExistingBranch=> check next exisitng branch 
 
                // continue: check next case of newListOfCases
-               }
+            }
 
             // new list is contained in NextExistingBranch
 
@@ -859,9 +892,9 @@ namespace Grammlator {
 
             return NextExistingBranch; // die gefundene Obermenge zurückgeben
 
-         CheckNextExistingBranch:
+CheckNextExistingBranch:
             ;
-            }
+         }
 
          // all existing branches have been checked and no one contains the new list of cases
 
@@ -873,10 +906,10 @@ namespace Grammlator {
          GlobalVariables.ListOfAllBranchActions.Add(NewBranch);
 
          return NewBranch;
-         } // end of FindOrConstructBranch
+      } // end of FindOrConstructBranch
 
       public void AssignStatesSmallStackNumbers()
-         {
+      {
          // Ohne Optimierung hat jeder Zustand seine eindeutige Nummer als Kennung oder
          // (wenn er als Folge von ptimierungen nicht kellernd ist) die Kennung 0.
          // Hier wird für jeden kellernden Zustand eine möglichst kleine Kennung gesucht, die kleiner gleich seiner Nummer ist.
@@ -889,7 +922,7 @@ namespace Grammlator {
          foreach (ParserState ParserState in GlobalVariables.ListOfAllStates
          .Where((state) => state.StateStackNumber >= 0)
          )
-            {
+         {
             Int32 StateIdNumber = ParserState.IdNumber;
 
             // Determine which numbers must not be assigned to the state.
@@ -901,49 +934,49 @@ namespace Grammlator {
             // and which are in relation DistinguishableStatesRelation to the actual state
             // are not allowed
             if (DistinguishableStatesRelation.ContainsKey(StateIdNumber))
-               {
+            {
                foreach (ParserState distinguishableStateWithAssignedNumber
                    in DistinguishableStatesRelation[StateIdNumber].Where((s) => s.IdNumber < StateIdNumber))
-                  {
+               {
                   AllowedStackNumbers[distinguishableStateWithAssignedNumber.StateStackNumber] = false;
-                  }
                }
+            }
 
             // Search similar states with a lower StateStackNumber and use this if allowed
             Int32 stackNumber = StateIdNumber; // >=0
 
             if (SimilarStatesRelation.ContainsKey(StateIdNumber))
-               {
+            {
                foreach (ParserState similarState in SimilarStatesRelation[StateIdNumber])
-                  {
+               {
                   if (similarState.StateStackNumber < stackNumber
                       && AllowedStackNumbers[similarState.StateStackNumber])
-                     {
+                  {
                      stackNumber = similarState.StateStackNumber;
-                     }
                   }
                }
+            }
 
             // If no similar state found (which would have a smaller number) use smallest allowed number
             if (stackNumber == StateIdNumber)
                stackNumber = Array.FindIndex(AllowedStackNumbers, (allowed) => allowed);
 
             ParserState.StateStackNumber = stackNumber;
-            }
          }
+      }
 
       /// <summary>
       /// Kürzen von Ketten von Aktionen, g.Startaktion bestimmen und Codenummern der Zustände auf 0 setzen 
       /// </summary>
       public static void P4bShortenChainsOfActions()
-         {
+      {
          for (Int32 StateIndex = 0; StateIndex < GlobalVariables.ListOfAllStates.Count; StateIndex++)
-            {
+         {
             ParserState State = GlobalVariables.ListOfAllStates[StateIndex];
 
             State.Codenumber = 0;
             for (Int32 ActionIndex = 0; ActionIndex < State.Actions.Count; ActionIndex++)
-               {
+            {
                if (!(State.Actions[ActionIndex] is ParserActionWithNextAction ActionWithNextAction))
                   continue;
 
@@ -951,23 +984,23 @@ namespace Grammlator {
 
                // falls die Aktionenliste mehrere terminale Übergänge mit gleicher Folgeaktion enthält, diese zusammenfassen
                if (ActionWithNextAction is TerminalTransition ActionAsTerminalTransition)
-                  {
+               {
                   for (Int32 ActionToCompareIndex = 0; ActionToCompareIndex < ActionIndex; ActionToCompareIndex++)
-                     {
+                  {
                      if (!(State.Actions[ActionToCompareIndex] is TerminalTransition ActionToCompare))
                         continue;
 
                      if (ActionToCompare.NextAction == ActionAsTerminalTransition.NextAction)
-                        {
+                     {
                         ActionToCompare.TerminalSymbols.Or(ActionAsTerminalTransition.TerminalSymbols);
                         State.Actions.RemoveAt(ActionIndex); // erfordert Korrektur des Aktionenindex !!!
                         ActionIndex--; // so that the new action (if any) at this index will be checked also
                                        // ActionToCompareIndex is smaller than ActionIndex and not affected by remove
                         break;
-                        }
                      }
                   }
                }
+            }
 
             // direkt nachfolgende Zustände, die wegen Optimierung nicht erreichbar sind, aus der Liste entfernen
             // (falls sie noch über Aktionen verkettet sind, bleiben sie verfügbar)
@@ -975,7 +1008,7 @@ namespace Grammlator {
             Int32 IndexOfNextState = StateIndex + 1;
             while (IndexOfNextState < GlobalVariables.ListOfAllStates.Count
                 && GlobalVariables.ListOfAllStates[IndexOfNextState].StateStackNumber < 0)
-               {
+            {
                ParserAction? singleAction = GlobalVariables.ListOfAllStates[IndexOfNextState].RedundantLookaheadOrSelectActionOrNull();
                if (singleAction == null)
                   break; // Der Zustand ist erreichbar
@@ -983,39 +1016,39 @@ namespace Grammlator {
                   break;
                GlobalVariables.ListOfAllStates.RemoveAt(IndexOfNextState);
                // nächsterZustandIndex bezeichnet jetzt den nachfolgenden Zustand, ist also nicht zu erhöhen!
-               }
-            } // for .. Zustand
+            }
+         } // for .. Zustand
 
          // Reduktionen bearbeiten: jeweils Codenummer auf 0 setzten und Folgeaktion vereinfachen
          foreach (ReduceAction r in GlobalVariables.ListOfAllReductions)
-            {
+         {
             r.Codenumber = 0;
             r.NextAction = SimplifiedNextAction(r.NextAction);
-            SimplifyChainOfReductions(r);
-            }
+            SimplifyChainOfReductions(r); // CHECK compute x.Calls and simplify using x.Calls ??
+         }
 
          // Verzweigungen bearbeiten:
          foreach (BranchAction branch in GlobalVariables.ListOfAllBranchActions)
-            {
+         {
             branch.Codenumber = 0;
             for (Int32 CaseIndex = 0; CaseIndex < branch.ListOfCases.Count; CaseIndex++)
-               {
+            {
                BranchcaseStruct Branchcase = branch.ListOfCases[CaseIndex];
                Branchcase.BranchcaseAction = SimplifiedNextAction(Branchcase.BranchcaseAction);
                branch.ListOfCases[CaseIndex] = Branchcase;
-               }
             }
+         }
 
          // Startaktion bestimmen:
          GlobalVariables.Startaction = GlobalVariables.ListOfAllStates[0];
          //do not remove the first state: not  SimplifiedNextAction(GlobalVariables.ListOfAllStates[0]);
-         }
+      }
 
       public void P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields()
-         {
+      {
          // for each state
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
-            {
+         {
             static Int32 max(Int32 a, Int32 b)
                 => a > b ? a : b;
 
@@ -1025,29 +1058,29 @@ namespace Grammlator {
             Int32 ActionComplexitySum = 0;
 
             for (Int32 ActionIndex = 0; ActionIndex < State.Actions.Count; ActionIndex++)
-               {
+            {
                if (State.Actions[ActionIndex] is NonterminalTransition
                    || State.Actions[ActionIndex] is DeletedParserAction)
-                  {
+               {
                   // Count the actions to be deleted
                   DeletedActionsCount++;
-                  }
+               }
                else
-                  {
+               {
                   // Compute Terminalcount and SumOfWeights of the remaining action
                   if (State.Actions[ActionIndex] is ConditionalAction c)
-                     {
+                  {
                      c.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);
                      MaximumActionComplexity = max(MaximumActionComplexity, c.Complexity);
                      ActionComplexitySum += c.Complexity;
-                     }
+                  }
 
                   // Shift the action by DeletedActionsCount places to the front
                   // and replace the first unused action in State.Actions with this action
                   if (DeletedActionsCount > 0)
                      State.Actions[ActionIndex - DeletedActionsCount] = State.Actions[ActionIndex];
-                  }
                }
+            }
 
             // Remove all deleted actions of this state
             if (DeletedActionsCount > 0)
@@ -1056,17 +1089,17 @@ namespace Grammlator {
             // Add error handling actions
             ErrorhandlingAction? e = State.CheckAndAddErrorAction(GlobalVariables.ErrorHandlerIsDefined);
             if (e != null)
-               {
+            {
                e.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);
                MaximumActionComplexity = max(MaximumActionComplexity, e.Complexity);
                ActionComplexitySum += e.Complexity;
-               }
+            }
 
             /* Ignore the MaximumActionComplexity because the respective action
              * might be generated as last unconditional action
              */
             State.IfComplexity = ActionComplexitySum - MaximumActionComplexity;
-            }
          }
       }
    }
+}

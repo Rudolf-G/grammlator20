@@ -27,13 +27,13 @@ namespace GrammlatorRuntime {
       internal Symbol _Symbol;
 
       [FieldOffset(0)]
-      internal VoidMethodClass _VoidMethodClass;
+      internal VoidMethodClass? _VoidMethodClass;
 
       [FieldOffset(0)]
-      internal IntMethodClass _IntMethodClass;
+      internal IntMethodClass? _IntMethodClass;
 
       [FieldOffset(0)]
-      internal MethodClass _MethodClass;
+      internal MethodClass? _MethodClass;
 
       // Value types with FieldOffset 8 (64 bit)
       // because fields of value type must not overlap fields of type object

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GrammlatorRuntime;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1010,8 +1011,8 @@ namespace Grammlator {
          codegen.IndentExactly(nestingLevel);
          codegen.AppendLine("/* Dynamic priority controlled actions */");
 
-         codegen.AppendInstruction("switch(IndexOfMaximum(");  // TODO IndexOfMaximum ??
-         // IndexOfMaximum should return the index of the 1st occurence of the minimal argument. Then:
+         codegen.AppendInstruction($"switch({GlobalVariables.MethodIndexOfMaximum}(");  // TODO allow user to set MethodIndexOfMaximum
+         // IndexOfMaximum has to return the index of the 1st occurence of the greatest argument. Then:
          // TerminalTransition (priority 0) has priority over dynamic priority value 0 because it is generated 1st !! 
          if (ps.ConstantPriorityAction != null)
             codegen.Append(ps.ConstantPriority).Append(", ");
@@ -1484,14 +1485,14 @@ namespace Grammlator {
 
          var LastAction = (ConditionalAction)State.Actions[^1];
 
-         ParserAction nextAction = LastAction;
+         ParserAction? nextAction = LastAction; //CHECK may nextAction be null?
          if (LastAction is TerminalTransition || LastAction is LookaheadAction)
             nextAction = LastAction.NextAction; // TOCHECK must nextAction.Calls be reduced by 1 ??
 
          BitArray suppressedCondition = LastAction.TerminalSymbols;
          if (nextAction != null && suppressedCondition != null)
             {
-            GenerateConditionAsComment(suppressedCondition);
+            GenerateConditionAsComment(suppressedCondition, NestingLevel);
             }
 
          Accept = LastAction is TerminalTransition;

@@ -29,9 +29,9 @@ namespace Grammlator {
          codegen.DecrementIndentationLevel();
          }
 
-      private void GenerateConditionAsComment(BitArray Condition)
+      private void GenerateConditionAsComment(BitArray Condition, Int32 nestingLevel)
          {
-         codegen.IndentExactly();
+         codegen.IndentExactly(nestingLevel);
          codegen.AppendWithOptionalLinebreak("Debug.Assert(");
          codegen.IncrementIndentationLevel();
          // codegen.Indent(nestingLevel + 1);

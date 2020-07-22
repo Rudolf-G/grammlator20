@@ -119,39 +119,39 @@ namespace Grammlator {
          if (SymbolDictionary.TryGetValue(symbolNameIndex, out Symbol? Symbol))
             {
             // The nonterminal symbol has been used already als element of a definition. The types of its attributes are known.
-            if (!(Symbol is NonterminalSymbol))
-               {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"{symbolName} has been already used as terminal symbol. ");
-               Symbol = null; // will cause the terminal symbol to be replaced in SymbolDictionary
-               // TODO test behaviour after error
-               }
-            else
-               {
-               ns = (NonterminalSymbol) Symbol;
+            if (Symbol is NonterminalSymbol symbolAsNonterminal)
+            {
+               ns = symbolAsNonterminal;
                if (ns.IsDefined)
-                  {
+               {
                   P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                       $"{symbolName} has been already defined as nonterminal symbol. ");
                   // TODO test behaviour after error
-                  }
+               }
 
                else if (ns.NumberOfAttributes != numberOfAttributes)
-                  {
+               {
                   P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                       $"{symbolName} has already been used with a different number of attributes. ");
                   // TODO test behaviour after error
-                  }
+               }
 
                else if (!AttributeTypesCoincide(ns))
-                  {
+               {
                   P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                      $"{symbolName} has already been used with at least one attribute with a different type. ");
                   // TODO test behaviour after error
-                  }
-               // The AttributtypeList has been assigned at first usage and has just been checked
                }
+               // The AttributtypeList has been assigned at first usage and has just been checked
             }
+            else
+            {
+               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                   $"{symbolName} has been already used as terminal symbol. ");
+               Symbol = null; // will cause the terminal symbol to be replaced in SymbolDictionary
+                              // TODO test behaviour after error
+            }
+         }
 
          if (Symbol != null)
             {
@@ -210,6 +210,7 @@ namespace Grammlator {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                   $"The symbol {Name} has been used at its first occurence with a different number of attributes. "
                   );
+               // PROBLEM will cause index out of bounds
                }
             else if (!AttributeTypesCoincide(symbol))
                {
@@ -938,9 +939,9 @@ namespace Grammlator {
                {
                if (Symbol is NonterminalSymbol nt)
                   {
-                  if (nt.NontrivialDefinitionsList == null) // null != empty list !
+                  if (nt.NontrivialDefinitionsList.Count==0 && nt.TrivalDefinitionsArray.Length==0) // undefeined if no trivial or nontrivial definitions
                      {
-                     OutputMessage(MessageTypeOrDestinationEnum.Error,
+                     OutputMessage(MessageTypeOrDestinationEnum.Abort,
                         $"{GetNameOfSymbol()} is used as terminal or nonterminal symbol but not defined.",
                         nt.FirstPosition
                         );
@@ -1135,7 +1136,7 @@ namespace Grammlator {
                }
 
             // An out parameter must be only associated with a left side attribute
-            if (!Attribute.LeftSide
+            if (!Attribute.LeftSide && Attribute.OverlayType != AttributeStruct.OverlayEnum.inOutAttribute // PROBLEM && .. had to be added
                 && (Parameter.Implementation == ParameterImplementation.OutCall
                     || Parameter.Implementation == ParameterImplementation.OutClearCall))
                {
@@ -1190,7 +1191,7 @@ namespace Grammlator {
                }
 
             // Are attribute and parameter compatible?
-            String errorDescription = AttributeParameterMatchError(Attribute, MethodParameter);
+            String errorDescription = AttributeParameterMatchError(Attribute, MethodParameter); // PROBLEM not compatible to the following Assert
             if (!string.IsNullOrEmpty(errorDescription))
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
@@ -1207,7 +1208,7 @@ namespace Grammlator {
             if (Attribute.TypeStringIndex != MethodParameter.TypeStringIndex)
                {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-              $"The type \"{Attribute.TypeStringIndex}\" of the attribute \"{GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)})\"" +
+              $"The type \"{GlobalVariables.GetStringOfIndex(Attribute.TypeStringIndex)}\" of the attribute \"{GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)}\"" +
               $" differs from the parameters type \"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)}\" ");
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
@@ -1226,7 +1227,7 @@ namespace Grammlator {
                Int32 OverlayedAttributeIndex = AttributeIndex - CountOfAttributesOfLeftSide;
                AttributeStruct OverlayedAttribute = ListOfAttributesOfGrammarRule[OverlayedAttributeIndex];
 
-               Debug.Assert(OverlayedAttribute.LeftSide);
+               Debug.Assert(OverlayedAttribute.LeftSide);// PROBLEM Assert fails (example CSSyntachchecker.Lexer)
                Debug.Assert(OverlayedAttribute.NameStringIndex == MethodParameter.NameStringIndex);
                Debug.Assert(OverlayedAttribute.PositionInProduction == Attribute.PositionInProduction);
 
@@ -1298,7 +1299,7 @@ namespace Grammlator {
                      {
                      P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                         "There must be an overlaying attribute or a method with a ref or out parameter with the name and type of the attribute "
-                        + $"\"{ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex}\""
+                        + $"\"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\""
                         );
                      }
                   else
@@ -1306,7 +1307,7 @@ namespace Grammlator {
                      P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                         $"The method \"{semanticMethod.MethodName}\" "
                         + "must have a ref or out parameter with the name and type of the attribute "
-                        + $"\"{ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex}\"");
+                        + $"\"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\"");
                      }
                   }
                // is left side attribute may be used in one mor definition:
