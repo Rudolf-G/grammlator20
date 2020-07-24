@@ -175,7 +175,8 @@ namespace Grammlator {
          {
             AcceptCalls++;
             if (AcceptCalls > 1)
-               return; // else accept will call the not accepting part
+               return; // The call of the non accepting part has already been counted
+            Debug.Assert(AcceptCalls == 1); // Accept will call the not accepting part
          }
          Calls++;
       }
@@ -665,8 +666,15 @@ namespace Grammlator {
 
       internal override void CountUsage(Boolean Accept)
       {
-         base.CountUsage(Accept);
-         if (Calls == 1)
+         if (Accept)
+         {
+            AcceptCalls++;
+            if (AcceptCalls > 1)
+               return; // The call of the non accepting part has already been counted
+            Debug.Assert(AcceptCalls == 1); // Accept will call the not accepting part
+         }
+         Calls++;
+         if (Calls == 1) // This action calls the next action once
             NextAction?.CountUsage(false);
       }
 
@@ -1048,7 +1056,7 @@ namespace Grammlator {
       // ConstantPriority is copied from ConstantPriorityAction because ConstantPriorityAction may be modified later
       internal readonly Int32 ConstantPriority;
       internal readonly ListOfParserActions DynamicPriorityActions; // the elements of the list may be modified later !
-      // The PriorityFunctions are copied from PriorityActions because those may be modified later
+                                                                    // The PriorityFunctions are copied from PriorityActions because those may be modified later
       internal readonly IntMethodClass[] PriorityFunctions;
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
