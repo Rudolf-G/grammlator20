@@ -80,7 +80,7 @@ namespace Grammlator {
             {
             // Because this ParserState is used all its actions are used
             base.CountUsage(Accept);
-            foreach (ParserAction actionOfParserstate in Actions!)
+            foreach (ParserAction actionOfParserstate in Actions)
                actionOfParserstate.CountUsage(false);
 
             // Generating the error handler will generate a call of the state
@@ -98,7 +98,7 @@ namespace Grammlator {
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
       internal ParserAction ActionCausedBy(NonterminalSymbol InputSymbol)
          {
-         foreach (ParserAction parserAction in Actions!)
+         foreach (ParserAction parserAction in Actions)
             {
             if ((parserAction as NonterminalTransition)?.InputSymbol == InputSymbol)
                return parserAction;

@@ -14,6 +14,7 @@ namespace Grammlator {
    internal enum ParserActionEnum {
       isDefinition,
       isParserState,
+      isPushStateAction,
       isLookaheadAction,
       isReduceAction,
       isHaltAction,
@@ -33,17 +34,33 @@ namespace Grammlator {
    class ParserEnumExtension {
       /// <summary>
       /// These strings are used to construct labels in the generated program.
-      /// They are indexed by <see cref="ParserActionEnum"/>.
+      /// They are adressed by <see cref="ParserActionEnum"/>.
       /// Some of these will never occur in labels. They are provided for future modifications.
       /// </summary>
-      internal static readonly string[] LabelPrefixes = new string[]{
-            "ApplyDefinition", "State", "LookAhead", "Reduce",
-            "ApplyStartsymbolDefinition", "EndWithError",
-            "TerminalTransition", "Accept", "NonterminalTransition",
-            "Branch", "PrioritySelect", "PriorityBranch", "HandleError", "Deleted",
-            "EndOfGeneratedCode",
-            "Label"  // Unknown
-            };
+
+      internal static string LabelPrefix(ParserActionEnum e)
+      {
+         return e switch
+         {
+            ParserActionEnum.isDefinition => "ApplyDefinition",
+            ParserActionEnum.isParserState => "State",
+            ParserActionEnum.isPushStateAction => "PushState",
+            ParserActionEnum.isLookaheadAction => "LookAhead",
+            ParserActionEnum.isReduceAction => "Reduce",
+            ParserActionEnum.isHaltAction => "ApplyStartsymbolDefinition",
+            ParserActionEnum.isErrorhaltAction => "EndWithError",
+            ParserActionEnum.isTerminalTransition => "TerminalTransition",
+            ParserActionEnum.isAcceptAction => "Accept",
+            ParserActionEnum.isNonterminalTransition => "NonterminalTransition",
+            ParserActionEnum.isBranchAction => "Branch",
+            ParserActionEnum.isPrioritySelectAction => "PrioritySelect",
+            ParserActionEnum.isPriorityBranchAction => "PriorityBranch",
+            ParserActionEnum.isErrorhandlingAction => "HandleError",
+            ParserActionEnum.isDeletedParserAction => "Deleted",
+            ParserActionEnum.isEndOfGeneratedCode => "EndOfGeneratedCode",
+            _ => "UnknownAction"
+         };
+      }
    }
 
    internal abstract class ParserAction :
@@ -113,18 +130,20 @@ namespace Grammlator {
       /// in phase5: Calls is used directly 
       /// </summary>
       public Int32 Codenumber {
-         get {
-            return Calls;
-         }
-         set {
-            Calls = value;
-         }
+         get; set;
       }
+      //   get {
+      //      return Calls;
+      //   }
+      //   set {
+      //      Calls = value;
+      //   }
+      //}
 
       /// <summary>
-      ///  Originally only used for ParserStates: the number, the parser state pushes on the state stack.
-      ///  -1 (initial value): the state doesn't push its number (or an optimized number) on the stack.
-      ///  <para> Optimization may move this information to other actions.</para>
+      ///  The number, the parser state pushes on the state stack. Originally only used for ParserStates.
+      ///  Value -1: the state doesn't push a number on the stack.
+      ///  <para> Optimization may move this information to other actions. Then the number x is replaced by (-x-2).</para>
       /// </summary>
       internal Int32 StateStackNumber {
          get; set;
@@ -155,24 +174,21 @@ namespace Grammlator {
          if (Accept)
          {
             AcceptCalls++;
-            if (AcceptCalls == 1)
-               Calls++; // accept will call the not accepting part
+            if (AcceptCalls > 1)
+               return; // else accept will call the not accepting part
          }
-         else
-         {
-            Calls++;
-         }
+         Calls++;
       }
 
       /// <summary>
-      /// Generate the code imlementing this action. 
+      /// Generate the code implementing this action. 
       /// Return the next action to generate or null.
       /// </summary>
       /// <param name="codegen">The class that implements the generation of the code</param>
       /// <param name="accept"></param>
       /// <returns>the next action to generate or null</returns>
       internal virtual ParserAction? Generate(ICodegen codegen, out Boolean accept)
-         => throw new NotImplementedException($"Codegeneration is not mplemented for {ParserActionType}");
+         => throw new NotImplementedException($"Codegeneration is not implemented for {ParserActionType}");
 
       internal virtual StringBuilder ToStringbuilder(StringBuilder sb)
       {
@@ -649,15 +665,9 @@ namespace Grammlator {
 
       internal override void CountUsage(Boolean Accept)
       {
-         if (Calls > 0)
-         {
-            base.CountUsage(Accept);
-         }
-         else
-         {
-            base.CountUsage(Accept);
+         base.CountUsage(Accept);
+         if (Calls == 1)
             NextAction?.CountUsage(false);
-         }
       }
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
@@ -928,7 +938,8 @@ namespace Grammlator {
 
       public LookaheadOrNonterminalTransition(BitArray terminalSymbols, ParserAction nextAction)
          : base(terminalSymbols, nextAction)
-      {}
+      {
+      }
 
       private static readonly HashSet<NonterminalTransition>
          emptyHashSet = new HashSet<NonterminalTransition>(0);
@@ -1281,4 +1292,27 @@ namespace Grammlator {
       internal override void NameToSb(StringBuilder sb)
           => sb.Append("error halt ");
    }
+
+   internal class PushStateAction : ParserActionWithNextAction {
+
+      internal PushStateAction(int idNumber, int stateStackNumber, ParserAction nextAction)
+         : base(nextAction)
+      {
+         this.IdNumber = idNumber;
+         this.StateStackNumber = stateStackNumber;
+      }
+
+      internal override ParserActionEnum ParserActionType {
+         get {
+            return ParserActionEnum.isPushStateAction;
+         }
+      }
+      internal override ParserAction? Generate(ICodegen codegen, out Boolean accept)
+      {
+         accept = false;
+         codegen.GenerateStateStackPushWithOptionalLinebreak(this.StateStackNumber);
+         return this.NextAction;
+      }
+   }
 }
+

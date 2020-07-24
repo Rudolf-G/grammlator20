@@ -99,7 +99,7 @@ namespace Grammlator {
       /// <param name="source"></param>
       /// <returns>An array containing the result of the bitwise OR operation, which is a reference to the current BitArray object.</returns>
       /// <exception cref="ArgumentNullException">Thrown if destination or source are null</exception>
-      /// <exception cref="ArgumentException">Thrown if source and destination do not have the same lenght</exception>
+      /// <exception cref="ArgumentException">Thrown if source and destination do not have the same length</exception>
       public static BitArray Assign(this BitArray destination, BitArray source)
          {
          if (destination == null)

@@ -131,6 +131,7 @@ namespace Grammlator {
       internal const Int32 InitialCapacityOfListOfAllReductions = 400;
       internal const Int32 InitialCapacityOfListOfAllBranchActions = 200;
       internal const Int32 InitialCapacityOfListOfAllHaltActions = 20;
+      internal const Int32 InitialCapacityOfListOfAllPushStateActions = 20;
       internal const Int32 InitialCapacityOfListOfAllPrioritySelectActions = 20;
       internal const Int32 InitialCapacityOfListOfAllPriorityBranchActions
          = InitialCapacityOfListOfAllPrioritySelectActions;
@@ -232,16 +233,25 @@ namespace Grammlator {
          Startaction = ListOfAllHaltActions[0]; // 
          TerminalSymbolByIndex = Array.Empty<TerminalSymbol>();
          AllTerminalSymbols = EmptyBitarray;
+
          ListOfAllStates.Clear();
          ListOfAllStates.Capacity = InitialCapacityOfListOfAllStates;
+
          ListOfAllErrorhandlingActions.Clear();
          ListOfAllErrorhandlingActions.Capacity = InitialCapacityOfListOfAllStates;
+
          ListOfAllReductions.Clear();
          ListOfAllReductions.Capacity = InitialCapacityOfListOfAllReductions;
+
          ListOfAllBranchActions.Clear();
          ListOfAllBranchActions.Capacity = InitialCapacityOfListOfAllBranchActions;
+
+         ListOfAllPushStateActions.Clear();
+         ListOfAllPushStateActions.Capacity = InitialCapacityOfListOfAllPushStateActions;
+
          ListOfAllPrioritySelectActions.Clear();
          ListOfAllPrioritySelectActions.Capacity = InitialCapacityOfListOfAllPrioritySelectActions;
+
          ListOfAllPriorityBranchActions.Clear();
          ListOfAllPriorityBranchActions.Capacity = InitialCapacityOfListOfAllPriorityBranchActions;
          }
@@ -465,12 +475,15 @@ namespace Grammlator {
       /// <see cref="ListOfAllHaltActions"/>[0] is defined for use as initial <see cref="HaltAction"/>,
       /// all other entries are defined and used in phase 4 and used in phase 5.
       /// </summary>
-      internal static readonly List<HaltAction> ListOfAllHaltActions = new List<HaltAction>(InitialCapacityOfListOfAllHaltActions);
-      // TODO declare an explicit initial halt action
+      internal static readonly List<HaltAction> ListOfAllHaltActions 
+         = new List<HaltAction>(InitialCapacityOfListOfAllHaltActions);
+
+      internal static readonly List<PushStateAction> ListOfAllPushStateActions 
+         = new List<PushStateAction>(InitialCapacityOfListOfAllPushStateActions);
 
       /// <summary>
       /// Defined in Phase4, used in Phase5
       /// </summary>
       internal static Int32 CountOfStatesWithStateStackNumber;
-      } // class GlobalDeclarations
+      } // class GlobalVariables
    }

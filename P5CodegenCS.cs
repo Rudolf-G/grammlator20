@@ -13,6 +13,7 @@ namespace Grammlator
       void GenerateEndOfCode();
 
       ParserAction? GenerateEndOfCodeAction();
+      void GenerateStateStackPushWithOptionalLinebreak(Int32 valueToPush);
    }
 
    /// <summary>
@@ -36,6 +37,9 @@ namespace Grammlator
       /// number of spaces used per indentation level
       /// </summary>
       private const Int32 IndentationWidth = 3;
+
+      private Int32 IndentationLevel = 0;
+      private int IndentationPosition() => IndentationLevel * IndentationWidth + 2;
 
       private void OutputAndClearCodeLine()
       {
@@ -108,7 +112,7 @@ namespace Grammlator
       }
 
       /// <summary>
-      /// AppendLine() if Linelength>column, then fills the line with LineLength-column spaces
+      /// AppendLine() if Linelength>column, then fill the line with spaces up to column (no spaces if column==0)
       /// </summary>
       /// <param name="column"></param>
       private void SetCol(Int32 column)
@@ -315,8 +319,6 @@ namespace Grammlator
          }
       }
 
-      private Int32 IndentationLevel = 0;
-
       /// <summary>
       /// Set indentation level and indent to new indentation position if actual position is smaller,
       /// else start new line and indent. The indentation is IndentationLevel*IndentationWidth + 2.
@@ -326,7 +328,7 @@ namespace Grammlator
       public P5CodegenCS IndentExactly(Int32 newIndentation)
       {
          IndentationLevel = newIndentation;
-         SetCol((IndentationLevel * IndentationWidth) + 2);
+         IndentExactly();
          return this;
       }
 
@@ -336,28 +338,28 @@ namespace Grammlator
       /// </summary>
       public P5CodegenCS IndentExactly()
       {
-         IndentExactly(IndentationLevel);
+         SetCol(IndentationPosition());
          return this;
       }
 
       /// <summary>
-      /// Indent to actual indentation position, if actual position is smaller, else do nothing
-      /// </summary>
-      public void Indent()
-      {
-         if (LineLength < (IndentationLevel * IndentationWidth) + 2)
-            SetCol((IndentationLevel * IndentationWidth) + 2);
-      }
-
-      /// <summary>
-      /// Set indentation level and indent to actual indentation position only, if actual position is smaller
+      /// Set indentation level and indent to maximum of actual lineposition and neww indentation position
       /// </summary>
       /// <param name="newIndentation">new indentation level</param>
       public P5CodegenCS Indent(Int32 newIndentation)
       {
          IndentationLevel = newIndentation;
-         if (LineLength < (IndentationLevel * IndentationWidth) + 2)
-            SetCol((IndentationLevel * IndentationWidth) + 2);
+         Indent();
+         return this;
+      }
+
+      /// <summary>
+      /// Indent to maximum of actual lineposition and new indentation position
+      /// </summary>
+      public P5CodegenCS Indent()
+      {
+         if (LineLength < IndentationPosition())
+            SetCol(IndentationPosition());
          return this;
       }
 
@@ -406,7 +408,7 @@ namespace Grammlator
       /// <returns>The label assigned to the (accept) action</returns>
       private static String GotoLabel(ParserAction action, Boolean accept)
       {
-         string MapActiontypeToString = ParserEnumExtension.LabelPrefixes[(int)action.ParserActionType];
+         string MapActiontypeToString = ParserEnumExtension.LabelPrefix(action.ParserActionType);
          if (action.ParserActionType==ParserActionEnum.isErrorhaltAction ||
             action.ParserActionType==ParserActionEnum.isEndOfGeneratedCode) // There is only one ErrorHaltAction, one end of generated code
             return (accept ? "Accept" : "") + MapActiontypeToString.ToString();
@@ -442,7 +444,7 @@ namespace Grammlator
 
       public P5CodegenCS GenerateGoto(ParserAction action, Boolean accept, Int32 nestingLevel)
       {
-         IndentExactly(nestingLevel);
+         IndentExactly();
          CodeLine.Append("goto ")
              .Append(GotoLabel(action, accept));
          AppendLine("; ");

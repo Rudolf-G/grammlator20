@@ -862,7 +862,7 @@ namespace Grammlator {
          LexerResult ParserInput;
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Sun, 19 Jul 2020 22:00:31 GMT (grammlator, File version 2020.04.07.1 19.07.2020 22:00:06)
+#region grammlator generated Fri, 24 Jul 2020 17:01:57 GMT (grammlator, File version 2020.04.07.1 24.07.2020 17:01:05)
   Int32 StateStackInitialCount = _s.Count;
   Int32 AttributeStackInitialCount = _a.Count;
   /* State 1
@@ -940,7 +940,7 @@ State23:
   // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce22 // see end of switch
   } // end of switch
   if (ParserInput <= LexerResult.NumberSign)
-     goto HandleError23;
+  goto HandleError23;
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
 
 Reduce22:
@@ -970,7 +970,7 @@ AcceptBranch5:
 Branch5:
   /* Branch 5*/
   if (_s.Peek() == 11)
-     goto Reduce82;
+  goto Reduce82;
 
 Reduce24:
   /* Reduction 24, sStack: -1
@@ -1013,32 +1013,32 @@ State78:
 AcceptState84:
   Lexer.AcceptSymbol();
 State84:
-  /* State 84 (0)*/
+  /* State 84 (*0)*/
   const String StateDescription84 =
        "\"Name(Attributes)\"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex), ►\"(Attributes)\"(Int32 NumberOfAttributes);\r\n"
      + "\"Name(Attributes)\"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex)●;";
-  _s.Push(0);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.GroupStart)
-     goto AcceptState85;
+     {
+     Lexer.AcceptSymbol();
+     _s.Push(0);
+     goto State85;
+     }
   if (ParserInput == LexerResult.Colon
      || (ParserInput >= LexerResult.CSharpEnd && ParserInput <= LexerResult.StarEqual)
      || ParserInput == LexerResult.NumberSign)
      {
      if (ErrorHandler(84, StateDescription84, ParserInput))
-        {
-        _s.Pop();
         goto State84;
-        };
+     _s.Push(0);
      goto EndWithError;
      }
   Debug.Assert(ParserInput != LexerResult.Colon
      && (ParserInput < LexerResult.CSharpEnd || ParserInput > LexerResult.StarEqual)
      && ParserInput != LexerResult.NumberSign && ParserInput != LexerResult.GroupStart);
-  /* Reduction 83, sStack: -1, aStack: 1
+  /* Reduction 83, aStack: 1
    * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ priority: -10, aStack: 1, method: NameWithoutAttributes
    */
-  _s.Pop();
   _a.Allocate();
 
   NameWithoutAttributes(
@@ -1051,9 +1051,9 @@ Branch16:
   {
   case 0:
   case 1:
-     goto State3;
+  goto State3;
   case 6:
-     goto State72;
+  goto State72;
   case 10:
   {
      /* Reduction 77
@@ -1151,7 +1151,7 @@ Branch2:
   case 7:
   case 8:
   case 9:
-     goto State67;
+  goto State67;
   /*case 2: case 3: case 4: case 11:
   default: break;
   */
@@ -1188,7 +1188,7 @@ State31:
   // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce36 // see end of switch
   } // end of switch
   if (ParserInput <= LexerResult.Plus)
-     goto HandleError31;
+  goto HandleError31;
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
 
   /* Reduction 36
@@ -1224,11 +1224,11 @@ Reduce38:
   switch (_s.Peek())
   {
   case 2:
-     goto Reduce24;
+  goto Reduce24;
   case 4:
-     goto Reduce39;
+  goto Reduce39;
   case 11:
-     goto Reduce82;
+  goto Reduce82;
   /*case 3:
   default: break;
   */
@@ -1337,7 +1337,7 @@ Branch8:
   {
   case 2:
   case 11:
-     goto Reduce25;
+  goto Reduce25;
   case 1:
   {
      /* Reduction 37, aStack: -1
@@ -1414,9 +1414,9 @@ Branch4:
   {
   case 2:
   case 11:
-     goto State30;
+  goto State30;
   case 6:
-     goto State63;
+  goto State63;
   case 3:
   {
      /* Reduction 66, sStack: -1
@@ -1426,7 +1426,7 @@ Branch4:
      goto Branch15;
      }
   case 9:
-     goto State70;
+  goto State70;
   /*case 1:
   default: break;
   */
@@ -1510,30 +1510,30 @@ Reduce54:
      );
 
 State27:
-  /* State 27 (0)*/
+  /* State 27 (*0)*/
   const String StateDescription27 =
        "EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority)●;\r\n"
      + "EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority), ►SemanticAction(VoidMethodClass method);";
-  _s.Push(0);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.CSharpStart)
-     goto AcceptState36;
+     {
+     Lexer.AcceptSymbol();
+     _s.Push(0);
+     goto State36;
+     }
   if (ParserInput != LexerResult.NumberSign
      && ParserInput < LexerResult.GroupEnd)
      {
      if (ErrorHandler(27, StateDescription27, ParserInput))
-        {
-        _s.Pop();
         goto State27;
-        };
+     _s.Push(0);
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.NumberSign
      || ParserInput >= LexerResult.GroupEnd);
-  /* Reduction 33, sStack: -1, aStack: -2
+  /* Reduction 33, aStack: -2
    * EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority);◄ method: EndOfDefinitionWithPriorityRecognized, aStack: -2
    */
-  _s.Pop();
 
   EndOfDefinitionWithPriorityRecognized(
      constPriority: _a.PeekRef(-1)._Int32,
@@ -1635,9 +1635,9 @@ Reduce59:
   switch (_s.Peek())
   {
   case 1:
-     goto State75;
+  goto State75;
   case 2:
-     goto State77;
+  goto State77;
   /*case 0:
   default: break;
   */
@@ -1687,7 +1687,7 @@ Branch3:
   case 7:
   case 8:
   case 9:
-     goto Reduce62;
+  goto Reduce62;
   /*case 2: case 3: case 4: case 11:
   default: break;
   */
@@ -2343,29 +2343,29 @@ State35:
 AcceptState36:
   Lexer.AcceptSymbol();
 State36:
-  /* State 36 (0)*/
+  /* State 36 (*0)*/
   const String StateDescription36 =
        "SemanticAction(VoidMethodClass method)= CSharpStart, ►CSvoidMethod(VoidMethodClass method), CSharpEnd;\r\n"
      + "SemanticAction(VoidMethodClass method)= CSharpStart, ►CSharpEnd;";
-  _s.Push(0);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
-     goto AcceptState47;
+     {
+     Lexer.AcceptSymbol();
+     _s.Push(0);
+     goto State47;
+     }
   if (ParserInput != LexerResult.CSharpEnd)
      {
      if (ErrorHandler(36, StateDescription36, ParserInput))
-        {
-        _s.Pop();
         goto State36;
-        };
+     _s.Push(0);
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
-  /* Reduction 42, sStack: -1, aStack: 1
+  /* Reduction 42, aStack: 1
    * SemanticAction(VoidMethodClass method)= CSharpStart, CSharpEnd;◄ aStack: 1, method: EmptySemanticAction
    */
-  _s.Pop();
   _a.Allocate();
 
   EmptySemanticAction(
@@ -2505,9 +2505,9 @@ Branch10:
   switch (_s.Peek())
   {
   case 0:
-     goto State39;
+  goto State39;
   case 2:
-     goto State54;
+  goto State54;
   /*case 1:
   default: break;
   */
@@ -2518,7 +2518,7 @@ Branch10:
   _s.Pop();
   /* Branch 9*/
   if (_s.Peek() == 0)
-     goto State39;
+  goto State39;
 
 State54:
   /* State 54 */
@@ -2612,8 +2612,6 @@ State44:
   _a.Free(3);
   goto Branch10;
 
-AcceptState47:
-  Lexer.AcceptSymbol();
 State47:
   /* State 47 */
   const String StateDescription47 =
@@ -2662,7 +2660,7 @@ State48:
 Branch11:
   /* Branch 11*/
   if (_s.Peek() == 0)
-     goto State37;
+  goto State37;
 
 State52:
   /* State 52 */
@@ -2836,7 +2834,8 @@ State51:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
-  goto AcceptState47;
+  Lexer.AcceptSymbol();
+  goto State47;
 
 State60:
   /* State 60 */
@@ -2935,7 +2934,7 @@ State65:
   _s.Pop();
   /* Branch 13*/
   if (_s.Peek() == 6)
-     goto Reduce60;
+  goto Reduce60;
 
 Reduce69:
   /* Reduction 69, sStack: -1
@@ -3284,7 +3283,7 @@ State83:
   // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce22 // see end of switch
   } // end of switch
   if (ParserInput >= LexerResult.DefinitionSeparatorSymbol)
-     goto Reduce22;
+  goto Reduce22;
   Debug.Assert(ParserInput <= LexerResult.NumberSign);
 
 HandleError83:
@@ -3295,32 +3294,30 @@ HandleError83:
      };
   goto EndWithError;
 
-AcceptState85:
-  Lexer.AcceptSymbol();
 State85:
-  /* State 85 (0)*/
+  /* State 85 (*0)*/
   const String StateDescription85 =
        "\"(Attributes)\"(Int32 numberOfAttributes)= \"(\", ►\")\";\r\n"
      + "\"(Attributes)\"(Int32 numberOfAttributes)= \"(\", ►\"Attributes)\"(Int32 numberOfAttributes, Int32 smallestNumber);";
-  _s.Push(0);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
-     goto AcceptState88;
+     {
+     Lexer.AcceptSymbol();
+     _s.Push(0);
+     goto State88;
+     }
   if (ParserInput != LexerResult.GroupEnd)
      {
      if (ErrorHandler(85, StateDescription85, ParserInput))
-        {
-        _s.Pop();
         goto State85;
-        };
+     _s.Push(0);
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
-  /* Reduction 85, sStack: -1, aStack: 1
+  /* Reduction 85, aStack: 1
    * "(Attributes)"(Int32 numberOfAttributes)= "(", ")";◄ aStack: 1, method: EmptyListOfAttributes
    */
-  _s.Pop();
   _a.Allocate();
 
   EmptyListOfAttributes(
@@ -3416,7 +3413,6 @@ State87:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
-AcceptState88:
   Lexer.AcceptSymbol();
 State88:
   /* State 88 */
@@ -3458,7 +3454,10 @@ State89:
      goto State90;
      }
   if (ParserInput == LexerResult.GroupStart)
-     goto AcceptState85;
+     {
+     Lexer.AcceptSymbol();
+     goto State85;
+     }
   if (ParserInput != LexerResult.Percent
      && ParserInput != LexerResult.CSharpStart
      && ParserInput < LexerResult.DefinitionSeparatorSymbol)
@@ -3541,11 +3540,11 @@ Reduce39:
   switch (_s.Peek())
   {
   case 3:
-     goto Reduce35;
+  goto Reduce35;
   case 4:
-     goto Reduce39;
+  goto Reduce39;
   case 11:
-     goto Reduce82;
+  goto Reduce82;
   /*case 2:
   default: break;
   */
@@ -3557,11 +3556,11 @@ Branch15:
   switch (_s.Peek())
   {
   case 6:
-     goto State68;
+  goto State68;
   case 7:
-     goto State65;
+  goto State65;
   case 9:
-     goto State71;
+  goto State71;
   /*case 8:
   default: break;
   */
@@ -3574,9 +3573,9 @@ Branch15:
   switch (_s.Peek())
   {
   case 6:
-     goto State68;
+  goto State68;
   case 9:
-     goto State71;
+  goto State71;
   /*case 7:
   default: break;
   */
@@ -3606,7 +3605,7 @@ EndWithError:
 
 EndOfGeneratedCode:
   ;
-#endregion grammlator generated Sun, 19 Jul 2020 22:00:31 GMT (grammlator, File version 2020.04.07.1 19.07.2020 22:00:06)
+#endregion grammlator generated Fri, 24 Jul 2020 17:01:57 GMT (grammlator, File version 2020.04.07.1 24.07.2020 17:01:05)
          /* ************************ code written by programmer ******************** */
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }

@@ -1044,7 +1044,7 @@ CheckNextExistingBranch:
          //do not remove the first state: not  SimplifiedNextAction(GlobalVariables.ListOfAllStates[0]);
       }
 
-      public void P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields()
+      private void P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields()
       {
          // for each state
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
@@ -1100,6 +1100,110 @@ CheckNextExistingBranch:
              */
             State.IfComplexity = ActionComplexitySum - MaximumActionComplexity;
          }
+
+         // For each Parseraction compute the number of AcceptCalls and Calls
+         GlobalVariables.Startaction.CountUsage(Accept: false);
+
+         OptimizeStateStackOperations();
+      }
+
+      private void OptimizeStateStackOperations()
+      {
+         /* Concept:
+          * If possible move the push(p) from states into reduce actions and combine with pop() actions
+          * For each state which pushes onto the state stack
+          *   a) for each action a of the state
+          *      if a pops n from the state stack and a is called only once
+          *        then a is a candidate for combining push and pop
+          *           to no operation (increment removedPopCounter) or to Pop(n-1)          *           
+          *        else a is a candidate to be replaced by a separate PushState(value, a) ParserAction 
+          *           increment addedPushStateCounter
+          *   b) evaluate the statistics (removedPopCounter-addedPushStateCounter+1>=0)
+          *      and if approriate do the modifications
+          *      
+          * TODO later: replace the restrictions "a pops ... and a is called only once" 
+          *      by some less restrictive condition, follow chains of ParserActions, consider splitting reduce actions
+          */
+
+         for (Int32 StateIndex = 0; StateIndex < GlobalVariables.ListOfAllStates.Count; StateIndex++)
+         {
+            ParserState State = GlobalVariables.ListOfAllStates[StateIndex];
+            if (State.StateStackNumber < 0)
+               continue;
+
+            int removedPopCounter = 0, addedPushStateCounter = 0;
+
+            for (Int32 ActionIndex = 0; ActionIndex < State.Actions.Count; ActionIndex++)
+            {
+               ParserAction a = State.Actions[ActionIndex];
+               if (!(a is ConditionalAction c))
+               {
+                  removedPopCounter = 0;
+                  break;
+               }
+
+               var n = c.NextAction;
+               if (n.StateStackAdjustment >= 1 &&
+                  n.AcceptCalls <= 1 && n.Calls == 1)
+               {
+                  if (n.StateStackAdjustment == 1)
+                     removedPopCounter++;
+               }
+               else
+                  addedPushStateCounter++;
+            }
+
+            if (removedPopCounter > 0 && (removedPopCounter - addedPushStateCounter + 1) >= 0)
+               OptimizeStateStackOperations(State);
+
+
+         }
+      }
+
+      private void OptimizeStateStackOperations(ParserState state)
+      {
+         for (Int32 ActionIndex = 0; ActionIndex < state.Actions.Count; ActionIndex++)
+         {
+            ConditionalAction c = (ConditionalAction)state.Actions[ActionIndex];
+
+            var n = c.NextAction;
+            if (n.StateStackAdjustment >= 1 &&
+               n.AcceptCalls <= 1 && n.Calls == 1)
+            {
+               if (n.StateStackAdjustment == 1)
+                  n.StateStackAdjustment--;
+            }
+            else
+            {
+               var p = new PushStateAction
+                  (GlobalVariables.ListOfAllPushStateActions.Count, state.StateStackNumber, c.NextAction);
+               GlobalVariables.ListOfAllPushStateActions.Add(p);
+
+               p.Calls = 1; 
+
+               if (c is TerminalTransition)
+               { // accept call of p
+                  p.AcceptCalls = 1;
+                  n.AcceptCalls -= 1;
+                  if (n.AcceptCalls == 0)
+                     n.Calls--; // n no longer called by its own accept
+               }
+               n.Calls++; // n called by this
+
+               p.StateStackNumber = state.StateStackNumber;
+
+               c.NextAction = p;
+
+            }
+
+            // TODO put in list of PushStateActions
+            // TODO set idNumber
+            // TODO  and use the list to generate
+
+            // CHECK PrioritySelectAction have more than one next action
+         }
+
+         state.StateStackNumber = -state.StateStackNumber - 2;
       }
    }
 }
