@@ -161,7 +161,9 @@ namespace Grammlator {
 
 
       /// <summary>
-      /// Used in Phase5: &gt; 0: number of usages, 0: never used or code has been generated, &lt; 0: -number of usages, code should not yet be generated
+      /// Used in Phase5: &gt; 0: number of usages (code has not been generated),
+      /// <para>0: never used or code has been generated, </para>
+      /// <para>&lt;0: code has been generated or should not yet be generated (=-number of usages)</para>
       /// </summary>
       internal Int32 Calls, AcceptCalls;
 

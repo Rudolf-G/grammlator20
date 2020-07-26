@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Text;
 
 namespace Grammlator
@@ -27,7 +28,10 @@ namespace Grammlator
       /// </summary>
       private const Int32 IndentationWidth = 3;
 
-      private Int32 IndentationLevel = 0;
+      public Int32 IndentationLevel {
+         get; private set;
+      } = 0;
+
       private int IndentationPosition() => IndentationLevel * IndentationWidth + 2;
 
       private void OutputAndClearCodeLine()
@@ -423,7 +427,7 @@ namespace Grammlator
          return this;
       }
 
-      public void GenerateIfSPeek(Boolean inverse, String condition)
+      public void GenerateIfSPeek(Boolean inverse, int condition)
       {
          IndentExactly();
          if (inverse)

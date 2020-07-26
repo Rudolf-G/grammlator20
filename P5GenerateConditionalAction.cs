@@ -10,8 +10,8 @@ namespace Grammlator {
       /// </summary>
       private readonly List<BlockOfEqualBits> blockList = new List<BlockOfEqualBits>(GlobalVariables.NumberOfTerminalSymbols);
 
-      private void GenerateOneConditionalAction(ConditionalAction a, BitArray relevantSymbols, Int32 nestingLevel)
-         {
+      private void GenerateOneConditionalAction(ConditionalAction a, BitArray relevantSymbols)
+      {
          codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("if (");
 
@@ -20,7 +20,7 @@ namespace Grammlator {
          GenerateCondition(a.TerminalSymbols, relevantSymbols);
          codegen.AppendWithOptionalLinebreak(") ");
 
-         GenerateCodeSequence(a, labelMustBeGenerated: false, nestingLevel + 1);
+         GenerateCodeSequence(a, labelMustBeGenerated: false);
 
          // All elements (value==true) in conditions of remaining actions remain relevant.
          // Only bits representing not allowed elements may become irrelevant.

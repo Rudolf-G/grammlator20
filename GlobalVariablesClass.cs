@@ -199,7 +199,7 @@ namespace Grammlator {
          InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
          // "NewLineConstant"
          LineLengthLimit = InitialSettings.GetInt("LineLengthLimit");
-         NestingLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
+         IndentationLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
          VariableNameStateDescription = InitialSettings.GetString("PrefixStateDescription");
          // "RegionString"
          StateStack = InitialSettings.GetString("StateStack");
@@ -328,7 +328,7 @@ namespace Grammlator {
       /// </summary>
       internal static string InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
 
-      internal static Int32 NestingLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
+      internal static Int32 IndentationLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
       internal static Int32 LineLengthLimit = InitialSettings.GetInt("LineLengthLimit");
 
       /// <summary>
