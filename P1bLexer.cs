@@ -178,134 +178,134 @@ namespace Grammlator {
       private readonly LexerResult[] CharToLexerResult = new LexerResult[]
       {
             // sorted by character value
-LexerResult.Error,  // 0; U0000; Cc; NULL
-LexerResult.Error,  // 1; U0001; Cc; START OF HEADING
-LexerResult.Error,  // 2; U0002; Cc; START OF TEXT
-LexerResult.Error,  // 3; U0003; Cc; END OF TEXT
-LexerResult.Error,  // 4; U0004; Cc; END OF TRANSMISSION
-LexerResult.Error,  // 5; U0005; Cc; ENQUIRY
-LexerResult.Error,  // 6; U0006; Cc; ACKNOWLEDGE
-LexerResult.Error,  // 7; U0007; Cc; BELL
-LexerResult.Error,  // 8; U0008; Cc; BACKSPACE
-LexerResult.Error,  // 9; U0009; Cc; HorizontalTab
-LexerResult.Error,  // 10; U000A; Cc; LF
-LexerResult.Error,  // 11; U000B; Cc; VerticalTab
-LexerResult.Error,  // 12; U000C; Cc; FormFeed
-LexerResult.Error,  // 13; U000D; Cc; CR
-LexerResult.Error,  // 14; U000E; Cc; SHIFT OUT
-LexerResult.Error,  // 15; U000F; Cc; SHIFT IN
-LexerResult.Error,  // 16; U0010; Cc; DATA LINK ESCAPE
-LexerResult.Error,  // 17; U0011; Cc; DEVICE CONTROL ONE
-LexerResult.Error,  // 18; U0012; Cc; DEVICE CONTROL TWO
-LexerResult.Error,  // 19; U0013; Cc; DEVICE CONTROL THREE
-LexerResult.Error,  // 20; U0014; Cc; DEVICE CONTROL FOUR
-LexerResult.Error,  // 21; U0015; Cc; NEGATIVE ACKNOWLEDGE
-LexerResult.Error,  // 22; U0016; Cc; SYNCHRONOUS IDLE
-LexerResult.Error,  // 23; U0017; Cc; END OF TRANSMISSION BLOCK
-LexerResult.Error,  // 24; U0018; Cc; CANCEL
-LexerResult.Error,  // 25; U0019; Cc; END OF MEDIUM
-LexerResult.Error,  // 26; U001A; Cc; SUBSTITUTE
-LexerResult.Error,  // 27; U001B; Cc; ESCAPE
-LexerResult.Error,  // 28; U001C; Cc; INFORMATION SEPARATOR FOUR
-LexerResult.Error,  // 29; U001D; Cc; INFORMATION SEPARATOR THREE
-LexerResult.Error,  // 30; U001E; Cc; INFORMATION SEPARATOR TWO
-LexerResult.Error,  // 31; U001F; Cc; INFORMATION SEPARATOR ONE
-LexerResult.Error,  // 32; U0020; Zs; Space
-LexerResult.Error,  // 33; U0021; Po; !
-LexerResult.Error,  // 34; U0022; Po; "
-LexerResult.NumberSign,  // 35; U0023; Po; #
-LexerResult.Error,  // 36; U0024; Sc; $
-LexerResult.Percent,  // 37; U0025; Po; %
-LexerResult.Error,  // 38; U0026; Po; &
-LexerResult.Error,  // 39; U0027; Po; '
-LexerResult.GroupStart,  // 40; U0028; Ps; (
-LexerResult.GroupEnd,  // 41; U0029; Pe; )
-LexerResult.Asterisk,  // 42; U002A; Po; *
-LexerResult.Plus,  // 43; U002B; Sm; +
-LexerResult.Comma,  // 44; U002C; Po; ,
-LexerResult.Minus,  // 45; U002D; Pd; -
-LexerResult.Error,  // 46; U002E; Po; .
-LexerResult.Error,  // 47; U002F; Po; /
-LexerResult.Error,  // 48; U0030; Nd; 0
-LexerResult.Error,  // 49; U0031; Nd; 1
-LexerResult.Error,  // 50; U0032; Nd; 2
-LexerResult.Error,  // 51; U0033; Nd; 3
-LexerResult.Error,  // 52; U0034; Nd; 4
-LexerResult.Error,  // 53; U0035; Nd; 5
-LexerResult.Error,  // 54; U0036; Nd; 6
-LexerResult.Error,  // 55; U0037; Nd; 7
-LexerResult.Error,  // 56; U0038; Nd; 8
-LexerResult.Error,  // 57; U0039; Nd; 9
-LexerResult.Colon,  // 58; U003A; Po; :
-LexerResult.TerminatorSymbol,  // 59; U003B; Po; ;
-LexerResult.Error,  // 60; U003C; Sm; <
-LexerResult.DefiningSymbol,  // 61; U003D; Sm; =
-LexerResult.Error,  // 62; U003E; Sm; >
-LexerResult.Questionmark,  // 63; U003F; Po; ?
-LexerResult.Error,  // 64; U0040; Po; @
-LexerResult.Error,  // 65; U0041; Lu; A
-LexerResult.Error,  // 66; U0042; Lu; B
-LexerResult.Error,  // 67; U0043; Lu; C
-LexerResult.Error,  // 68; U0044; Lu; D
-LexerResult.Error,  // 69; U0045; Lu; E
-LexerResult.Error,  // 70; U0046; Lu; F
-LexerResult.Error,  // 71; U0047; Lu; G
-LexerResult.Error,  // 72; U0048; Lu; H
-LexerResult.Error,  // 73; U0049; Lu; I
-LexerResult.Error,  // 74; U004A; Lu; J
-LexerResult.Error,  // 75; U004B; Lu; K
-LexerResult.Error,  // 76; U004C; Lu; L
-LexerResult.Error,  // 77; U004D; Lu; M
-LexerResult.Error,  // 78; U004E; Lu; N
-LexerResult.Error,  // 79; U004F; Lu; O
-LexerResult.Error,  // 80; U0050; Lu; P
-LexerResult.Error,  // 81; U0051; Lu; Q
-LexerResult.Error,  // 82; U0052; Lu; R
-LexerResult.Error,  // 83; U0053; Lu; S
-LexerResult.Error,  // 84; U0054; Lu; T
-LexerResult.Error,  // 85; U0055; Lu; U
-LexerResult.Error,  // 86; U0056; Lu; V
-LexerResult.Error,  // 87; U0057; Lu; W
-LexerResult.Error,  // 88; U0058; Lu; X
-LexerResult.Error,  // 89; U0059; Lu; Y
-LexerResult.Error,  // 90; U005A; Lu; Z
-LexerResult.OptionStart,  // 91; U005B; Ps; [
-LexerResult.Error,  // 92; U005C; Po; \
-LexerResult.OptionEnd,  // 93; U005D; Pe; ]
-LexerResult.Error,  // 94; U005E; Sk; ^
-LexerResult.Error,  // 95; U005F; Pc; _
-LexerResult.Error,  // 96; U0060; Sk; `
-LexerResult.Error,  // 97; U0061; LI; a
-LexerResult.Error,  // 98; U0062; LI; b
-LexerResult.Error,  // 99; U0063; LI; c
-LexerResult.Error,  // 100; U0064; LI; d
-LexerResult.Error,  // 101; U0065; LI; e
-LexerResult.Error,  // 102; U0066; LI; f
-LexerResult.Error,  // 103; U0067; LI; g
-LexerResult.Error,  // 104; U0068; LI; h
-LexerResult.Error,  // 105; U0069; LI; i
-LexerResult.Error,  // 106; U006A; LI; j
-LexerResult.Error,  // 107; U006B; LI; k
-LexerResult.Error,  // 108; U006C; LI; l
-LexerResult.Error,  // 109; U006D; LI; m
-LexerResult.Error,  // 110; U006E; LI; n
-LexerResult.Error,  // 111; U006F; LI; o
-LexerResult.Error,  // 112; U0070; LI; p
-LexerResult.Error,  // 113; U0071; LI; q
-LexerResult.Error,  // 114; U0072; LI; r
-LexerResult.Error,  // 115; U0073; LI; s
-LexerResult.Error,  // 116; U0074; LI; t
-LexerResult.Error,  // 117; U0075; LI; u
-LexerResult.Error,  // 118; U0076; LI; v
-LexerResult.Error,  // 119; U0077; LI; w
-LexerResult.Error,  // 120; U0078; LI; x
-LexerResult.Error,  // 121; U0079; LI; y
-LexerResult.Error,  // 122; U007A; LI; z
-LexerResult.RepeatStart,  // 123; U007B; Ps; {
-LexerResult.DefinitionSeparatorSymbol,  // 124; U007C; Sm; |
-LexerResult.RepeatEnd,  // 125; U007D; Pe; }
-LexerResult.Error,  // 126; U007E; Sm; ~
-LexerResult.Error // 127; U007F; Cc; DELETE
+        LexerResult.Error,  // 0; U0000; Cc; NULL
+        LexerResult.Error,  // 1; U0001; Cc; START OF HEADING
+        LexerResult.Error,  // 2; U0002; Cc; START OF TEXT
+        LexerResult.Error,  // 3; U0003; Cc; END OF TEXT
+        LexerResult.Error,  // 4; U0004; Cc; END OF TRANSMISSION
+        LexerResult.Error,  // 5; U0005; Cc; ENQUIRY
+        LexerResult.Error,  // 6; U0006; Cc; ACKNOWLEDGE
+        LexerResult.Error,  // 7; U0007; Cc; BELL
+        LexerResult.Error,  // 8; U0008; Cc; BACKSPACE
+        LexerResult.Error,  // 9; U0009; Cc; HorizontalTab
+        LexerResult.Error,  // 10; U000A; Cc; LF
+        LexerResult.Error,  // 11; U000B; Cc; VerticalTab
+        LexerResult.Error,  // 12; U000C; Cc; FormFeed
+        LexerResult.Error,  // 13; U000D; Cc; CR
+        LexerResult.Error,  // 14; U000E; Cc; SHIFT OUT
+        LexerResult.Error,  // 15; U000F; Cc; SHIFT IN
+        LexerResult.Error,  // 16; U0010; Cc; DATA LINK ESCAPE
+        LexerResult.Error,  // 17; U0011; Cc; DEVICE CONTROL ONE
+        LexerResult.Error,  // 18; U0012; Cc; DEVICE CONTROL TWO
+        LexerResult.Error,  // 19; U0013; Cc; DEVICE CONTROL THREE
+        LexerResult.Error,  // 20; U0014; Cc; DEVICE CONTROL FOUR
+        LexerResult.Error,  // 21; U0015; Cc; NEGATIVE ACKNOWLEDGE
+        LexerResult.Error,  // 22; U0016; Cc; SYNCHRONOUS IDLE
+        LexerResult.Error,  // 23; U0017; Cc; END OF TRANSMISSION BLOCK
+        LexerResult.Error,  // 24; U0018; Cc; CANCEL
+        LexerResult.Error,  // 25; U0019; Cc; END OF MEDIUM
+        LexerResult.Error,  // 26; U001A; Cc; SUBSTITUTE
+        LexerResult.Error,  // 27; U001B; Cc; ESCAPE
+        LexerResult.Error,  // 28; U001C; Cc; INFORMATION SEPARATOR FOUR
+        LexerResult.Error,  // 29; U001D; Cc; INFORMATION SEPARATOR THREE
+        LexerResult.Error,  // 30; U001E; Cc; INFORMATION SEPARATOR TWO
+        LexerResult.Error,  // 31; U001F; Cc; INFORMATION SEPARATOR ONE
+        LexerResult.Error,  // 32; U0020; Zs; Space
+        LexerResult.Error,  // 33; U0021; Po; !
+        LexerResult.Error,  // 34; U0022; Po; "
+        LexerResult.NumberSign,  // 35; U0023; Po; #
+        LexerResult.Error,  // 36; U0024; Sc; $
+        LexerResult.Percent,  // 37; U0025; Po; %
+        LexerResult.Error,  // 38; U0026; Po; &
+        LexerResult.Error,  // 39; U0027; Po; '
+        LexerResult.GroupStart,  // 40; U0028; Ps; (
+        LexerResult.GroupEnd,  // 41; U0029; Pe; )
+        LexerResult.Asterisk,  // 42; U002A; Po; *
+        LexerResult.Plus,  // 43; U002B; Sm; +
+        LexerResult.Comma,  // 44; U002C; Po; ,
+        LexerResult.Minus,  // 45; U002D; Pd; -
+        LexerResult.Error,  // 46; U002E; Po; .
+        LexerResult.Error,  // 47; U002F; Po; /
+        LexerResult.Error,  // 48; U0030; Nd; 0
+        LexerResult.Error,  // 49; U0031; Nd; 1
+        LexerResult.Error,  // 50; U0032; Nd; 2
+        LexerResult.Error,  // 51; U0033; Nd; 3
+        LexerResult.Error,  // 52; U0034; Nd; 4
+        LexerResult.Error,  // 53; U0035; Nd; 5
+        LexerResult.Error,  // 54; U0036; Nd; 6
+        LexerResult.Error,  // 55; U0037; Nd; 7
+        LexerResult.Error,  // 56; U0038; Nd; 8
+        LexerResult.Error,  // 57; U0039; Nd; 9
+        LexerResult.Colon,  // 58; U003A; Po; :
+        LexerResult.TerminatorSymbol,  // 59; U003B; Po; ;
+        LexerResult.Error,  // 60; U003C; Sm; <
+        LexerResult.DefiningSymbol,  // 61; U003D; Sm; =
+        LexerResult.Error,  // 62; U003E; Sm; >
+        LexerResult.Questionmark,  // 63; U003F; Po; ?
+        LexerResult.Error,  // 64; U0040; Po; @
+        LexerResult.Error,  // 65; U0041; Lu; A
+        LexerResult.Error,  // 66; U0042; Lu; B
+        LexerResult.Error,  // 67; U0043; Lu; C
+        LexerResult.Error,  // 68; U0044; Lu; D
+        LexerResult.Error,  // 69; U0045; Lu; E
+        LexerResult.Error,  // 70; U0046; Lu; F
+        LexerResult.Error,  // 71; U0047; Lu; G
+        LexerResult.Error,  // 72; U0048; Lu; H
+        LexerResult.Error,  // 73; U0049; Lu; I
+        LexerResult.Error,  // 74; U004A; Lu; J
+        LexerResult.Error,  // 75; U004B; Lu; K
+        LexerResult.Error,  // 76; U004C; Lu; L
+        LexerResult.Error,  // 77; U004D; Lu; M
+        LexerResult.Error,  // 78; U004E; Lu; N
+        LexerResult.Error,  // 79; U004F; Lu; O
+        LexerResult.Error,  // 80; U0050; Lu; P
+        LexerResult.Error,  // 81; U0051; Lu; Q
+        LexerResult.Error,  // 82; U0052; Lu; R
+        LexerResult.Error,  // 83; U0053; Lu; S
+        LexerResult.Error,  // 84; U0054; Lu; T
+        LexerResult.Error,  // 85; U0055; Lu; U
+        LexerResult.Error,  // 86; U0056; Lu; V
+        LexerResult.Error,  // 87; U0057; Lu; W
+        LexerResult.Error,  // 88; U0058; Lu; X
+        LexerResult.Error,  // 89; U0059; Lu; Y
+        LexerResult.Error,  // 90; U005A; Lu; Z
+        LexerResult.OptionStart,  // 91; U005B; Ps; [
+        LexerResult.Error,  // 92; U005C; Po; \
+        LexerResult.OptionEnd,  // 93; U005D; Pe; ]
+        LexerResult.Error,  // 94; U005E; Sk; ^
+        LexerResult.Error,  // 95; U005F; Pc; _
+        LexerResult.Error,  // 96; U0060; Sk; `
+        LexerResult.Error,  // 97; U0061; LI; a
+        LexerResult.Error,  // 98; U0062; LI; b
+        LexerResult.Error,  // 99; U0063; LI; c
+        LexerResult.Error,  // 100; U0064; LI; d
+        LexerResult.Error,  // 101; U0065; LI; e
+        LexerResult.Error,  // 102; U0066; LI; f
+        LexerResult.Error,  // 103; U0067; LI; g
+        LexerResult.Error,  // 104; U0068; LI; h
+        LexerResult.Error,  // 105; U0069; LI; i
+        LexerResult.Error,  // 106; U006A; LI; j
+        LexerResult.Error,  // 107; U006B; LI; k
+        LexerResult.Error,  // 108; U006C; LI; l
+        LexerResult.Error,  // 109; U006D; LI; m
+        LexerResult.Error,  // 110; U006E; LI; n
+        LexerResult.Error,  // 111; U006F; LI; o
+        LexerResult.Error,  // 112; U0070; LI; p
+        LexerResult.Error,  // 113; U0071; LI; q
+        LexerResult.Error,  // 114; U0072; LI; r
+        LexerResult.Error,  // 115; U0073; LI; s
+        LexerResult.Error,  // 116; U0074; LI; t
+        LexerResult.Error,  // 117; U0075; LI; u
+        LexerResult.Error,  // 118; U0076; LI; v
+        LexerResult.Error,  // 119; U0077; LI; w
+        LexerResult.Error,  // 120; U0078; LI; x
+        LexerResult.Error,  // 121; U0079; LI; y
+        LexerResult.Error,  // 122; U007A; LI; z
+        LexerResult.RepeatStart,  // 123; U007B; Ps; {
+        LexerResult.DefinitionSeparatorSymbol,  // 124; U007C; Sm; |
+        LexerResult.RepeatEnd,  // 125; U007D; Pe; }
+        LexerResult.Error,  // 126; U007E; Sm; ~
+        LexerResult.Error // 127; U007F; Cc; DELETE
 
       };
 
@@ -499,7 +499,7 @@ LexerResult.Error // 127; U007F; Cc; DELETE
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated Sun, 19 Jul 2020 21:58:59 GMT (grammlator, File version 2020.04.07.1 19.07.2020 21:58:43)
+#region grammlator generated Sun, 26 Jul 2020 12:37:04 GMT (grammlator, File version 2020.04.07.1 26.07.2020 12:29:27)
   Int32 AttributeStackInitialCount = _a.Count;
   /* State 1
    * *Startsymbol= ►Gap, CharacterToPassOn;
@@ -666,7 +666,7 @@ State2:
   // >= ClassifierResult.Digit: goto AcceptReduce7 // see end of switch
   } // end of switch
   if (LexerInput <= ClassifierResult.NumberSign)
-  {
+     {
      inputClassifier.AcceptSymbol();
      /* Reduction 2, aStack: -1
       * CharacterToPassOn= OneCharacterToPassOn(int index);◄ method: TranslateCharToLexerResult, aStack: -1
@@ -935,7 +935,8 @@ EndWithError:
 
 EndOfGeneratedCode:
   ;
-#endregion grammlator generated Sun, 19 Jul 2020 21:58:59 GMT (grammlator, File version 2020.04.07.1 19.07.2020 21:58:43)
+
+#endregion grammlator generated Sun, 26 Jul 2020 12:37:04 GMT (grammlator, File version 2020.04.07.1 26.07.2020 12:29:27)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }
       }

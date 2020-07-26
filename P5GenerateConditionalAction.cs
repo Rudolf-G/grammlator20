@@ -12,7 +12,7 @@ namespace Grammlator {
 
       private void GenerateOneConditionalAction(ConditionalAction a, BitArray relevantSymbols, Int32 nestingLevel)
          {
-         codegen.IndentExactly(nestingLevel);
+         codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("if (");
 
          codegen.IncrementIndentationLevel();
@@ -29,9 +29,9 @@ namespace Grammlator {
          codegen.DecrementIndentationLevel();
          }
 
-      private void GenerateConditionAsComment(BitArray Condition, Int32 nestingLevel)
-         {
-         codegen.IndentExactly(nestingLevel);
+      private void GenerateConditionAsComment(BitArray Condition)
+      {
+         codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("Debug.Assert(");
          codegen.IncrementIndentationLevel();
          // codegen.Indent(nestingLevel + 1);

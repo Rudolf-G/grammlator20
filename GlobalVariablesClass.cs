@@ -485,5 +485,10 @@ namespace Grammlator {
       /// Defined in Phase4, used in Phase5
       /// </summary>
       internal static Int32 CountOfStatesWithStateStackNumber;
+
+      /// <summary>
+      /// used in <see cref="P5GenerateCode"/> and <see cref="HaltAction.Generate(P5CodegenCS, out bool)"/>
+      /// </summary>
+      internal static Boolean reductionsModifyAttributStack;
       } // class GlobalVariables
    }

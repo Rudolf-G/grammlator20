@@ -188,7 +188,7 @@ namespace Grammlator {
       /// <param name="codegen">The class that implements the generation of the code</param>
       /// <param name="accept"></param>
       /// <returns>the next action to generate or null</returns>
-      internal virtual ParserAction? Generate(ICodegen codegen, out Boolean accept)
+      internal virtual ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
          => throw new NotImplementedException($"Codegeneration is not implemented for {ParserActionType}");
 
       internal virtual StringBuilder ToStringbuilder(StringBuilder sb)
@@ -745,6 +745,71 @@ namespace Grammlator {
 
          base.ToStringbuilder(sb);
       }
+
+      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
+      {
+         // Generate description
+         codegen.IndentExactly();
+         codegen.Append("/* Reduction ");
+         codegen.Append(this.IdNumber + 1);
+         if (this.StateStackAdjustment != 0)
+         {
+            codegen.Append(", sStack: ");
+            codegen.Append(-this.StateStackAdjustment);
+         }
+         if (this.AttributeStackAdjustment != 0)
+         {
+            codegen.Append(", aStack: ");
+            codegen.Append(this.AttributeStackAdjustment);
+         }
+         codegen.OutputandClearLine();
+         codegen.IndentAndAppendLines(this.Description, " * ");
+         codegen.IndentAndAppendLine(" */");
+
+         // Generate instructions to handle the state stack
+         if (this.StateStackAdjustment != 0)
+         {
+            if (this.StateStackAdjustment == 1)
+            {
+               codegen.IndentAndAppend(GlobalVariables.StateStack)
+                  .AppendLine(".Pop(); ");
+            }
+            else
+            {
+               codegen.IndentAndAppend(GlobalVariables.StateStack)
+                  .Append(".Discard(")
+                  .Append(this.StateStackAdjustment)
+                  .Append("); ");
+            }
+         }
+
+         // Generate instructions to handle the attribute stack and to call the method
+
+         if (this.AttributeStackAdjustment != 0 && this.FirstAdjustAttributeStackThenCallMethod)
+            codegen.GenerateAttributeStackAdjustment(this.AttributeStackAdjustment);
+
+         if (this.SemanticMethod != null)
+            codegen.GenerateSemanticMethodCall(this.SemanticMethod);
+
+         if (this.AttributeStackAdjustment != 0 && !this.FirstAdjustAttributeStackThenCallMethod)
+         {
+            codegen.Indent();
+            codegen.GenerateAttributeStackAdjustment(this.AttributeStackAdjustment);
+         }
+
+         // Gegebenenfalls die Zeile beenden
+         if (codegen.LineLength > 0)
+            codegen.OutputandClearLine();
+
+         // return next action
+         accept = false;
+         Debug.Assert(
+            this.NextAction != null,
+            $"Error in Phase 5: {nameof(this.NextAction)} == null"
+            );
+
+         return this.NextAction;
+      }
    }
 
    internal abstract class ConditionalAction : ParserActionWithNextAction {
@@ -1203,6 +1268,60 @@ namespace Grammlator {
       internal override void NameToSb(StringBuilder sb)
           => sb.Append("Error handling ")
             .Append(IdNumber + 1);
+
+      /// <summary>
+      /// Generates the assignment to StateNumber and the call of ErrorHandler dependent on the global variables or
+      /// if there is no error handling method defined, returns only the next action (error halt)
+      /// </summary>
+      /// <param name="accept"></param>
+      /// <returns>next action: <see cref="ErrorHaltAction>"/> </returns>
+      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
+      {
+         if (!string.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
+         {
+            //codegen.IndentExactly();
+
+            if (!string.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
+            {   // generate ErrorHandlerCall   ErrorHandler(ErrorStateNumber, StateDescription, ParserInput);
+               codegen
+                  .Indent()
+                  .Append("if (")
+                  .Append(GlobalVariables.ErrorHandlerMethod)
+                  .Append('(')
+                  .Append(this.IdNumber + 1)
+                  .Append(", ")
+                  .Append(GlobalVariables.VariableNameStateDescription)
+                  .Append(this.State.IdNumber + 1)
+                  .Append(", ")
+                  .Append(GlobalVariables.VariableNameSymbol)
+                  .AppendLine("))");
+
+               if (this.State.StateStackNumber >= 0)
+               { // generate {_s.POP(..); goto state...;}
+                  codegen
+                     .IncrementIndentationLevel()
+                     .Indent()
+                     .AppendLine("{")
+                     .IndentAndAppend(GlobalVariables.StateStack)
+                     .AppendLine(".Pop(); ")
+                     .GenerateGoto(this.State, accept: false)
+                     .IndentAndAppendLine("};")
+                     .DecrementIndentationLevel();
+               }
+               else
+               { // generate goto state...;
+                  codegen
+                     .IncrementIndentationLevel()
+                     .Indent()
+                     .GenerateGoto(this.State, accept: false)
+                     .DecrementIndentationLevel();
+               }
+            }
+         }
+
+         accept = false;
+         return this.NextAction; // errorhandlingAction.NextAction == ErrorHalt  
+      }
    }
 
    internal sealed class HaltAction : ParserActionWithNextAction {
@@ -1237,6 +1356,32 @@ namespace Grammlator {
       internal override void NameToSb(StringBuilder sb)
           => sb.Append("halt nr. ")
             .Append(IdNumber + 1);
+
+      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
+      {
+         codegen.IndentExactly();
+         Int32 numberOfAttributesToStore = this.AttributestackAdjustment;
+         Debug.Assert(numberOfAttributesToStore >= 0);
+
+         codegen.IndentAndAppendLine("// Halt: a definition of the startsymbol with " + numberOfAttributesToStore.ToString() + " attributes has been recognized.");
+
+         if (GlobalVariables.ListOfAllStates[0].StateStackNumber >= 0)
+            codegen.IndentExactly()
+               .Append(GlobalVariables.StateStack)
+               .Append(".Pop();");
+
+         if (numberOfAttributesToStore != 0)
+         {
+            codegen.Append("AttributesOfSymbol.CopyAndRemoveFrom(")
+               .Append(GlobalVariables.AttributeStack)
+               .Append(", ")
+               .Append(numberOfAttributesToStore)
+               .AppendLine(");");
+         }
+
+         accept = false;
+         return this.NextAction;
+      }
    }
 
    /// <summary>
@@ -1257,6 +1402,40 @@ namespace Grammlator {
 
       internal override void NameToSb(StringBuilder sb)
           => sb.Append("error halt ");
+
+      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
+      {
+         codegen.IndentAndAppendLine(
+           "// This point is reached after an input error has been found");
+
+         // generate _s.Pop(x)
+         if (GlobalVariables.CountOfStatesWithStateStackNumber > 0)
+            codegen.IndentExactly()
+               .Append(GlobalVariables.StateStack)
+               .Append(".Discard(")
+               .Append(GlobalVariables.StateStack)
+               .Append(".Count - ")
+               .Append(GlobalVariables.StateStackInitialCountVariable)
+               .AppendLine(");");
+         // codegen.IndentAndAppendLine("_s.Discard(_s.Count - StateStackInitialCount);");  // TODO als Ressource definieren
+
+         // generate _a.Free(x)
+         if (GlobalVariables.reductionsModifyAttributStack)
+            codegen.IndentExactly()
+               .Append(GlobalVariables.AttributeStack)
+               .Append(".Free(")
+               .Append(GlobalVariables.AttributeStack)
+               .Append(".Count - ")
+               .Append(GlobalVariables.AttributeStackInitialCountVariable)
+               .AppendLine(");");
+
+         // generate additional instruction
+         if (!String.IsNullOrEmpty(GlobalVariables.InstructionErrorHalt))
+            codegen.IndentAndAppendLine(GlobalVariables.InstructionErrorHalt);
+
+         accept = false;
+         return GlobalVariables.TheOnlyOneErrorHaltAction.NextAction;
+      }
    }
 
    internal sealed class DeletedParserAction : ParserAction { // : ActionWithNextAction" ??? no, NextAction should be ignored because it can not be reached
@@ -1284,7 +1463,7 @@ namespace Grammlator {
    internal sealed class EndOfGeneratedCodeAction : ParserAction {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isEndOfGeneratedCode;
 
-      internal override ParserAction? Generate(ICodegen codegen, out Boolean accept)
+      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
          accept = false;
          return codegen.GenerateEndOfCodeAction();
@@ -1315,7 +1494,7 @@ namespace Grammlator {
             return ParserActionEnum.isPushStateAction;
          }
       }
-      internal override ParserAction? Generate(ICodegen codegen, out Boolean accept)
+      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
          accept = false;
          codegen.GenerateStateStackPushWithOptionalLinebreak(this.StateStackNumber);

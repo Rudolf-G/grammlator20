@@ -582,40 +582,46 @@ namespace Grammlator {
          Actions.RemoveFromEnd(DeletedActionsCount);
          }
 
-      /// <summary>
-      /// Yields all actions of the state whereby instead of a PrioritySelectActions its
-      /// NextAction is used and if it is a PriorityBranchAction
-      /// </summary>
-      public IEnumerable<ParserAction> FlatSetOfActions {
-         get {
-            Debug.Assert(Actions != null);
-            for (Int32 i = 0; i < Actions.Count; i++)
-               {
-               ParserAction? a = Actions[i];
-               while (a != null)
-                  {
-                  if (a is PrioritySelectAction psa)
-                     a = psa.NextAction;
-                  else if (a is PriorityBranchAction pba)
-                     {
-                     if (pba.ConstantPriorityAction != null)
-                        yield return pba.ConstantPriorityAction;
-                     for (Int32 k = 0; k < pba.DynamicPriorityActions.Count; k++)
-                        {
-                        yield return pba.DynamicPriorityActions[k];
-                        }
-                        ;
-                     }
-                  else
-                     {
-                     yield return a;
-                     a = null;
-                     }
-                  }
-               }
-            }
-         } //
-      } // ParserState
+      ///// <summary>
+      ///// Yields all actions of the state whereby instead of a PrioritySelectActions its
+      ///// NextAction is used and if it is a PriorityBranchAction
+      ///// </summary>
+      //public IEnumerable<ParserAction> FlatSetOfActions {
+      //   get {
+      //      Debug.Assert(Actions != null);
+      //      for (Int32 i = 0; i < Actions.Count; i++)
+      //         {
+      //         ParserAction? a = Actions[i];
+      //         while (a != null)
+      //            {
+      //            if (a is PrioritySelectAction psa)
+      //               a = psa.NextAction;
+      //            else if (a is PriorityBranchAction pba)
+      //               {
+      //               if (pba.ConstantPriorityAction != null)
+      //                  yield return pba.ConstantPriorityAction;
+      //               for (Int32 k = 0; k < pba.DynamicPriorityActions.Count; k++)
+      //                  {
+      //                  yield return pba.DynamicPriorityActions[k];
+      //                  }
+      //                  ;
+      //               }
+      //            else
+      //               {
+      //               yield return a;
+      //               a = null;
+      //               }
+      //            }
+      //         }
+      //      }
+      //   } //
+
+      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
+      {
+         base.Generate(codegen, out accept); // throw not implemented exception
+         return null;
+      }
+   } // ParserState
 
    /// <summary>
    /// The ItemStruct includes an additional field InputSymbol to make the special handling of trivial definitions possible.

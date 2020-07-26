@@ -862,7 +862,7 @@ namespace Grammlator {
          LexerResult ParserInput;
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Fri, 24 Jul 2020 17:01:57 GMT (grammlator, File version 2020.04.07.1 24.07.2020 17:01:05)
+#region grammlator generated Sun, 26 Jul 2020 12:34:29 GMT (grammlator, File version 2020.04.07.1 26.07.2020 12:29:27)
   Int32 StateStackInitialCount = _s.Count;
   Int32 AttributeStackInitialCount = _a.Count;
   /* State 1
@@ -940,7 +940,7 @@ State23:
   // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce22 // see end of switch
   } // end of switch
   if (ParserInput <= LexerResult.NumberSign)
-  goto HandleError23;
+     goto HandleError23;
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
 
 Reduce22:
@@ -970,8 +970,7 @@ AcceptBranch5:
 Branch5:
   /* Branch 5*/
   if (_s.Peek() == 11)
-  goto Reduce82;
-
+     goto Reduce82;
 Reduce24:
   /* Reduction 24, sStack: -1
    * FirstGrammarRule= "*=", outerDefinitions;◄ method: FirstGrammarRuleRecognized
@@ -1051,11 +1050,11 @@ Branch16:
   {
   case 0:
   case 1:
-  goto State3;
+     goto State3;
   case 6:
-  goto State72;
+     goto State72;
   case 10:
-  {
+     {
      /* Reduction 77
       * outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes);◄ method: LeftSideOfOuterProduction
       */
@@ -1068,7 +1067,7 @@ Branch16:
 
      goto State79;
      }
-  /*case 2: case 3: case 4: case 5: case 7: case 8: case 9: case 11:
+/*case 2: case 3: case 4: case 5: case 7: case 8: case 9: case 11:
   default: break;
   */
   }
@@ -1140,7 +1139,7 @@ Branch2:
   switch (_s.Peek())
   {
   case 5:
-  {
+     {
      /* Reduction 40, sStack: -2
       * SequenceOfElements= SequenceOfElements, ","?, Element;◄
       */
@@ -1151,8 +1150,8 @@ Branch2:
   case 7:
   case 8:
   case 9:
-  goto State67;
-  /*case 2: case 3: case 4: case 11:
+     goto State67;
+/*case 2: case 3: case 4: case 11:
   default: break;
   */
   }
@@ -1188,7 +1187,7 @@ State31:
   // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce36 // see end of switch
   } // end of switch
   if (ParserInput <= LexerResult.Plus)
-  goto HandleError31;
+     goto HandleError31;
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
 
   /* Reduction 36
@@ -1224,12 +1223,12 @@ Reduce38:
   switch (_s.Peek())
   {
   case 2:
-  goto Reduce24;
+     goto Reduce24;
   case 4:
-  goto Reduce39;
+     goto Reduce39;
   case 11:
-  goto Reduce82;
-  /*case 3:
+     goto Reduce82;
+/*case 3:
   default: break;
   */
   }
@@ -1337,9 +1336,9 @@ Branch8:
   {
   case 2:
   case 11:
-  goto Reduce25;
+     goto Reduce25;
   case 1:
-  {
+     {
      /* Reduction 37, aStack: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
       */
@@ -1352,7 +1351,7 @@ Branch8:
      goto State34;
      }
   case 6:
-  {
+     {
      /* Reduction 61, aStack: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
       */
@@ -1365,7 +1364,7 @@ Branch8:
      goto State63;
      }
   case 3:
-  {
+     {
      /* Reduction 67, sStack: -1, aStack: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
       * then: Definition= SequenceOfElements, EndOfDefinition;◄
@@ -1380,7 +1379,7 @@ Branch8:
      goto Branch15;
      }
   case 9:
-  {
+     {
      /* Reduction 70, aStack: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
       */
@@ -1392,7 +1391,7 @@ Branch8:
      _a.Free();
      goto State70;
      }
-  /*case 0:
+/*case 0:
   default: break;
   */
   }
@@ -1414,11 +1413,11 @@ Branch4:
   {
   case 2:
   case 11:
-  goto State30;
+     goto State30;
   case 6:
-  goto State63;
+     goto State63;
   case 3:
-  {
+     {
      /* Reduction 66, sStack: -1
       * Definition= SequenceOfElements, EndOfDefinition;◄
       */
@@ -1426,8 +1425,8 @@ Branch4:
      goto Branch15;
      }
   case 9:
-  goto State70;
-  /*case 1:
+     goto State70;
+/*case 1:
   default: break;
   */
   }
@@ -1635,10 +1634,10 @@ Reduce59:
   switch (_s.Peek())
   {
   case 1:
-  goto State75;
+     goto State75;
   case 2:
-  goto State77;
-  /*case 0:
+     goto State77;
+/*case 0:
   default: break;
   */
   }
@@ -1669,7 +1668,7 @@ Branch3:
   switch (_s.Peek())
   {
   case 5:
-  {
+     {
      /* Reduction 41, sStack: -2, aStack: -1
       * Element= RepeatedElement(Symbol Symbol);◄ method: ElementVariantRecognized, aStack: -1
       * then: SequenceOfElements= SequenceOfElements, ","?, Element;◄
@@ -1687,8 +1686,8 @@ Branch3:
   case 7:
   case 8:
   case 9:
-  goto Reduce62;
-  /*case 2: case 3: case 4: case 11:
+     goto Reduce62;
+/*case 2: case 3: case 4: case 11:
   default: break;
   */
   }
@@ -1824,14 +1823,13 @@ Reduce4:
   _a.Free(3);
   /* Branch 1*/
   if (_s.Peek() == 1)
-  {
+     {
      /* Reduction 7, sStack: -1
       * TerminalSymbolsList= TerminalSymbolsList, "|", TerminalSymbol;◄
       */
      _s.Pop();
      goto State5;
      }
-
 State5:
   /* State 5 */
   const String StateDescription5 =
@@ -2505,10 +2503,10 @@ Branch10:
   switch (_s.Peek())
   {
   case 0:
-  goto State39;
+     goto State39;
   case 2:
-  goto State54;
-  /*case 1:
+     goto State54;
+/*case 1:
   default: break;
   */
   }
@@ -2518,8 +2516,7 @@ Branch10:
   _s.Pop();
   /* Branch 9*/
   if (_s.Peek() == 0)
-  goto State39;
-
+     goto State39;
 State54:
   /* State 54 */
   const String StateDescription54 =
@@ -2660,8 +2657,7 @@ State48:
 Branch11:
   /* Branch 11*/
   if (_s.Peek() == 0)
-  goto State37;
-
+     goto State37;
 State52:
   /* State 52 */
   const String StateDescription52 =
@@ -2934,8 +2930,7 @@ State65:
   _s.Pop();
   /* Branch 13*/
   if (_s.Peek() == 6)
-  goto Reduce60;
-
+     goto Reduce60;
 Reduce69:
   /* Reduction 69, sStack: -1
    * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions;◄
@@ -3283,7 +3278,7 @@ State83:
   // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce22 // see end of switch
   } // end of switch
   if (ParserInput >= LexerResult.DefinitionSeparatorSymbol)
-  goto Reduce22;
+     goto Reduce22;
   Debug.Assert(ParserInput <= LexerResult.NumberSign);
 
 HandleError83:
@@ -3327,7 +3322,7 @@ State85:
 Branch17:
   /* Branch 17*/
   if (_s.Peek() == 1)
-  {
+     {
      /* Reduction 91, sStack: -1
       * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex), "(Attributes)"(Int32 NumberOfAttributes);◄
       */
@@ -3373,7 +3368,7 @@ State86:
 Branch18:
   /* Branch 18*/
   if (_s.Peek() == 1)
-  {
+     {
      /* Reduction 88, sStack: -1, aStack: -1
       * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 numberBeforeGroup), Comma, "Attributes)"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup);◄ method: AnotherAttributeOfGroup, aStack: -1
       */
@@ -3540,12 +3535,12 @@ Reduce39:
   switch (_s.Peek())
   {
   case 3:
-  goto Reduce35;
+     goto Reduce35;
   case 4:
-  goto Reduce39;
+     goto Reduce39;
   case 11:
-  goto Reduce82;
-  /*case 2:
+     goto Reduce82;
+/*case 2:
   default: break;
   */
   }
@@ -3556,12 +3551,12 @@ Branch15:
   switch (_s.Peek())
   {
   case 6:
-  goto State68;
+     goto State68;
   case 7:
-  goto State65;
+     goto State65;
   case 9:
-  goto State71;
-  /*case 8:
+     goto State71;
+/*case 8:
   default: break;
   */
   }
@@ -3573,10 +3568,10 @@ Branch15:
   switch (_s.Peek())
   {
   case 6:
-  goto State68;
+     goto State68;
   case 9:
-  goto State71;
-  /*case 7:
+     goto State71;
+/*case 7:
   default: break;
   */
   }
@@ -3605,7 +3600,8 @@ EndWithError:
 
 EndOfGeneratedCode:
   ;
-#endregion grammlator generated Fri, 24 Jul 2020 17:01:57 GMT (grammlator, File version 2020.04.07.1 24.07.2020 17:01:05)
+
+#endregion grammlator generated Sun, 26 Jul 2020 12:34:38 GMT (grammlator, File version 2020.04.07.1 26.07.2020 12:29:27)
          /* ************************ code written by programmer ******************** */
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }

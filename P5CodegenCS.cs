@@ -4,22 +4,11 @@ using System.Text;
 
 namespace Grammlator
 {
-   interface ICodegen
-   {
-      void GenerateStartOfCode(
-          Boolean GenerateStateStackInitialCountVariable,
-          Boolean GenerateAttributeStackInitialCountVariable);
-
-      void GenerateEndOfCode();
-
-      ParserAction? GenerateEndOfCodeAction();
-      void GenerateStateStackPushWithOptionalLinebreak(Int32 valueToPush);
-   }
-
+   
    /// <summary>
    /// Low level methods for code generation (C#) to be used by phase 5
    /// </summary>
-   internal class P5CodegenCS: ICodegen
+   internal class P5CodegenCS
    {
       public P5CodegenCS(StringBuilder Resultbuilder)
           => this.resultbuilder = Resultbuilder;// fCode = new List<string>(100);
@@ -97,8 +86,7 @@ namespace Grammlator
       public ParserAction? GenerateEndOfCodeAction()
       {
          // The label (if needed) has already been generated
-        AppendLineAndIndent()
-         .Append(';');
+        Indent().AppendLine(';');
          return null;
       }
 
@@ -317,20 +305,7 @@ namespace Grammlator
          {
             Append(s);
          }
-      }
-
-      /// <summary>
-      /// Set indentation level and indent to new indentation position if actual position is smaller,
-      /// else start new line and indent. The indentation is IndentationLevel*IndentationWidth + 2.
-      /// 2 is added, so that only labels appear without any indentation.
-      /// </summary>
-      /// <param name="newIndentation"></param>
-      public P5CodegenCS IndentExactly(Int32 newIndentation)
-      {
-         IndentationLevel = newIndentation;
-         IndentExactly();
-         return this;
-      }
+      }  
 
       /// <summary>
       /// Indent to position given by the indentation level, if actual position is smaller,
@@ -343,7 +318,7 @@ namespace Grammlator
       }
 
       /// <summary>
-      /// Set indentation level and indent to maximum of actual lineposition and neww indentation position
+      /// Set indentation level and indent to maximum of actual lineposition and new indentation position
       /// </summary>
       /// <param name="newIndentation">new indentation level</param>
       public P5CodegenCS Indent(Int32 newIndentation)
@@ -363,22 +338,26 @@ namespace Grammlator
          return this;
       }
 
-      public void IncrementIndentationLevel()
-         => IndentationLevel++;
+      public P5CodegenCS IncrementIndentationLevel()
+      {
+         IndentationLevel++;
+         return this;
+      }
 
-      public void DecrementIndentationLevel()
+      public P5CodegenCS DecrementIndentationLevel()
       {
          IndentationLevel--;
          if (IndentationLevel < 0)
             IndentationLevel = 0;
-            // throw new ArgumentException("IndentationLevel<0");
+         // throw new ArgumentException("IndentationLevel<0");
+         return this;
       }
 
       public void GenerateBeginOfBlock()
          {
          IndentExactly();
          AppendLine('{');
-         IncrementIndentationLevel();
+         // IncrementIndentationLevel();
          //IndentationLevel = NewIndentation;
          //IndentAndAppend('{');
          //AppendLine(); // eine neue Zeile anfangen
@@ -386,8 +365,8 @@ namespace Grammlator
 
       public void GenerateEndOfBlock(String comment)
       {
+         // DecrementIndentationLevel();
          IndentExactly();
-         DecrementIndentationLevel();
          CodeLine.Append("}");
          if (!string.IsNullOrEmpty(comment))
             Append(" // ").
@@ -432,17 +411,10 @@ namespace Grammlator
          SetCol(0);
          CodeLine.Append(s)
              .Append(": ");
+         OutputandClearLine();
       }
-
-      public void GenerateGoto(ParserActionWithNextAction action, Int32 nestingLevel)
-      {
-         GenerateGoto(
-             action is ErrorhandlingAction ? action : action.NextAction,
-             action is TerminalTransition,
-             nestingLevel);
-      }
-
-      public P5CodegenCS GenerateGoto(ParserAction action, Boolean accept, Int32 nestingLevel)
+      
+      public P5CodegenCS GenerateGoto(ParserAction action, Boolean accept)
       {
          IndentExactly();
          CodeLine.Append("goto ")
@@ -451,9 +423,9 @@ namespace Grammlator
          return this;
       }
 
-      public void GenerateIfSPeek(Int32 NewIndentationLevel, Boolean inverse, String condition)
+      public void GenerateIfSPeek(Boolean inverse, String condition)
       {
-         IndentExactly(NewIndentationLevel);
+         IndentExactly();
          if (inverse)
             Append("if (")
                .Append(GlobalVariables.StateStack)
