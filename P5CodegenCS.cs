@@ -76,7 +76,7 @@ namespace Grammlator
          }
       }
 
-      public void GenerateEndOfCode()
+      public void GenerateEndOfRegion()
       {
          Append(GlobalVariables.EndregionString).
             Append(' ').
@@ -380,7 +380,7 @@ namespace Grammlator
 
       // keine neue Zeile anfangen
 
-      public void GenerateAcceptSymbolInstruction()
+      public void GenerateAcceptInstruction()
           => AppendWithOptionalLinebreak(GlobalVariables.InstructionAcceptSymbol);
 
       /// <summary>
@@ -389,15 +389,22 @@ namespace Grammlator
       /// <param name="action"></param>
       /// <param name="accept"></param>
       /// <returns>The label assigned to the (accept) action</returns>
-      private static String GotoLabel(ParserAction action, Boolean accept)
+      public static String GotoLabel(ParserAction action, Boolean accept)
       {
-         string MapActiontypeToString = ParserEnumExtension.LabelPrefix(action.ParserActionType);
+         string LabelPrefix = ParserEnumExtension.LabelPrefix(action.ParserActionType);
          if (action.ParserActionType==ParserActionEnum.isErrorhaltAction ||
-            action.ParserActionType==ParserActionEnum.isEndOfGeneratedCode) // There is only one ErrorHaltAction, one end of generated code
-            return (accept ? "Accept" : "") + MapActiontypeToString.ToString();
-         return (accept ? "Accept" : "") + MapActiontypeToString + (action.IdNumber + 1).ToString();
+            action.ParserActionType==ParserActionEnum.isEndOfGeneratedCode) 
+            // There is only one ErrorHaltAction, one end of generated code
+            return (accept ? "Accept" : "") + LabelPrefix;
+         return (accept ? "Accept" : "") + LabelPrefix + (action.IdNumber + 1).ToString();
       }
 
+      /// <summary>
+      /// If <paramref name="action"/> is not <see cref="ErrorhandlingAction"/> then  generate label of NextAction (else of given action).
+      /// If <paramref name="action"/> is <see cref="TerminalTransition"/> then generate accept label.
+      /// </summary>
+      /// <param name="action"></param>
+      /// <returns></returns>
       public static String GotoLabel(ParserActionWithNextAction action)
       {
          return GotoLabel(
@@ -410,21 +417,27 @@ namespace Grammlator
       public void GenerateLabel(ParserAction action, Boolean accept)
           => GenerateLabel(GotoLabel(action, accept));
 
-      private void GenerateLabel(String s)
+      public void GenerateLabel(String s)
       {
          SetCol(0);
          CodeLine.Append(s)
              .Append(": ");
          OutputandClearLine();
       }
-      
-      public P5CodegenCS GenerateGoto(ParserAction action, Boolean accept)
+
+
+      public P5CodegenCS GenerateGoto(string label)
       {
          IndentExactly();
          CodeLine.Append("goto ")
-             .Append(GotoLabel(action, accept));
+             .Append(label);
          AppendLine("; ");
          return this;
+      }
+
+      public P5CodegenCS GenerateGoto(ParserAction action, Boolean accept)
+      {
+         return GenerateGoto(GotoLabel(action, accept));
       }
 
       public void GenerateIfSPeek(Boolean inverse, int condition)

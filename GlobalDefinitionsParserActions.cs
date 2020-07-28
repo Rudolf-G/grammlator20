@@ -643,6 +643,16 @@ namespace Grammlator {
       }
 
       internal BranchcasesList(IEnumerable<BranchcaseStruct> Quelle) : base(Quelle) { }
+
+      internal void SortByCondition()
+      {
+         base.Sort(Comparision);
+      }
+
+      int Comparision(BranchcaseStruct a, BranchcaseStruct b)
+      {
+         return a.BranchcaseCondition - b.BranchcaseCondition;
+      }
    }
 
    internal struct BranchcaseStruct {

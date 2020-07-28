@@ -449,15 +449,15 @@ namespace Grammlator {
       /// Construct a list (action/StateStacknumber) which contains for each state the action resulting if the inputSymbol is input into this state.
       /// If all actions are equivalent remove all except the first entries from the list.
       /// </summary>
-      /// <param name="listOfStates">List of parserstates accepting the <paramref name="inputSymbol"/>"/></param>
+      /// <param name="StatesAcceptingThisSymbol">List of parserstates accepting the <paramref name="inputSymbol"/>"/></param>
       /// <param name="inputSymbol">The nonterminal symbol which is allowed as input in each of the states</param>
       /// <returns></returns>
-      private static BranchcasesList ConstructListOfBranchcases(List<ParserState> listOfStates, NonterminalSymbol inputSymbol)
+      private static BranchcasesList ConstructListOfBranchcases(List<ParserState> StatesAcceptingThisSymbol, NonterminalSymbol inputSymbol)
       {
          // wird aufgerufen aus VorgängerSindNacharn,nach günstigeKennungenBerechnen()
-         var ListOfCases = new BranchcasesList(listOfStates.Count);
+         var ListOfCases = new BranchcasesList(StatesAcceptingThisSymbol.Count);
 
-         ParserState State1 = listOfStates[0];
+         ParserState State1 = StatesAcceptingThisSymbol[0];
          ParserAction Action1 = SimplifiedNextAction(State1.ActionCausedBy(inputSymbol));
 
          // Add the first case
@@ -466,10 +466,10 @@ namespace Grammlator {
          Boolean Equivalent = true;
 
          // for each other state in the list of states
-         for (Int32 StateIndex = 1; StateIndex < listOfStates.Count; StateIndex++)
+         for (Int32 StateIndex = 1; StateIndex < StatesAcceptingThisSymbol.Count; StateIndex++)
          {
             // Find the action caused by inputSymbol and add it to the list of cases
-            ParserState StateI = listOfStates[StateIndex];
+            ParserState StateI = StatesAcceptingThisSymbol[StateIndex];
             ParserAction ActionI = SimplifiedNextAction(StateI.ActionCausedBy(inputSymbol));
             AddCase(ListOfCases, StateI.StateStackNumber, ActionI);
 
@@ -480,6 +480,8 @@ namespace Grammlator {
          // if all cases are equivalent: remove all except the first one from the list
          if (Equivalent)
             ListOfCases.RemoveRange(1, ListOfCases.Count - 1);
+
+         ListOfCases.SortByCondition();
 
          return ListOfCases;
       }
