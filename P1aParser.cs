@@ -862,7 +862,7 @@ namespace Grammlator {
          LexerResult ParserInput;
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Mon, 27 Jul 2020 12:06:10 GMT (grammlator, File version 2020.04.07.1 27.07.2020 12:05:56)
+#region grammlator generated Tue, 28 Jul 2020 22:03:48 GMT (grammlator, File version 2020.07.28.0 28.07.2020 21:56:14)
   Int32 StateStackInitialCount = _s.Count;
   Int32 AttributeStackInitialCount = _a.Count;
   /* State 1
@@ -1247,6 +1247,23 @@ Reduce24:
 
   goto State78;
 
+AcceptReduce6:
+  Lexer.AcceptSymbol();
+  /* Reduction 6
+   * NoEnum= ;◄ method: EnumOmitted
+   */
+
+  EnumOmitted();
+
+Reduce5:
+  /* Reduction 5
+   * OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, SemikolonOrEnum;◄ method: CompareTerminalDeclarationsWithEnum
+   */
+
+  CompareTerminalDeclarationsWithEnum();
+
+  goto State22;
+
 AcceptReduce8:
   Lexer.AcceptSymbol();
 Reduce8:
@@ -1269,14 +1286,7 @@ State17:
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
-Reduce5:
-  /* Reduction 5
-   * OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, SemikolonOrEnum;◄ method: CompareTerminalDeclarationsWithEnum
-   */
-
-  CompareTerminalDeclarationsWithEnum();
-
-  goto State22;
+  goto Reduce5;
 
 Reduce25:
   /* Reduction 25, aStack: -1
@@ -1785,16 +1795,7 @@ State5:
      goto State7;
      }
   if (ParserInput >= LexerResult.TerminatorSymbol)
-     {
-     Lexer.AcceptSymbol();
-     /* Reduction 6
-      * NoEnum= ;◄ method: EnumOmitted
-      */
-
-     EnumOmitted();
-
-     goto Reduce5;
-     }
+     goto AcceptReduce6;
   if (ParserInput != LexerResult.CSharpStart)
      {
      if (ErrorHandler(5, StateDescription5, ParserInput))
@@ -1821,14 +1822,7 @@ State8:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
-  Lexer.AcceptSymbol();
-  /* Reduction 20
-   * NoEnum= ;◄ method: EnumOmitted
-   */
-
-  EnumOmitted();
-
-  goto Reduce5;
+  goto AcceptReduce6;
 
 State4:
   /* State 4 */
@@ -3590,7 +3584,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Mon, 27 Jul 2020 12:06:10 GMT (grammlator, File version 2020.04.07.1 27.07.2020 12:05:56)
+#endregion grammlator generated Tue, 28 Jul 2020 22:03:48 GMT (grammlator, File version 2020.07.28.0 28.07.2020 21:56:14)
          /* ************************ code written by programmer ******************** */
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }

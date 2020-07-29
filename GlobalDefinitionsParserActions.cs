@@ -127,19 +127,11 @@ namespace Grammlator {
       /// <summary>
       /// in phase3: used in digraph (0=&gt;not yet calculated); 
       /// in phase4: set to 0 (implements interface IParserAction)
-      /// in phase5: Calls is used directly 
       /// </summary>
       public Int32 Codenumber {
          get; set;
       }
-      //   get {
-      //      return Calls;
-      //   }
-      //   set {
-      //      Calls = value;
-      //   }
-      //}
-
+      
       /// <summary>
       ///  The number, the parser state pushes on the state stack. Originally only used for ParserStates.
       ///  Value -1: the state doesn't push a number on the stack.
@@ -158,14 +150,13 @@ namespace Grammlator {
          get; set;
       } = 0;
 
-
-
       /// <summary>
       /// Used in Phase5: &gt; 0: number of usages (code has not been generated),
       /// <para>0: never used or code has been generated, </para>
       /// <para>&lt;0: code has been generated or should not yet be generated (=-number of usages)</para>
       /// </summary>
-      internal Int32 Calls, AcceptCalls;
+      internal Int32 Calls { get; set; }
+      internal Int32 AcceptCalls { get; set; }
 
       /// <summary>
       /// Called in Phase5 to compute the values of Calls and AcceptCalls for Startaction and recursively for all accessible actions
@@ -1032,6 +1023,11 @@ namespace Grammlator {
       internal HashSet<NonterminalTransition> Includes {
          get; set;
       } = emptyHashSet;
+
+      internal void ClearIncludes()
+      {
+         Includes = emptyHashSet;
+      }
    }
 
 

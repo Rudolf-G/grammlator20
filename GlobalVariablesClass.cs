@@ -35,7 +35,8 @@ namespace Grammlator {
          InitialValues.Add("VariableSymbol", "PeekSymbol()");
          InitialValues.Add("VariableStateStackInitialCount", "StateStackInitialCount");
          InitialValues.Add("MethodIndexOfMaximum", "Method.IndexOfMaximum");
-         }
+         InitialValues.Add("OptimizeStateStackNumbers", "1");
+      }
 
       public static String GetString(String name) => InitialValues[name]; // TODO check not found
       public static Int32 GetInt(String name)
@@ -350,6 +351,8 @@ namespace Grammlator {
       internal static string AttributeStackInitialCountVariable = InitialSettings.GetString("VariableAttributeStackInitialCount");
 
       internal static string AttributeStack = InitialSettings.GetString("AttributeStack");
+
+      internal static bool OptimizeStateStackNumbers= InitialSettings.GetString("OptimizeStateStackNumbers")=="1";
 
       internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage {
          get; private set;

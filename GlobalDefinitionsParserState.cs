@@ -9,7 +9,7 @@ namespace Grammlator {
    /// <summary>
    /// IdNumbers of ParserStates are assigned at start of phase 2 and reset at end of phase 2
    /// </summary>
-   internal sealed class ParserState: ParserAction, IELementOfPartition {
+   internal sealed class ParserState : ParserAction, IELementOfPartition {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isParserState;
 
       internal ItemList CoreItems = new ItemList();
@@ -31,7 +31,7 @@ namespace Grammlator {
       /// <item> <see cref="PrioritySelectAction"/>, NextAction is <see cref="PriorityBranchAction"/></item>
       /// </list>
       /// </summary>
-      internal ListOfParserActions Actions=emptyListOfParserActions;
+      internal ListOfParserActions Actions = emptyListOfParserActions;
 
       private static readonly List<ParserState> emptyPredecessorList = new List<ParserState>(0);
 
@@ -43,7 +43,7 @@ namespace Grammlator {
       internal Boolean ContainsErrorHandlerCall {
          get;
          set;
-         }
+      }
 
       /// <summary>
       /// Estimated complexity of generated code (conditions)
@@ -55,7 +55,7 @@ namespace Grammlator {
       internal Int32 IfComplexity {
          get;
          set;
-         }
+      }
 
       /// <summary>
       /// Constructor which assigns the number (&gt;=1)to the states IdNumber and <see cref="StateStackNumber"/>
@@ -64,20 +64,20 @@ namespace Grammlator {
       /// <param name="Number">Assigned to <see cref="StateStackNumber"/> and to IdNumber</param>
       /// <param name="Items">Core items which will be copied to <see cref="CoreItems"/></param>
       internal ParserState(Int32 Number, ItemList Items)
-         {
+      {
          this.CoreItems = new ItemList(Items);
          this.StateStackNumber = Number; // StateStackNumber >= 0
          this.IdNumber = Number; // IDNumber >= 0
-         }
+      }
 
       internal override void CountUsage(Boolean Accept)
-         {
+      {
          if (Calls > 0)
-            {
+         {
             base.CountUsage(Accept);
-            }
+         }
          else
-            {
+         {
             // Because this ParserState is used all its actions are used
             base.CountUsage(Accept);
             foreach (ParserAction actionOfParserstate in Actions)
@@ -86,8 +86,8 @@ namespace Grammlator {
             // Generating the error handler will generate a call of the state
             if (ContainsErrorHandlerCall)
                base.CountUsage(false);
-            }
          }
+      }
 
       /// <summary>
       /// Bestimmt die Folgeaktion bei Eingabe des einzugebenden Symbols in den Zustand
@@ -96,29 +96,29 @@ namespace Grammlator {
       /// <param name="InputSymbol">Symbol, zu dessen Eingabe die Folgeaktion bestimmt werden soll</param>
       /// <returns>the action or null (halt)</returns>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
-      internal ParserAction ActionCausedBy(NonterminalSymbol InputSymbol)
-         {
-         foreach (ParserAction parserAction in Actions)
-            {
-            if ((parserAction as NonterminalTransition)?.InputSymbol == InputSymbol)
-               return parserAction;
-            }
+      internal NonterminalTransition ActionCausedBy(NonterminalSymbol InputSymbol)
+      {
+         var result = Actions.Find((a) => (a as NonterminalTransition)?.InputSymbol == InputSymbol);
+
          // There must exist an action also for the Startsymbol: a HaltAction
-         throw new ErrorInGrammlatorProgramException(
-            $"Missing action in state {this.IdNumber + 1} for InpuSymbol {InputSymbol.Identifier}"
-            );
-         }
+         if (result == null)
+            throw new ErrorInGrammlatorProgramException(
+               $"Missing action in state {this.IdNumber + 1} for InpuSymbol {InputSymbol.Identifier}"
+               );
+
+         return (NonterminalTransition)result;
+      }
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
-         {
+      {
          sb.Append("State ")
            .Append(IdNumber + 1);
          if (StateStackNumber >= 0)
-            {
+         {
             sb.Append(" (")
               .Append(StateStackNumber)
               .Append(") ");
-            }
+         }
          sb.AppendLine(": ")
            .AppendLine("Items:");
          CoreItems.ToStringbuilderMitZusatzinfo(sb)
@@ -126,7 +126,7 @@ namespace Grammlator {
          Actions?.ToStringbuilder(sb)
            .AppendLine();
          return sb;
-         }
+      }
 
       internal override void NameToSb(StringBuilder sb)
           => sb.Append("State ")
@@ -141,43 +141,42 @@ namespace Grammlator {
       /// If yes returns this action else returns null. 
       /// </summary>
       /// <returns>the only one terminal action or null</returns>
-      internal ConditionalAction? RedundantLookaheadOrSelectActionOrNull()
-         {
-         ConditionalAction? theOnlyOneAction = null;
+      internal ParserActionWithNextAction? RedundantLookaheadOrSelectActionOrNull()
+      {
+         ParserActionWithNextAction? theOnlyOneAction = null;
 
          foreach (ParserAction action in Actions!)
-            {
-            ConditionalAction FittingAction;
+         {
+            ParserActionWithNextAction FittingAction;
 
-            if (action is TerminalTransition transition)
-               {
+            switch (action)
+            {
+            case TerminalTransition transition:
                if (!transition.TerminalSymbols.Empty())
-                  {
+               {
                   // a TerminalTransition, even if caused by all symbols,
                   // can not be skipped because the accept must be generated
                   return null; // there must be one more action in the state, for example error handling
-                  }
+               }
                // ...TerminalSymbols.Empty(): this transition will never be executed, can be ignored
                // This may happen if there is also a IF ( ...All()) ...
                continue;
-               }
-            else if (action is LookaheadAction lookAction)
-               {
+            case LookaheadAction lookAction:
                if (lookAction.TerminalSymbols.All())
                   FittingAction = lookAction; // action with all terminal symbols allowed (or no terminal symbols defined)
                else if (lookAction.TerminalSymbols.Empty()) // only correct after preceding "if( ...ALL())"
                   continue; // this action will never be executed
                else
-                  {
+               {
                   FittingAction = lookAction;
                   // TOCHECK this may cause deferred error recognition because the error handling action may not be generated
                   // return null; // this variant allows early error recognition
-                  }
                }
-            else if (action is PrioritySelectAction selectAction)
-               {
+
+               break;
+            case PrioritySelectAction selectAction:
                if (selectAction.NextAction is TerminalTransition)
-                  return null; // see above
+                  return null; // see above ????
 
                // The selectAction contains only Definitions -> LookAheadActions
                if (selectAction.TerminalSymbols.All())
@@ -185,25 +184,28 @@ namespace Grammlator {
                else if (selectAction.TerminalSymbols.Empty()) // must not occur
                   continue; // this action will never be executed
                else
-                  {
+               {
                   FittingAction = selectAction;
                   // TOCHECK this may cause deferred error recognition because the error handling action may not be generated
                   // return null; // this variant allows early error recognition
-                  }
                }
-            else
-               {
+
+               break;
+            case ReduceAction reduceAction: // TO add !!!!
+               FittingAction = reduceAction;
+               break;
+            default:
                continue; // ignore all other types of actions
-               }
+            }
 
             if (theOnlyOneAction == null || theOnlyOneAction.Equals(FittingAction))
                theOnlyOneAction = FittingAction;
             else if (theOnlyOneAction != FittingAction)
                return null; // more than one action
-            } // foreach
+         } // foreach
 
          return theOnlyOneAction;
-         }
+      }
 
       /// <summary>
       /// Finds and resolves the conflicts of the state, returns 1, if conflicts have been found, else 0
@@ -213,7 +215,7 @@ namespace Grammlator {
       /// 
       /// <returns>1 if conflict have been found, else 0</returns>
       public Int32 FindAndSolveConflictsOfState(BitArray allowedTerminalsUpToThisAction, StringBuilder sb)
-         {
+      {
          // The union of the TerminalSymbols of all the actions up to the action with IndexOfAction-1
          allowedTerminalsUpToThisAction.SetAll(false);
          // Allocate a BitArray to be used for the intersection of the actual actions terminal symbols
@@ -226,7 +228,7 @@ namespace Grammlator {
          // Find all actions which have at least one terminal symbol in common
          // with one of the preceding actions.
          for (Int32 IndexOfAction = 0; IndexOfAction < Actions!.Count; IndexOfAction++)
-            {
+         {
 
             ParserAction thisAction = Actions[IndexOfAction];
             if (!(
@@ -244,22 +246,22 @@ namespace Grammlator {
                  .And(terminalsOfThisAction) // modifies conflictSymbols
                  .Empty()  // no new conflict
                )
-               {
+            {
                // Solve the conflict between thisAction and one or more of the preceding actions 
                writeStateHeader =
                   SolveConflictsOfAction(IndexOfAction, terminalsOfThisAction, conflictSymbols,
                                          allowedTerminalsUpToThisAction, sb, writeStateHeader);
-               }
+            }
 
             // allowedSymbolsUpToThisAction and terminalsOfThisAction might be modified by SolveConflicts
             allowedTerminalsUpToThisAction.Or(terminalsOfThisAction);
-            } // for (int IndexOfAction
+         } // for (int IndexOfAction
 
          // Remove all actions that have been replaced by DeletedParserAction
          RemoveDeletedActions();
 
          return writeStateHeader ? 0 : 1;
-         }
+      }
 
       /// <summary>
       /// Tests the state for conflicts regarding the given action, solves potential conflicts by modifying
@@ -277,11 +279,11 @@ namespace Grammlator {
       private Boolean SolveConflictsOfAction(Int32 indexOfConflictAction, BitArray terminalsOfThisAction,
             BitArray conflictSymbols, BitArray allowedTerminalsUpToConflictAction, StringBuilder sb,
             Boolean writeHeadline)
-         {
+      {
 
          // find all groups of actions which conflict with the ConflictAction and solve the conflict for each group
          do
-            {
+         {
             // There is at least one conflict between the action and one of the preceding actions 
 
             // conflictSymbols is a subset of AllowedSymbolsUpToConflictAction and 
@@ -289,14 +291,14 @@ namespace Grammlator {
 
             // protocol state
             if (writeHeadline)
-               {
+            {
                writeHeadline = false;
                sb.AppendLine()
                  .Append("Conflicts in state ")
                  .Append(IdNumber + 1)
                  .AppendLine();
                CoreItems.ToStringbuilderMitZusatzinfo(sb);
-               }
+            }
 
             // find one group of actions which conflict with the ConflictAction and solve the conflict for this group
             SolveAndLogSubsetOfConflict(indexOfConflictAction,
@@ -306,7 +308,7 @@ namespace Grammlator {
             // One conflict is solved, symbolsOfThisAction may be modified
             // There may be more conflicts between the action and the preceding actions
 
-            }
+         }
          while
             (!conflictSymbols
                 .Assign(allowedTerminalsUpToConflictAction)  // Assigns to conflictSymbols
@@ -315,7 +317,7 @@ namespace Grammlator {
             );
 
          return writeHeadline;
-         }
+      }
 
       /// <summary>
       /// Determine one set of terminal symbols common to a set of conflicting actions and solve
@@ -333,7 +335,7 @@ namespace Grammlator {
             BitArray subsetOfConflictSymbols,
             BitArray allowedSymbolsUpToFirstConflictAction,
             StringBuilder sb)
-         {
+      {
          var State = this; // makes method easier to understand
 
          // TOCHECK Might there be states - after solving conflicts -  without path to the halt action,
@@ -355,7 +357,7 @@ namespace Grammlator {
          // Actions[indexOfActionWithPriority] is a ConditionalAction. As part of a ConditionalAction
          // the condition is not needed and hence .NextAction is used. 
          if (dynamicPriorityActions.Count > 0)
-            {
+         {
             var prioritySelectAction
                = new PrioritySelectAction(
                         inputSymbols: subsetOfConflictSymbols,
@@ -372,7 +374,7 @@ namespace Grammlator {
             GlobalVariables.ListOfAllPrioritySelectActions.Add(prioritySelectAction);
             prioritySelectAction.NextAction.IdNumber = GlobalVariables.ListOfAllPriorityBranchActions.Count;
             GlobalVariables.ListOfAllPriorityBranchActions.Add((PriorityBranchAction)prioritySelectAction.NextAction);
-            }
+         }
 
          // Log the conflict
          sb.AppendLine()
@@ -392,7 +394,7 @@ namespace Grammlator {
          // For each action in the parser state 
          // determine action symbols and priority and determine the action with the highest priority
          for (Int32 IndexOfAction = 0; IndexOfAction < State!.Actions!.Count; IndexOfAction++)
-            {
+         {
             ParserAction action = State.Actions[IndexOfAction];
             if (!(action is ConditionalAction conditionalAction))
                continue;
@@ -405,16 +407,16 @@ namespace Grammlator {
                continue;
 
             if (IndexOfAction == indexOfActionWithPriority)
-               {
+            {
                sb.Append("  priority ")
                  .Append(conditionalAction.Priority)
                  .Append(" => not modified: ");
 
                conditionalAction.ToStringbuilder(sb)
                  .AppendLine();
-               }
+            }
             else
-               {
+            {
                symbolsOfThisAction.ExceptWith(subsetOfConflictSymbols);
                // Write log:
                sb.Append("  priority ")
@@ -425,7 +427,7 @@ namespace Grammlator {
                  .AppendLine();
 
                if (symbolsOfThisAction.Empty())
-                  {
+               {
                   // Delete actions without remaining terminal symbols.
                   // This may cause that other actions can not be reached.
                   // If not deleted there might result code with If(true)... and code that can be never be reached
@@ -435,16 +437,16 @@ namespace Grammlator {
                   State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
                   // This can not be replaced by State.Actions.RemoveAt(IndexOfAction);
                   // because then the indexes (which are used in loops) would skip one element
-                  }
                }
-            } // for (int IndexOfAction ...
+            }
+         } // for (int IndexOfAction ...
 
          if (indexOfActionWithPriority >= indexOfFirstConflictAction)
-            {
+         {
             // Remove the subsetOfConflictSymbols from the superset AllowedSymbolsUpToFirstConflictAction
             allowedSymbolsUpToFirstConflictAction.Xor(subsetOfConflictSymbols);
-            }
          }
+      }
 
       /// <summary>
       /// Tests all actions with one or more of the conflict symbols and returns the action with the highest priority.
@@ -455,7 +457,7 @@ namespace Grammlator {
       private Int32 FindHighestPriorityActionOfConflictingActions(
             BitArray subsetOfConflictSymbols,
             ListOfParserActions dynamicPriorityActions)
-         {
+      {
          // Test each action of the state if it causes a conflict with any preceding action 
 
          dynamicPriorityActions.Clear();
@@ -467,7 +469,7 @@ namespace Grammlator {
          // For each action in the parser state (ignoring actions with dynamic priority)
          // determine action symbols and priority and determine the action with the highest priority
          for (Int32 IndexOfAction = 0; IndexOfAction < this.Actions!.Count; IndexOfAction++)
-            {
+         {
             if (!(this.Actions[IndexOfAction] is ConditionalAction action))
                continue;
 
@@ -488,28 +490,28 @@ namespace Grammlator {
 
             Int32 priority = 0; // priority of terminal transitions is always 0
             if (action is LookaheadAction laAction)
-               {
+            {
                priority = laAction.ConstantPriority; // use assigned priority if no dynamic priority
                if (laAction.PriorityFunction != null)
-                  {
+               {
                   Debug.Assert(laAction.NextAction is Definition);
                   dynamicPriorityActions.Add(laAction);
                   continue; // an action with dynamic priority can not have highest static priority
-                  }
                }
+            }
 
             // Bookmark the action with the highest priority.
             // If two actions have the same priority, give TerminalTransition higher priority than LookAhead.
             if (priority > highestPriority
                 || (priority == highestPriority
                     && action is TerminalTransition))
-               {
+            {
                highestPriority = priority;
                indexOfActionWithPriority = IndexOfAction;
-               }
             }
-         return indexOfActionWithPriority; // may be -1
          }
+         return indexOfActionWithPriority; // may be -1
+      }
 
       /// <summary>
       /// Check if there are terminal symbols not causing any action of the state
@@ -517,7 +519,7 @@ namespace Grammlator {
       /// </summary>
       /// <returns>The added action or null if none added</returns>
       public ErrorhandlingAction? CheckAndAddErrorAction(Boolean ErrorHandlerIsDefined)
-         {
+      {
          // Fehleraktion ergänzen, falls im Zustand nicht alle terminalen Symbole erlaubt sind und 
          // es mehrere Aktionen gibt (Lookahead nötig) oder mindestens einen terminalenÜbergang
          // oder keine Aktion bei Eingabe terminaler Symbole (Beispiel S:S,a.).
@@ -527,13 +529,13 @@ namespace Grammlator {
          Boolean containsLookaheadAction = false;
 
          foreach (ConditionalAction conditionalAction in Actions.OfType<ConditionalAction>())
-            {
+         {
             Debug.Assert(!(conditionalAction is NonterminalTransition));
             allowedSymbols.Or(conditionalAction.TerminalSymbols);
             counter++;
             if (conditionalAction is LookaheadAction)
                containsLookaheadAction = true;
-            }
+         }
 
          if (counter == 0)
             return null; // there is an unconditional action
@@ -546,9 +548,9 @@ namespace Grammlator {
              &&
              containsLookaheadAction // not a terminal transition => lookahead action)
              )
-            {
+         {
             return null; // execute lookahead action without condition
-            }
+         }
          // TODO check this might be used earlier by optimizations ? This causes late error recognition
 
          // Add ErrorhandlingAction
@@ -561,26 +563,26 @@ namespace Grammlator {
 
          ContainsErrorHandlerCall = ErrorHandlerIsDefined;
          return e;
-         }
+      }
 
       public void RemoveDeletedActions()
-         {
+      {
          Int32 DeletedActionsCount = 0;
 
          for (Int32 ActionIndex = 0; ActionIndex < this.Actions!.Count; ActionIndex++)
-            {
+         {
             if (Actions[ActionIndex] is DeletedParserAction)
                DeletedActionsCount++;
             else if (DeletedActionsCount > 0)
-               {
+            {
                // Move the action to
                // replace first unused action in State.Actions with this action
                Actions[ActionIndex - DeletedActionsCount] = Actions[ActionIndex];
-               }
             }
+         }
 
          Actions.RemoveFromEnd(DeletedActionsCount);
-         }
+      }
 
       ///// <summary>
       ///// Yields all actions of the state whereby instead of a PrioritySelectActions its
@@ -641,13 +643,13 @@ namespace Grammlator {
       /// <param name="definition"></param>
       /// <param name="elementNr"></param>
       internal ItemStruct(Definition definition, Int32 elementNr)
-         {
+      {
          this.SymbolDefinition = definition;
          this.ElementNr = elementNr;
          this.InputSymbol =
             elementNr < definition.Elements.Length
              ? definition.Elements[elementNr] : EmptySymbol;
-         }
+      }
 
       internal ItemStruct NewItemWithAdvancedMarker()
           => new ItemStruct(this.SymbolDefinition, this.ElementNr + 1);
@@ -689,11 +691,11 @@ namespace Grammlator {
       /// <param name="rightArgument"></param>
       /// <returns>true if equal</returns>
       public static Boolean operator ==(ItemStruct leftArgument, ItemStruct rightArgument)
-         {
+      {
          return leftArgument.SymbolDefinition == rightArgument.SymbolDefinition
              && leftArgument.ElementNr == rightArgument.ElementNr
              && leftArgument.InputSymbol == rightArgument.InputSymbol;
-         }
+      }
 
       /// <summary>
       ///  compares xxx.SymbolDefinition and then xxx.ElementNr
@@ -702,10 +704,10 @@ namespace Grammlator {
       /// <param name="rightArgument"></param>
       /// <returns>true if not equal</returns>
       public static Boolean operator !=(ItemStruct leftArgument, ItemStruct rightArgument)
-         {
+      {
          return leftArgument.SymbolDefinition != rightArgument.SymbolDefinition
              || leftArgument.ElementNr != rightArgument.ElementNr;
-         }
+      }
 
       // Mit IComparable ist die Default-Sortierreihenfolge für Sort() etc. implementiert
       // siehe https://msdn.microsoft.com/en-us/library/system.icomparable.compareto%28v=vs.110%29.aspx
@@ -717,7 +719,7 @@ namespace Grammlator {
       /// <param name="other"></param>
       /// <returns>0 if equal, -1 if less than other, +1 if greater than other</returns>
       public Int32 CompareTo(ItemStruct other)
-         {
+      {
          /* Is used in P2 to sort the items of each new state.
           * The resulting order influences the order in which new states are computed 
           * and hence the numbers assigned to states.
@@ -742,7 +744,7 @@ namespace Grammlator {
          if (this.SymbolDefinition.IdNumber > other.SymbolDefinition.IdNumber)
             return +1;
          return 0;
-         }
+      }
 
       /// <summary>
       /// Used in P2 to sort items by their input symbols when computing LR0 states. 
@@ -753,7 +755,7 @@ namespace Grammlator {
       /// <param name="item"></param>
       /// <returns>0 if equal, -1 if this is less, +1 if this is greater than other</returns>
       internal Int32 CompareInputSymbols(ItemStruct item)
-         {
+      {
          // This comparision is used in phase 2.
          // Items have to be sorted by their input symbols.
          //
@@ -791,39 +793,39 @@ namespace Grammlator {
             return +11;
 
          return 0;
-         }
       }
+   }
 
-   internal class ItemList: List<ItemStruct> {
+   internal class ItemList : List<ItemStruct> {
       /// <summary>
       /// Constructor
       /// </summary>
       internal ItemList()
-         {
-         }
+      {
+      }
 
       internal ItemList(ItemList CopyFrom) : base(CopyFrom) { }
 
       internal Boolean IsEqualTo(ItemList other)
-         {
+      {
          if (this.Count != other.Count)
             return false;
          for (Int32 i = 0; i < this.Count; i++)
-            {
+         {
             if ((this[i].SymbolDefinition != other[i].SymbolDefinition)
                 || (this[i].ElementNr != other[i].ElementNr))
-               {
+            {
                return false;
-               }
             }
-         return true;
          }
+         return true;
+      }
 
       internal void ToStringbuilder(StringBuilder sb)
-         {
+      {
          Boolean isfirst = true;
          foreach (ItemStruct Item in this)
-            {
+         {
             if (!isfirst)
                sb.AppendLine();
             isfirst = false;
@@ -831,19 +833,19 @@ namespace Grammlator {
             Definition d = Item.SymbolDefinition;
             d.DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
             d.ElementsToStringbuilder(sb, Item.ElementNr);
-            }
          }
+      }
 
       internal StringBuilder ToStringbuilderMitZusatzinfo(StringBuilder sb)
-         {
+      {
          foreach (ItemStruct Item in this)
-            {
+         {
             Definition d = Item.SymbolDefinition;
             d.DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
             d.ToStringbuilder(sb, Item.ElementNr);
             sb.AppendLine();
-            }
-         return sb;
          }
-      } // class ItemList
-   } // namespace
+         return sb;
+      }
+   } // class ItemList
+} // namespace

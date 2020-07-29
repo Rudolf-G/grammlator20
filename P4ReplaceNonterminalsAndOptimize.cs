@@ -6,12 +6,12 @@ using System.Text;
 
 namespace Grammlator {
    internal class P4ReplaceNonterminalsAndOptimize {
-      /* Phase 4 analyzes which actions would cause "apply definition" 
+      /* Phase 4 checks all states and analyzes which actions would cause "apply definition" 
        *    (execute method and go back to a state in the state stack, input 
        *     the generated nonterminal symbol and "shift" to the follow state)
        * and replaces each one by an explicit "reduction" which adjusts the state stack
        * and may be followed by a "branch" which uses the value on top
-       * of the state stack to decide which is the follow state.
+       * of the state stack to decide which is the follow state (or action after optimzation).
        * It recognizes states which need not to push their number on
        * the state stack (assigns the number -1), 
        * tries to assign the same (small) number to different states,
@@ -20,7 +20,7 @@ namespace Grammlator {
        * When this is finished, nonterminal symbols and their definitions
        * are not longer used.
        * 
-       * Not yet implemented: find states which can store their 
+       * Idea: find and generate states which can store their 
        * return information in a local variable
        * instead pushing it on the stack. 
        * 
@@ -32,32 +32,30 @@ namespace Grammlator {
        * -- combine branches  b1 und b2 if b1 is contained in b2
        * -- Also shorten
        *    if x.symbol==point then goto s4;...s4: x.FetchSymbol; if x.symbol==point then ..
-       * 
-       * */
+       */
 
       public static void MakeInstanceAndExecute()
       {
          var p4 = new P4ReplaceNonterminalsAndOptimize();
 
-         p4.P4aComputeStatesStackNumbersAndBranches();
+         p4.P4aComputeStateStackNumbersAndBranches();
          P4bShortenChainsOfActions();
+         GlobalVariables.Startaction = GlobalVariables.ListOfAllStates[0];
          p4.P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields();
       }
 
       /// <summary>
-      /// Constructor
+      /// Constructor: assigns the partition / relations <see cref="SamePredecessorLevelPartitionOfStates"/>,
+      ///  and <see cref="DistinguishableStatesRelation"/>
       /// </summary>
       private P4ReplaceNonterminalsAndOptimize()
       {
          SamePredecessorLevelPartitionOfStates
             = new PartitionInfoArray<ParserState>(GlobalVariables.ListOfAllStates);
-         SimilarStatesRelation
-             = new SymmetricRelation<ParserState>(GlobalVariables.ListOfAllStates.Count);
          DistinguishableStatesRelation
              = new SymmetricRelation<ParserState>(GlobalVariables.ListOfAllStates.Count);
       }
 
-      private readonly SymmetricRelation<ParserState> SimilarStatesRelation;
       private readonly SymmetricRelation<ParserState> DistinguishableStatesRelation;
 
       /// <summary>
@@ -66,64 +64,63 @@ namespace Grammlator {
       /// </summary>
       private readonly PartitionInfoArray<ParserState> SamePredecessorLevelPartitionOfStates;
 
-      public enum RelationtypeEnum {
+      private enum RelationtypeEnum {
          ComputeDistinguishableStatesRelation,
-         ComputeSimilarStatesRelation,
          ComputeBranches
       };
 
-      public void P4aComputeStatesStackNumbersAndBranches()
+      /// <summary>
+      /// In Phase2 the StateStackNumber of each state has been set to its idNumber (==position in ListOfallStes).
+      /// Now this number is set to -1 for all states which need not to push their number on the state stack
+      /// and for all other states optionally a small number is assigned, so that generated switch statements may be 
+      /// translated by the jitter to more performant code.
+      /// Each occurence of a "apply definition action" is replaced by a reduce action
+      /// (modify state and attribute stack, call semantic method)
+      /// followed by a branch action (branch to next action depending on the state stack).
+      /// Optimization shortens chains of these actions.
+      /// 
+      /// </summary>
+      public void P4aComputeStateStackNumbersAndBranches()
       {
-         // TODO Translate comment
-         /*  Für Zustände, die keine Information kellern, wird die Kennung auf -1 gesetzt.
-         Alle Zustaende der gleichen Klasse bezüglich der Relation Nachbar
-         sind miteinander verkettet.
-         Für jeden Zustand gibt es eine Kette zu unterscheidender Zustände und
-         eine Kette aehnlicher Zustaende, das sind Zustände, welche die gleiche
-         Kennung erhalten sollten. 
-
-         Eine Relation z1 R z2 wird auch (frühere Version "nur") eingetragen, wenn z2.Nummer < z1.Nummer .
-         Früher: Dies genügt wegen der Symmetrie dieser Relationen.
-         Jetzt: dies ist notwendig, damit die Relationen ohne komplizierte Randbedingungen zu Enumerationen verwendet werden können
-         */
 
          ComputeSamePredecessorLevelPartitionOfStates();
+
+         // ComputeDistinguishableStatesRelation
          DistinguishableStatesRelation.Clear();
          EvaluatePrecedingStates(RelationtypeEnum.ComputeDistinguishableStatesRelation);
 
-         //// TODO FolgeaktionenPaarweise ... ändert AnzahlVerschieden!!!!
-         ////// TODO allow suppression of both optimizations DetermineNotStackingStates and AssignStatesSmallStackNumbers
-
+         // DetermineNotStackingStates using SamePredecessorLevelPartitionOfState and DistinguishableStatesRelation
          GlobalVariables.CountOfStatesWithStateStackNumber =
-             GlobalVariables.ListOfAllStates.Count
-             - DetermineNotStackingStates(); // uses SamePredecessorLevelPartitionOfState and DistinguishableStatesRelation
+             GlobalVariables.ListOfAllStates.Count - DetermineNotStackingStates();
 
-         /* zuerst die Relation verschiedene_Zustaende berechnen, dann die Relation aehnliche_Zustaende !! (damit sie kleiner bleibt)} ???? */
+         // Optionally assign small StateStackNumbers
+         if (GlobalVariables.OptimizeStateStackNumbers)
+         {
+            AssignStatesSmallStackNumbers();
+         }
 
-         EvaluatePrecedingStates(RelationtypeEnum.ComputeSimilarStatesRelation);
-         AssignStatesSmallStackNumbers();
+         // Compute branches
          EvaluatePrecedingStates(RelationtypeEnum.ComputeBranches);
-
-         // nicht mehr benötigt werden jetzt: FallListe, aktuelleZustände; Vorgänger
-
       }
 
       /// <summary>
       /// Visit all states, take all actions which apply a definition,
       /// and find all predecessor states up to a search depth given by the definitions length.
       /// Assign all states found at the same depth to the same class of the NeighborPartition.
+      /// Purpose: If one state within a class will have to push a state specific StateStackNumber 
+      /// on to the state stack all other states of the same class will have to push to the stack.
       /// </summary>
       private void ComputeSamePredecessorLevelPartitionOfStates()
       {
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
          {
-            foreach (ParserAction action in state.Actions!.PriorityUnwindedSetOfActions)
+            foreach (ParserAction action in state.Actions.PriorityUnwindedSetOfActions)
             {
                if (action is ParserActionWithNextAction actionWithNextAction)
                {
                   if (actionWithNextAction.NextAction is Definition definition)
                   {
-                     WalkBackAndCombineSamePredecessorLevelClasses(
+                     CombineClassesOfSamePredecessorLevelPartitionOfStates(
                          StateToStartFrom: state,
                          Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1)
                      );
@@ -138,13 +135,13 @@ namespace Grammlator {
                          * or (terminalTransition - ) Definition (shiftreduce): shift-reduce-conflict
                          * or (terminalTransition - ) State (shift): shift-reduce-conflict)
                          * accept ... */
-                        throw new NotImplementedException("Constant priority action in PrioritBranchAction not yet implemented");
+                        throw new NotImplementedException("Constant priority action in Priorit<BranchAction not yet implemented");
                      }
                      foreach (ParserAction dynamicPriorityAction in b.DynamicPriorityActions)
                      {
                         Debug.Assert(dynamicPriorityAction is Definition);
                         if (dynamicPriorityAction is Definition d)
-                           WalkBackAndCombineSamePredecessorLevelClasses(
+                           CombineClassesOfSamePredecessorLevelPartitionOfStates(
                                StateToStartFrom: state,
                                Depth: d.Elements.Length);
                      }
@@ -155,51 +152,62 @@ namespace Grammlator {
       }
 
       /// <summary>
+      /// used as temporary variable in <see cref="CombineClassesOfSamePredecessorLevelPartitionOfStates"/>
+      /// and in <see cref="EvaluatePredecessors"/>
+      /// </summary>
+      List<ParserState> StatesOfThisLevel =
+             new List<ParserState>(GlobalVariables.ListOfAllStates.Count);
+
+      List<ParserState> StatesOfNextLevel = new List<ParserState>(GlobalVariables.ListOfAllStates.Count);
+
+      /// <summary>
       /// Start with <paramref name="StateToStartFrom"/> and walk <paramref name="Depth"/> levels
       /// back to all predecessors combining all states of the same depth into the same class
       /// of <see cref="SamePredecessorLevelPartitionOfStates"/>
       /// </summary>
       /// <param name="StateToStartFrom">state from where to walk back</param>
       /// <param name="Depth">number of levels to walk back</param>
-      private void WalkBackAndCombineSamePredecessorLevelClasses(ParserState StateToStartFrom, Int32 Depth)
+      private void CombineClassesOfSamePredecessorLevelPartitionOfStates(ParserState StateToStartFrom, Int32 Depth)
       {
-         // start with StateWithDefinition as single element of the set of states to evaluate 
-         var statesOfThisLevel =
-             new List<ParserState>(GlobalVariables.ListOfAllStates.Count)
-                 { StateToStartFrom };
+         // start with StateToStartFrom as single element of the set of states to evaluate 
+         // and walk back 
+         StatesOfThisLevel.Clear();
+         StatesOfThisLevel.Add(StateToStartFrom);
 
-         var precedingStates = new List<ParserState>(30); // TOCHECK size? move allocation out of the method?
+         StatesOfNextLevel.Clear();
 
          // Iterate Depth-1 levels
          for (Int32 remainingLength = Depth; remainingLength > 0; remainingLength--)
          {
             // Add all predecessors of all states of this level to the list of preceding states
-            foreach (ParserState stateToEvaluate in statesOfThisLevel)
+            foreach (ParserState stateToEvaluate in StatesOfThisLevel)
             {
                foreach (ParserState predecessor in stateToEvaluate.PredecessorList!)
-                  precedingStates.Add(predecessor);
+                  StatesOfNextLevel.Add(predecessor);
             }
 
-            Debug.Assert(precedingStates.Count != 0, "Error in phase4: no predecessor)");
+            Debug.Assert(StatesOfNextLevel.Count != 0, "Error in phase4: no predecessor)");
 
             // Choose the partition class of one of the elements
-            ParserState representativeOfClass = precedingStates[0];
+            ParserState representativeOfClass = StatesOfNextLevel[0];
 
             // Combine the classes of all predecessors of the this level with this class
-            foreach (ParserState predecessor in precedingStates)
+            foreach (ParserState predecessor in StatesOfNextLevel)
                SamePredecessorLevelPartitionOfStates.CombineClasses(representativeOfClass, predecessor);
-            //  combining the class of precedingStates[0] with itself again makes code simpler
+            //  allowing the class of precedingStates[0] to combine with itself makes code simpler
 
             // The contents of statesToEvaluate is not longer needed, the lists capacity will be reused
-            statesOfThisLevel.Clear();
-            List<ParserState> temp = statesOfThisLevel;
+            List<ParserState> temp = StatesOfThisLevel;
 
-            // The preceding states become the states to evaluate
-            statesOfThisLevel = precedingStates;
+            // The next level becomes he actual level
+            StatesOfThisLevel = StatesOfNextLevel;
 
-            // As new empty list of preceding states the old cleared list of states to evaluate is reused 
-            precedingStates = temp;
+            // Reuse StatesOfThisLevel
+            StatesOfNextLevel = temp;
+            StatesOfNextLevel.Clear();
          }
+
+         StatesOfThisLevel.Clear();
       }
 
       /// <summary>
@@ -211,8 +219,7 @@ namespace Grammlator {
       private void EvaluatePrecedingStates(RelationtypeEnum TypeOfEvaluation)
       {
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
-         {
-            foreach (ParserAction action in state.Actions!.PriorityUnwindedSetOfActions)
+            foreach (ParserAction action in state.Actions.PriorityUnwindedSetOfActions)
             {
                if ((action is ParserActionWithNextAction actionWithNextAction)
                    && (actionWithNextAction.NextAction is Definition definition))
@@ -231,7 +238,6 @@ namespace Grammlator {
                       SimplifiedNextAction(actionWithNextAction.NextAction);
                }
             }
-         }
       }
 
       /// <summary>
@@ -251,11 +257,11 @@ namespace Grammlator {
           Definition DefinitionToReplace,
           Int32 Depth)
       {
-         ParserAction result = DefinitionToReplace; // Voreinstellung: gleiche (also keine geänderte Aktion) zurückgeben
+         ParserAction result = DefinitionToReplace; // Default: return action without modification
 
-         var statesOfThisLevel =
-             new List<ParserState>(GlobalVariables.ListOfAllStates.Count)
-                 { StateToStartFrom };
+         // List<ParserState> StatesOfThisLevel = new List<ParserState>(GlobalVariables.ListOfAllStates.Count);
+         StatesOfThisLevel.Clear();
+         StatesOfThisLevel.Add(StateToStartFrom);
 
          var precedingStates = new List<ParserState>();
 
@@ -265,7 +271,7 @@ namespace Grammlator {
          for (Int32 remainingDepth = Depth; remainingDepth > 0; remainingDepth--)
          {
             // Die Vorgänger aller Zustande der aktuellen Zustandsliste in die Vorgängerliste aufnehmen
-            foreach (ParserState state in statesOfThisLevel)
+            foreach (ParserState state in StatesOfThisLevel)
             {
                foreach (ParserState predecessor in state.PredecessorList!)
                {
@@ -279,40 +285,38 @@ namespace Grammlator {
             // Either the StateStackNumber of all predecessors is >=0 or of all is <0
             // States with <=0 won't push and are not counted 
             if (TypeOfEvaluation == RelationtypeEnum.ComputeBranches
-                && statesOfThisLevel[0].StateStackNumber >= 0)
+                && StatesOfThisLevel[0].StateStackNumber >= 0)
             {
                countOfStatemarkersToPop++;
             }
 
             // The contents of statesToEvaluate is no longer needed, the lists capacity will be reused
-            statesOfThisLevel.Clear();
-            List<ParserState> temp = statesOfThisLevel;
+            StatesOfThisLevel.Clear();
+            List<ParserState> temp = StatesOfThisLevel;
 
             // The preceding states become the states to evaluate
-            statesOfThisLevel = precedingStates;
+            StatesOfThisLevel = precedingStates;
 
             // As new empty list of preceding states the old cleared list of states to evaluate is reused 
             precedingStates = temp;
          }
 
-         /*  Die durch die gegebene Alternative aus dem gegebenen Zustand erreichbaren Zustände,
-          *  die das Startitem der anzuwendenden Alternative enthalten, sind gefunden.
-
-          *  Falls die Folgeaktion eindeutig ist, ist sie statt der Alternativen einzusetzen.
-          *    Voraussetzung: Kellertiefe_Zaehler = 0
-          *  Sonst kann sich die Kellertiefe noch aendern, bis die Verzweigungen berechnet werden */
+         /*  statesOfThisLevel contains all states which are reachable from the given state
+          *  by applying the given definition. Each of these states contains the startitem of the given definition.
+          *  
+          *  If exactly one action results by input of the nonterminal symbol (defined by the definition)
+          *  the definition is replaced by this action else a banch action has to be generated.
+          */
 
          NonterminalSymbol definedSymbol = DefinitionToReplace.DefinedSymbol!;
 
          switch (TypeOfEvaluation)
          {
          case RelationtypeEnum.ComputeDistinguishableStatesRelation:
-         case RelationtypeEnum.ComputeSimilarStatesRelation:
-            FolgeaktionenPaarweiseVergleichen(TypeOfEvaluation, statesOfThisLevel, definedSymbol);
+            ComputeRelationsOfStates(TypeOfEvaluation, StatesOfThisLevel, definedSymbol);
             return result; // dummy result
-
          case RelationtypeEnum.ComputeBranches:
-            BranchcasesList ListOfBranchcases = ConstructListOfBranchcases(statesOfThisLevel, definedSymbol);
+            BranchcasesList ListOfBranchcases = ConstructListOfBranchcases(StatesOfThisLevel, definedSymbol);
             ParserAction NextAction =
                     ListOfBranchcases.Count == 1
                     ? ListOfBranchcases[0].BranchcaseAction
@@ -328,71 +332,46 @@ namespace Grammlator {
                    countOfStatemarkersToPop,
                    DefinitionToReplace,
                    NextActionOfReduce: NextAction);
+            StatesOfThisLevel.Clear();
             return result;
 
          default:
             throw new ErrorInGrammlatorProgramException("unknown argument " + nameof(TypeOfEvaluation));
          }
-      } // Ende von VorgängerSindNachbarn
+      } // End of EvaluatePredecessors
 
       /// <summary>
       /// Feststellen, welche der aktuellen Zustände unterschieden werden müssen
       /// und dies in den Relationen mit ÄhnlichSetzenZu bzw. VerschiedenSetzenZu eintragen
       /// </summary>
-      /// <param name="TypeOfEvaluation"></param>
-      /// <param name="StatesWhichAcceptTheNonterminal"></param>
-      /// <param name="NonterminalToInputInStates"></param>
-      public void FolgeaktionenPaarweiseVergleichen(
-          RelationtypeEnum TypeOfEvaluation,
-          List<ParserState> StatesWhichAcceptTheNonterminal,
-          NonterminalSymbol NonterminalToInputInStates)
+      /// <param name="typeOfEvaluation"></param>
+      /// <param name="statesWhichAcceptTheNonterminal"></param>
+      /// <param name="inputSymbol"></param>
+      private void ComputeRelationsOfStates(
+          RelationtypeEnum typeOfEvaluation,
+          List<ParserState> statesWhichAcceptTheNonterminal,
+          NonterminalSymbol inputSymbol)
       {
          // for all pairs of states with state1Index < state2Index
-         for (Int32 state1Index = 0; state1Index < StatesWhichAcceptTheNonterminal.Count; state1Index++)
+         for (Int32 state1Index = 0; state1Index < statesWhichAcceptTheNonterminal.Count; state1Index++)
          {
-            ParserAction nextAction1 = SimplifiedNextAction(
-                   StatesWhichAcceptTheNonterminal[state1Index].ActionCausedBy(NonterminalToInputInStates));
+            ParserState State1 = statesWhichAcceptTheNonterminal[state1Index];
+            ParserAction nextAction1 = State1.ActionCausedBy(inputSymbol); //  a nonterminal transition!
 
-            for (Int32 state2Index = state1Index + 1; state2Index < StatesWhichAcceptTheNonterminal.Count; state2Index++)
+            for (Int32 state2Index = state1Index + 1; state2Index < statesWhichAcceptTheNonterminal.Count; state2Index++)
             {
-               ParserAction nextAction2 = SimplifiedNextAction(
-                   StatesWhichAcceptTheNonterminal[state2Index].ActionCausedBy(NonterminalToInputInStates));
+               ParserState State2 = statesWhichAcceptTheNonterminal[state2Index];
+               ParserAction Action2 = State2.ActionCausedBy(inputSymbol); //  a nonterminal transition!
 
-               switch (TypeOfEvaluation)
+               switch (typeOfEvaluation)
                {
                case RelationtypeEnum.ComputeDistinguishableStatesRelation:
                {
-                  // 2. Schritt: die ZustandsRelationVerschieden bestimmen
-                  // Prüfen: wäre es sinnvoll, zuvor eine Äquivalenz-Klasseneinteilung für die Zustände 
-                  // zu ermitteln und zu verwenden?
-                  if (
-                      !ActionsDoTheSame(
-                      StatesWhichAcceptTheNonterminal[state1Index],
-                      StatesWhichAcceptTheNonterminal[state2Index],
-                      nextAction1,
-                      nextAction2))
+                  // Step 2: compute the DistinguishableStatesRelation
+                  if (!ActionsDoTheSame(State1, State2, nextAction1, Action2))
                   {
                      DistinguishableStatesRelation.Add(
-                         StatesWhichAcceptTheNonterminal[state1Index],
-                         StatesWhichAcceptTheNonterminal[state2Index]);
-                  }
-                  break;
-               }
-               case RelationtypeEnum.ComputeSimilarStatesRelation:
-               {
-                  // 3. Schritt: die ZustandsRelationÄhnlich bestimmen
-                  if (!DistinguishableStatesRelation.Contains(
-                      StatesWhichAcceptTheNonterminal[state1Index],
-                      StatesWhichAcceptTheNonterminal[state2Index])
-                      && ActionsDoTheSame(
-                          StatesWhichAcceptTheNonterminal[state1Index],
-                          StatesWhichAcceptTheNonterminal[state2Index],
-                          nextAction1,
-                          nextAction2))
-                  {
-                     SimilarStatesRelation.Add(
-                         StatesWhichAcceptTheNonterminal[state1Index],
-                         StatesWhichAcceptTheNonterminal[state2Index]);
+                        statesWhichAcceptTheNonterminal[state1Index], State2);
                   }
                   break;
                }
@@ -604,8 +583,19 @@ namespace Grammlator {
 
          // gleichartige Reduktion suchen - falls gefunden return
          ReduceAction? foundReduceAction = null;
-         foreach (ReduceAction existingReduceAction in GlobalVariables.ListOfAllReductions)
+         // foreach (ReduceAction existingReduceAction in GlobalVariables.ListOfAllReductions)
+         for (int ir = 0; ir < GlobalVariables.ListOfAllReductions.Count; ir++)
          {
+            ReduceAction existingReduceAction = GlobalVariables.ListOfAllReductions[ir];
+
+            // TODO Some Reductions in the list will have been constructed with a definition as NexAction.
+            // Meanwhile this definiTion migth have been replaced by a reduction
+            // The following simplify-xxx calls cause some new reductions to be found in the list of reductions.
+            // But do they solve all thos problems? Is it possible to reduce this multiple recalculations?
+            existingReduceAction.NextAction = SimplifiedNextAction(existingReduceAction.NextAction);
+            SimplifyChainOfReductions(existingReduceAction);
+            // end of fast and inmcomplete solution
+
             if (
             existingReduceAction.StateStackAdjustment == newReduceAction.StateStackAdjustment
             && existingReduceAction.SemanticMethod == newReduceAction.SemanticMethod
@@ -654,7 +644,8 @@ namespace Grammlator {
             if (nonterminalTransition.NextAction is Definition)
                return action;
             // CHECK can it be guaranteed that the following recursion ends?
-            return nonterminalTransition.NextAction = SimplifiedNextAction(nonterminalTransition.NextAction);
+            return nonterminalTransition.NextAction;
+            // return nonterminalTransition.NextAction = SimplifiedNextAction(nonterminalTransition.NextAction);
          }
 
          case ParserState state:
@@ -721,7 +712,7 @@ namespace Grammlator {
             for (Int32 i = 0; i < branchCaseList.Count; i++)
             {
                BranchcaseStruct branchCase = branchCaseList[i];
-               branchCase.BranchcaseAction = SimplifiedNextAction(branchCase.BranchcaseAction);
+               // ????????????????????? branchCase.BranchcaseAction = SimplifiedNextAction(branchCase.BranchcaseAction);
                // TOCHECK may this cause endless recursion ?? 
                branchCaseList[i] = branchCase;
             }
@@ -932,6 +923,7 @@ CheckNextExistingBranch:
             // Start with:  allowed are all numbers from 0 to StateIdNumber.
             for (Int32 k = 0; k <= StateIdNumber; k++)
                AllowedStackNumbers[k] = true;
+
             // Numbers which are already assigned to states (having smaller StateIdNumbers)
             // and which are in relation DistinguishableStatesRelation to the actual state
             // are not allowed
@@ -944,44 +936,26 @@ CheckNextExistingBranch:
                }
             }
 
-            // Search similar states with a lower StateStackNumber and use this if allowed
-            Int32 stackNumber = StateIdNumber; // >=0
-
-            if (SimilarStatesRelation.ContainsKey(StateIdNumber))
-            {
-               foreach (ParserState similarState in SimilarStatesRelation[StateIdNumber])
-               {
-                  if (similarState.StateStackNumber < stackNumber
-                      && AllowedStackNumbers[similarState.StateStackNumber])
-                  {
-                     stackNumber = similarState.StateStackNumber;
-                  }
-               }
-            }
-
-            // If no similar state found (which would have a smaller number) use smallest allowed number
-            if (stackNumber == StateIdNumber)
-               stackNumber = Array.FindIndex(AllowedStackNumbers, (allowed) => allowed);
-
-            ParserState.StateStackNumber = stackNumber;
+            ParserState.StateStackNumber = Array.FindIndex(AllowedStackNumbers, (allowed) => allowed);
          }
       }
 
       /// <summary>
-      /// Kürzen von Ketten von Aktionen, g.Startaktion bestimmen und Codenummern der Zustände auf 0 setzen 
+      /// Shorten chains of actions and remove xxx
       /// </summary>
       public static void P4bShortenChainsOfActions()
       {
+
          for (Int32 StateIndex = 0; StateIndex < GlobalVariables.ListOfAllStates.Count; StateIndex++)
          {
             ParserState State = GlobalVariables.ListOfAllStates[StateIndex];
 
-            State.Codenumber = 0;
             for (Int32 ActionIndex = 0; ActionIndex < State.Actions.Count; ActionIndex++)
             {
                if (!(State.Actions[ActionIndex] is ParserActionWithNextAction ActionWithNextAction))
-                  continue;
+                  continue; // no chain
 
+               // mandatory: replace lookahead -> nonterminal transitions -> branch by lookadead -> branch!
                ActionWithNextAction.NextAction = SimplifiedNextAction(ActionWithNextAction.NextAction);
 
                // falls die Aktionenliste mehrere terminale Übergänge mit gleicher Folgeaktion enthält, diese zusammenfassen
@@ -1024,7 +998,6 @@ CheckNextExistingBranch:
          // Reduktionen bearbeiten: jeweils Codenummer auf 0 setzten und Folgeaktion vereinfachen
          foreach (ReduceAction r in GlobalVariables.ListOfAllReductions)
          {
-            r.Codenumber = 0;
             r.NextAction = SimplifiedNextAction(r.NextAction);
             SimplifyChainOfReductions(r); // CHECK compute x.Calls and simplify using x.Calls ??
          }
@@ -1032,7 +1005,6 @@ CheckNextExistingBranch:
          // Verzweigungen bearbeiten:
          foreach (BranchAction branch in GlobalVariables.ListOfAllBranchActions)
          {
-            branch.Codenumber = 0;
             for (Int32 CaseIndex = 0; CaseIndex < branch.ListOfCases.Count; CaseIndex++)
             {
                BranchcaseStruct Branchcase = branch.ListOfCases[CaseIndex];
@@ -1041,9 +1013,8 @@ CheckNextExistingBranch:
             }
          }
 
-         // Startaktion bestimmen:
-         GlobalVariables.Startaction = GlobalVariables.ListOfAllStates[0];
          //do not remove the first state: not  SimplifiedNextAction(GlobalVariables.ListOfAllStates[0]);
+         // because it is used as Startaction
       }
 
       private void P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields()
@@ -1181,7 +1152,7 @@ CheckNextExistingBranch:
                   (GlobalVariables.ListOfAllPushStateActions.Count, state.StateStackNumber, c.NextAction);
                GlobalVariables.ListOfAllPushStateActions.Add(p);
 
-               p.Calls = 1; 
+               p.Calls = 1;
 
                if (c is TerminalTransition)
                { // accept call of p
