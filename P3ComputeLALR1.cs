@@ -42,6 +42,13 @@ namespace Grammlator {
       }
 
       /// <summary>
+      /// make constructor private
+      /// </summary>
+      private P3ComputeLALR1()
+      {
+      }
+
+      /// <summary>
       /// <para>For each <see cref="NonterminalTransition"/> compute the direct read set of terminal symbols
       /// and and assign it to its TerminalSymbols.</para>
       /// For <see cref="LookaheadAction"/> assign the empty set to TerminalSymbols.

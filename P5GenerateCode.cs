@@ -14,7 +14,6 @@ namespace Grammlator {
       /// </summary>
       /// <param name="CodeGen"></param>
       private P5GenerateCode(P5CodegenCS CodeGen) => this.codegen = CodeGen;
-
       private readonly P5CodegenCS codegen;
 
       /* TODO Not yet implemented:
@@ -23,16 +22,15 @@ namespace Grammlator {
        *       
        *    CHECK is there garbadge in the program from some older prefix attempts
        *    
-       *    Ideas for some more optimizations
-       *    
-       *    If states are reached only via reduce actions (no accept) then only those terminal symbols
-       *    can occur as input symbols, which are allowed symbols for those reduce actions.
-       *    In some states this may avoid error actions.
-       *    
-       *    If states are only reached via reduce actions then they need no peek instruction
+       *    If states are reached only via look ahead actions actions (no accept)
+       *      then they do not need a peek instruction;
+       *      then only those terminal symbols can occur as input symbols,
+       *      which are allowed symbols for those reduce actions.
+       *      In some states this might avoid error actions!
        *    
        *    Error handling: for each state try to find at least 1 terminal symbol which will lead
        *    (via other states and the respective symbols) to halt
+       *    
        *    Recognize states which will never lead to halt (recognize endless loop example).
        *    
        *    */

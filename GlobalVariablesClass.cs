@@ -231,7 +231,6 @@ namespace Grammlator {
          ListOfAllHaltActions.Capacity = InitialCapacityOfListOfAllHaltActions;
          ListOfAllHaltActions.Add(new HaltAction(IdNumber: 0, AttributestackAdjustement: 0));
 
-         Startaction = ListOfAllHaltActions[0]; // 
          TerminalSymbolByIndex = Array.Empty<TerminalSymbol>();
          AllTerminalSymbols = EmptyBitarray;
 
@@ -426,9 +425,15 @@ namespace Grammlator {
       internal readonly static BitArray EmptyBitarray = new BitArray(0);
 
       /// <summary>
-      /// is assigned in phase 4 and used as root of all actions in phase5 to count usage and generate the code 
+      /// is defined after ListOfAllStates[0]; is assigned in 
+      /// <see cref="P4ReplaceNonterminalsAndOptimize.MakeInstanceAndExecute"/>
+      ///  and is used as root of all actions in P4 to count usage and in P5 generate the code
       /// </summary>
-      internal static ParserAction Startaction = DefaultAction;
+      internal static ParserAction Startaction {
+         get {
+            return ListOfAllStates[0];
+         }
+      }
 
       /// <summary>
       /// Referenced by actions of type <see cref="ErrorhandlingAction"/>.

@@ -77,7 +77,7 @@ namespace Grammlator {
 
       #region declaration of fields
       /// <summary>
-      /// Set by constructor, contains at the first places the terminal symbols followed by the nonterminal symbols
+      /// Set by constructor, contains the terminal symbols followed by the nonterminal symbols
       /// </summary>
       private readonly Dictionary<Int32, Symbol> SymbolDictionary;
 
@@ -154,9 +154,9 @@ namespace Grammlator {
       //| ErrorHandlerMethod: "ErrorHandler";
       //| LineLengthLimit: "150";
       //|
-      //| // Terminal symbols:
-      //|     DefiningSymbol%18
-      //|     | Colon%15        
+      //| // Terminal symbols and their probabilty to appear in input:
+      //|     DefiningSymbol % 18
+      //|     | Colon % 15        
       //|     | Percent
       //|     | CSharpEnd
       //|     | Error 
@@ -167,20 +167,20 @@ namespace Grammlator {
       //|     | Questionmark
       //|     | Asterisk 
       //|     | Plus 
-      //|     | Comma%20 
+      //|     | Comma % 20 
       //|     | NumberSign
       //|     
       //|     | GroupStart | OptionStart | RepeatStart
       //|     | DoubleQuestionmark 
-      //|     | CSharpStart%2 
+      //|     | CSharpStart % 2 
       //|     | GroupEnd | RepeatEnd | OptionEnd
-      //|     | Name(Int32 stringIndex)%25
-      //|     | StringResult(Int32 stringIndex)%23
-      //|     | DefinitionSeparatorSymbol%25  
-      //|     | TerminatorSymbol%22
+      //|     | Name(Int32 stringIndex) % 25
+      //|     | StringResult(Int32 stringIndex) % 23
+      //|     | DefinitionSeparatorSymbol % 25  
+      //|     | TerminatorSymbol % 22
       public enum LexerResultCopy { // Defines the output of the lexer, which is assigned to Symbol to be used by the parser
-                                    // The elements of LexerResult are order such that grammlator can
-                                    // generate efficientcode for the conditions of the parsers actions
+                                    // The elements of LexerResult are ordered such that grammlator can
+                                    // generate efficient code for the conditions of the parsers actions
          DefiningSymbol, // =
          Colon, // :
          Percent, // %
@@ -212,7 +212,7 @@ namespace Grammlator {
 
       //|  *= GrammlatorGrammar /* one startsymbol, which has no attributes */
 
-      //| // renaming some symbols
+      //| // renaming some symbols to improve readability
       //|  "," = Comma; // "," is used where provided in EBNF, Comma in other cases
       //|  "=" = DefiningSymbol; "|" = DefinitionSeparatorSymbol; ";" = TerminatorSymbol; ":" = Colon; "%" = Percent;
       //|  "-" = Minus; "+" = Plus; "*" = Asterisk; "(" = GroupStart; "[" = OptionStart; "{" = RepeatStart;

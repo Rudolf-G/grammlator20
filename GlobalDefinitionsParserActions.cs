@@ -370,7 +370,7 @@ namespace Grammlator {
       internal override void NameToSb(StringBuilder sb) => ToStringbuilder(sb);
 
       internal void ElementsToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
-          => Elements.ToStringbuilder(sb, MarkiertesElement, this.AttributeIdentifierStringIndexArray);
+          => Elements.Append(sb, MarkiertesElement, this.AttributeIdentifierStringIndexArray);
 
       internal StringBuilder ToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
       {
@@ -578,7 +578,7 @@ namespace Grammlator {
          return count;
       }
 
-      internal virtual void ToStringbuilder(StringBuilder sb)
+      internal virtual void Append(StringBuilder sb)
       {
          Int32 number = 1;
          if (this.Count == 0)

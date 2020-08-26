@@ -300,7 +300,7 @@ namespace Grammlator {
       /// </summary>
       internal ParameterImplementation Implementation;
 
-      internal void ToStringbuilder(StringBuilder sb)
+      internal void Append(StringBuilder sb)
           => sb.Append(GlobalVariables.GetStringOfIndex(TypeStringIndex))
                .Append(' ')
                .Append(GlobalVariables.GetStringOfIndex(NameStringIndex));
@@ -357,14 +357,14 @@ namespace Grammlator {
             RemoveRange(Count - numberOfElementsToRemove, numberOfElementsToRemove);
          }
 
-      internal void ToStringBuilder(StringBuilder sb)
+      internal void Append(StringBuilder sb)
          {
          Boolean isFirstElement = true;
          foreach (AttributeStruct p in this)
             {
             if (!isFirstElement)
                sb.Append(", ");
-            p.ToStringbuilder(sb);
+            p.Append(sb);
             isFirstElement = false;
             }
          }
@@ -557,10 +557,10 @@ namespace Grammlator {
          return Zähler;
          }
 
-      internal static void ToStringbuilder(this Symbol[] SymbolArray, StringBuilder sb, String separator = ", ")
-          => SymbolArray.ToStringbuilder(sb, Int32.MaxValue, null, separator); // am Ende markieren
+      internal static void Append(this Symbol[] SymbolArray, StringBuilder sb, String separator = ", ")
+          => SymbolArray.Append(sb, Int32.MaxValue, null, separator); // am Ende markieren
 
-      internal static void ToStringbuilder(
+      internal static void Append(
             this Symbol[] SymbolArray,
             StringBuilder sb,
             Int32 Markierung,
@@ -613,7 +613,7 @@ namespace Grammlator {
 
                sb.Append(')');
                }
-            // nicht s.ToStringBuilder(sb), da sonst endlose Rekursion über terminale Symbole!
+            // not s.Append(sb): this might cause an infinite recursion
             Elementzähler++;
             }
 
@@ -782,7 +782,7 @@ namespace Grammlator {
          return sb;
          }
 
-      internal virtual void ToStringbuilder(StringBuilder sb)
+      internal virtual void Append(StringBuilder sb)
          {
          sb.Append(SymboltypeString)
            .Append(" nr. ")
@@ -810,7 +810,7 @@ namespace Grammlator {
       internal override EmptyComputationResultEnum ContainsAnEmptyDefinition()
           => EmptyComputationResultEnum.NotEmpty;
 
-      internal override void ToStringbuilder(StringBuilder sb)
+      internal override void Append(StringBuilder sb)
          {
          sb.Append(SymboltypeString)
              .Append(" nr. ")
@@ -904,14 +904,14 @@ namespace Grammlator {
          return Counter;
          }
 
-      internal override void ToStringbuilder(StringBuilder sb)
+      internal override void Append(StringBuilder sb)
          {
-         base.ToStringbuilder(sb);
+         base.Append(sb);
          sb.AppendLine();
          if (TrivalDefinitionsArray.Length > 0)
             {
             sb.Append("    0. trivial rule(s): ");
-            TrivalDefinitionsArray.ToStringbuilder(sb, separator: " | ");
+            TrivalDefinitionsArray.Append(sb, separator: " | ");
             sb.AppendLine();
             }
          if (NontrivialDefinitionsList.Count == 0)
@@ -919,7 +919,7 @@ namespace Grammlator {
             return;
             }
          // sb.AppendLine("    rules:");
-         NontrivialDefinitionsList.ToStringbuilder(sb);
+         NontrivialDefinitionsList.Append(sb);
          }
 
       /// <summary>

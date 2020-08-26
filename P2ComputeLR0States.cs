@@ -19,21 +19,20 @@ namespace Grammlator {
       /// <para> Look ahead terminal symbols are computed in a later phase. </para>
       /// </summary>
       internal static void MakeInstanceAndExecute()
-         {
+      {
          var p2 = new P2ComputeLR0States();
          p2.ComputeLR0StatesAndActions();
          ComputePredecessorRelation();
-         }
+      }
 
       // private readonly Action<MessageTypeOrDestinationEnum, string> OutputMessage;
 
       /// <summary>
-      /// Private constructor (external calls via Phase2.Execute(...))
+      /// Make constructor private (external calls via Phase2.Execute(...))
       /// </summary>
       private P2ComputeLR0States()
-         {
-         // this.OutputMessage = outputMessage;
-         }
+      {
+      }
 
       private readonly ListOfParserActions ActionsOfActualState = new ListOfParserActions(100);
 
@@ -45,7 +44,7 @@ namespace Grammlator {
       private readonly BitArray EmptyLookAheadSet = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
 
       private void ComputeLR0StatesAndActions()
-         {
+      {
          var ListOfNotAnEnditemLOfActualState = new ItemList();
 
          var DoNotProcessNonterminalSymbolAgain = new Boolean[GlobalVariables.NumberOfNonterminalSymbols];
@@ -58,7 +57,7 @@ namespace Grammlator {
          // * look ahead actions
 
          for (Int32 IndexOfActualState = 0; IndexOfActualState < GlobalVariables.ListOfAllStates.Count; IndexOfActualState++)
-            {
+         {
             ParserState ActualState = GlobalVariables.ListOfAllStates[IndexOfActualState];
 
             ListOfNotAnEnditemLOfActualState.Clear();
@@ -69,31 +68,31 @@ namespace Grammlator {
              */
 
             if (IndexOfActualState == 0)
-               {
+            {
                ActionsOfActualState.Add(
                   new NonterminalTransition(
                       NumberOfActions++, GlobalVariables.Startsymbol, GlobalVariables.ListOfAllHaltActions[0], EmptyLookAheadSet)
                       );
-               }
+            }
 
             // Process each of the core items of the actual state:
             //    if it is an enditem then add a reduce action to the actual states actions
-            //    esl copy it to ListOfNotAnEnditemOfActualState
+            //    else copy it to ListOfNotAnEnditemOfActualState
             foreach (ItemStruct CoreItem in ActualState.CoreItems)
-               {
-               if (CoreItem.ElementNr >= CoreItem.SymbolDefinition.Elements.Length) // enditem: add reduce action to ActionsOfActualState
-                  {
+            {
+               if (CoreItem.ElementNr >= CoreItem.SymbolDefinition.Elements.Length)
+               {   // enditem: add reduce action to ActionsOfActualState
                   ActionsOfActualState.Add(
                      new LookaheadAction(number: NumberOfActions++, definition: CoreItem.SymbolDefinition,
                      EmptyLookAheadSet, GlobalVariables.ListOfAllHaltActions[0]
                      )
                      );
-                  }
-               else
-                  {   // not an enditem: copy item and add marked symbol as input symbol of this item
-                  ListOfNotAnEnditemLOfActualState.Add(CoreItem);
-                  }
                }
+               else
+               {   // not an enditem: copy item (includign the marked symbol)
+                  ListOfNotAnEnditemLOfActualState.Add(CoreItem);
+               }
+            }
 
             // CoreItems (and for now AllItemsOfActualState) either contains the startitems of the definitions of the startsymbol
             //           which can never occur as input symbol
@@ -107,15 +106,16 @@ namespace Grammlator {
             //    for all trivial definitions
             //       handle their definitions (=symbols) alike marked symbols recursively
 
+            // Set all elements of DoNotProcessNonterminalSymbolAgain to false
             Array.Clear(DoNotProcessNonterminalSymbolAgain,
                  0, DoNotProcessNonterminalSymbolAgain.Length);
 
             for (Int32 IndexOfItem = 0; IndexOfItem < ListOfNotAnEnditemLOfActualState.Count; IndexOfItem++)
-               {
+            {
                Symbol InputSymbol = ListOfNotAnEnditemLOfActualState[IndexOfItem].InputSymbol;
                if (InputSymbol is NonterminalSymbol nonterminal)
                   AddStartitemsAndLookaheadActions(nonterminal, ListOfNotAnEnditemLOfActualState, DoNotProcessNonterminalSymbolAgain); // ergänzt Arbeitsitems und ItemEingabesymbol
-               }
+            }
 
             // If in an item a nonterminal symbol is marked this item has to be copied
             // for each trivial definition of the nonterminal symbol (recursively)
@@ -125,36 +125,36 @@ namespace Grammlator {
                 0, DoNotProcessNonterminalSymbolAgain.Length);
 
             for (Int32 IndexOfItem = ListOfNotAnEnditemLOfActualState.Count - 1; IndexOfItem >= 0; IndexOfItem--)
-               {
+            {
                // going backwards because new entries are handled by recursion 
 
                ItemStruct Item = ListOfNotAnEnditemLOfActualState[IndexOfItem];
                if (Item.InputSymbol is NonterminalSymbol nonterminal && !DoNotProcessNonterminalSymbolAgain[nonterminal.SymbolNumber])
                   DuplicateItemForTrivialDefinitions(nonterminal, Item, ListOfNotAnEnditemLOfActualState, DoNotProcessNonterminalSymbolAgain);
-               }
+            }
 
             ComputeFollowStatesAndTransitions(ListOfNotAnEnditemLOfActualState, IndexOfActualState);
 
             // Sort the actions of the actual state
-            ActionsOfActualState.Sort((Aktion1, Aktion2) => Aktion1.CompareTo(Aktion2));
+            ActionsOfActualState.Sort((Action1, Action2) => Action1.CompareTo(Action2));
 
             // Copy the actions to the state
             ActualState.Actions = new ListOfParserActions(ActionsOfActualState);
-            } // end of for (int IndexOfActualState= ...
+         } // end of for (int IndexOfActualState= ...
 
          // Renumber the states according to their position in ListOfAllStates
          // This is required later.
          Int32 NewNumber = 0;
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
-            {
+         {
             state.IdNumber = NewNumber; // >= 0
             state.StateStackNumber = NewNumber; // >= 0
             NewNumber++;
-            }
-         } // end of ComputeLR0StatesAndActions()
+         }
+      } // end of ComputeLR0StatesAndActions()
 
       private void ComputeFollowStatesAndTransitions(ItemList ListOfNotAnEnditemOfActualState, Int32 IndexOfActualState)
-         {
+      {
          // For all InputSymbols occuring in AllItemsOfActualState
          //    create a new follow state and
          //    for all Items in AllItemsOfActualState with this InputSymbol
@@ -174,7 +174,7 @@ namespace Grammlator {
 
          Int32 ItemIndex = 0;
          while (ItemIndex < ListOfNotAnEnditemOfActualState.Count)
-            {
+         {
             // ItemIndex will be incremented inside an inner loop so that at each iteration of this outer loop
             // another nonterminal symbol will be assigned to InputSymbolToEvaluate
 
@@ -182,10 +182,10 @@ namespace Grammlator {
 
             // ignore each item which has as InputSymbol a nonterminal symbol with only trivial alternatives
             if (InputSymbolToEvaluate.IsNonterminalWhichHasOnlyTrivialAlternatives)
-               {
+            {
                ItemIndex++;
                continue;
-               }
+            }
 
             // moved to end of phase 4
             //AssignPrefixToStateAndDoSomeChecks(ActualState, InputSymbolToEvaluate);
@@ -200,7 +200,7 @@ namespace Grammlator {
             ItemsOfNewState.Clear();
 
             do
-               {
+            {
                // process all items with the same IputSymbol
                Debug.Assert(!ListOfNotAnEnditemOfActualState[ItemIndex].IsEnditem); // because the item has an input symbol
 
@@ -210,7 +210,7 @@ namespace Grammlator {
                ItemsOfNewState.Add(ItemWithAdvancedMarker);
                ItemIndex++;
 
-               } while
+            } while
                 (ItemIndex < ListOfNotAnEnditemOfActualState.Count
                    && ListOfNotAnEnditemOfActualState[ItemIndex].InputSymbol == InputSymbolToEvaluate);
 
@@ -221,66 +221,66 @@ namespace Grammlator {
             //  do not create a new state (clear state) but
             //  create a SHIFT-REDUCE-Action == transition with a definition as next action
             if (ItemsOfNewState.Count == 1)
-               {
+            {
                ItemStruct NewStatesItem = ItemsOfNewState[0];
 
                if (NewStatesItem.ElementNr >= NewStatesItem.SymbolDefinition.Elements.Length)
-                  {
+               {
                   // it is a enditem
                   AddTransitionToActionsOfActualState(InputSymbolToEvaluate, nextAction: NewStatesItem.SymbolDefinition);
                   ItemsOfNewState.Clear();
-                  }
                }
+            }
 
             // else find or create the new state and add the corresponding transition to the actions of the actual state
             if (ItemsOfNewState.Count >= 1)
-               {
+            {
                // In the list of all already created states search a state with the same items
                ParserState? newState = null;
                foreach (ParserState existingState in GlobalVariables.ListOfAllStates)
-                  {
+               {
                   if (existingState.CoreItems.IsEqualTo(ItemsOfNewState))
-                     {
+                  {
                      newState = existingState;
                      break; // Ende der Suche
-                     }
                   }
+               }
 
                // if not found create a new state with these items and 
                // add it somewhere after the actual state to the list of all states, so that it will be processed.
                // Here the new state is added after the actual state.
                if (newState == null)
-                  {
+               {
                   newState =
                       new ParserState(Number: GlobalVariables.ListOfAllStates.Count, Items: new ItemList(ItemsOfNewState));
                   GlobalVariables.ListOfAllStates.Insert(IndexOfActualState + 1, newState);
-                  }
+               }
 
                // Add the transition from the actuial state to the new or found state
                AddTransitionToActionsOfActualState(inputSymbol: InputSymbolToEvaluate, nextAction: newState);
-               }
             }
          }
+      }
 
       private void AddTransitionToActionsOfActualState(Symbol inputSymbol, ParserAction nextAction)
-         {
+      {
          if (inputSymbol is NonterminalSymbol nonterminalInputSymbol)
-            {
+         {
             // (Eingabesymbol ist cNichtterminalesSymbol) => nichtterminaler Übergang
             /*   -- eine Aktion mit dem gleichen nichtterminalen Eingabesymbol
                  -- kann es im aktuellen Zustand noch nicht geben - also eintragen
                  -- sofern das Symbol mindestens eine Alternative hat}
             */
             if (nonterminalInputSymbol.NontrivialDefinitionsList.Count > 0)
-               {
+            {
                ActionsOfActualState.Add(
                    new NonterminalTransition(NumberOfActions++,
                        nonterminalInputSymbol, nextAction, EmptyLookAheadSet)
                    );
-               }
             }
+         }
          else
-            {
+         {
             // In der Aktionenliste des aktuell bearbeiteten Zustands
             // eine cAktionTerminalerÜbergang anlegen, falls nicht vorhanden
 
@@ -291,20 +291,20 @@ namespace Grammlator {
                 .FirstOrDefault(transition => transition.NextAction == nextAction);
 
             if (existingTransition == null)
-               {
+            {
                // falls nicht gefunden: neu anlegen                    
                var inputSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
                inputSymbols[inputSymbol.SymbolNumber] = true;
                ActionsOfActualState.Add(
                    new TerminalTransition(NumberOfActions++, inputSymbols, nextAction));
-               }
+            }
             else
-               {
+            {
                existingTransition.TerminalSymbols
                    [inputSymbol.SymbolNumber] = true;
-               }
             }
          }
+      }
 
       /// <summary>
       /// Recursively copy the item for all the trivial definitions (symbols) of the marked symbol
@@ -317,32 +317,32 @@ namespace Grammlator {
       private void DuplicateItemForTrivialDefinitions(
               NonterminalSymbol MarkedSymbol, ItemStruct Item, ItemList ListOfNotAnEnditemLOfActualState,
               Boolean[] doNotProcessNonterminalSymbolAgain)
-         {
+      {
          Debug.Assert(!doNotProcessNonterminalSymbolAgain[MarkedSymbol.SymbolNumber]);
 
          doNotProcessNonterminalSymbolAgain[MarkedSymbol.SymbolNumber] = true;
 
          // duplicate item, using each trivial definition of the marked symbol as InputSymbol of the duplicated item
          foreach (Symbol trivialDefinition in MarkedSymbol.TrivalDefinitionsArray)
-            {
+         {
             Item.InputSymbol = trivialDefinition; // ok because item is a struct and not a class
 
             if (trivialDefinition is NonterminalSymbol nonterminalReplacement)
-               {
+            {
                if (!doNotProcessNonterminalSymbolAgain[nonterminalReplacement.SymbolNumber])
-                  {
+               {
                   ListOfNotAnEnditemLOfActualState.Add(Item);
                   DuplicateItemForTrivialDefinitions(nonterminalReplacement, Item, ListOfNotAnEnditemLOfActualState, doNotProcessNonterminalSymbolAgain);
-                  }
-               }
-            else
-               {
-               ListOfNotAnEnditemLOfActualState.Add(Item);
                }
             }
+            else
+            {
+               ListOfNotAnEnditemLOfActualState.Add(Item);
+            }
+         }
 
          doNotProcessNonterminalSymbolAgain[MarkedSymbol.SymbolNumber] = false;
-         }
+      }
 
       /// <summary>
       /// adds all definitions of markedSymbol with ElementNr 0 as items to  <paramref name="itemsOfActualState"/> 
@@ -352,10 +352,10 @@ namespace Grammlator {
       /// <param name="itemsOfActualState"></param>
       /// <param name="doNotProcessNonterminalSymbolAgain"></param>
       private void AddStartitemsAndLookaheadActions(NonterminalSymbol markedSymbol, ItemList itemsOfActualState, Boolean[] doNotProcessNonterminalSymbolAgain)
-         {
+      {
          Debug.Assert(markedSymbol != null);
          if (markedSymbol == null || doNotProcessNonterminalSymbolAgain[markedSymbol.SymbolNumber])
-            return; // Das Symbol wurde bereits bearbeitet
+            return; // The symbol has been evaluated already
 
          doNotProcessNonterminalSymbolAgain[markedSymbol.SymbolNumber] = true;
 
@@ -363,9 +363,9 @@ namespace Grammlator {
          //    if empty definition: add look ahead action (apply definiton);
          //    else                 add start item "definition, 0"
          foreach (Definition Definition in markedSymbol.NontrivialDefinitionsList)
-            {
+         {
             if (Definition.Elements.Length == 0)
-               {
+            {
                ActionsOfActualState.Add(
                   new LookaheadAction(
                         number: NumberOfActions++,
@@ -373,20 +373,20 @@ namespace Grammlator {
                         EmptyLookAheadSet, GlobalVariables.ListOfAllHaltActions[0]
                         )
                   );
-               }
-            else
-               {
-               itemsOfActualState.Add(new ItemStruct(Definition));
-               }
             }
+            else
+            {
+               itemsOfActualState.Add(new ItemStruct(Definition));
+            }
+         }
 
          // process all trivial definitions of the nonterminal with a nonterminal recursively
          foreach (Symbol trivialDefinition in markedSymbol.TrivalDefinitionsArray)
-            {
+         {
             if (trivialDefinition is NonterminalSymbol nonterminalDecendant)
                AddStartitemsAndLookaheadActions(nonterminalDecendant, itemsOfActualState, doNotProcessNonterminalSymbolAgain);
-            }
          }
+      }
 
 
       /// <summary>
@@ -395,13 +395,13 @@ namespace Grammlator {
       /// </summary>
       /// <param name="ItemsOfActualState">temporary storage for items</param>
       private static void ConstructFirstState(ItemList ItemsOfActualState)
-         {
+      {
          ItemsOfActualState.Clear();
          for (Int32 i = 0; i < GlobalVariables.Startsymbol.NontrivialDefinitionsList.Count; i++)
-            {
+         {
             var definition = GlobalVariables.Startsymbol.NontrivialDefinitionsList[i];
             ItemsOfActualState.Add(new ItemStruct(definition));
-            }
+         }
 
          // Note: the states will be renumbered later, new ParserState copies(!) the items
          GlobalVariables.ListOfAllStates.Add
@@ -410,10 +410,10 @@ namespace Grammlator {
                  Number: GlobalVariables.ListOfAllStates.Count,
                  Items: ItemsOfActualState)
              );
-         }
+      }
 
       private static void ComputePredecessorRelation()
-         {
+      {
          var NumberOfPredecessors = new Int32[GlobalVariables.ListOfAllStates.Count];  // Indizierung mit Zustandsnummern >=0
 
          // The following declarations and methods are provided to mark states as processed.
@@ -423,32 +423,32 @@ namespace Grammlator {
          Int32 LastProcessed = -1;
          Boolean IsProcessed(Int32 s) => isProcessedChain[s] >= 0;
          void MarkAsProcessed(Int32 s)
-            {
+         {
             Debug.Assert(isProcessedChain[s] < 0);
             isProcessedChain[s] = LastProcessed;
             LastProcessed = s;
-            }
+         }
          void ResetIsProcessed()
-            { // unwind the chain and set all entries to -1
+         { // unwind the chain and set all entries to -1
             while (LastProcessed >= 0)
-               {
+            {
                Int32 s = LastProcessed;
                LastProcessed = isProcessedChain[s];
                isProcessedChain[s] = -1;
-               }
             }
+         }
          void InitializeIsProcessed()
-            {
+         {
             for (Int32 i = 0; i < isProcessedChain.Length; i++)
                isProcessedChain[i] = -1;
-            }
+         }
 
          // A) Determine the number of predecessor states for each state.
 
          InitializeIsProcessed();
          //    For each state
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
-            {
+         {
             // for each successor state, which has not yet been processed for the state,
             // increment the NumberOfPredecessors and mark the successor state as processed
 
@@ -457,13 +457,13 @@ namespace Grammlator {
                 OfType<ParserState>().Select(s => s.IdNumber).
                 Where(IDNummer => !IsProcessed(IDNummer))
                 )
-               {
+            {
                NumberOfPredecessors[numberOfSuccessorState]++;
                MarkAsProcessed(numberOfSuccessorState);
-               }
+            }
 
             ResetIsProcessed();
-            }
+         }
 
          // B) Assign each state its list of predecessors
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
@@ -471,21 +471,21 @@ namespace Grammlator {
 
          // C) For each state enter it into the list of predecessors of its successor
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
-            {
+         {
             foreach (ParserState successorState in state.Actions.
                     OfType<ParserActionWithNextAction>().Select(a => a.NextAction).
                     OfType<ParserState>()
                     )
-               {
+            {
                if (!IsProcessed(successorState.IdNumber))
-                  {
+               {
                   successorState.PredecessorList.Add(state);
                   MarkAsProcessed(successorState.IdNumber);
-                  }
                }
+            }
 
             ResetIsProcessed();
-            }
-         } // end of ComputePredecessorRelation
-      } //end of class Phase2 
-   } // end of namespace
+         }
+      } // end of ComputePredecessorRelation
+   } //end of class Phase2 
+} // end of namespace
