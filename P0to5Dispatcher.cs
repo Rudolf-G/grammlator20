@@ -132,6 +132,8 @@ namespace Grammlator {
          DisplayStates(Protocol);
          outputMessage(MessageTypeOrDestinationEnum.StateProtocol1, Protocol.ToString());
          Protocol.Clear();
+         if (ContainsStateWithoutActions())
+            outputMessage(MessageTypeOrDestinationEnum.Abort, "Check your grammar: there is a state without actions");
 
          // ----- Do phase 4
          outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 4: optimizations");
@@ -145,6 +147,8 @@ namespace Grammlator {
          DisplayStates(Protocol); // dazu evtl. die Items der Zustände erweitern ???
          outputMessage(MessageTypeOrDestinationEnum.StateProtocol2, Protocol.ToString());
          Protocol.Clear();
+         if (ContainsStateWithoutActions())
+            outputMessage(MessageTypeOrDestinationEnum.Abort, "Check your grammar: there is a state without actions");
          Protocol.Capacity = 0;
 
          // ----- Do phase 5 with a specific code generator
@@ -179,12 +183,27 @@ namespace Grammlator {
          }
       }
 
-      public static void DisplayStates(StringBuilder sb)
+      public static bool DisplayStates(StringBuilder sb)
       {
+         bool foundError = false;
          foreach (ParserState state in ListOfAllStates)
          {
+            if (state.Actions.Count == 0)
+               foundError = true;
             state.ToStringbuilder(sb);
          }
+         return foundError;
+      }
+
+      public static bool ContainsStateWithoutActions()
+      {
+         bool foundError = false;
+         foreach (ParserState state in ListOfAllStates)
+         {
+            if (state.Actions.Count == 0)
+               foundError = true;
+         }
+         return foundError;
       }
    }
 }

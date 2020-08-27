@@ -833,11 +833,19 @@ namespace Grammlator {
 
       private bool ErrorHandler(Int32 stateNumber, String stateDescription, LexerResult symbol)
          {
+         String nl = Environment.NewLine;
+
+         if (Lexer.PeekSymbol() == LexerResult.NumberSign)
+         {
+            P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                $"Grammar analysis error:{nl}input symbol \"{symbol.MyToString()}\" not allowed in state {stateNumber}{nl}{stateDescription}{nl}");
+            return false; // do not skip # because it may be #endregion grammar
+         }
 
          var aCountBeforeAccept = _a.Count;
+
          Lexer.AcceptSymbol(); // accept the wrong symbol to make its position available in Lexer.Lex1TextPos and to discard it
 
-         String nl = Environment.NewLine;
          P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
              $"Grammar analysis error:{nl}input symbol \"{symbol.MyToString()}\" ignored: not allowed in state {stateNumber}{nl}{stateDescription}{nl}");
 

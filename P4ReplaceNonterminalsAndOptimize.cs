@@ -279,15 +279,15 @@ namespace Grammlator {
 
          Int32 countOfStateStackNumbersToPop = 0; // used only if RelationtypeEnum.ComputeBranches
 
-         // Stufenweise alle Vorgänger des Zustands bestimmen und dabei die Nachbarrelation und die Kellertiefe berechnen            
+         // Iterate depth levels
          for (Int32 remainingDepth = Depth; remainingDepth > 0; remainingDepth--)
          {
-            // Die Vorgänger aller Zustande der aktuellen Zustandsliste in die Vorgängerliste aufnehmen
+            // Add the predecessors of all states of this level to the list of states of the next level
             foreach (ParserState state in StatesOfThisLevel)
             {
                foreach (ParserState predecessor in state.PredecessorList!)
                {
-                  if (!StatesOfNextLevel.Contains(predecessor))
+                  if (!StatesOfNextLevel.Contains(predecessor)) // linear search!
                      StatesOfNextLevel.Add(predecessor);
                }
             }
@@ -315,7 +315,7 @@ namespace Grammlator {
           *  by applying the given definition. Each of these states contains the startitem of the given definition.
           *  
           *  If exactly one action results by input of the nonterminal symbol (defined by the definition)
-          *  the definition is replaced by this action else a banch action has to be generated.
+          *  the definition is replaced by this action else a branch action has to be generated.
           */
 
          NonterminalSymbol definedSymbol = DefinitionToReplace.DefinedSymbol!;
@@ -592,12 +592,11 @@ namespace Grammlator {
          if (!(NextAction is EndOfGeneratedCodeAction || NextAction is HaltAction)
             || newReduceAction.SemanticMethod != null
             || newReduceAction.StateStackAdjustment != 0
-            || newReduceAction.AttributeStackAdjustment != 0
+            // || newReduceAction.AttributeStackAdjustment != 0 // will always be 0, see above
             )
          {
             // search equivalent ReduceAction
-            ReduceAction? foundReduceAction = null;
-            foundReduceAction = SearchEquivalentReduceAction(newReduceAction, foundReduceAction);
+            ReduceAction? foundReduceAction = SearchEquivalentReduceAction(newReduceAction);
 
             if (foundReduceAction != null)
             {
@@ -619,7 +618,7 @@ namespace Grammlator {
          return newReduceAction;
       }
 
-      private static ReduceAction? SearchEquivalentReduceAction(ReduceAction newReduceAction, ReduceAction? foundReduceAction)
+      private static ReduceAction? SearchEquivalentReduceAction(ReduceAction newReduceAction)
       {
          for (int ir = 0; ir < GlobalVariables.ListOfAllReductions.Count; ir++)
          {
@@ -629,10 +628,18 @@ namespace Grammlator {
             // Meanwhile this definition migth have been replaced by a reduction
             // The following simplify-xxx calls cause some new reductions to be found in the list of reductions.
             // But do they solve all those problems? Is it possible to reduce this multiple recalculations?
+            // Concept:  1. replace all definitions by reductions (with minimal optimizations)
+            //                  with NextAction == (nonterminalTransition to) state 
+            //                               or    nonterminalTransition then definition
+            //                               or     Branch ...
+            //           2. Replace nonterminal transitions by their NextAction
+            //           2. add reference counts to reductions
+            //           3. combine reductions
 
+            // remove nonterminal transitions (!) and do some more optimizations
             existingReduceAction.NextAction = SimplifiedNextAction(existingReduceAction.NextAction);
             SimplifyChainOfReductions(existingReduceAction);
-            // end of fast and inmcomplete solution
+            // end of simple solution
 
             if (
             existingReduceAction.StateStackAdjustment == newReduceAction.StateStackAdjustment
@@ -642,14 +649,14 @@ namespace Grammlator {
             && !(existingReduceAction.NextAction is Definition)
             )
             {   //found 
-               foundReduceAction = existingReduceAction;
-               break;
+               return existingReduceAction;
             }
          }
 
-         return foundReduceAction;
+         return null;
       }
 
+      static int SimplifiedNextActionRecursionCount = 0;
       /// <summary>
       /// If action has a chain of unambigous next actions the last of these will be returned,
       /// otherwise the action. Next actions of type <see cref="Definition"/> are not removed.
@@ -665,7 +672,7 @@ namespace Grammlator {
          {
             if (nonterminalTransition.NextAction is Definition)
                return action;
-            return nonterminalTransition.NextAction;
+            return nonterminalTransition.NextAction; // remove nonterminal transition !!
          }
 
          case ParserState state:
@@ -677,13 +684,40 @@ namespace Grammlator {
              * by the next action of the single look ahead action
              * to avoid unnecessary look ahead
              */
-            return ( //e.g. replaces a next reduce action with the first equivalent reduce action
-                state.StateStackNumber == -1
-                && (state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip)
-                && !(ActionToSkip.NextAction is Definition))
-                // definitions must not be moved out of the state
-                ? ActionToSkip.NextAction = SimplifiedNextAction(ActionToSkip.NextAction)
-                : action;
+            //CHECK here the definition "B=B??1??" causes an endless loop
+            /*
+             * the state contains only one look ahead action: if (allTerminalSymbols)  goto state
+             */
+
+            if (state.StateStackNumber != -1)
+               return action;
+            if (!(state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip))
+               return action;
+            if (ActionToSkip.NextAction is Definition)
+               return action; // definitions must not be moved out of the state
+
+            /*The example "//|  *= A; A= A??2??;" will cause an endless loop if recursion is not limited
+             * because the second state contains only one look ahead action: if (allTerminalSymbols)  "second state"
+             * */
+
+            if (SimplifiedNextActionRecursionCount < 100) // CHECK SimplifiedNextActionRecursionCount < 100
+            {
+               SimplifiedNextActionRecursionCount++;
+               ActionToSkip.NextAction = SimplifiedNextAction(ActionToSkip.NextAction);
+               SimplifiedNextActionRecursionCount--;
+               return ActionToSkip.NextAction;
+            }
+
+            // after removing nonterminal transitions a state will contain no actions 
+            return action; 
+
+            //return ( //e.g. replaces a next reduce action with the first equivalent reduce action
+            //    state.StateStackNumber == -1
+            //    && (state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip)
+            //    && !(ActionToSkip.NextAction is Definition))
+            //    // definitions must not be moved out of the state
+            //    ? ActionToSkip.NextAction = SimplifiedNextAction(ActionToSkip.NextAction)
+            //    : action;
 
          case ReduceAction reduceAction:
          {
@@ -762,27 +796,31 @@ namespace Grammlator {
 
          // TODO add correct handling of semantic PriorityFunction
 
-         // do not include nextReduction, if nextReduction has a semantic method (which might be duplicated)
-         if (nextReduction.SemanticMethod != null)
-            return;
-
-         // do not combine, if this will cause an additional AttributeStackAdjustment
+         // Do not combine, if this will cause an additional AttributeStackAdjustment
          if (Reduction.AttributeStackAdjustment == 0 && nextReduction.AttributeStackAdjustment != 0)
             return;
 
-         if (Reduction.SemanticMethod == null && nextReduction.SemanticMethod == null)
+         if (Reduction.SemanticMethod != null && nextReduction.SemanticMethod != null)
+            return; // // both have semantic methods: do not combine
+         else if (Reduction.SemanticMethod == null && nextReduction.SemanticMethod == null)
          {
-            // The reductions can be combined: both have no semantic action
-            // AttributeStackAdjustment s can be added
+            // The reductions may be combined: both have no semantic action
+            // AttributeStackAdjustment s can be combined (added)
+
+            // Do not combine, if this will cause an additional AttributeStackAdjustment
+            if (Reduction.AttributeStackAdjustment == 0 && nextReduction.AttributeStackAdjustment != 0)
+               return;
          }
          else if (Reduction.SemanticMethod == null)
          {
             Debug.Assert(Reduction.SemanticMethod == null && nextReduction.SemanticMethod != null);
+            return; // avoid duplication of calls of semantic method
+
+            //CHECK if a reference count can be introduced (if 1 try to combine)
 
             // The semantic method of nextReduction can be copied to reduction
             // and the nextReduction be skipped. This may cause duplication of generated code!
 
-            //TODO Test if a reference count can be introduced (if 1 try to combine)
 
             //if (Reduction.AttributeStackAdjustment == 0)
             //    { 
@@ -813,8 +851,8 @@ namespace Grammlator {
          else
          if (nextReduction.SemanticMethod == null)
          {
-            // Reduction.SemanticMethod != null && nextReduction.SemanticMethod == null
-            Debug.Assert(Reduction.SemanticMethod != null);
+            Debug.Assert(Reduction.SemanticMethod != null && nextReduction.SemanticMethod == null);
+
             // combined Reduction.SemanticMethod
             if (nextReduction.AttributeStackAdjustment == 0)
             {
@@ -830,10 +868,6 @@ namespace Grammlator {
             {
                return; // do not combine
             }
-         }
-         else
-         { // both have semantic methods
-            return; // do not combine
          }
 
          // Combine into Reduction
