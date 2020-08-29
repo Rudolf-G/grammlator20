@@ -28,7 +28,6 @@ State of the implementation of grammlator:
 * the further develoment is a one person project (just for fun)
 * grammlator is used to implement its own lexer and parser
 * There is a collection of simple samples:
-
-  https://github.com/Rudolf-G/GrammlatorExamples
-  https://github.com/Rudolf-G/GrammlatorExamples
+  - https://github.com/Rudolf-G/GrammlatorExamples
+  - https://github.com/Rudolf-G/GrammlatorExamples
 * As a more complex sample a C# lexer is in work (no, it is not intended to replace the Visual Studio C# lexer)
