@@ -11,7 +11,7 @@ and inserts the generated C# instruction sequence at a well defined place in the
 Grammlator is not intended to be a compiler compiler. It "only" makes the bottom-up parsing algorithm available
 as a control structure embedded into a C# program. 
 It may be used to write lexers and parsers but also to write any other programs which analyze an input stream
-with a structure defined by an suitable grammar.
+with a structure defined by a suitable grammar.
 
 What makes grammlator different to well known programs:
 
@@ -29,5 +29,6 @@ State of the implementation of grammlator:
 * grammlator is used to implement its own lexer and parser
 * There is a collection of simple samples:
   - https://github.com/Rudolf-G/GrammlatorExamples
-  - https://github.com/Rudolf-G/GrammlatorExamples
+  - https://github.com/Rudolf-G/grammlator-example-FormulaCalculator
 * As a more complex sample a C# lexer is in work (no, it is not intended to replace the Visual Studio C# lexer)
+* If there is any public interest in this work documentation will be added.
