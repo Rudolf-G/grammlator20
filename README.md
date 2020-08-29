@@ -27,4 +27,5 @@ State of the implementation of grammlator:
 * the very first version "SKOP" had been used to implement a hardware design language in the years 1975 to 1980
 * the further develoment is a one person project (just for fun)
 * grammlator is used to implement its own lexer and parser
-* There is a collection of samples
+* There is a collection of simple samples
+* As a more complex sample a C# lexer is in work (no, it is not intended to replace the Visual Studio C# lexer)
