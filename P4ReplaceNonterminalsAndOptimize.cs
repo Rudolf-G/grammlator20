@@ -6,8 +6,8 @@ using System.Text;
 
 namespace Grammlator {
    internal class P4ReplaceNonterminalsAndOptimize {
-      /* Phase 4 checks all states and analyzes which actions would cause "apply definition" 
-       *    (execute method and go back to a state in the state stack, input 
+      /* Phase 4 checks all states and handles alls actions which would cause "apply definition" 
+       *    (execute semantic method and go back to a state in the state stack, input 
        *     the generated nonterminal symbol and "shift" to the follow state)
        * and replaces each one by an explicit "reduction" which adjusts the state stack
        * and may be followed by a "branch" which uses the value on top
@@ -22,7 +22,7 @@ namespace Grammlator {
        * 
        * Idea: find and generate states which can store their return information
        * in a local variable (clear variable, increment variable, decrement variable, if (variable==0)...)
-       * instead of pushing it on the stack. 
+       * instead of pushing it on the stack (Example: "*= aBa; aBa= b | a aBa a;" )
        * 
        * */
 
@@ -40,8 +40,15 @@ namespace Grammlator {
 
          p4.P4aComputeStateStackNumbersAndBranches();
          P4bShortenChainsOfActions();
+
          // Now  ListOfAllStates[0] is definitely assigned and GlobalVariables.Startaction may be used
-         p4.P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields();
+         p4.P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeComplexity();
+
+         // For each Parseraction compute the number of AcceptCalls and Calls
+         GlobalVariables.Startaction.CountUsage(Accept: false);
+
+         // Move push operations from states to actions if this reduces the number of those operations
+         p4.MoveStateStackPushOperations();
       }
 
       /// <summary>
@@ -671,8 +678,8 @@ namespace Grammlator {
          case NonterminalTransition nonterminalTransition:
          {
             if (nonterminalTransition.NextAction is Definition)
-               return action;
-            return nonterminalTransition.NextAction; // remove nonterminal transition !!
+               return action; // nonterminal transitions next action has still to be resolved
+            return nonterminalTransition.NextAction; // nonterminal transitions must be skipped !!
          }
 
          case ParserState state:
@@ -690,9 +697,9 @@ namespace Grammlator {
              */
 
             if (state.StateStackNumber != -1)
-               return action;
+               return action; // state modifies state stack and can not be skipped
             if (!(state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip))
-               return action;
+               return action; // more than one action or not a lookahead action
             if (ActionToSkip.NextAction is Definition)
                return action; // definitions must not be moved out of the state
 
@@ -1059,7 +1066,7 @@ CheckNextExistingBranch:
          // because it is used as Startaction
       }
 
-      private void P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeActionFields()
+      private void P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeComplexity()
       {
          // for each state
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
@@ -1115,14 +1122,9 @@ CheckNextExistingBranch:
              */
             State.IfComplexity = ActionComplexitySum - MaximumActionComplexity;
          }
-
-         // For each Parseraction compute the number of AcceptCalls and Calls
-         GlobalVariables.Startaction.CountUsage(Accept: false);
-
-         OptimizeStateStackOperations();
       }
 
-      private void OptimizeStateStackOperations()
+      private void MoveStateStackPushOperations()
       {
          /* Concept:
           * If possible move the push(p) from states into reduce actions and combine with pop() actions
@@ -1171,13 +1173,13 @@ CheckNextExistingBranch:
             }
 
             if (removedPopCounter > 0 && (removedPopCounter - addedPushStateCounter + 1) >= 0)
-               MoveStateStackPush(State);
+               MoveStateStackPushOperation(State);
 
 
          }
       }
 
-      private void MoveStateStackPush(ParserState state)
+      private void MoveStateStackPushOperation(ParserState state)
       {
          for (Int32 ActionIndex = 0; ActionIndex < state.Actions.Count; ActionIndex++)
          {

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Grammlator {
    /// <summary>
-   /// IdNumbers of ParserStates are assigned at start of phase 2 and reset at end of phase 2
+   /// IdNumbers of <see cref="ParserState"/>s are assigned at start of phase 2 and reset at end of phase 2
    /// </summary>
    internal sealed class ParserState : ParserAction, IELementOfPartition {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isParserState;
@@ -520,9 +520,6 @@ namespace Grammlator {
       /// <returns>The added action or null if none added</returns>
       public ErrorhandlingAction? CheckAndAddErrorAction(Boolean ErrorHandlerIsDefined)
       {
-         // Fehleraktion ergänzen, falls im Zustand nicht alle terminalen Symbole erlaubt sind und 
-         // es mehrere Aktionen gibt (Lookahead nötig) oder mindestens einen terminalenÜbergang
-         // oder keine Aktion bei Eingabe terminaler Symbole (Beispiel S:S,a.).
          var allowedSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions with constant priority
          ErrorhandlingAction e;
          Int32 counter = 0;
@@ -583,41 +580,7 @@ namespace Grammlator {
 
          Actions.RemoveFromEnd(DeletedActionsCount);
       }
-
-      ///// <summary>
-      ///// Yields all actions of the state whereby instead of a PrioritySelectActions its
-      ///// NextAction is used and if it is a PriorityBranchAction
-      ///// </summary>
-      //public IEnumerable<ParserAction> FlatSetOfActions {
-      //   get {
-      //      Debug.Assert(Actions != null);
-      //      for (Int32 i = 0; i < Actions.Count; i++)
-      //         {
-      //         ParserAction? a = Actions[i];
-      //         while (a != null)
-      //            {
-      //            if (a is PrioritySelectAction psa)
-      //               a = psa.NextAction;
-      //            else if (a is PriorityBranchAction pba)
-      //               {
-      //               if (pba.ConstantPriorityAction != null)
-      //                  yield return pba.ConstantPriorityAction;
-      //               for (Int32 k = 0; k < pba.DynamicPriorityActions.Count; k++)
-      //                  {
-      //                  yield return pba.DynamicPriorityActions[k];
-      //                  }
-      //                  ;
-      //               }
-      //            else
-      //               {
-      //               yield return a;
-      //               a = null;
-      //               }
-      //            }
-      //         }
-      //      }
-      //   } //
-
+      
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
          base.Generate(codegen, out accept); // throw not implemented exception
@@ -662,7 +625,7 @@ namespace Grammlator {
 
       internal Boolean IsEnditem => this.ElementNr == this.SymbolDefinition.Elements.Length;
 
-      // zu GetHashcode siehe https://msdn.microsoft.com/de-de/library/system.object.gethashcode%28v=vs.110%29.aspx
+      // GetHashcode see https://msdn.microsoft.com/de-de/library/system.object.gethashcode%28v=vs.110%29.aspx
       /// <summary>
       /// gets xor of SymbolDefinition.GetHashCode and ElementNr
       /// </summary>

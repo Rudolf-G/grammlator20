@@ -120,7 +120,7 @@ namespace Grammlator {
       }
 
    /// <summary>
-   /// Jede C#-Class vom Typ T, die Elemente dieser Partitionsverfahren implementiert, muss dieses Interface implementieren
+   /// Each C#-class, which is used as element of these partition methods, must implement this interface
    /// </summary>
    public interface IELementOfPartition {
       /// <summary>
