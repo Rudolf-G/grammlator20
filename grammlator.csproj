@@ -24,6 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="P1aParser-old.cs" />
     <Compile Remove="P1bLexer with error for Tests.cs" />
     <Compile Remove="StringReaderWithLineCounter.cs" />
     <Compile Remove="SubStringStruct.cs" />
