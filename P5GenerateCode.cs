@@ -136,7 +136,11 @@ namespace Grammlator {
          {
             // generate accept part of action
             if (GenerateLabelOrGotoOrNothing
-                  (forceLabel, P5CodegenCS.GotoLabel(parserAction, accept: true), parserAction.AcceptCalls, InsideBlock))
+                  (forceLabel,
+                   commentIfNoLabel: !(generateAccept || parserAction is ErrorhandlingAction || parserAction is ErrorHaltAction),
+                   P5CodegenCS.GotoLabel(parserAction, accept: true),
+                   parserAction.AcceptCalls,
+                   InsideBlock))
                return true; // generated "goto accept..."
 
             // generated label "accept:..." or nothing;
@@ -155,8 +159,12 @@ namespace Grammlator {
          }
 
          //generate action part of action
-         if (GenerateLabelOrGotoOrNothing(forceLabel, P5CodegenCS.GotoLabel(parserAction, accept: false),
-            parserAction.Calls, insideBlock: codegen.IndentationLevel > 0))
+         if (GenerateLabelOrGotoOrNothing
+               (forceLabel,
+                commentIfNoLabel: !(parserAction is ErrorhandlingAction || parserAction is ErrorHaltAction),
+                P5CodegenCS.GotoLabel(parserAction, accept: false),
+                parserAction.Calls,
+                insideBlock: codegen.IndentationLevel > 0))
             return true; // generated goto
 
          parserAction.Calls = 0;  // mark that the begin of the action part of the parser code has been generated
@@ -166,6 +174,7 @@ namespace Grammlator {
 
       private Boolean GenerateLabelOrGotoOrNothing(
          bool forceLabel, // because goto has been generated on IndentationLevel==0
+         bool commentIfNoLabel,
          string label, // codegen.GenerateLabel(parserAction, generateAccept)
          int calls, // = generateAccept ? parserAction.AcceptCalls : parserAction.Calls;
          bool insideBlock // IndentationLevel > 0
@@ -192,6 +201,8 @@ namespace Grammlator {
          {
             codegen.GenerateLabel(label);
          }
+         else if (commentIfNoLabel)
+            codegen.IndentExactly().Append("// ").Append(label).AppendLine(":");
 
          return false;
 
@@ -645,12 +656,6 @@ namespace Grammlator {
 
       private ParserAction GenerateBranch(out Boolean Accept, BranchAction BranchactionToGenerate)
       {
-         // Generate comment
-         codegen.IndentExactly()
-         .AppendWithOptionalLinebreak("/* Branch ")
-         .AppendWithOptionalLinebreak(BranchactionToGenerate.IdNumber + 1)
-         .AppendLineWithOptionalLinebreak("*/");
-
          return GenerateCondionalActionsOfBranch(BranchactionToGenerate, out Accept);
       }
 
@@ -725,25 +730,8 @@ namespace Grammlator {
          // Generate description
          State.CoreItems.ToStringbuilder(sbTemp);
 
-         codegen.IndentExactly();
-         codegen.AppendWithOptionalLinebreak("/* State ");
-         codegen.AppendWithOptionalLinebreak(State.IdNumber + 1);
-         codegen.AppendWithOptionalLinebreak(' ');
-         if (State.StateStackNumber != -1)
-         {  // if it is a stacking state display the number it puts on the stack
-            // mark number, if push is moved by optimization
-            string display = State.StateStackNumber < 0
-               ? "(*" + ((-State.StateStackNumber - 2).ToString()) + ')'
-               : '(' + (State.StateStackNumber).ToString() + ')';
-            codegen.AppendWithOptionalLinebreak(display);
-         }
-
          if (State.ContainsErrorHandlerCall && !string.IsNullOrEmpty(GlobalVariables.VariableNameStateDescription))
          {
-            // Generate 1st state description line "// State xxx (yyy) with xxx=State.IdNumber + 1 
-            // and yyy=State.StateStackNumber (if >= 0)
-            codegen.AppendLine("*/"); // end comment
-
             // Generate assignment to VariableNameStateDescription (if defined)
             codegen.Indent();
             codegen.Append("const String ");
@@ -766,26 +754,29 @@ namespace Grammlator {
          }
          else
          {
-            codegen.OutputandClearLine(); // continue comment
-
             sbTemp.Replace("*/", "* /"); // escape the symbols which are not allowed in comment
+
+            codegen.IndentExactly().Append("/*");
 
             codegen.IndentAndAppendLinesWithSeparator(
                 linesToAppend: sbTemp.ToString() // the strings describing the items of the state
-                , stringPrecedingFirstLine: " * "  // indentation and character """" in front of each string
+                , stringPrecedingFirstLine: " "  // indentation and character """" in front of each string
                 , separatorAtEndofLine: ""  // at end of each string except the last
                 , separatorAtNewLine: " * " // before each string except the first
                 , stringAtEndOfLastLine: "" // after the last string
                 );
-            codegen.AppendInstruction(" */");
+            codegen.IndentExactly().Append(" */");
             sbTemp.Clear();
          }
 
          codegen.Indent();
 
-         // generate push to the state stack if necessary 
+         // generate push to the state stack if necessary, generate comment im moved to actions
          if (State.StateStackNumber >= 0)
             codegen.GenerateStateStackPushWithOptionalLinebreak(State.StateStackNumber);
+         else if (State.StateStackNumber <= -2)
+            codegen.AppendLine("// *Push(" + (-State.StateStackNumber - 2).ToString() + ')');
+
 
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
          // This is prepared  by shortening chains in phase 4 und implemented by the following.

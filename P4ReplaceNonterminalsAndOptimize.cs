@@ -347,13 +347,12 @@ namespace Grammlator {
             {
                return NextAction; // branch or action
             }
-            else
-            {  // reduce => (branch or action)
-               return MakeReduceAction(
-                   countOfStateStackNumbersToPop,
-                   DefinitionToReplace,
-                   NextActionOfReduce: NextAction);
-            }
+
+            // reduce => (branch or action)
+            return MakeReduceAction(
+                countOfStateStackNumbersToPop,
+                DefinitionToReplace,
+                NextActionOfReduce: NextAction);
 
          default:
             throw new ErrorInGrammlatorProgramException("unknown argument " + nameof(TypeOfEvaluation));
@@ -593,29 +592,30 @@ namespace Grammlator {
 
          SimplifyChainOfReductions(newReduceAction);
 
-         // The if condition avoids combinations of trivial halt actions resulting in lengthy descriptions
-         // if(true) would generate the same code except comments (example: P1bLexer)
-         ParserAction NextAction = newReduceAction.NextAction;
-         if (!(NextAction is EndOfGeneratedCodeAction || NextAction is HaltAction)
-            || newReduceAction.SemanticMethod != null
-            || newReduceAction.StateStackAdjustment != 0
-            // || newReduceAction.AttributeStackAdjustment != 0 // will always be 0, see above
-            )
-         {
-            // search equivalent ReduceAction
-            ReduceAction? foundReduceAction = SearchEquivalentReduceAction(newReduceAction);
+         // search equivalent ReduceAction ignoring match of the descriptions
+         ReduceAction? foundReduceAction = SearchEquivalentReduceAction(newReduceAction);
 
-            if (foundReduceAction != null)
+         if (foundReduceAction != null)
+         {
+            // Has descriptions to be expanded?
+            bool containsDescription = foundReduceAction.Description.Contains(newReduceAction.Description);
+            if (containsDescription)
+               return foundReduceAction;
+
+            // The if condition avoids combinations of trivial halt actions resulting in lengthy descriptions
+            // if(true) should generate the same code except comments (example: P1bLexer)
+            ParserAction NextAction = newReduceAction.NextAction;
+            if (!(NextAction is EndOfGeneratedCodeAction || NextAction is HaltAction)
+               || newReduceAction.SemanticMethod != null
+               || newReduceAction.StateStackAdjustment != 0
+               // || newReduceAction.AttributeStackAdjustment != 0 // will always be 0, see above
+               )
             {
-               // combine descriptions
-               if (!foundReduceAction.Description.Contains(newReduceAction.Description)) // CHECK 
-               {
-                  reduceStringBuilder.AppendLine(foundReduceAction.Description);
-                  reduceStringBuilder.Append("or: ");
-                  reduceStringBuilder.Append(newReduceAction.Description);
-                  foundReduceAction.Description = reduceStringBuilder.ToString();
-                  reduceStringBuilder.Clear();
-               }
+               reduceStringBuilder.AppendLine(foundReduceAction.Description);
+               reduceStringBuilder.Append("or: ");
+               reduceStringBuilder.Append(newReduceAction.Description);
+               foundReduceAction.Description = reduceStringBuilder.ToString();
+               reduceStringBuilder.Clear();
                return foundReduceAction;
             }
          }
@@ -716,15 +716,15 @@ namespace Grammlator {
             }
 
             // after removing nonterminal transitions a state will contain no actions 
-            return action; 
+            return action;
 
-            //return ( //e.g. replaces a next reduce action with the first equivalent reduce action
-            //    state.StateStackNumber == -1
-            //    && (state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip)
-            //    && !(ActionToSkip.NextAction is Definition))
-            //    // definitions must not be moved out of the state
-            //    ? ActionToSkip.NextAction = SimplifiedNextAction(ActionToSkip.NextAction)
-            //    : action;
+         //return ( //e.g. replaces a next reduce action with the first equivalent reduce action
+         //    state.StateStackNumber == -1
+         //    && (state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip)
+         //    && !(ActionToSkip.NextAction is Definition))
+         //    // definitions must not be moved out of the state
+         //    ? ActionToSkip.NextAction = SimplifiedNextAction(ActionToSkip.NextAction)
+         //    : action;
 
          case ReduceAction reduceAction:
          {

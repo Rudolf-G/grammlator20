@@ -111,12 +111,17 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
       {
-         sb.Append("State ")
-           .Append(IdNumber + 1);
+         sb.Append(P5CodegenCS.GotoLabel(this, false));
          if (StateStackNumber >= 0)
          {
             sb.Append(" (")
               .Append(StateStackNumber)
+              .Append(") ");
+         }
+         else if (StateStackNumber <= -2)
+         {
+            sb.Append(" (*")
+              .Append(-StateStackNumber-2)
               .Append(") ");
          }
          sb.AppendLine(": ")
@@ -129,8 +134,7 @@ namespace Grammlator {
       }
 
       internal override void NameToSb(StringBuilder sb)
-          => sb.Append("State ")
-            .Append(IdNumber + 1);
+          => sb.Append(P5CodegenCS.GotoLabel(this, false));
 
       /// <summary>
       /// Checks the states actions whether there is exactly one action of type

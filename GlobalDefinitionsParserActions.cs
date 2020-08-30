@@ -131,7 +131,7 @@ namespace Grammlator {
       public Int32 Codenumber {
          get; set;
       }
-      
+
       /// <summary>
       ///  The number, the parser state pushes on the state stack. Originally only used for ParserStates.
       ///  Value -1: the state doesn't push a number on the stack.
@@ -155,8 +155,12 @@ namespace Grammlator {
       /// <para>0: never used or code has been generated, </para>
       /// <para>&lt;0: code has been generated or should not yet be generated (=-number of usages)</para>
       /// </summary>
-      internal Int32 Calls { get; set; }
-      internal Int32 AcceptCalls { get; set; }
+      internal Int32 Calls {
+         get; set;
+      }
+      internal Int32 AcceptCalls {
+         get; set;
+      }
 
       /// <summary>
       /// Called in Phase5 to compute the values of Calls and AcceptCalls for Startaction and recursively for all accessible actions
@@ -622,8 +626,7 @@ namespace Grammlator {
       }
 
       internal override void NameToSb(StringBuilder sb)
-          => sb.Append("branch ")
-               .Append(IdNumber + 1);// kein Bezug zu this.ToStringbuilder, da das zu Rekursion führen könnte
+          => sb.Append(P5CodegenCS.GotoLabel(this, false));// kein Bezug zu this.ToStringbuilder, da das zu Rekursion führen könnte
    }
 
    internal class BranchcasesList : List<BranchcaseStruct> {
@@ -719,55 +722,65 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
       {
-         sb.Append("reduction ").
-             Append((IdNumber + 1).ToString()).Append(' ').
-             Append("(sStack: ").
-             Append(StateStackAdjustment.ToString()).Append(", ").
-             Append("method: ").
-             Append(SemanticMethod?.MethodName ?? "---").
-             Append(", ").
-             Append("aStack: ").
-             Append(AttributeStackAdjustment.ToString()).
-             AppendLine(") ");
+         AppendAdjustmentsAndMethod(sb);
          base.ToStringbuilder(sb);
          return sb;
       }
 
       internal override void NameToSb(StringBuilder sb)
       {
-         sb.Append("reduction ").
-             Append((IdNumber + 1).ToString()).
-             Append(" (sStack: ").
-             Append(StateStackAdjustment.ToString()).
-             Append(", method: ").
-             Append(SemanticMethod?.MethodName ?? "---").
-             Append(", aStack: ").
-             Append(AttributeStackAdjustment.ToString()).
-             AppendLine(") "
-             );
-
+         AppendAdjustmentsAndMethod(sb);
          base.ToStringbuilder(sb);
+      }
+
+      private void AppendAdjustmentsAndMethod(StringBuilder sb)
+      {
+         sb.Append(P5CodegenCS.GotoLabel(this, false));
+         if (StateStackAdjustment != 0 || SemanticMethod != null || AttributeStackAdjustment != 0)
+         {
+            sb.Append(" (");
+            if (StateStackAdjustment != 0)
+            {
+               sb.Append("sAdjust: ").Append(-StateStackAdjustment);
+               if (SemanticMethod != null || AttributeStackAdjustment != 0)
+                  sb.Append(", ");
+            }
+            if (SemanticMethod != null)
+            {
+               sb.Append("method: ").
+                  Append(SemanticMethod.MethodName);
+               if (AttributeStackAdjustment != 0)
+                  sb.Append(", ");
+            }
+            if (AttributeStackAdjustment != 0)
+               sb.Append(", aAdjust: ").Append(AttributeStackAdjustment);
+            sb.Append(") ");
+         }
+         sb.AppendLine();
       }
 
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
          // Generate description
          codegen.IndentExactly();
-         codegen.Append("/* Reduction ");
-         codegen.Append(this.IdNumber + 1);
-         if (this.StateStackAdjustment != 0)
+         codegen.Append("/* ");
+         if (StateStackAdjustment != 0)
          {
-            codegen.Append(", sStack: ");
-            codegen.Append(-this.StateStackAdjustment);
+            codegen.Append("sAdjust: ");
+            codegen.Append(-StateStackAdjustment);
+            if (AttributeStackAdjustment != 0)
+               codegen.Append(", ");
          }
-         if (this.AttributeStackAdjustment != 0)
+         if (AttributeStackAdjustment != 0)
          {
-            codegen.Append(", aStack: ");
-            codegen.Append(this.AttributeStackAdjustment);
+            codegen.Append("aAdjust: ");
+            codegen.Append(AttributeStackAdjustment);
          }
-         codegen.OutputandClearLine();
-         codegen.IndentAndAppendLines(this.Description, " * ");
-         codegen.IndentAndAppendLine(" */");
+         if (StateStackAdjustment != 0 || AttributeStackAdjustment != 0)
+            codegen.IndentExactly().Append(" * ");
+
+         codegen.IndentAndAppendLines(Description, " * ");
+         codegen.AppendLine(" */");
 
          // Generate instructions to handle the state stack
          if (this.StateStackAdjustment != 0)
@@ -1353,17 +1366,15 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
       {
-         sb.Append("halt action ")
-             .Append(IdNumber).
-             Append(", AttributestackAdjustment ").
-             Append(AttributestackAdjustment);
+         sb.Append(P5CodegenCS.GotoLabel(this, false)).
+            Append(", AttributestackAdjustment ").
+            Append(AttributestackAdjustment);
          base.ToStringbuilder(sb);
          return sb;
       }
 
       internal override void NameToSb(StringBuilder sb)
-          => sb.Append("halt nr. ")
-            .Append(IdNumber + 1);
+          => sb.Append(P5CodegenCS.GotoLabel(this, false));
 
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
@@ -1403,7 +1414,7 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
       {
-         sb.Append("error halt action: ");
+         sb.Append(P5CodegenCS.GotoLabel(this, false));
          base.ToStringbuilder(sb);
          return sb;
       }
@@ -1479,13 +1490,13 @@ namespace Grammlator {
 
       internal override StringBuilder ToStringbuilder(StringBuilder sb)
       {
-         sb.Append("End of generated Code: ");
+         sb.Append(P5CodegenCS.GotoLabel(this, false));
          base.ToStringbuilder(sb);
          return sb;
       }
 
       internal override void NameToSb(StringBuilder sb)
-          => sb.Append("error halt ");
+          => sb.Append(P5CodegenCS.GotoLabel(this, false));
    }
 
    internal class PushStateAction : ParserActionWithNextAction {
@@ -1508,6 +1519,29 @@ namespace Grammlator {
          codegen.GenerateStateStackPushWithOptionalLinebreak(this.StateStackNumber);
          return this.NextAction;
       }
+
+      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      {
+         sb.Append(P5CodegenCS.GotoLabel(this, false)).
+            Append("(push value: ").
+            Append(StateStackNumber.ToString()).
+            AppendLine(") ");
+         base.ToStringbuilder(sb);
+         return sb;
+      }
+
+      internal override void NameToSb(StringBuilder sb)
+      {
+         sb.Append(P5CodegenCS.GotoLabel(this, false)).
+            Append(" (push value: ").
+            Append(StateStackNumber.ToString()).
+            AppendLine(")");
+
+         base.ToStringbuilder(sb);
+      }
+
+
+
+
    }
 }
-

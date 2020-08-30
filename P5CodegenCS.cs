@@ -127,11 +127,16 @@ namespace Grammlator
       /// <param name="Prefix">String to write after indentation before sToAppend</param>
       public void IndentAndAppendLines(String sToAppend, String Prefix)
       {
+         bool firstLine = true;
          foreach (String s in sToAppend.Split(lineSeparators, StringSplitOptions.None))
          {
-            Indent();
-            Append(Prefix);
-            AppendLine(s);
+            if (!firstLine)
+            {
+               AppendLineAndIndent();
+               Append(Prefix);
+            }
+            firstLine = false;
+            Append(s);
          }
       }
 
