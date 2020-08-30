@@ -499,10 +499,10 @@ namespace Grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated Wed, 26 Aug 2020 19:44:36 GMT (grammlator, File version 2020.07.28.0 26.08.2020 19:41:26)
+#region grammlator generated Sun, 30 Aug 2020 21:36:44 GMT (grammlator, File version 2020.07.28.0 30.08.2020 21:24:58)
   Int32 AttributeStackInitialCount = _a.Count;
-  /* State 1
-   * *Startsymbol= ►Gap, CharacterToPassOn;
+  // State1:
+  /* *Startsymbol= ►Gap, CharacterToPassOn;
    * *Startsymbol= ►Gap, Name(Int32 stringIndex);
    * *Startsymbol= ►Gap, StartsymbolNumber(Int32 value);
    * *Startsymbol= ►Gap, StartsymbolString(Int32 stringIndex);
@@ -510,17 +510,13 @@ namespace Grammlator {
    * *Startsymbol= ►Gap, StartsymbolStarEqual;
    * *Startsymbol= ►Gap, StartsymbolMinusEqual;
    * *Startsymbol= ►Gap, StartsymbolCSharpStart;
-   * *Startsymbol= ►Gap, StartsymbolCSharpEnd;
-   */
+   * *Startsymbol= ►Gap, StartsymbolCSharpEnd; */
 Reduce1:
-  /* Reduction 1
-   * Gap= GapString;◄ method: AdvanceTextPos
-   */
+  /* Gap= GapString;◄ method: AdvanceTextPos */
 
   AdvanceTextPos();
 
 State2:
-  /* State 2 */
   const String StateDescription2 =
        "*Startsymbol= Gap, ►CharacterToPassOn;\r\n"
      + "*Startsymbol= Gap, ►Name(Int32 stringIndex);\r\n"
@@ -540,10 +536,10 @@ State2:
   case ClassifierResult.CSharpStart:
      {
      inputClassifier.AcceptSymbol();
-     /* Reduction 3, aStack: -1
+     // Reduce3:
+     /* aAdjust: -1
       * StartsymbolCSharpStart= CSharpStart(int i);◄ method: AssignCSharpStartToSymbol, aStack: -1
-      * then: *Startsymbol= Gap, StartsymbolCSharpStart;◄
-      */
+      * then: *Startsymbol= Gap, StartsymbolCSharpStart;◄  */
 
      AssignCSharpStartToSymbol();
 
@@ -553,10 +549,10 @@ State2:
   case ClassifierResult.CSharpEnd:
      {
      inputClassifier.AcceptSymbol();
-     /* Reduction 4, aStack: -1
+     // Reduce4:
+     /* aAdjust: -1
       * StartsymbolCSharpEnd= CSharpEnd(int i);◄ method: AssignCSharpEndToSymbol, aStack: -1
-      * then: *Startsymbol= Gap, StartsymbolCSharpEnd;◄
-      */
+      * then: *Startsymbol= Gap, StartsymbolCSharpEnd;◄  */
 
      AssignCSharpEndToSymbol();
 
@@ -566,18 +562,17 @@ State2:
   case ClassifierResult.Questionmark:
      {
      inputClassifier.AcceptSymbol();
-     /* State 13
-      * StartsymbolDoubleQuestionmark= Questionmark(int i1), ►Questionmark(int i2);
-      * OneCharacterToPassOn(int i)= Questionmark(int i)●;
-      */
+     // State13:
+     /* StartsymbolDoubleQuestionmark= Questionmark(int i1), ►Questionmark(int i2);
+      * OneCharacterToPassOn(int i)= Questionmark(int i)●; */
      LexerInput = inputClassifier.PeekSymbol();
      if (LexerInput != ClassifierResult.Questionmark)
         goto Reduce2;
      Debug.Assert(LexerInput == ClassifierResult.Questionmark);
      inputClassifier.AcceptSymbol();
-     /* Reduction 30, aStack: -2
-      * StartsymbolDoubleQuestionmark= Questionmark(int i1), Questionmark(int i2);◄ method: AssignDoubleQuestionmarkToSymbol, aStack: -2
-      */
+     // Reduce30:
+     /* aAdjust: -2
+      * StartsymbolDoubleQuestionmark= Questionmark(int i1), Questionmark(int i2);◄ method: AssignDoubleQuestionmarkToSymbol, aStack: -2 */
 
      AssignDoubleQuestionmarkToSymbol();
 
@@ -587,18 +582,17 @@ State2:
   case ClassifierResult.Asterisk:
      {
      inputClassifier.AcceptSymbol();
-     /* State 12
-      * StartsymbolStarEqual= Asterisk(int i1), ►DefiningSymbol(int i2);
-      * OneCharacterToPassOn(int i)= Asterisk(int i)●;
-      */
+     // State12:
+     /* StartsymbolStarEqual= Asterisk(int i1), ►DefiningSymbol(int i2);
+      * OneCharacterToPassOn(int i)= Asterisk(int i)●; */
      LexerInput = inputClassifier.PeekSymbol();
      if (LexerInput > ClassifierResult.DefiningSymbol)
         goto Reduce2;
      Debug.Assert(LexerInput <= ClassifierResult.DefiningSymbol);
      inputClassifier.AcceptSymbol();
-     /* Reduction 29, aStack: -2
-      * StartsymbolStarEqual= Asterisk(int i1), DefiningSymbol(int i2);◄ method: AssignStarEqual, aStack: -2
-      */
+     // Reduce29:
+     /* aAdjust: -2
+      * StartsymbolStarEqual= Asterisk(int i1), DefiningSymbol(int i2);◄ method: AssignStarEqual, aStack: -2 */
 
      AssignStarEqual();
 
@@ -608,18 +602,17 @@ State2:
   case ClassifierResult.Minus:
      {
      inputClassifier.AcceptSymbol();
-     /* State 11
-      * StartsymbolMinusEqual= Minus(int i1), ►DefiningSymbol(int i2);
-      * OneCharacterToPassOn(int i)= Minus(int i)●;
-      */
+     // State11:
+     /* StartsymbolMinusEqual= Minus(int i1), ►DefiningSymbol(int i2);
+      * OneCharacterToPassOn(int i)= Minus(int i)●; */
      LexerInput = inputClassifier.PeekSymbol();
      if (LexerInput > ClassifierResult.DefiningSymbol)
         goto Reduce2;
      Debug.Assert(LexerInput <= ClassifierResult.DefiningSymbol);
      inputClassifier.AcceptSymbol();
-     /* Reduction 28, aStack: -2
-      * StartsymbolMinusEqual= Minus(int i1), DefiningSymbol(int i2);◄ method: AssignMinusEqual, aStack: -2
-      */
+     // Reduce28:
+     /* aAdjust: -2
+      * StartsymbolMinusEqual= Minus(int i1), DefiningSymbol(int i2);◄ method: AssignMinusEqual, aStack: -2 */
 
      AssignMinusEqual();
 
@@ -629,9 +622,9 @@ State2:
   case ClassifierResult.WhiteSpace:
      {
      inputClassifier.AcceptSymbol();
-     /* Reduction 5, aStack: -1
-      * GapString= Gap, WhiteSpace(int i);◄ aStack: -1
-      */
+     // Reduce5:
+     /* aAdjust: -1
+      * GapString= Gap, WhiteSpace(int i);◄ aStack: -1 */
      _a.Free();
      goto Reduce1;
      }
@@ -654,9 +647,9 @@ State2:
   case ClassifierResult.Letter:
      {
      inputClassifier.AcceptSymbol();
-     /* Reduction 6, aStack: -1
-      * SequenceOfLettersOrDigits= Letter(int index);◄ method: Found1stLetterOfName, aStack: -1
-      */
+     // Reduce6:
+     /* aAdjust: -1
+      * SequenceOfLettersOrDigits= Letter(int index);◄ method: Found1stLetterOfName, aStack: -1 */
 
      Found1stLetterOfName(
         index: _a.PeekRef(0)._int
@@ -675,9 +668,8 @@ State2:
   Debug.Assert(LexerInput >= ClassifierResult.Digit);
 
   inputClassifier.AcceptSymbol();
-  /* Reduction 7
-   * Number(Int32 number)= Digit(int index);◄ method: DigitNew
-   */
+  // Reduce7:
+  /* Number(Int32 number)= Digit(int index);◄ method: DigitNew */
 
   DigitNew(
      number: out _a.PeekRef(0)._Int32,
@@ -685,18 +677,15 @@ State2:
      );
 
 State4:
-  /* State 4
-   * StartsymbolNumber(Int32 value)= Number(Int32 value)●;
-   * Number(Int32 number)= Number(Int32 number), ►Digit(int index);
-   */
+  /* StartsymbolNumber(Int32 value)= Number(Int32 value)●;
+   * Number(Int32 number)= Number(Int32 number), ►Digit(int index); */
   LexerInput = inputClassifier.PeekSymbol();
   if (LexerInput < ClassifierResult.Digit)
+     // Reduce20:
      {
-     /* Reduction 20
-      * StartsymbolNumber(Int32 value)= Number(Int32 value);◄ priority: -1, method: AssignNumberToSymbol
+     /* StartsymbolNumber(Int32 value)= Number(Int32 value);◄ priority: -1, method: AssignNumberToSymbol
       * then: *Startsymbol= Gap, StartsymbolNumber(Int32 value);◄ aStack: -1
-      * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ aStack: -1
-      */
+      * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ aStack: -1 */
 
      AssignNumberToSymbol();
 
@@ -704,9 +693,9 @@ State4:
      }
   Debug.Assert(LexerInput >= ClassifierResult.Digit);
   inputClassifier.AcceptSymbol();
-  /* Reduction 21, aStack: -1
-   * Number(Int32 number)= Number(Int32 number), Digit(int index);◄ method: DigitNumberNew, aStack: -1
-   */
+  // Reduce21:
+  /* aAdjust: -1
+   * Number(Int32 number)= Number(Int32 number), Digit(int index);◄ method: DigitNumberNew, aStack: -1 */
 
   DigitNumberNew(
      number: ref _a.PeekRef(-1)._Int32,
@@ -718,14 +707,13 @@ State4:
 
 AcceptReduce25:
   inputClassifier.AcceptSymbol();
-  /* Reduction 25, aStack: -1
+  // Reduce25:
+  /* aAdjust: -1
    * CommentcharacterSequenceNotEndingWithAsterisk= "anyCharacter-*-CSharpStart-CSharpEnd"(int i);◄ aStack: -1
    * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "anyCharacter-*-CSharpStart-CSharpEnd"(int i);◄ aStack: -1
-   * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, anyCharacterExceptAsteriskAndSlash(int i);◄ aStack: -1
-   */
+   * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, anyCharacterExceptAsteriskAndSlash(int i);◄ aStack: -1 */
   _a.Free();
 State9:
-  /* State 9 */
   const String StateDescription9 =
        "CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, ►\"*\"(int i);\r\n"
      + "CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, ►\"anyCharacter-*-CSharpStart-CSharpEnd\"(int i);";
@@ -744,14 +732,13 @@ State9:
 
 AcceptReduce26:
   inputClassifier.AcceptSymbol();
-  /* Reduction 26, aStack: -1
+  // Reduce26:
+  /* aAdjust: -1
    * CommentcharacterSequenceEndingWithAsterisk= "*"(int i);◄ aStack: -1
    * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "*"(int i);◄ aStack: -1
-   * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, "*"(int i);◄ aStack: -1
-   */
+   * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, "*"(int i);◄ aStack: -1 */
   _a.Free();
 State10:
-  /* State 10 */
   const String StateDescription10 =
        "Comment= \"/\"(int i1), \"*\"(int i2), CommentcharacterSequenceEndingWithAsterisk, ►\"/\"(int iEnd);\r\n"
      + "CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, ►\"*\"(int i);\r\n"
@@ -760,9 +747,9 @@ State10:
   if (LexerInput == ClassifierResult.Slash)
      {
      inputClassifier.AcceptSymbol();
-     /* Reduction 27, aStack: -3
-      * Comment= "/"(int i1), "*"(int i2), CommentcharacterSequenceEndingWithAsterisk, "/"(int iEnd);◄ aStack: -3
-      */
+     // Reduce27:
+     /* aAdjust: -3
+      * Comment= "/"(int i1), "*"(int i2), CommentcharacterSequenceEndingWithAsterisk, "/"(int iEnd);◄ aStack: -3 */
      _a.Free(3);
      goto Reduce1;
      }
@@ -780,25 +767,22 @@ State10:
   goto AcceptReduce25;
 
 State3:
-  /* State 3
-   * Name(Int32 stringIndex)= SequenceOfLettersOrDigits●;
-   * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, ►LetterOrDigit(int index);
-   */
+  /* Name(Int32 stringIndex)= SequenceOfLettersOrDigits●;
+   * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, ►LetterOrDigit(int index); */
   LexerInput = inputClassifier.PeekSymbol();
   if (LexerInput <= ClassifierResult.Apostrophe)
+     // Reduce18:
      {
-     /* Reduction 18, aStack: 1
-      * Name(Int32 stringIndex)= SequenceOfLettersOrDigits;◄ priority: -11, aStack: 1, method: GetNameFromSource
-      */
+     /* aAdjust: 1
+      * Name(Int32 stringIndex)= SequenceOfLettersOrDigits;◄ priority: -11, aStack: 1, method: GetNameFromSource */
      _a.Allocate();
 
      GetNameFromSource(
         stringIndex: out _a.PeekRef(0)._Int32
         );
 
-     /* Reduction 9
-      * *Startsymbol= Gap, Name(Int32 stringIndex);◄ method: AssignNameToSymbol, aStack: -1
-      */
+     // Reduce9:
+     /* *Startsymbol= Gap, Name(Int32 stringIndex);◄ method: AssignNameToSymbol, aStack: -1 */
 
      AssignNameToSymbol();
 
@@ -806,9 +790,9 @@ State3:
      }
   Debug.Assert(LexerInput >= ClassifierResult.Letter);
   inputClassifier.AcceptSymbol();
-  /* Reduction 19, aStack: -1
-   * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, LetterOrDigit(int index);◄ priority: -12, method: AddCharToName, aStack: -1
-   */
+  // Reduce19:
+  /* aAdjust: -1
+   * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, LetterOrDigit(int index);◄ priority: -12, method: AddCharToName, aStack: -1 */
 
   AddCharToName(
      index: _a.PeekRef(0)._int
@@ -818,7 +802,6 @@ State3:
   goto State3;
 
 State6:
-  /* State 6 */
   const String StateDescription6 =
        "String(Int32 stringIndex)= Apostrophe(int startIndex), StringCharacterSequence, ►Apostrophe(int endIndex);\r\n"
      + "StringCharacterSequence= StringCharacterSequence, ►StringCharacter;";
@@ -826,9 +809,9 @@ State6:
   if (LexerInput == ClassifierResult.Apostrophe)
      {
      inputClassifier.AcceptSymbol();
-     /* Reduction 23, aStack: -1
-      * String(Int32 stringIndex)= Apostrophe(int startIndex), StringCharacterSequence, Apostrophe(int endIndex);◄ method: GetStringIndex, aStack: -1
-      */
+     // Reduce23:
+     /* aAdjust: -1
+      * String(Int32 stringIndex)= Apostrophe(int startIndex), StringCharacterSequence, Apostrophe(int endIndex);◄ method: GetStringIndex, aStack: -1 */
 
      GetStringIndex(
         startIndex: _a.PeekClear(-1)._int,
@@ -837,11 +820,10 @@ State6:
         );
 
      _a.Free();
-     /* Reduction 17
-      * StartsymbolString(Int32 stringIndex)= String(Int32 stringIndex);◄ method: AssignStringToStartsymbol
+     // Reduce17:
+     /* StartsymbolString(Int32 stringIndex)= String(Int32 stringIndex);◄ method: AssignStringToStartsymbol
       * then: *Startsymbol= Gap, StartsymbolNumber(Int32 value);◄ aStack: -1
-      * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ aStack: -1
-      */
+      * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ aStack: -1 */
 
      AssignStringToStartsymbol();
 
@@ -856,14 +838,13 @@ State6:
   Debug.Assert(LexerInput != ClassifierResult.CSharpStart && LexerInput != ClassifierResult.CSharpEnd
      && LexerInput != ClassifierResult.Apostrophe);
   inputClassifier.AcceptSymbol();
-  /* Reduction 22, aStack: -1
-   * StringCharacter= anyCharacterExceptApostrophe(int i);◄ aStack: -1
-   */
+  // Reduce22:
+  /* aAdjust: -1
+   * StringCharacter= anyCharacterExceptApostrophe(int i);◄ aStack: -1 */
   _a.Free();
   goto State6;
 
 State7:
-  /* State 7 */
   const String StateDescription7 =
        "Comment= \"/\"(int i1), ►\"*\"(int i2), CommentcharacterSequenceEndingWithAsterisk, \"/\"(int iEnd);\r\n"
      + "Comment= \"/\"(int i1), ►\"/\"(int i2);";
@@ -871,9 +852,9 @@ State7:
   if (LexerInput == ClassifierResult.Slash)
      {
      inputClassifier.AcceptSymbol();
-     /* Reduction 24, aStack: -2
-      * Comment= "/"(int i1), "/"(int i2);◄ method: SlashSlashComment, aStack: -2
-      */
+     // Reduce24:
+     /* aAdjust: -2
+      * Comment= "/"(int i1), "/"(int i2);◄ method: SlashSlashComment, aStack: -2 */
 
      SlashSlashComment();
 
@@ -889,7 +870,6 @@ State7:
   Debug.Assert(LexerInput == ClassifierResult.Asterisk);
   inputClassifier.AcceptSymbol();
 State8:
-  /* State 8 */
   const String StateDescription8 =
        "Comment= \"/\"(int i1), \"*\"(int i2), ►CommentcharacterSequenceEndingWithAsterisk, \"/\"(int iEnd);";
   LexerInput = inputClassifier.PeekSymbol();
@@ -906,10 +886,9 @@ State8:
   goto AcceptReduce25;
 
 Reduce2:
-  /* Reduction 2, aStack: -1
+  /* aAdjust: -1
    * CharacterToPassOn= OneCharacterToPassOn(int index);◄ method: TranslateCharToLexerResult, aStack: -1
-   * then: *Startsymbol= Gap, CharacterToPassOn;◄
-   */
+   * then: *Startsymbol= Gap, CharacterToPassOn;◄  */
 
   TranslateCharToLexerResult(
      index: _a.PeekRef(0)._int
@@ -930,7 +909,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Wed, 26 Aug 2020 19:44:36 GMT (grammlator, File version 2020.07.28.0 26.08.2020 19:41:26)
+#endregion grammlator generated Sun, 30 Aug 2020 21:36:44 GMT (grammlator, File version 2020.07.28.0 30.08.2020 21:24:58)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }
       }

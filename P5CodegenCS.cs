@@ -168,7 +168,6 @@ namespace Grammlator
             Append(s);
          }
          IndentAndAppend(stringAtEndOfLastLine);
-         OutputandClearLine();
       }
 
       public P5CodegenCS Append(Char c)

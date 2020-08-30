@@ -751,6 +751,7 @@ namespace Grammlator {
                 , stringAtEndOfLastLine: "\";" // after the last string
                 );
             sbTemp.Clear();
+            codegen.OutputandClearLine();
          }
          else
          {
@@ -765,7 +766,7 @@ namespace Grammlator {
                 , separatorAtNewLine: " * " // before each string except the first
                 , stringAtEndOfLastLine: "" // after the last string
                 );
-            codegen.IndentExactly().Append(" */");
+            codegen.Append(" */");
             sbTemp.Clear();
          }
 
