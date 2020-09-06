@@ -252,51 +252,57 @@ namespace Grammlator {
       /// </summary>
       internal Int32 PositionInProduction;
 
+      /// <summary>
+      /// There are different possibilities how left and right side attributes can overlay
+      /// (reference the same position in the attriobute stack). In some cases the right side
+      /// attribute must be copied and cleared when accessed so that no unused reference may
+      /// remain in the attribute stack
+      /// </summary>
       internal enum OverlayEnum {
          /// <summary>
-         /// Not overlaying attribute in the right side or overlaying with same type and different name.
-         /// May be not used (may create a warning), else must be a formal value parameter.
+         /// Attribute in the right side not overlaying  or overlaying with same type and different name.
+         /// <para>May not be used or may be associated to a formal value or in parameter.</para>
          /// Access by "PeekRef".
          /// </summary>
          inAttribute,
 
          /// <summary>
-         /// Not overlaying attribute in the left side or overlaying with same type and different name.
-         /// Must be associated to a formal out parameter.
+         /// Attribute in the left side not overlaying or overlaying with same type and different name.
+         /// <para>Must be associated to a formal out parameter.</para>
          /// Access by "PeekRef".
          /// </summary>
          outAttribute,
 
          /// <summary>
-         /// Overlaying attribute in the right side with different name and type as overlayed attribute.
-         /// May be associated to a formal value parameter or not used (may create a warning).
-         /// Access by "PeekClear" (!).
+         /// Attribute in the right side overlaying with different type (and name) as overlayed attribute.
+         /// <para>May not be used or may be associated to a formal value or in parameter.</para>
+         /// Access by "PeekClear" (!)
          /// </summary>
          inClearAttribute,
 
          /// <summary>
-         /// Attribute in the left side overlayed with different type.
-         /// Must be associated to a formal out-parameter.
-         /// Access  by "PeekRef" if the overlaying attribute is associated to a formal parameter,
-         /// else by "PeekRefClear".
+         /// Attribute in the left side overlayed with different type (and name).
+         /// <para>Must be associated to a formal out-parameter.</para>
+         /// Access  by "PeekRef" if the overlaying attribute is associated to a formal parameter (using PeekClear!),
+         /// else by "PeekRefClear" (overlaying attribute is not used).
          /// </summary>
          outClearAttribute,
 
          /// <summary>
          /// Overlaying attributes (left and right side) with same name (must be same type).
-         /// Maybe associated to formal in-, out-, ref- or value-parameter (or not used).
+         /// <para>Maybe associated to formal in-, out-, ref- or value-parameter (or not used).</para>
          /// Access by "PeekRef".
          /// </summary>
          inOutAttribute
-         }
+      }
 
       /// <summary>
-      /// outAttribute, inAttribute (default), inOutAttribute
+      /// inAttribute (default), outAttribute (if left side), other values while checking parameters
       /// </summary>
       internal OverlayEnum OverlayType;
 
       /// <summary>
-      ///  The implementation of the associated parameter or <see cref="ParameterImplementation.NotAssigned"/>
+      ///  default <see cref="ParameterImplementation.NotAssigned"/>, while checking parameters: implementation of the associated parameter (if any)
       /// </summary>
       internal ParameterImplementation Implementation;
 
@@ -405,50 +411,51 @@ namespace Grammlator {
       }
 
    /// <summary>
-   /// Values that may be assigned to the implementation field of formal parameters of semantic methods,
-   /// specifying conditions for generating the the actual parameter
+   /// One of these values is assigned to the implementation field of each formal parameter of semantic methods or dynamic priorities,
+   /// depending on the type of the formal parameter (value, in, out, ref)
+   /// and the overlay of left and right side attributes.
    /// </summary>
    internal enum ParameterImplementation {
       /// <summary>
-      ///  This default value is assigned to each attribute as long as no associated parameter is found
-      ///  and to parameters which can not be assigned to attributes
+      ///  This default value is assigned to a formal parameter until grammlator associates this parameter to an attribute.
+      ///  Parameters which can not be assigned to attributes are an error in the grammlator input.
       /// </summary>
       NotAssigned = 0,
 
       /// <summary>
-      /// This formal parameter of the method has a ref modifier.
-      /// The actual parameter will be "ref PeekRef(..)".
+      /// The formal parameter of the method has a ref modifier.
+      /// <para>The generated actual parameter will be "ref PeekRef(..)".</para>
       /// </summary>      
       RefCall,
 
       /// <summary>
-      /// This formal parameter of the method has an out modifier.
-      /// The actual parameter will be "out PeekRef(..)".
+      /// The formal parameter of the method has an out modifier.
+      /// <para>The generated actual parameter will be "out PeekRef(..)".</para>
       /// </summary>
       OutCall,
 
       /// <summary>
-      /// This formal parameter of the method has an out modifier. The actual parameter
-      /// must be cleared before the method is executed, because it is overlayed
-      /// by an unused attribute of another type.
-      /// The actual parameter will be "out PeekRefClear(..)".
+      /// The formal parameter of the method has an out modifier.
+      /// The actual parameter must be cleared before the method is executed,
+      /// because it is overlayed by an unused attribute of another type.
+      /// <para>The generated actual parameter will be "out PeekRefClear(..)".</para>
       /// </summary>
       OutClearCall,
 
       /// <summary>
-      /// This formal parameter of the method has no modifier (is a value parameter) or an in modifier
+      /// The formal parameter of the method has no modifier (is a value parameter) or an in modifier
       /// and does not overlay an out parameter with a different type.
-      /// The actual parameter may be "PeekRef(..)" or "PeekClear(..)".
+      /// <para>The generated actual parameter will be "PeekRef(..)".</para>
       /// </summary>
       ValueOrInCall,
 
       /// <summary>
-      /// This formal parameter of the method has no modifier (is a value parameter) or an in modifier.
+      /// The formal parameter of the method has no modifier (is a value parameter) or an in modifier.
       /// The actual parameter must be cleared, because it overlays an attribute in the left side with a different type.
-      /// The actual parameter will be "PeekClear(..)".
+      /// <para>The generated actual parameter will be "PeekClear(..)".</para>
       /// </summary>
       ValueOrInClearCall
-      }
+   }
 
    /// <summary>
    /// Describes the characteristics of a formal method parameter assiciated to a grammlator attribute
@@ -919,7 +926,7 @@ namespace Grammlator {
             return;
             }
          // sb.AppendLine("    rules:");
-         NontrivialDefinitionsList.Append(sb);
+         NontrivialDefinitionsList.ToStringbuilder(sb);
          }
 
       /// <summary>

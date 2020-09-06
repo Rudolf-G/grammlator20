@@ -870,7 +870,7 @@ namespace Grammlator {
          LexerResult ParserInput;
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Sun, 30 Aug 2020 21:36:07 GMT (grammlator, File version 2020.07.28.0 30.08.2020 21:24:58)
+#region grammlator generated Sun, 06 Sep 2020 18:38:22 GMT (grammlator, File version 2020.07.28.0 06.09.2020 18:31:52)
   Int32 StateStackInitialCount = _s.Count;
   Int32 AttributeStackInitialCount = _a.Count;
   // State1:
@@ -911,7 +911,7 @@ State22:
   Debug.Assert(ParserInput == LexerResult.StarEqual);
   Lexer.AcceptSymbol();
   // Reduce21:
-  /* "*="= StarEqual;◄ method: StartOfFirstGrammarRule */
+  /* "*="= StarEqual;◄ */
 
   StartOfFirstGrammarRule();
 
@@ -947,7 +947,7 @@ State23:
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
 
 Reduce22:
-  /* EndOfDefinitionWithoutSemantics= ;◄ method: EndOfDefinitionWithoutSemanticsRecognized */
+  /* EndOfDefinitionWithoutSemantics= ;◄ */
 
   EndOfDefinitionWithoutSemanticsRecognized();
 
@@ -972,11 +972,11 @@ Branch5:
      goto Reduce24;
 Reduce82:
   /* sAdjust: -1
-   * GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "=", outerDefinitions;◄  */
+   * GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "=", outerDefinitions;◄ */
   _s.Pop();
 Reduce78:
   /* sAdjust: -1, aAdjust: -2
-   * GrammarRuleList= GrammarRuleList, GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes);◄ method: EndOfGrammarRuleRecognized, aStack: -2 */
+   * GrammarRuleList= GrammarRuleList, GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes);◄ */
   _s.Pop();
 
   EndOfGrammarRuleRecognized(
@@ -995,8 +995,8 @@ State78:
      Lexer.AcceptSymbol();
      // Reduce75:
      /* sAdjust: -2
-      * TerminatorAtEndOfGrammar= NumberSign;◄ method: TerminatorAtEndOfGrammar
-      * then: GrammlatorGrammar= OptionalGrammlatorSettings, OptionalDeclarationOfTerminalSymbols, GrammarRuleList, TerminatorAtEndOfGrammar;◄  */
+      * TerminatorAtEndOfGrammar= NumberSign;◄
+      * then: GrammlatorGrammar= OptionalGrammlatorSettings, OptionalDeclarationOfTerminalSymbols, GrammarRuleList, TerminatorAtEndOfGrammar;◄ */
      _s.Discard(2);
 
      TerminatorAtEndOfGrammar();
@@ -1043,7 +1043,7 @@ State84:
      && ParserInput != LexerResult.NumberSign && ParserInput != LexerResult.GroupStart);
   // Reduce83:
   /* aAdjust: 1
-   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ priority: -10, aStack: 1, method: NameWithoutAttributes */
+   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ */
   _a.Allocate();
 
   NameWithoutAttributes(
@@ -1061,7 +1061,7 @@ Branch16:
   case 10:
      // Reduce77:
      {
-     /* outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes);◄ method: LeftSideOfOuterProduction */
+     /* outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes);◄ */
 
      LeftSideOfOuterProduction(
         SymbolAtLeftSide: out _a.PeekRef(-1)._Symbol,
@@ -1076,7 +1076,7 @@ Branch16:
   }
 Reduce23:
   /* aAdjust: -1
-   * SimpleElement(Symbol Symbol)= "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes);◄ method: FoundSymbolnameInRightSide, aStack: -1 */
+   * SimpleElement(Symbol Symbol)= "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes);◄ */
 
   FoundSymbolnameInRightSide(
      Symbol: out _a.PeekRef(-1)._Symbol,
@@ -1098,7 +1098,7 @@ State24:
      {
      Lexer.AcceptSymbol();
      // Reduce28:
-     /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "?";◄ method: OptionalElementRecognized */
+     /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "?";◄ */
 
      OptionalElementRecognized(
         Symbol: ref _a.PeekRef(0)._Symbol
@@ -1127,7 +1127,7 @@ State24:
      || ParserInput >= LexerResult.GroupStart);
   // Reduce27:
   /* aAdjust: -1
-   * Element= RepeatedElement(Symbol Symbol);◄ method: ElementVariantRecognized, aStack: -1 */
+   * Element= RepeatedElement(Symbol Symbol);◄ */
 
   ElementVariantRecognized(
      Symbol: _a.PeekRef(0)._Symbol
@@ -1141,7 +1141,7 @@ Branch2:
      // Reduce40:
      {
      /* sAdjust: -2
-      * SequenceOfElements= SequenceOfElements, ","?, Element;◄  */
+      * SequenceOfElements= SequenceOfElements, ","?, Element;◄ */
      _s.Discard(2);
      goto Branch2;
      }
@@ -1188,7 +1188,7 @@ State31:
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
 
   // Reduce36:
-  /* EndOfDefinitionWithoutSemantics= ;◄ method: EndOfDefinitionWithoutSemanticsRecognized */
+  /* EndOfDefinitionWithoutSemantics= ;◄ */
 
   EndOfDefinitionWithoutSemanticsRecognized();
 
@@ -1211,7 +1211,7 @@ AcceptReduce38:
 Reduce38:
   /* sAdjust: -1
    * outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithoutSemantics, ";";◄
-   * or: outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithSemantics, ";"?;◄  */
+   * or: outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithSemantics, ";"?;◄ */
   _s.Pop();
   // Branch6:
   switch (_s.Peek())
@@ -1227,7 +1227,7 @@ Reduce38:
   }
 Reduce24:
   /* sAdjust: -1
-   * FirstGrammarRule= "*=", outerDefinitions;◄ method: FirstGrammarRuleRecognized */
+   * FirstGrammarRule= "*=", outerDefinitions;◄ */
   _s.Pop();
 
   FirstGrammarRuleRecognized();
@@ -1237,12 +1237,12 @@ Reduce24:
 AcceptReduce6:
   Lexer.AcceptSymbol();
   // Reduce6:
-  /* NoEnum= ;◄ method: EnumOmitted */
+  /* NoEnum= ;◄ */
 
   EnumOmitted();
 
 Reduce5:
-  /* OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, SemikolonOrEnum;◄ method: CompareTerminalDeclarationsWithEnum */
+  /* OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, SemikolonOrEnum;◄ */
 
   CompareTerminalDeclarationsWithEnum();
 
@@ -1251,7 +1251,7 @@ Reduce5:
 AcceptReduce8:
   Lexer.AcceptSymbol();
 Reduce8:
-  /* CSEnumDeclaration= CSEnumProperties, optionalBaseType, CSEnumElements;◄ method: CSEnumRecognized */
+  /* CSEnumDeclaration= CSEnumProperties, optionalBaseType, CSEnumElements;◄ */
 
   CSEnumRecognized();
 
@@ -1271,7 +1271,7 @@ State17:
 
 Reduce25:
   /* aAdjust: -1
-   * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1 */
+   * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ */
 
   EndOfDefinitionWithMethodRecognized(
      method: _a.PeekRef(0)._VoidMethodClass
@@ -1302,7 +1302,7 @@ AcceptReduce43:
   Lexer.AcceptSymbol();
   // Reduce43:
   /* sAdjust: -1
-   * CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ")";◄ method: CSvoidMethodRecognized */
+   * CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ")";◄ */
   _s.Pop();
 
   CSvoidMethodRecognized(
@@ -1324,7 +1324,7 @@ State46:
   Lexer.AcceptSymbol();
   // Reduce49:
   /* sAdjust: -1
-   * SemanticAction(VoidMethodClass method)= CSharpStart, CSvoidMethod(VoidMethodClass method), CSharpEnd;◄  */
+   * SemanticAction(VoidMethodClass method)= CSharpStart, CSvoidMethod(VoidMethodClass method), CSharpEnd;◄ */
   _s.Pop();
 Branch8:
   switch (_s.Peek())
@@ -1333,7 +1333,7 @@ Branch8:
      // Reduce37:
      {
      /* aAdjust: -1
-      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1 */
+      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ */
 
      EndOfDefinitionWithMethodRecognized(
         method: _a.PeekRef(0)._VoidMethodClass
@@ -1349,8 +1349,8 @@ Branch8:
      // Reduce67:
      {
      /* sAdjust: -1, aAdjust: -1
-      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1
-      * then: Definition= SequenceOfElements, EndOfDefinition;◄  */
+      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄
+      * then: Definition= SequenceOfElements, EndOfDefinition;◄ */
      _s.Pop();
 
      EndOfDefinitionWithMethodRecognized(
@@ -1364,7 +1364,7 @@ Branch8:
      // Reduce61:
      {
      /* aAdjust: -1
-      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1 */
+      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ */
 
      EndOfDefinitionWithMethodRecognized(
         method: _a.PeekRef(0)._VoidMethodClass
@@ -1377,7 +1377,7 @@ Branch8:
      // Reduce70:
      {
      /* aAdjust: -1
-      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithMethodRecognized, aStack: -1 */
+      * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ */
 
      EndOfDefinitionWithMethodRecognized(
         method: _a.PeekRef(0)._VoidMethodClass
@@ -1391,7 +1391,7 @@ Branch8:
   }
   // Reduce34:
   /* sAdjust: -1, aAdjust: -3
-   * EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method);◄ method: EndOfDefinitionWithPriorityAndMethodRecognized, aStack: -3 */
+   * EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method);◄ */
   _s.Pop();
 
   EndOfDefinitionWithPriorityAndMethodRecognized(
@@ -1411,7 +1411,7 @@ Branch4:
      // Reduce66:
      {
      /* sAdjust: -1
-      * Definition= SequenceOfElements, EndOfDefinition;◄  */
+      * Definition= SequenceOfElements, EndOfDefinition;◄ */
      _s.Pop();
      goto Branch15;
      }
@@ -1446,7 +1446,7 @@ AcceptReduce53:
   Lexer.AcceptSymbol();
   // Reduce53:
   /* sAdjust: -1
-   * CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ")";◄ method: CSintMethodRecognized */
+   * CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ")";◄ */
   _s.Pop();
 
   CSintMethodRecognized(
@@ -1486,7 +1486,7 @@ State57:
      || ParserInput >= LexerResult.CSharpStart);
 Reduce54:
   /* sAdjust: -1, aAdjust: 1
-   * PriorityDeclaration(Int32 constPriority, IntMethodClass dynamicPriority)= "??", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, (Local1)?;◄ aStack: 1, method: DynamicPriorityRecognized */
+   * PriorityDeclaration(Int32 constPriority, IntMethodClass dynamicPriority)= "??", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, (Local1)?;◄ */
   _s.Pop();
   _a.Allocate();
 
@@ -1522,7 +1522,7 @@ State27:
      || ParserInput >= LexerResult.GroupEnd);
   // Reduce33:
   /* aAdjust: -2
-   * EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority);◄ method: EndOfDefinitionWithPriorityRecognized, aStack: -2 */
+   * EndOfDefinitionWithSemantics= PriorityDeclaration(Int32 constPriority, IntMethodClass dynPriority);◄ */
 
   EndOfDefinitionWithPriorityRecognized(
      constPriority: _a.PeekRef(-1)._Int32,
@@ -1534,7 +1534,7 @@ State27:
 
 Reduce57:
   /* aAdjust: 5
-   * SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes)= ;◄ aStack: 5, method: SaveVariablesToAttributes */
+   * SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes)= ;◄ */
   _a.Allocate(5);
 
   SaveVariablesToAttributes(
@@ -1570,7 +1570,7 @@ State62:
   case LexerResult.DefinitionSeparatorSymbol:
      // Reduce58:
      {
-     /* EndOfDefinitionWithoutSemantics= ;◄ method: EndOfDefinitionWithoutSemanticsRecognized */
+     /* EndOfDefinitionWithoutSemantics= ;◄ */
 
      EndOfDefinitionWithoutSemanticsRecognized();
 
@@ -1591,7 +1591,7 @@ State62:
 
 Reduce60:
   /* aAdjust: 2
-   * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedDefinitions;◄ aStack: 2, method: NestedGrammarRuleWithEmptyLeftside */
+   * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedDefinitions;◄ */
   _a.Allocate(2);
 
   NestedGrammarRuleWithEmptyLeftside(
@@ -1601,7 +1601,7 @@ Reduce60:
 
 Reduce59:
   /* sAdjust: -1, aAdjust: -6
-   * NestedElement(Symbol Symbol)= SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes), NestedGrammarRule(Symbol NestedSymbol, Int32 NumberOfAttributes);◄ method: EndOfNestedGrammarRuleRecognized, aStack: -6 */
+   * NestedElement(Symbol Symbol)= SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes), NestedGrammarRule(Symbol NestedSymbol, Int32 NumberOfAttributes);◄ */
   _s.Pop();
 
   EndOfNestedGrammarRuleRecognized(
@@ -1639,13 +1639,13 @@ State77:
   Lexer.AcceptSymbol();
   // Reduce74:
   /* sAdjust: -1
-   * SimpleElement(Symbol Symbol)= "(", NestedElement(Symbol Symbol), ")";◄  */
+   * SimpleElement(Symbol Symbol)= "(", NestedElement(Symbol Symbol), ")";◄ */
   _s.Pop();
   goto State24;
 
 Reduce62:
   /* aAdjust: -1
-   * Element= RepeatedElement(Symbol Symbol);◄ method: ElementVariantRecognized, aStack: -1 */
+   * Element= RepeatedElement(Symbol Symbol);◄ */
 
   ElementVariantRecognized(
      Symbol: _a.PeekRef(0)._Symbol
@@ -1683,8 +1683,8 @@ State67:
      // Reduce65:
      {
      /* sAdjust: -1
-      * EndOfDefinitionWithoutSemantics= ;◄ method: EndOfDefinitionWithoutSemanticsRecognized
-      * then: Definition= SequenceOfElements, EndOfDefinition;◄  */
+      * EndOfDefinitionWithoutSemantics= ;◄
+      * then: Definition= SequenceOfElements, EndOfDefinition;◄ */
      _s.Pop();
 
      EndOfDefinitionWithoutSemanticsRecognized();
@@ -1722,7 +1722,7 @@ State3:
      || ParserInput >= LexerResult.DefinitionSeparatorSymbol);
   // Reduce3:
   /* aAdjust: 1
-   * OptionalWeight(Int32 weight)= ;◄ aStack: 1, method: DefaultWeightOne */
+   * OptionalWeight(Int32 weight)= ;◄ */
   _a.Allocate();
 
   DefaultWeightOne(
@@ -1731,7 +1731,7 @@ State3:
 
 Reduce4:
   /* aAdjust: -3
-   * TerminalSymbol= "Name(Attributes)"(Int32 nameIndex, Int32 NumberOfAttributes), OptionalWeight(Int32 Weight);◄ method: TerminalSymbol, aStack: -3 */
+   * TerminalSymbol= "Name(Attributes)"(Int32 nameIndex, Int32 NumberOfAttributes), OptionalWeight(Int32 Weight);◄ */
 
   TerminalSymbol(
      nameIndex: _a.PeekRef(-2)._Int32,
@@ -1745,7 +1745,7 @@ Reduce4:
      goto State5;
   // Reduce7:
   /* sAdjust: -1
-   * TerminalSymbolsList= TerminalSymbolsList, "|", TerminalSymbol;◄  */
+   * TerminalSymbolsList= TerminalSymbolsList, "|", TerminalSymbol;◄ */
   _s.Pop();
 State5:
   const String StateDescription5 =
@@ -1855,7 +1855,7 @@ State11:
      Lexer.AcceptSymbol();
      // Reduce10:
      /* aAdjust: -1
-      * CSEnumElement= Name(Int32 enumElementStringIndex);◄ method: EnumElementRecognized, aStack: -1 */
+      * CSEnumElement= Name(Int32 enumElementStringIndex);◄ */
 
      EnumElementRecognized(
         enumElementStringIndex: _a.PeekRef(0)._Int32
@@ -1873,7 +1873,7 @@ State11:
   Debug.Assert(ParserInput == LexerResult.RepeatEnd);
   Lexer.AcceptSymbol();
   // Reduce9:
-  /* CSEnumElements= "{", "}";◄ method: NoEnumRecognized */
+  /* CSEnumElements= "{", "}";◄ */
 
   NoEnumRecognized();
 
@@ -1917,7 +1917,7 @@ State13:
   Lexer.AcceptSymbol();
   // Reduce11:
   /* aAdjust: -1
-   * CSEnumElement= Name(Int32 enumElementStringIndex);◄ method: EnumElementRecognized, aStack: -1 */
+   * CSEnumElement= Name(Int32 enumElementStringIndex);◄ */
 
   EnumElementRecognized(
      enumElementStringIndex: _a.PeekRef(0)._Int32
@@ -1954,7 +1954,7 @@ State14:
   Lexer.AcceptSymbol();
   // Reduce12:
   /* aAdjust: -1
-   * FirstCSEnumElement= CSEnumElement, "=", Name(Int32 ignored);◄ aStack: -1 */
+   * FirstCSEnumElement= CSEnumElement, "=", Name(Int32 ignored);◄ */
   _a.Free();
   goto State15;
 
@@ -1972,7 +1972,7 @@ State16:
   Lexer.AcceptSymbol();
   // Reduce13:
   /* aAdjust: -1
-   * optionalBaseType= ":", Name(Int32 Ignored);◄ aStack: -1 */
+   * optionalBaseType= ":", Name(Int32 Ignored);◄ */
   _a.Free();
   goto State10;
 
@@ -2011,7 +2011,7 @@ State19:
   Debug.Assert(ParserInput == LexerResult.Colon
      || ParserInput == LexerResult.RepeatStart);
   // Reduce15:
-  /* CSEnumName(Int32 nameStringIndex)= Name(Int32 nameStringIndex);◄ method: EnumNameRecognized */
+  /* CSEnumName(Int32 nameStringIndex)= Name(Int32 nameStringIndex);◄ */
 
   EnumNameRecognized(
      nameStringIndex: _a.PeekRef(0)._Int32
@@ -2019,7 +2019,7 @@ State19:
 
   // Reduce14:
   /* aAdjust: -2
-   * CSEnumProperties= Name(Int32 enumStringIndex), CSEnumName(Int32 nameStringIndex);◄ aStack: -2 */
+   * CSEnumProperties= Name(Int32 enumStringIndex), CSEnumName(Int32 nameStringIndex);◄ */
   _a.Free(2);
   goto State9;
 
@@ -2032,7 +2032,7 @@ State20:
      {
      Lexer.AcceptSymbol();
      // Reduce18:
-     /* CSEnumName(Int32 nameStringIndex)= Name(Int32 nameStringIndex);◄ method: EnumNameRecognized */
+     /* CSEnumName(Int32 nameStringIndex)= Name(Int32 nameStringIndex);◄ */
 
      EnumNameRecognized(
         nameStringIndex: _a.PeekRef(0)._Int32
@@ -2040,7 +2040,7 @@ State20:
 
      // Reduce19:
      /* aAdjust: -4
-      * CSEnumProperties= Name(Int32 modifier1StringIndex), Name(Int32 modifier2StringIndex), Name(Int32 enumStringIndex), CSEnumName(Int32 nameStringIndex);◄ aStack: -4 */
+      * CSEnumProperties= Name(Int32 modifier1StringIndex), Name(Int32 modifier2StringIndex), Name(Int32 enumStringIndex), CSEnumName(Int32 nameStringIndex);◄ */
      _a.Free(4);
      goto State9;
      }
@@ -2054,7 +2054,7 @@ State20:
   Debug.Assert(ParserInput == LexerResult.Colon
      || ParserInput == LexerResult.RepeatStart);
   // Reduce17:
-  /* CSEnumName(Int32 nameStringIndex)= Name(Int32 nameStringIndex);◄ method: EnumNameRecognized */
+  /* CSEnumName(Int32 nameStringIndex)= Name(Int32 nameStringIndex);◄ */
 
   EnumNameRecognized(
      nameStringIndex: _a.PeekRef(0)._Int32
@@ -2062,7 +2062,7 @@ State20:
 
   // Reduce16:
   /* aAdjust: -3
-   * CSEnumProperties= Name(Int32 modifierStringIndex), Name(Int32 enumStringIndex), CSEnumName(Int32 nameStringIndex);◄ aStack: -3 */
+   * CSEnumProperties= Name(Int32 modifierStringIndex), Name(Int32 enumStringIndex), CSEnumName(Int32 nameStringIndex);◄ */
   _a.Free(3);
   goto State9;
 
@@ -2075,7 +2075,7 @@ State25:
      {
      Lexer.AcceptSymbol();
      // Reduce30:
-     /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "+", "+";◄ method: Repeat1rrRecognized */
+     /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "+", "+";◄ */
 
      Repeat1rrRecognized(
         Symbol: ref _a.PeekRef(0)._Symbol
@@ -2093,7 +2093,7 @@ State25:
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput >= LexerResult.GroupStart);
   // Reduce29:
-  /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "+";◄ method: Repeat1lrRecognized */
+  /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "+";◄ */
 
   Repeat1lrRecognized(
      Symbol: ref _a.PeekRef(0)._Symbol
@@ -2106,8 +2106,8 @@ Branch3:
      // Reduce41:
      {
      /* sAdjust: -2, aAdjust: -1
-      * Element= RepeatedElement(Symbol Symbol);◄ method: ElementVariantRecognized, aStack: -1
-      * then: SequenceOfElements= SequenceOfElements, ","?, Element;◄  */
+      * Element= RepeatedElement(Symbol Symbol);◄
+      * then: SequenceOfElements= SequenceOfElements, ","?, Element;◄ */
      _s.Discard(2);
 
      ElementVariantRecognized(
@@ -2127,7 +2127,7 @@ Branch3:
   }
   // Reduce26:
   /* aAdjust: -1
-   * Element= RepeatedElement(Symbol Symbol);◄ method: ElementVariantRecognized, aStack: -1 */
+   * Element= RepeatedElement(Symbol Symbol);◄ */
 
   ElementVariantRecognized(
      Symbol: _a.PeekRef(0)._Symbol
@@ -2145,7 +2145,7 @@ State26:
      {
      Lexer.AcceptSymbol();
      // Reduce32:
-     /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "*", "*";◄ method: Repeat0rrRecognized */
+     /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "*", "*";◄ */
 
      Repeat0rrRecognized(
         Symbol: ref _a.PeekRef(0)._Symbol
@@ -2163,7 +2163,7 @@ State26:
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput >= LexerResult.GroupStart);
   // Reduce31:
-  /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "*";◄ method: Repeat0lrRecognized */
+  /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "*";◄ */
 
   Repeat0lrRecognized(
      Symbol: ref _a.PeekRef(0)._Symbol
@@ -2273,7 +2273,7 @@ State36:
   Lexer.AcceptSymbol();
   // Reduce42:
   /* aAdjust: 1
-   * SemanticAction(VoidMethodClass method)= CSharpStart, CSharpEnd;◄ aStack: 1, method: EmptySemanticAction */
+   * SemanticAction(VoidMethodClass method)= CSharpStart, CSharpEnd;◄ */
   _a.Allocate();
 
   EmptySemanticAction(
@@ -2393,7 +2393,7 @@ State45:
   Lexer.AcceptSymbol();
   // Reduce48:
   /* aAdjust: -2
-   * formalParameter= Name(Int32 typeStringIndex), "?", Name(Int32 nameStringIndex);◄ method: FormalParameterWithNullableTypeAndName, aStack: -2 */
+   * formalParameter= Name(Int32 typeStringIndex), "?", Name(Int32 nameStringIndex);◄ */
 
   FormalParameterWithNullableTypeAndName(
      typeStringIndex: _a.PeekRef(-1)._Int32,
@@ -2410,7 +2410,7 @@ Branch10:
      // Reduce44:
      {
      /* sAdjust: -1
-      * formalParameters= formalParameters, Comma, formalParameter;◄  */
+      * formalParameters= formalParameters, Comma, formalParameter;◄ */
      _s.Pop();
      // Branch9:
      if (_s.Peek() == 0)
@@ -2447,7 +2447,7 @@ State43:
      Lexer.AcceptSymbol();
      // Reduce46:
      /* aAdjust: -3
-      * formalParameter= Name(Int32 ParameterModifierOptStringIndex), Name(Int32 typeStringIndex), Name(Int32 nameStringIndex);◄ method: FormalParameterWithModifierTypeAndName, aStack: -3 */
+      * formalParameter= Name(Int32 ParameterModifierOptStringIndex), Name(Int32 typeStringIndex), Name(Int32 nameStringIndex);◄ */
 
      FormalParameterWithModifierTypeAndName(
         ParameterModifierOptStringIndex: _a.PeekRef(-2)._Int32,
@@ -2474,7 +2474,7 @@ State43:
      || ParserInput == LexerResult.GroupEnd);
   // Reduce45:
   /* aAdjust: -2
-   * formalParameter= Name(Int32 typeStringIndex), Name(Int32 nameStringIndex);◄ method: FormalParameterWithTypeAndName, aStack: -2 */
+   * formalParameter= Name(Int32 typeStringIndex), Name(Int32 nameStringIndex);◄ */
 
   FormalParameterWithTypeAndName(
      typeStringIndex: _a.PeekRef(-1)._Int32,
@@ -2498,7 +2498,7 @@ State44:
   Lexer.AcceptSymbol();
   // Reduce47:
   /* aAdjust: -3
-   * formalParameter= Name(Int32 ParameterModifierOptStringIndex), Name(Int32 typeStringIndex), "?", Name(Int32 nameStringIndex);◄ method: FormalParameterWithModifierNullableTypeAndName, aStack: -3 */
+   * formalParameter= Name(Int32 ParameterModifierOptStringIndex), Name(Int32 typeStringIndex), "?", Name(Int32 nameStringIndex);◄ */
 
   FormalParameterWithModifierNullableTypeAndName(
      ParameterModifierOptStringIndex: _a.PeekRef(-2)._Int32,
@@ -2543,7 +2543,7 @@ State48:
   Debug.Assert(ParserInput == LexerResult.GroupStart);
   // Reduce50:
   /* aAdjust: -1
-   * CSMethodProperties(MethodClass method)= Name(Int32 methodTypeStringIndex), Name(Int32 methodNameStringIndex);◄ method: MethodTypeAndNameRecognized, aStack: -1 */
+   * CSMethodProperties(MethodClass method)= Name(Int32 methodTypeStringIndex), Name(Int32 methodNameStringIndex);◄ */
 
   MethodTypeAndNameRecognized(
      method: out _a.PeekRef(-1)._MethodClass,
@@ -2607,7 +2607,7 @@ State49:
      Lexer.AcceptSymbol();
      // Reduce52:
      /* aAdjust: -3
-      * CSMethodProperties(MethodClass method)= Name(Int32 modifier1StringIndex), Name(Int32 modifier2StringIndex), Name(Int32 methodTypeStringIndex), Name(Int32 methodNameStringIndex);◄ method: MethodModifierTypeAndNameRecognized2, aStack: -3 */
+      * CSMethodProperties(MethodClass method)= Name(Int32 modifier1StringIndex), Name(Int32 modifier2StringIndex), Name(Int32 methodTypeStringIndex), Name(Int32 methodNameStringIndex);◄ */
 
      MethodModifierTypeAndNameRecognized2(
         method: out _a.PeekRef(-3)._MethodClass,
@@ -2629,7 +2629,7 @@ State49:
   Debug.Assert(ParserInput == LexerResult.GroupStart);
   // Reduce51:
   /* aAdjust: -2
-   * CSMethodProperties(MethodClass method)= Name(Int32 modifierStringIndex), Name(Int32 methodTypeStringIndex), Name(Int32 methodNameStringIndex);◄ method: MethodModifierTypeAndNameRecognized, aStack: -2 */
+   * CSMethodProperties(MethodClass method)= Name(Int32 modifierStringIndex), Name(Int32 methodTypeStringIndex), Name(Int32 methodNameStringIndex);◄ */
 
   MethodModifierTypeAndNameRecognized(
      method: out _a.PeekRef(-2)._MethodClass,
@@ -2695,7 +2695,7 @@ State59:
   Lexer.AcceptSymbol();
   // Reduce55:
   /* aAdjust: 1
-   * PriorityDeclaration(Int32 constPriority, IntMethodClass dynamicPriority)= "??", signedNumber(Int32 constPriority), "??";◄ aStack: 1, method: ConstantPriorityGiven */
+   * PriorityDeclaration(Int32 constPriority, IntMethodClass dynamicPriority)= "??", signedNumber(Int32 constPriority), "??";◄ */
   _a.Allocate();
 
   ConstantPriorityGiven(
@@ -2735,7 +2735,7 @@ State60:
   Debug.Assert(ParserInput == LexerResult.Number);
   Lexer.AcceptSymbol();
   // Reduce56:
-  /* signedNumber(Int32 value)= "-", Number(Int32 value);◄ method: NegateNumber */
+  /* signedNumber(Int32 value)= "-", Number(Int32 value);◄ */
 
   NegateNumber(
      value: ref _a.PeekRef(0)._Int32
@@ -2809,14 +2809,14 @@ State65:
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
   // Reduce63:
   /* sAdjust: -1
-   * NestedDefinitions= EndOfDefinition, "|", NestedDefinitionList;◄  */
+   * NestedDefinitions= EndOfDefinition, "|", NestedDefinitionList;◄ */
   _s.Pop();
   // Branch13:
   if (_s.Peek() == 6)
      goto Reduce60;
 Reduce69:
   /* sAdjust: -1
-   * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions;◄  */
+   * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions;◄ */
   _s.Pop();
   goto Reduce59;
 
@@ -2887,7 +2887,7 @@ State69:
   case LexerResult.DefinitionSeparatorSymbol:
      // Reduce68:
      {
-     /* EndOfDefinitionWithoutSemantics= ;◄ method: EndOfDefinitionWithoutSemanticsRecognized */
+     /* EndOfDefinitionWithoutSemantics= ;◄ */
 
      EndOfDefinitionWithoutSemanticsRecognized();
 
@@ -2949,7 +2949,7 @@ State72:
      {
      Lexer.AcceptSymbol();
      // Reduce71:
-     /* NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes), "=";◄ method: LeftSideOfNestedProduction */
+     /* NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes), "=";◄ */
 
      LeftSideOfNestedProduction(
         SymbolAtLeftSide: out _a.PeekRef(-1)._Symbol,
@@ -2986,7 +2986,7 @@ State73:
   Lexer.AcceptSymbol();
   // Reduce72:
   /* sAdjust: -1
-   * RepeatedElement(Symbol Symbol)= "{", NestedElement(Symbol Symbol), "}";◄ method: RepeatGroupRecognized */
+   * RepeatedElement(Symbol Symbol)= "{", NestedElement(Symbol Symbol), "}";◄ */
   _s.Pop();
 
   RepeatGroupRecognized(
@@ -3016,7 +3016,7 @@ State75:
   Lexer.AcceptSymbol();
   // Reduce73:
   /* sAdjust: -1
-   * RepeatedElement(Symbol Symbol)= "[", NestedElement(Symbol Symbol), "]";◄ method: OptionGroupRecognized */
+   * RepeatedElement(Symbol Symbol)= "[", NestedElement(Symbol Symbol), "]";◄ */
   _s.Pop();
 
   OptionGroupRecognized(
@@ -3064,7 +3064,7 @@ State80:
   Lexer.AcceptSymbol();
   // Reduce79:
   /* aAdjust: -1
-   * ListOfExcludedTerminalSymbols= Name(Int32 stringIndex);◄ method: FirstExcludedTerminalSymbol, aStack: -1 */
+   * ListOfExcludedTerminalSymbols= Name(Int32 stringIndex);◄ */
 
   FirstExcludedTerminalSymbol(
      stringIndex: _a.PeekRef(0)._Int32
@@ -3090,7 +3090,7 @@ State81:
   Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
   Lexer.AcceptSymbol();
   // Reduce80:
-  /* GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "-=", ListOfExcludedTerminalSymbols, ";";◄ method: EndOfListOfExcludedTerminalSymbols */
+  /* GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "-=", ListOfExcludedTerminalSymbols, ";";◄ */
 
   EndOfListOfExcludedTerminalSymbols();
 
@@ -3110,7 +3110,7 @@ State82:
   Lexer.AcceptSymbol();
   // Reduce81:
   /* aAdjust: -1
-   * ListOfExcludedTerminalSymbols= ListOfExcludedTerminalSymbols, "|", Name(Int32 nameIndex);◄ method: OneMoreExcludedTerminalSymbol, aStack: -1 */
+   * ListOfExcludedTerminalSymbols= ListOfExcludedTerminalSymbols, "|", Name(Int32 nameIndex);◄ */
 
   OneMoreExcludedTerminalSymbol(
      nameIndex: _a.PeekRef(0)._Int32
@@ -3183,7 +3183,7 @@ State85:
   Lexer.AcceptSymbol();
   // Reduce85:
   /* aAdjust: 1
-   * "(Attributes)"(Int32 numberOfAttributes)= "(", ")";◄ aStack: 1, method: EmptyListOfAttributes */
+   * "(Attributes)"(Int32 numberOfAttributes)= "(", ")";◄ */
   _a.Allocate();
 
   EmptyListOfAttributes(
@@ -3195,13 +3195,13 @@ Branch17:
      // Reduce84:
      {
      /* sAdjust: -1
-      * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex), "(Attributes)"(Int32 NumberOfAttributes);◄  */
+      * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex), "(Attributes)"(Int32 NumberOfAttributes);◄ */
      _s.Pop();
      goto Branch16;
      }
   // Reduce91:
   /* sAdjust: -1
-   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex), "(Attributes)"(Int32 NumberOfAttributes);◄  */
+   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex), "(Attributes)"(Int32 NumberOfAttributes);◄ */
   _s.Pop();
   goto State3;
 
@@ -3225,7 +3225,7 @@ State86:
   Lexer.AcceptSymbol();
   // Reduce87:
   /* aAdjust: 1
-   * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 number), ")";◄ aStack: 1, method: FirstAttributeOfGroup */
+   * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 number), ")";◄ */
   _a.Allocate();
 
   FirstAttributeOfGroup(
@@ -3239,7 +3239,7 @@ Branch18:
      // Reduce88:
      {
      /* sAdjust: -1, aAdjust: -1
-      * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 numberBeforeGroup), Comma, "Attributes)"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup);◄ method: AnotherAttributeOfGroup, aStack: -1 */
+      * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 numberBeforeGroup), Comma, "Attributes)"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup);◄ */
      _s.Pop();
 
      AnotherAttributeOfGroup(
@@ -3255,7 +3255,7 @@ Branch18:
      }
   // Reduce86:
   /* sAdjust: -1, aAdjust: -1
-   * "(Attributes)"(Int32 numberOfAttributes)= "(", "Attributes)"(Int32 numberOfAttributes, Int32 smallestNumber);◄ aStack: -1 */
+   * "(Attributes)"(Int32 numberOfAttributes)= "(", "Attributes)"(Int32 numberOfAttributes, Int32 smallestNumber);◄ */
   _s.Pop();
   _a.Free();
   goto Branch17;
@@ -3290,7 +3290,7 @@ State88:
   Lexer.AcceptSymbol();
   // Reduce89:
   /* aAdjust: -1
-   * Attribut(Int32 number)= Name(Int32 typeStringIndex), Name(Int32 nameStringIndex);◄ method: AttributeTypeAndName, aStack: -1 */
+   * Attribut(Int32 number)= Name(Int32 typeStringIndex), Name(Int32 nameStringIndex);◄ */
 
   AttributeTypeAndName(
      number: out _a.PeekRef(-1)._Int32,
@@ -3334,7 +3334,7 @@ State89:
      || ParserInput >= LexerResult.DefinitionSeparatorSymbol);
   // Reduce90:
   /* sAdjust: -1, aAdjust: 1
-   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ priority: -10, aStack: 1, method: NameWithoutAttributes */
+   * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ */
   _s.Pop();
   _a.Allocate();
 
@@ -3376,8 +3376,8 @@ State91:
      || ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
 Reduce92:
   /* sAdjust: -2, aAdjust: -2
-   * GrammlatorSetting= Name(Int32 nameIndex), ":", StringResult(Int32 stringIndex), ";"?;◄ method: SetGrammlatorSetting, aStack: -2
-   * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄  */
+   * GrammlatorSetting= Name(Int32 nameIndex), ":", StringResult(Int32 stringIndex), ";"?;◄
+   * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
   _s.Discard(2);
 
   SetGrammlatorSetting(
@@ -3390,13 +3390,13 @@ Reduce92:
 
 Reduce35:
   /* sAdjust: -1
-   * outerDefinitions= EndOfDefinition, "|", outerDefinitionList;◄  */
+   * outerDefinitions= EndOfDefinition, "|", outerDefinitionList;◄ */
   _s.Pop();
   goto Branch5;
 
 Reduce39:
   /* sAdjust: -2
-   * outerDefinitionList= SequenceOfElements, EndOfDefinition, "|", outerDefinitionList;◄  */
+   * outerDefinitionList= SequenceOfElements, EndOfDefinition, "|", outerDefinitionList;◄ */
   _s.Discard(2);
   // Branch7:
   switch (_s.Peek())
@@ -3426,7 +3426,7 @@ Branch15:
   }
   // Reduce64:
   /* sAdjust: -1
-   * NestedDefinitionList= NestedDefinitionList, "|", Definition;◄  */
+   * NestedDefinitionList= NestedDefinitionList, "|", Definition;◄ */
   _s.Pop();
   // Branch14:
   switch (_s.Peek())
@@ -3464,7 +3464,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Sun, 30 Aug 2020 21:36:07 GMT (grammlator, File version 2020.07.28.0 30.08.2020 21:24:58)
+#endregion grammlator generated Sun, 06 Sep 2020 18:38:22 GMT (grammlator, File version 2020.07.28.0 06.09.2020 18:31:52)
          /* ************************ code written by programmer ******************** */
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }

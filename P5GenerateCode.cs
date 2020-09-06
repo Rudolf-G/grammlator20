@@ -161,7 +161,10 @@ namespace Grammlator {
          //generate action part of action
          if (GenerateLabelOrGotoOrNothing
                (forceLabel,
-                commentIfNoLabel: !(parserAction is ErrorhandlingAction || parserAction is ErrorHaltAction),
+                commentIfNoLabel:
+                !(parserAction is ErrorhandlingAction
+                  || parserAction is ErrorHaltAction
+                  || parserAction is HaltAction),
                 P5CodegenCS.GotoLabel(parserAction, accept: false),
                 parserAction.Calls,
                 insideBlock: codegen.IndentationLevel > 0))
@@ -666,19 +669,31 @@ namespace Grammlator {
          codegen.IndentExactly();
          codegen.AppendLine("/* Dynamic priority controlled actions */");
 
-         codegen.AppendInstruction($"switch({GlobalVariables.MethodIndexOfMaximum}(");  // TODO allow user to set MethodIndexOfMaximum
+         codegen.AppendInstruction($"switch({GlobalVariables.MethodIndexOfMaximum}(");
+         // TODO allow user to set MethodIndexOfMaximum
+
          // IndexOfMaximum has to return the index of the 1st occurence of the greatest argument. Then:
          // TerminalTransition (priority 0) has priority over dynamic priority value 0 because it is generated 1st !! 
          if (ps.ConstantPriorityAction != null)
             codegen.Append(ps.ConstantPriority).Append(", ");
 
+         codegen.IncrementIndentationLevel();
+
          for (Int32 i = 0; i < ps.DynamicPriorityActions.Count; i++)
          {
             if (i > 0)
                codegen.Append(", ");
-            codegen.Append(ps.PriorityFunctions[i].MethodName);
+            codegen.IndentExactly()
+               .AppendLine() // empty line preceding method call
+               .GenerateSemanticMethodCall(ps.PriorityFunctions[i], asInstruction: false);
+            if (i < ps.DynamicPriorityActions.Count - 1)
+               codegen.Append(",");
+            codegen.AppendLine() // end of line
+               .AppendLine(); // empty line following method call
          }
-         codegen.Append("))");
+         codegen.Indent().Append("))");
+
+         codegen.DecrementIndentationLevel();
          codegen.IndentExactly().Append("{");
          // end of generating switch condition
 
@@ -738,7 +753,7 @@ namespace Grammlator {
             codegen.Append(GlobalVariables.VariableNameStateDescription);
             codegen.Append(State.IdNumber + 1);
             codegen.Append(" =");
-            codegen.OutputandClearLine();
+            codegen.AppendLine();
 
             // Generate the item descriptions to be assigned to the variable
             sbTemp.Replace("\\", "\\\\").Replace("\"", "\\\""); // escape the symbols which are not allowed in strings
@@ -751,7 +766,7 @@ namespace Grammlator {
                 , stringAtEndOfLastLine: "\";" // after the last string
                 );
             sbTemp.Clear();
-            codegen.OutputandClearLine();
+            codegen.AppendLine();
          }
          else
          {
@@ -1139,7 +1154,8 @@ namespace Grammlator {
             nextAction = LastAction.NextAction; // TOCHECK must nextAction.Calls be reduced by 1 ??
 
          BitArray suppressedCondition = LastAction.TerminalSymbols;
-         if (nextAction != null && suppressedCondition != null)
+         if (nextAction != null && suppressedCondition != null
+            && !suppressedCondition.All())
          {
             GenerateConditionAsComment(suppressedCondition);
          }

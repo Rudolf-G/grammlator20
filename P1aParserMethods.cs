@@ -29,11 +29,11 @@ namespace Grammlator {
 
       private static readonly ListOfDefinitions EmptyListOfNontrivialDefinitions = new ListOfDefinitions(0);
 
-      public class ListOfSymbols: List<Symbol> {
+      public class ListOfSymbols : List<Symbol> {
          public ListOfSymbols(Int32 capacity) : base(capacity) { }
 
          public void RemoveFromEnd(Int32 n) => this.RemoveRange(this.Count - n, n);
-         }
+      }
 
       /// <summary>
       /// Stores the StringIndexes of all elements of the last C# enum.
@@ -68,26 +68,26 @@ namespace Grammlator {
       /// <param name="numberOfAttributes">Number of attributes</param>
       /// <param name="weight">the terminal symbols weight, which influences the order of generated if clauses</param>
       private void TerminalSymbolDeclaration(Int32 nameIndex, Int32 numberOfAttributes, Int32 weight)
-         {
+      {
          String Name = GlobalVariables.GetStringOfIndex(nameIndex);  // TODO use nameIndex as Key in SymbolDictionary
          Debug.Assert(!String.IsNullOrEmpty(Name), $"{nameof(Name)} is 0 or empty");
 
          if (SymbolDictionary.ContainsKey(nameIndex))
-            {
+         {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                 $"The terminal symbol {Name} has been already defined");
             // continue to keep integrity of the data structures
-            }
+         }
          else
-            {
+         {
             SymbolDictionary[nameIndex] =
                new TerminalSymbol(Name, Lexer.LexerTextPos) {
                   Weight = weight,
                   SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
                   AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
-                  };
-            }
+               };
+         }
 
          // Remove the attributes
          ListOfAttributesOfGrammarRule.RemoveFromEnd(numberOfAttributes);
@@ -96,7 +96,7 @@ namespace Grammlator {
          AttributeCounter = 0;
 
          return;
-         }
+      }
 
       /// <summary>
       /// Add the nonterminal symbol to the <see cref="SymbolDictionary"/> or, if already contained test for compatibility, 
@@ -107,7 +107,7 @@ namespace Grammlator {
       /// <param name="numberOfAttributes"></param>
       /// <returns>The <see cref="NonterminalSymbol"/></returns>
       private NonterminalSymbol NonterminalSymbolDefinition(Int32 symbolNameIndex, Int32 numberOfAttributes)
-         {
+      {
          // The parser recognized the left side of a rule and has not yet evaluated any definition of this symbol
 
          string symbolName = GlobalVariables.GetStringOfIndex(symbolNameIndex);
@@ -117,7 +117,7 @@ namespace Grammlator {
          NonterminalSymbol ns;
 
          if (SymbolDictionary.TryGetValue(symbolNameIndex, out Symbol? Symbol))
-            {
+         {
             // The nonterminal symbol has been used already als element of a definition. The types of its attributes are known.
             if (Symbol is NonterminalSymbol symbolAsNonterminal)
             {
@@ -154,16 +154,16 @@ namespace Grammlator {
          }
 
          if (Symbol != null)
-            {
+         {
             ns = (NonterminalSymbol)Symbol;
             // The names of the attributes are copied now from the ListOfAttributesOfSyntaxRule.
             // They are not removed from ListOfAttributesOfSyntaxRule, because it may be a definition inside another definition.
             // They will be removed when the end of a syntax rule in the syntax rule list or the end of the enclosing definition is recognized.
             Debug.Assert(ns!.AttributenameStringIndexList == null || ns.AttributenameStringIndexList.Length == 0);
             ns.AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes);
-            }
+         }
          else // Symbol == null
-            {
+         {
 
             // The nonterminal symbol has not yet been used (Symbol == null)
             // or there has been an error and we proceed as if it has been a new nonterminal symbol
@@ -175,22 +175,22 @@ namespace Grammlator {
                attributenameStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
                );
             SymbolDictionary[symbolNameIndex] = ns;
-            }
+         }
 
          // Mark the attributes of the left side in the ListOfAttributesOfProduction as LeftSide attributes
          for (Int32 i = 1; i <= numberOfAttributes; i++)
-            {
+         {
             AttributeStruct a = ListOfAttributesOfGrammarRule[^i];
             a.LeftSide = true;
             a.OverlayType = AttributeStruct.OverlayEnum.outAttribute;
             ListOfAttributesOfGrammarRule[^i] = a;
-            }
+         }
 
          NumberOfLastAttributeOfLeftSide = AttributeCounter;
          AttributeCounter = AttributeNumberAtStartOfDefinition;
 
          return ns;
-         }
+      }
 
       /// <summary>
       /// If the name is unknown a <see cref="Symbol"/> instance will be created and stored in the dictionary,
@@ -200,27 +200,27 @@ namespace Grammlator {
       /// <param name="NumberOfAttributes">the number of attributes of the nonterminal symbol</param>
       /// <returns>The found or created <see cref="Symbol"/> instance</returns>
       private Symbol EvaluateSymbolnameFoundInRightSide(Int32 nameIndex, Int32 NumberOfAttributes)
-         {
+      {
          string Name = GlobalVariables.GetStringOfIndex(nameIndex);
 
          if (SymbolDictionary.TryGetValue(nameIndex, out Symbol? symbol) /*Symbol == null*/)
-            {
+         {
             if (symbol.NumberOfAttributes != NumberOfAttributes)
-               {
+            {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                   $"The symbol {Name} has been used at its first occurence with a different number of attributes. "
                   );
                // PROBLEM will cause index out of bounds
-               }
+            }
             else if (!AttributeTypesCoincide(symbol))
-               {
+            {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                   $"The symbol {Name} has been used at its first occurence with at least one attribute of a different type. "
                   );
-               }
             }
+         }
          else
-            {
+         {
             // New symbol: create instance
             symbol = new NonterminalSymbol(Name,
                   Lexer.LexerTextPos,
@@ -233,9 +233,9 @@ namespace Grammlator {
 
             SymbolDictionary[nameIndex] = symbol;
             // Assign AttributetypeList, let AttributenameList undefined until the symbol becomes defined in left side
-            }
-         return symbol;
          }
+         return symbol;
+      }
 
       //{-*****************************************************************************
       //--*******               Evaluate Grammar Rule                        **********
@@ -249,17 +249,17 @@ namespace Grammlator {
       /// </summary>
       /// <param name="symbol"></param>
       private void UseNonterminalInRightSide(Symbol symbol)
-         {
+      {
          for (Int32 i = 1; i <= symbol.NumberOfAttributes; i++)
-            {
+         {
             // decrement Level and set LeftSide=false
             AttributeStruct Attribut = ListOfAttributesOfGrammarRule[^i];
             Attribut.Level--;
             Attribut.LeftSide = false;
             Attribut.OverlayType = AttributeStruct.OverlayEnum.inAttribute;
             ListOfAttributesOfGrammarRule[^i] = Attribut;
-            }
          }
+      }
 
       /// <summary>
       /// The parser recognized the end of a (maybe nested) grammar rule.
@@ -269,37 +269,37 @@ namespace Grammlator {
       /// </summary>
       /// <param name="Symbol"></param>
       private void EvaluateGrammarRule(Symbol Symbol)
-         {
+      {
          // The symbol must have been defined (in the left side or by MakeGrammarRule)
          if (!(Symbol is NonterminalSymbol nt))
-            {
+         {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Abort,
                  $"Error in program {nameof(EvaluateGrammarRule)}: Symbol as NonterminalSymbol is null."
                  );
             return;
-            }
+         }
 
          if (nt.IsDefined)
-            {
+         {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"The identifier \"{Symbol.Identifier}\" is already defined." // TODO add position
                    );
-            }
+         }
 
          if (NumberOfTrivalDefinitions != 0)
-            {
+         {
             nt.TrivalDefinitionsArray = new Symbol[NumberOfTrivalDefinitions];
             for (Int32 i = 0; i < NumberOfTrivalDefinitions; i++)
-               {
+            {
                nt.TrivalDefinitionsArray[i] =
                    ActualListOfTrivialDefinitions[ActualListOfTrivialDefinitions.Count - NumberOfTrivalDefinitions + i];
-               }
+            }
             ActualListOfTrivialDefinitions.RemoveFromEnd(NumberOfTrivalDefinitions);
             NumberOfTrivalDefinitions = 0;
-            }
+         }
 
          if (NumberOfNontrivialDefinitions != 0)
-            {
+         {
             // Copy and remove NumberOfNontrivialDefinitions from the ActualListOfNontrivialDefinitions
             // to a new list nt.NontrivalDefinitionsList
             nt.NontrivialDefinitionsList = new ListOfDefinitions(NumberOfNontrivialDefinitions, ActualListOfNontrivialDefinitions);
@@ -308,8 +308,8 @@ namespace Grammlator {
             // Assign nt to .DefinedSymbol (has been null) of each copied definition 
             foreach (Definition thisDefinition in nt.NontrivialDefinitionsList)
                thisDefinition.DefinedSymbol = nt;
-            }
          }
+      }
 
       //{-***********************************************************************************
       //--*******  D e f i n i t i o n s   o f   t h e  S t a r t s y m b o l      **********
@@ -320,7 +320,7 @@ namespace Grammlator {
       /// then clears <see cref="ActualListOfNontrivialDefinitions"/>
       /// </summary>
       private void EvaluateDefinitionsOftheStartsymbol()
-         {
+      {
          GlobalVariables.Startsymbol.NontrivialDefinitionsList
              = new ListOfDefinitions(
                  NumberOfNontrivialDefinitions,
@@ -335,7 +335,7 @@ namespace Grammlator {
 
          ActualListOfNontrivialDefinitions.Clear();
          NumberOfNontrivialDefinitions = 0;
-         }
+      }
 
       //{-*****************************************************************************
       //--*******           M A K E   N E W   N A M E                         *********
@@ -357,20 +357,20 @@ namespace Grammlator {
       /// <param name="nameOfSymbol">name of the symbol to which the postfix has to be appended</param>
       ///<returns>new name</returns>
       private static String MakeNewName(TypeOfGrammarRule type, string nameOfSymbol)
-         {
+      {
          String Postfix = type switch
-            {
-               TypeOfGrammarRule.optional => "?",
-               TypeOfGrammarRule.repeat0lr => "*",
-               TypeOfGrammarRule.repeat0rr => "**",
-               TypeOfGrammarRule.repeat1lr => "+",
-               TypeOfGrammarRule.repeat1rr => "++",
-               _ => "-??",
-               };
+         {
+            TypeOfGrammarRule.optional => "?",
+            TypeOfGrammarRule.repeat0lr => "*",
+            TypeOfGrammarRule.repeat0rr => "**",
+            TypeOfGrammarRule.repeat1lr => "+",
+            TypeOfGrammarRule.repeat1rr => "++",
+            _ => "-??",
+         };
          String result = nameOfSymbol + Postfix;
 
          return result;
-         }
+      }
 
       //{-*****************************************************************************
       //--*******                  Make Grammar Rule                          *********
@@ -379,7 +379,7 @@ namespace Grammlator {
       private enum TypeOfGrammarRule { optional, repeat0lr, repeat1lr, repeat0rr, repeat1rr };
 
       private Symbol MakeGrammarRule(Symbol existingSymbol, TypeOfGrammarRule type)
-         {
+      {
          // TODO check if and how different variants are implemented in the grammar: optional, repeat0lr, ... repeat1rr
 
          /* Repeat is implemented by left recursion "lr" or right recursion "rr"
@@ -401,22 +401,22 @@ namespace Grammlator {
 
          // use existing (synthetic) symbol / definition if name already has been defined
          if (!SymbolDictionary.TryGetValue(NewNameIndex, out Symbol? MadeSymbol))
-            {
+         {
             // else create, store in dictionary and define new symbol
             MadeSymbol = DefineNewSymbol(existingSymbol, type, NewNameIndex, NewName);
-            }
+         }
          ListOfAttributesOfGrammarRule.RemoveFromEnd(existingSymbol.NumberOfAttributes);
          AttributeCounter -= existingSymbol.NumberOfAttributes;
 
          return MadeSymbol;
-         }
+      }
 
       private NonterminalSymbol DefineNewSymbol(
             Symbol existingSymbol,
             TypeOfGrammarRule type,
             Int32 newNameIndex,
             string newName)
-         {
+      {
          var newSymbol = new NonterminalSymbol(newName,
             Lexer.LexerTextPos,
             symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
@@ -429,31 +429,31 @@ namespace Grammlator {
          Symbol[] trivialDefinitions = Array.Empty<Symbol>(); // preset: no trival definition
 
          switch (type)
-            {
+         {
          case TypeOfGrammarRule.optional:
-               {
-               if (existingSymbol.NumberOfAttributes == 0)
-                  {
-                  // make "newSymbol =  || existingSymbol();"
-                  nontrivialDefinitions      // 1 definition
-                      = new ListOfDefinitions(1)
-                      {
+         {
+            if (existingSymbol.NumberOfAttributes == 0)
+            {
+               // make "newSymbol =  || existingSymbol();"
+               nontrivialDefinitions      // 1 definition
+                   = new ListOfDefinitions(1)
+                   {
                                 new Definition ( // 1st definition: empty definition
                                     idNumber: 0,
                                     definedSymbol: newSymbol,
                                     elements: Array.Empty<Symbol>(),
                                     attributestackAdjustment: 0
                                     )
-                       };
-                  trivialDefinitions
-                      = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol;
-                  }
-               else
-                  {
-                  //  make "newSymbol =  || existingSymbol(xxx);"
-                  nontrivialDefinitions
-                      = new ListOfDefinitions(2) // 2 definitions
-                  {
+                    };
+               trivialDefinitions
+                   = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol;
+            }
+            else
+            {
+               //  make "newSymbol =  || existingSymbol(xxx);"
+               nontrivialDefinitions
+                   = new ListOfDefinitions(2) // 2 definitions
+               {
                                 new Definition ( // 1st definition: empty definition
                                     idNumber: 0,
                                     definedSymbol: newSymbol,
@@ -467,18 +467,18 @@ namespace Grammlator {
                                     elements : new Symbol[1] { existingSymbol },
                                     attributestackAdjustment : -existingSymbol.NumberOfAttributes
                                 )
-                                // no trivial definition (as has been preset)
-                         };
-                  }
-               break;
-               }
+                      // no trivial definition (as has been preset)
+                   };
+            }
+            break;
+         }
 
          case TypeOfGrammarRule.repeat0lr:
-               {
-               // make "newSymbol =  || newSymbol, existingSymbol(xxx);"
-               nontrivialDefinitions
-                   = new ListOfDefinitions(2) // 2 definitions
-                   {
+         {
+            // make "newSymbol =  || newSymbol, existingSymbol(xxx);"
+            nontrivialDefinitions
+                = new ListOfDefinitions(2) // 2 definitions
+                {
                             new Definition ( // 1st definition: empty definition
                             idNumber: 0,
                             definedSymbol: newSymbol,
@@ -492,36 +492,36 @@ namespace Grammlator {
                                 elements: new Symbol[2] { newSymbol, existingSymbol },
                                 attributestackAdjustment: -existingSymbol.NumberOfAttributes
                             )
-                   };
-               // no trivial definition (as has been preset)
-               break;
-               }
+                };
+            // no trivial definition (as has been preset)
+            break;
+         }
 
          case TypeOfGrammarRule.repeat1lr:
-               {
-               if (existingSymbol.NumberOfAttributes == 0)
-                  {
-                  // make "newSymbol = existingSymbol() || newSymbol, existingSymbol() ||;"
-                  trivialDefinitions
-                      = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol() 
+         {
+            if (existingSymbol.NumberOfAttributes == 0)
+            {
+               // make "newSymbol = existingSymbol() || newSymbol, existingSymbol() ||;"
+               trivialDefinitions
+                   = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol() 
 
-                  nontrivialDefinitions
-                      = new ListOfDefinitions(1) // 1 definition
-                      {
+               nontrivialDefinitions
+                   = new ListOfDefinitions(1) // 1 definition
+                   {
                                 new Definition ( // 1st definition: newSymbol, existingSymbol()
                                     idNumber: 0,
                                     definedSymbol: newSymbol,
                                     elements: new Symbol[2] { newSymbol, existingSymbol },
                                     attributestackAdjustment: 0
                                 )
-                      };
-                  }
-               else
-                  {
-                  // make "newSymbol = existingSymbol(xxx) || newSymbol, existingSymbol(xxx);"
-                  nontrivialDefinitions
-                      = new ListOfDefinitions(1) // 2 definitions 
-                      {
+                   };
+            }
+            else
+            {
+               // make "newSymbol = existingSymbol(xxx) || newSymbol, existingSymbol(xxx);"
+               nontrivialDefinitions
+                   = new ListOfDefinitions(1) // 2 definitions 
+                   {
                                 new Definition (
                                     idNumber : 0,  // 1st definition: existingSymbol(xxx)
                                     definedSymbol : newSymbol,
@@ -535,19 +535,19 @@ namespace Grammlator {
                                     elements : new Symbol[2] { newSymbol, existingSymbol },
                                     attributestackAdjustment : -existingSymbol.NumberOfAttributes
                                 )
-                      };
+                   };
 
-                  // no trivial definition (as has been preset)
-                  }
-               break;
-               }
+               // no trivial definition (as has been preset)
+            }
+            break;
+         }
 
          case TypeOfGrammarRule.repeat0rr:
-               {
-               // make "newSymbol =  || existingSymbol, newSymbol;"
-               nontrivialDefinitions
-                   = new ListOfDefinitions(2) // 2 definitions
-                   {
+         {
+            // make "newSymbol =  || existingSymbol, newSymbol;"
+            nontrivialDefinitions
+                = new ListOfDefinitions(2) // 2 definitions
+                {
                             new Definition ( // 1st definition: empty
                                 idNumber: 0,
                                 definedSymbol: newSymbol,
@@ -560,39 +560,39 @@ namespace Grammlator {
                                 elements: new Symbol[2] { existingSymbol, newSymbol },
                                 attributestackAdjustment: -existingSymbol.NumberOfAttributes
                             )
-                   };
-               // no trivial definition (as has been preset)
-               break;
-               }
+                };
+            // no trivial definition (as has been preset)
+            break;
+         }
 
          default: // case TypeOfGrammarRule.repeat1rr:
-               {
-               // make "newSymbol = existingSymbol() || existingSymbol(), newSymbol;"
-               if (existingSymbol.NumberOfAttributes == 0)
-                  {
-                  trivialDefinitions
-                      = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol()
+         {
+            // make "newSymbol = existingSymbol() || existingSymbol(), newSymbol;"
+            if (existingSymbol.NumberOfAttributes == 0)
+            {
+               trivialDefinitions
+                   = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol()
 
-                  nontrivialDefinitions
-                      = new ListOfDefinitions(1) // 1 definition
-                      {
+               nontrivialDefinitions
+                   = new ListOfDefinitions(1) // 1 definition
+                   {
                              new Definition ( // 1st definition: existingSymbol(), newSymbol
                                 idNumber: 0,
                                 definedSymbol: newSymbol,
                                 elements: new Symbol[2] { existingSymbol, newSymbol },
                                 attributestackAdjustment: 0
                                 )
-                      };
-                  }
-               else
-                  {
-                  // make "newSymbol = existingSymbol(xxx) || existingSymbol(xxx), newSymbol;"
+                   };
+            }
+            else
+            {
+               // make "newSymbol = existingSymbol(xxx) || existingSymbol(xxx), newSymbol;"
 
-                  // no trivial definition (as has been preset)
+               // no trivial definition (as has been preset)
 
-                  nontrivialDefinitions
-                      = new ListOfDefinitions(2) // 2 definitions 
-                      {
+               nontrivialDefinitions
+                   = new ListOfDefinitions(2) // 2 definitions 
+                   {
                                 new Definition (
                                     idNumber: 0,  // 1st definition: existingSymbol(xxx)
                                     definedSymbol: newSymbol,
@@ -606,16 +606,16 @@ namespace Grammlator {
                                     elements: new Symbol[2] { existingSymbol, newSymbol },
                                     attributestackAdjustment: -existingSymbol.NumberOfAttributes
                                 )
-                      };
-                  }
-               break;
-               }
+                   };
             }
+            break;
+         }
+         }
 
          newSymbol.NontrivialDefinitionsList = nontrivialDefinitions;
          newSymbol.TrivalDefinitionsArray = trivialDefinitions;
          return newSymbol;
-         }
+      }
 
       ////--****************************************************************************
       ////--*******               handle attributes                            *********
@@ -637,7 +637,7 @@ namespace Grammlator {
       /// <param name="NewName"></param>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
       private void PushAttributeToListOfAttributesOfGrammarRule(Int32 NewTypeStringIndex, Int32 NewNameStringIndex)
-         {
+      {
 
          var newAttribute = new AttributeStruct(
            NewTypeStringIndex, NewNameStringIndex,
@@ -657,18 +657,18 @@ namespace Grammlator {
                  );
 
          if (IndexOfOverlayedAttribute < 0)
-            {
+         {
             // Did not find an attribute with same name or same position.
             // The new attribute may be a left side attribute (fields will be modified when left side is recognized)
             // or a not overlaying right side attribute (the default values are correct)
             ListOfAttributesOfGrammarRule.Add(newAttribute);
             return;
-            }
+         }
 
          AttributeStruct overlayedAttribute = ListOfAttributesOfGrammarRule[IndexOfOverlayedAttribute];
 
          if (overlayedAttribute.Level != NestingLevel)
-            {
+         {
             // Attribute is at a different level, it might be possible to handle it as new attribute.
             // The new attribute may be a left side attribute (fields will be modified when left side is recognized)
             // or a not overlaying right side attribute (the default values are correct)
@@ -681,7 +681,7 @@ namespace Grammlator {
             //    $"The production already contains an attribute \"{NewName}\", but at different level."
             //    );
             return;
-            }
+         }
 
          /* 
           * Found an attribute with the same position or same name (must have same position):
@@ -718,47 +718,47 @@ namespace Grammlator {
           * */
 
          if (overlayedAttribute.NameStringIndex == NewNameStringIndex)
-            {
+         {
             //same name: must have same position and same type, usage is inOut
             if (overlayedAttribute.PositionInProduction != AttributeCounter)
-               { // the attributes must have the same (overlaying) position
+            { // the overlaying attributes with same name don't have the same (overlaying) position
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"The defined nonterminal or the definition already contains an attribute \"{GlobalVariables.GetStringOfIndex(NewNameStringIndex)}\", but with different position (does not overlay)."
                    );
-               }
+            }
             else if (overlayedAttribute.TypeStringIndex != NewTypeStringIndex)
-               {// overlaying attributes must have the same type
+            {// the overlaying attributes with same name don't have the same type 
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"The defined nonterminal or the definition already contains an overlaying attribute \"{GlobalVariables.GetStringOfIndex(NewNameStringIndex)}\", but with different type."
                    );
-               }
+            }
             else
-               { // overlaying with same name and type (may be different level if nested, even if same position)
-                 // Debug.Assert(overlayedAttribute.LeftSide);
-               }
+            { // overlaying with same name and type (may be different level if nested, even if same position)
+              // Debug.Assert(overlayedAttribute.LeftSide);
+            }
 
             newAttribute.OverlayType = AttributeStruct.OverlayEnum.inOutAttribute;
             overlayedAttribute.OverlayType = AttributeStruct.OverlayEnum.inOutAttribute;
-            }
+         }
          else
-            {
+         {
             // overlayedAttribute.Name != NewName and 
             // overlayedAttribute.PositionInProduction == ActualAttributeNumber
             if (overlayedAttribute.TypeStringIndex != newAttribute.TypeStringIndex)
-               {
+            {
                newAttribute.OverlayType = AttributeStruct.OverlayEnum.inClearAttribute;
                overlayedAttribute.OverlayType = AttributeStruct.OverlayEnum.outClearAttribute;
-               }
+            }
             else
-               {
+            {
                newAttribute.OverlayType = AttributeStruct.OverlayEnum.inAttribute;
                overlayedAttribute.OverlayType = AttributeStruct.OverlayEnum.outAttribute;
-               }
             }
+         }
 
          ListOfAttributesOfGrammarRule[IndexOfOverlayedAttribute] = overlayedAttribute;
          ListOfAttributesOfGrammarRule.Add(newAttribute);
-         }
+      }
 
       private readonly Int32[] emptyListOfStringIndexes = Array.Empty<Int32>();
 
@@ -769,18 +769,18 @@ namespace Grammlator {
       /// <param name="symbol">The symbol whos attributes are to be compared</param>
       /// <returns>true if attribute types coincide</returns>
       private Boolean AttributeTypesCoincide(Symbol symbol)
-         {
+      {
          Int32 NumberOfAttributes = symbol.NumberOfAttributes;
          for (Int32 i = 0; i < NumberOfAttributes; i++)
-            {
+         {
             if (symbol.AttributetypeStringIndexList[i]
                 != ListOfAttributesOfGrammarRule[ListOfAttributesOfGrammarRule.Count - NumberOfAttributes + i].TypeStringIndex)
-               {
+            {
                return false;
-               }
             }
-         return true;
          }
+         return true;
+      }
 
       ////--****************************************************************************
       ////--*******          interpret C#-method as semantic action            *********
@@ -809,7 +809,7 @@ namespace Grammlator {
       /// <param name="type">must bei "void" else NotImplementedException</param>
       /// <param name="name">Name of the method</param>
       private void MethodProperties(out MethodClass method, Int32 methodModifierStringIndex, Int32 typeStringIndex, Int32 nameStringIndex)
-         {
+      {
          String methodModifier = GlobalVariables.GetStringOfIndex(methodModifierStringIndex);
          String typeString = GlobalVariables.GetStringOfIndex(typeStringIndex);
          String name = GlobalVariables.GetStringOfIndex(nameStringIndex);
@@ -818,19 +818,19 @@ namespace Grammlator {
             CreateParserErrorMessage($"unknown method modifier \"{methodModifier}\"");
 
          if (typeString == "int" || typeString == "Int32")
-            {
+         {
             method = new IntMethodClass(methodName: name);
-            }
+         }
          else if (typeString == "void")
-            {
+         {
             method = new VoidMethodClass(methodName: name);
-            }
+         }
          else
-            {
+         {
             CreateParserErrorMessage($"expected \"int\" or \"Int32\" or \"void\", found \"{typeString}\" (will be interpreted as \"void\").");
             method = new VoidMethodClass(methodName: name);
-            }
          }
+      }
 
       /// <summary>
       /// Checks the parameters and assigns a new method (only with its name) to method
@@ -842,13 +842,13 @@ namespace Grammlator {
       /// <param name="name">Name of the method</param>
       private void MethodProperties(out MethodClass method, Int32 methodModifier1StringIndex,
          Int32 methodModifier2StringIndex, Int32 typeStringIndex, Int32 nameStringIndex)
-         {
+      {
          String methodModifier1 = GlobalVariables.GetStringOfIndex(methodModifier1StringIndex);
 
          if (!CSharpMethodProperties.Contains(methodModifier1))
             CreateParserErrorMessage($"unknown method modifier \"{methodModifier1}\"");
          MethodProperties(out method, methodModifier2StringIndex, typeStringIndex, nameStringIndex);
-         }
+      }
 
       /// <summary>
       /// Parser recognized a formal parameter.
@@ -858,115 +858,117 @@ namespace Grammlator {
       /// <param name="type">A C# or user defined type (e.g. "Int32" or "Object" or "MyType")</param>
       /// <param name="name">The name (identifier) of the formal parameter</param>
       private void FormalParameter(Int32 parameterModifierOptStringIndex, Int32 typeStringIndex, Int32 nameStringIndex)
-         {
+      {
          String parameterModifierOpt = GlobalVariables.GetStringOfIndex(parameterModifierOptStringIndex);
 
          ParameterImplementation callType;
          switch (parameterModifierOpt)
-            { // 
+         { // 
          case "":
          case "in":
-               {
-               callType = ParameterImplementation.ValueOrInCall;
-               // may be changed later to ValueClearCall
-               break;
-               }
+         {
+            callType = ParameterImplementation.ValueOrInCall;
+            // may be changed later to ValueClearCall
+            break;
+         }
 
          case "ref":
-               {
-               callType = ParameterImplementation.RefCall;
-               break;
-               }
+         {
+            callType = ParameterImplementation.RefCall;
+            break;
+         }
 
          case "out":
-               {
-               callType = ParameterImplementation.OutCall;
-               // may be changed later to OutClearCall
-               break;
-               }
+         {
+            callType = ParameterImplementation.OutCall;
+            // may be changed later to OutClearCall
+            break;
+         }
 
          default:
-               {
-               CreateParserErrorMessage(
-                  $"Illegal or not implemented parameter modifier {parameterModifierOpt}");
-               callType = ParameterImplementation.ValueOrInCall;
-               break;
-               }
-            }
+         {
+            CreateParserErrorMessage(
+               $"Illegal or not implemented parameter modifier {parameterModifierOpt}");
+            callType = ParameterImplementation.ValueOrInCall;
+            break;
+         }
+         }
 
          LastFormalParameterList.Add(new MethodParameterStruct {
-            Implementation = callType, NameStringIndex = nameStringIndex, TypeStringIndex = typeStringIndex
-            }
-         );
+            Implementation = callType,
+            NameStringIndex = nameStringIndex,
+            TypeStringIndex = typeStringIndex
          }
+         );
+      }
 
       /* *************************************************************************************************
        *                    C h e c k    U s a g e    O f    S y m b o l s                               *
        * ************************************************************************************************* */
 
       public MessageTypeOrDestinationEnum CheckUsageOfSymbols(Action<MessageTypeOrDestinationEnum, String, Int32> outputMessage)
-         {
+      {
          var maxMessageType = MessageTypeOrDestinationEnum.noMessageType;
          void OutputMessage(MessageTypeOrDestinationEnum type, String message, Int32 position)
-            {
+         {
             outputMessage(type, message, position);
             if (maxMessageType < type)
                maxMessageType = type;
-            }
+         }
          Int32 UsedSymbolsCounter = GlobalVariables.Startsymbol.MarkAndCountAllUsedSymbols();
          if (UsedSymbolsCounter != SymbolDictionary.Count)
-            {
+         {
             OutputMessage(MessageTypeOrDestinationEnum.Information,
                $"Only {UsedSymbolsCounter} of {SymbolDictionary.Count} symbols are used.",
                Lexer.LexerTextPos);
-            }
+         }
          else
-            {
+         {
             OutputMessage(MessageTypeOrDestinationEnum.Information,
                $"All {SymbolDictionary.Count} symbols are used.",
                Lexer.LexerTextPos
                );
-            }
+         }
 
          foreach (KeyValuePair<Int32, Symbol> KeyValue in SymbolDictionary)
-            {
+         {
             Symbol Symbol = KeyValue.Value;
 
             string GetNameOfSymbol()
                => GlobalVariables.GetStringOfIndex(KeyValue.Key);
 
             if (Symbol != null)
-               {
+            {
                if (Symbol is NonterminalSymbol nt)
+               {
+                  if (nt.NontrivialDefinitionsList.Count == 0 && nt.TrivalDefinitionsArray.Length == 0) // undefeined if no trivial or nontrivial definitions
                   {
-                  if (nt.NontrivialDefinitionsList.Count==0 && nt.TrivalDefinitionsArray.Length==0) // undefeined if no trivial or nontrivial definitions
-                     {
                      OutputMessage(MessageTypeOrDestinationEnum.Abort,
                         $"{GetNameOfSymbol()} is used as terminal or nonterminal symbol but not defined.",
                         nt.FirstPosition
                         );
-                     }
+                  }
 
                   if (!nt.isUsed)
-                     {
+                  {
                      OutputMessage(MessageTypeOrDestinationEnum.Warning,
                         $"The nonterminal symbol {GetNameOfSymbol()} is not used.",
                         nt.FirstPosition
                         );
-                     }
                   }
+               }
 
                if ((Symbol is TerminalSymbol t) && !t.isUsed)
-                  {
+               {
                   OutputMessage(MessageTypeOrDestinationEnum.Information,
                      $"The terminal symbol {GetNameOfSymbol()} is not used in any definition (may be used in look ahead)",
                      t.FirstPosition
                      );
-                  }
                }
             }
-         return maxMessageType;
          }
+         return maxMessageType;
+      }
 
       /*****************************************************************************
        *******            evaluate definition                              *********
@@ -974,14 +976,14 @@ namespace Grammlator {
 
       /// <summary>
       /// Store the definition in ActualListOfNontrivialDefinitions or in ActualListOfTrivialDefinitions (if OptimizeTrivialDefinitions).
-      /// <see cref="EvaluateMethodParameters(VoidMethodClass)"/>. Remove attributes from <see cref="ListOfAttributesOfGrammarRule"/>.
+      /// <see cref="EvaluateVoidMethodParameters(VoidMethodClass)"/>. Remove attributes from <see cref="ListOfAttributesOfGrammarRule"/>.
       /// </summary>
       /// <param name="constantPriority">0 or explicitly defined constant priority</param>
       /// <param name="priorityFunction">null or C# Int32 method</param>
       /// <param name="semanticMethod">null or C# void method</param>
       /// <param name="optimizeTrivialDefinitions">if false there will be no special handling of trivial definitions</param>
       private void EvaluateDefinition(Int32 constantPriority, IntMethodClass? priorityFunction, VoidMethodClass? semanticMethod, bool optimizeTrivialDefinitions)
-         {
+      {
          // ActualAttributeNumber is the number of the last attribute of the right side
          Int32 AttributestackAdjustment = NumberOfLastAttributeOfLeftSide - AttributeCounter;
          /* The code for positive adjustments of the attribute stack will be generated preceding the semantic actions,
@@ -991,7 +993,7 @@ namespace Grammlator {
 
          if ((NumberOfElements == 1) && (semanticMethod == null) && (priorityFunction == null) && (constantPriority == 0)
              && (AttributestackAdjustment == 0) && optimizeTrivialDefinitions)
-            {
+         {
             // Get and remove trival definition from ActualListOfElements 
             Symbol TrivialElement = ActualListOfElements[^1];
             ActualListOfElements.RemoveAt(ActualListOfElements.Count - 1);
@@ -999,40 +1001,40 @@ namespace Grammlator {
 
             // Add trivial definition to ActualListOfTrivialDefinitions if not yet present
             if (ActualListOfTrivialDefinitions.IndexOf(TrivialElement, ActualListOfTrivialDefinitions.Count - NumberOfTrivalDefinitions) != -1)
-               {
+            {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Warning,
                   $"The duplicate declaration of a trivial definition has been ignored: {TrivialElement.Identifier}."
                   );
-               }
+            }
             else
-               {
+            {
                ActualListOfTrivialDefinitions.Add(TrivialElement);
                NumberOfTrivalDefinitions++;
-               }
+            }
 
             // This checks if there are assignments to all attributes of the defined symbol and set their fields
-            EvaluateMethodParameters(semanticMethod: null);
+            EvaluateVoidMethodParameters(semanticMethod: null);
 
             // remove the attributes of the trivial definition from ListOfAttributesOfSyntaxRule
             ListOfAttributesOfGrammarRule.RemoveFromEnd(TrivialElement.NumberOfAttributes);
             AttributeCounter -= TrivialElement.NumberOfAttributes;
-            }
+         }
          else
-            {
+         {
             // Add new nontrivial definition to ActualListOfNontrivialDefinitions
 
             Symbol[] ElementArray;
             if (NumberOfElements <= 0)
-               {
+            {
                ElementArray = Array.Empty<Symbol>();
-               }
+            }
             else
-               {
+            {
                ElementArray = new Symbol[NumberOfElements];
                ActualListOfElements.CopyTo(ActualListOfElements.Count - NumberOfElements, ElementArray, 0, NumberOfElements);
                ActualListOfElements.RemoveFromEnd(NumberOfElements);
                NumberOfElements = 0;
-               }
+            }
 
             // Compute the NumberOfAttributesOfNewDefinition
             Int32 NumberOfAttributesOfNewDefinition = 0;
@@ -1050,41 +1052,42 @@ namespace Grammlator {
                    PriorityFunction = priorityFunction,
                    SemanticMethod = semanticMethod,
                    AttributeIdentifierStringIndexArray = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributesOfNewDefinition)
-                   };
+                };
 
             ActualListOfNontrivialDefinitions.Add(NewDefinition);
 
-            EvaluateMethodParameters(NewDefinition.SemanticMethod);
+            EvaluateIntMethodParameters(NewDefinition.PriorityFunction);
+            EvaluateVoidMethodParameters(NewDefinition.SemanticMethod);
 
-            // Remove the attributes of the new defintiion from ListOfAttributesOfSyntaxRule
+            // Remove the attributes of the new definition from ListOfAttributesOfSyntaxRule
             ListOfAttributesOfGrammarRule.RemoveFromEnd(NumberOfAttributesOfNewDefinition);
             AttributeCounter -= NumberOfAttributesOfNewDefinition;
-            }
+         }
 
          NumberOfElements = 0;
-         }
+      }
 
       /// <summary>
       /// Generate a definition for all terminal symbols without the terminal symbols in <paramref name="excludedTerminalSymbols"/>
       /// </summary>
       /// <param name="excludedTerminalSymbols"></param>
       private void EvaluateExcludedTerminalSymbols(BitArray excludedTerminalSymbols)
-         {
+      {
          for (int IndexOfTerminalSymbol = 0; IndexOfTerminalSymbol < excludedTerminalSymbols.Length; IndexOfTerminalSymbol++)
-            {
+         {
             if (excludedTerminalSymbols[IndexOfTerminalSymbol])
                continue;
             Symbol s = GlobalVariables.GetTerminalSymbolByIndex(IndexOfTerminalSymbol);
             for (int IndexOfAttribute = 0; IndexOfAttribute < s.AttributenameStringIndexList.Length; IndexOfAttribute++)
-               {
+            {
                AttributeCounter++;
                PushAttributeToListOfAttributesOfGrammarRule(s.AttributetypeStringIndexList[IndexOfAttribute], s.AttributenameStringIndexList[IndexOfAttribute]);
-               }
+            }
             Debug.Assert(NumberOfElements == 0);
             ElementVariantRecognized(s);
             EndOfDefinitionWithPriorityAndMethodRecognized(constPriority: 0, dynPriority: null, method: null);
-            }
          }
+      }
 
       /*********************************************************************************
        *******  This Checks the  Method Parameters And Computes Stack Offsets  *********
@@ -1095,12 +1098,43 @@ namespace Grammlator {
       /// </summary>
       private readonly MethodParameterStruct[] NoMethodParameters = Array.Empty<MethodParameterStruct>();
 
+      private static String AttributeParameterMatchError(AttributeStruct Attribute, MethodParameterStruct Parameter)
+      {
+         // Parameter.NameStringIndex == Attribute.NameStringIndex 
+         switch (Parameter.Implementation)
+         {
+         case ParameterImplementation.ValueOrInCall:
+         case ParameterImplementation.ValueOrInClearCall:
+            // A value parameter must not be associated with a left side attribute
+            if (Attribute.LeftSide)
+               return "left side attributes are only compatible with out or ref parameters";
+            break;
+         case ParameterImplementation.RefCall:
+            // A ref parameter must only be associated with an inOut attribute
+            // (which hides a left side attribute with the same name)
+            if (Attribute.OverlayType != AttributeStruct.OverlayEnum.inOutAttribute)
+               return "ref parameters must have an associated attribute at the right side and the left side of the definition";
+            break;
+         case ParameterImplementation.OutCall:
+         case ParameterImplementation.OutClearCall:
+            // An out parameter must be only associated with a left side attribute
+            if (!Attribute.LeftSide && Attribute.OverlayType != AttributeStruct.OverlayEnum.inOutAttribute)
+               return "out parameters must not access an attribute of the right side of the definition";
+            break;
+         default:
+            return "error in grammlator implementation (Parameter.Implementation not assigned or unknown)";
+         }
+
+         return "";
+      }
+
+
       /// <summary>
       /// Checks the methods parameters, computes their stack offsets and updates their implementation
       /// </summary>
       /// <param name="semanticMethod"></param>
-      private void EvaluateMethodParameters(VoidMethodClass? semanticMethod)
-         {
+      private void EvaluateVoidMethodParameters(VoidMethodClass? semanticMethod)
+      {
          Int32 NumberOfFirstAttribute = AttributeNumberAtStartOfDefinition + 1;
          Int32 NumberOfLastAttributeOfRightSide = AttributeCounter;
          Int32 maximalAttributenumber
@@ -1113,45 +1147,13 @@ namespace Grammlator {
          // A local copy of the reference to the method parameters array or - if no method - to an empty array
          MethodParameterStruct[] MethodParameters = semanticMethod?.MethodParameters ?? NoMethodParameters;
 
-         /***** local method *****/
-         static String AttributeParameterMatchError(AttributeStruct Attribute, MethodParameterStruct Parameter)
-            {
-            Debug.Assert(Parameter.NameStringIndex == Attribute.NameStringIndex);
-
-            // A value parameter must not be associated with a left side attribute
-            if (Attribute.LeftSide
-                && (Parameter.Implementation == ParameterImplementation.ValueOrInCall
-                   || Parameter.Implementation >= ParameterImplementation.ValueOrInClearCall)
-                   )
-               {
-               return "left side attributes are only compatible with out or ref parameters";
-               }
-
-            // A ref parameter must only be associated with an inOut attribute
-            // (which hides a left side attribute with the same name)
-            if (Parameter.Implementation == ParameterImplementation.RefCall
-                && Attribute.OverlayType != AttributeStruct.OverlayEnum.inOutAttribute)
-               {
-               return "ref parameters must have an associated attribute at the right side and the left side of the definition";
-               }
-
-            // An out parameter must be only associated with a left side attribute
-            if (!Attribute.LeftSide && Attribute.OverlayType != AttributeStruct.OverlayEnum.inOutAttribute // PROBLEM && .. had to be added
-                && (Parameter.Implementation == ParameterImplementation.OutCall
-                    || Parameter.Implementation == ParameterImplementation.OutClearCall))
-               {
-               return "out parameters must not access an attribute of the right side of the definition";
-               }
-            return "";
-            }
-
          /**************************************************************************************
           ****  Part 1: Evaluate And Update Method Parameters and Attribute.Implementation   ***
           **************************************************************************************/
 
          // for each method parameter find a corresponding attribute, check compatibility and assign offset
          for (Int32 parameterIndex = 0; parameterIndex < MethodParameters.Length; parameterIndex++)
-            {
+         {
             ref MethodParameterStruct MethodParameter = ref MethodParameters[parameterIndex];
             string methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
 
@@ -1162,14 +1164,14 @@ namespace Grammlator {
                     (x) => x.NameStringIndex == MethodParameters[parameterIndex].NameStringIndex
                 );
             if (AttributeIndex < 0)
-               {
+            {
                // no attribute with the same name as the formal parameter
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
               $"There is no attribute with the same name as the formal parameter \"{methodParameterName}\""
               + $" of method \"{semanticMethod!.MethodName }\".");
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
-               }
+            }
 
             AttributeStruct Attribute = ListOfAttributesOfGrammarRule[AttributeIndex];
 
@@ -1177,7 +1179,7 @@ namespace Grammlator {
                 || Attribute.PositionInProduction > maximalAttributenumber // redundant, might be relevant if access to context would be allowed
                 || Attribute.PositionInProduction < NumberOfFirstAttribute // redundant, might be relevant if access to context would be allowed
                 )
-               {
+            {
                // last attribute with same name as formal parameter is defined at a different level
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"The attribute \"{methodParameterName}\", "
@@ -1185,15 +1187,17 @@ namespace Grammlator {
                    + "is outside of the paranthesized grammar rule. "
                    );
                // TODO allow restricted access to attributes left of parantheses (restrictions?)
-               // TODO design and allow access (from priority function) to the attributes of the look ahead terminal symbol (to be implemented in analysis of a lower level definition)
+               // TODO design and allow access (from priority method) to the attributes of the look ahead terminal symbol (to be implemented in analysis of a lower level definition)
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
-               }
+            }
+
+            Debug.Assert(MethodParameter.NameStringIndex == Attribute.NameStringIndex);
 
             // Are attribute and parameter compatible?
-            String errorDescription = AttributeParameterMatchError(Attribute, MethodParameter); // PROBLEM not compatible to the following Assert
+            String errorDescription = AttributeParameterMatchError(Attribute, MethodParameter);
             if (!string.IsNullOrEmpty(errorDescription))
-               {
+            {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                    $"The attribute \"{methodParameterName}\", "
                    + $"and the associated formal parameter of method \"{semanticMethod!.MethodName}\", "
@@ -1202,24 +1206,26 @@ namespace Grammlator {
                    );
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
-               }
+            }
 
             // Has been checked already when the attribute had been added to MethodParameters[]:
             if (Attribute.TypeStringIndex != MethodParameter.TypeStringIndex)
-               {
+            {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
               $"The type \"{GlobalVariables.GetStringOfIndex(Attribute.TypeStringIndex)}\" of the attribute \"{GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)}\"" +
               $" differs from the parameters type \"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)}\" ");
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
-               }
+            }
 
             // MethodParameter passed all checks 
             MethodParameter.Offset = Attribute.PositionInProduction - maximalAttributenumber;
 
-            if (Attribute.OverlayType == AttributeStruct.OverlayEnum.inOutAttribute)
-               {
+            switch (Attribute.OverlayType)
+            {
+            case AttributeStruct.OverlayEnum.inOutAttribute:
+            {
                // FindLastIndex found the right side Attribute.
                Debug.Assert(!Attribute.LeftSide);
                // There is an overlayed left side attribute with same position and same name.
@@ -1233,9 +1239,11 @@ namespace Grammlator {
 
                OverlayedAttribute.Implementation = MethodParameter.Implementation;
                ListOfAttributesOfGrammarRule[OverlayedAttributeIndex] = OverlayedAttribute;
-               }
-            else if (Attribute.OverlayType == AttributeStruct.OverlayEnum.outClearAttribute)
-               {
+            }
+
+            break;
+            case AttributeStruct.OverlayEnum.outClearAttribute:
+            {
                Debug.Assert(MethodParameter.Implementation == ParameterImplementation.OutCall);
                // Attribute is in left side
                Debug.Assert(Attribute.LeftSide);
@@ -1248,26 +1256,27 @@ namespace Grammlator {
 
                // Search such parameter
                for (Int32 SearchIndex = 0; SearchIndex < MethodParameters.Length; SearchIndex++)
-                  {
+               {
                   if (MethodParameters[SearchIndex].NameStringIndex == OverlayedAttribute.NameStringIndex)
-                     {
+                  {
                      // Found: clearing will be done by OverlayedAttribute in access
                      //   and must not (!) be done by Attribute out access
                      MethodParameter.Implementation = ParameterImplementation.OutCall;
                      break;
-                     }
                   }
                }
-            else if (Attribute.OverlayType == AttributeStruct.OverlayEnum.inClearAttribute)
-               {
+            }
+            break;
+            case AttributeStruct.OverlayEnum.inClearAttribute:
                MethodParameter.Implementation = ParameterImplementation.ValueOrInClearCall;
-               }
+               break;
+            }
 
             Attribute.Implementation = MethodParameter.Implementation;
             ListOfAttributesOfGrammarRule[AttributeIndex] = Attribute;
 
             // end of loop over all parameters of method
-            }
+         }
 
          /**************************************************************************************
           ********  Part 2: Check Assignments To And Reset Left Side Attributes          *******
@@ -1282,41 +1291,139 @@ namespace Grammlator {
          for (Int32 indexOfLeftSideAttrib = ListOfAttributesOfGrammarRule.Count - 1
              ; indexOfLeftSideAttrib >= 0 && ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].Level == NestingLevel
              ; indexOfLeftSideAttrib--)
-            {
+         {
             AttributeStruct Attribute = ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib];
             if (Attribute.LeftSide)
-               {
+            {
                if (Attribute.OverlayType != AttributeStruct.OverlayEnum.inOutAttribute
                    && Attribute.Implementation == ParameterImplementation.NotAssigned
                   )
-                  {
+               {
                   // The following variant of implicit assignment of default values is commented out to force explicit assignment :
                   //    if (ListOfAttributesOfGrammarRule[attributIndex].PositionInProduction > aktuelleAttributnummer)
                   //       break; // value is set to standard by reserve()
 
                   // no value assigned to the attribute of the left side : create error message
                   if (semanticMethod == null)
-                     {
+                  {
                      P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                         "There must be an overlaying attribute or a method with a ref or out parameter with the name and type of the attribute "
                         + $"\"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\""
                         );
-                     }
+                  }
                   else
-                     {
+                  {
                      P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                         $"The method \"{semanticMethod.MethodName}\" "
                         + "must have a ref or out parameter with the name and type of the attribute "
                         + $"\"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\"");
-                     }
                   }
-               // is left side attribute may be used in one mor definition:
+               }
+               // The left side attribute may be used in another definition:
                //    reset OverlayType to outAttribute and Implementation to NotAssigned
                Attribute.OverlayType = AttributeStruct.OverlayEnum.outAttribute;
                Attribute.Implementation = ParameterImplementation.NotAssigned;
                ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib] = Attribute;
-               }
             }
          }
       }
+
+      private void EvaluateIntMethodParameters(IntMethodClass? semanticPriority)
+      {
+         Int32 NumberOfFirstAttribute = AttributeNumberAtStartOfDefinition + 1;
+         Int32 NumberOfLastAttributeOfRightSide = AttributeCounter;
+         Int32 maximalAttributenumber
+             = NumberOfLastAttributeOfLeftSide >= NumberOfLastAttributeOfRightSide
+             ? NumberOfLastAttributeOfLeftSide
+             : NumberOfLastAttributeOfRightSide;
+         Int32 CountOfAttributesOfLeftSide = NumberOfLastAttributeOfLeftSide - NumberOfFirstAttribute + 1;
+         Int32 CountOfAttributesOfRightSide = NumberOfLastAttributeOfRightSide - NumberOfFirstAttribute + 1;
+
+         if (semanticPriority == null || semanticPriority.MethodParameters == null)
+            return;
+         // A local copy of the reference to the method parameters array or - if no method - to an empty array
+         MethodParameterStruct[] MethodParameters = semanticPriority.MethodParameters;
+         // for each method parameter find a corresponding attribute, check compatibility and assign offset
+         for (Int32 parameterIndex = 0; parameterIndex < MethodParameters.Length; parameterIndex++)
+         {
+            ref MethodParameterStruct MethodParameter = ref MethodParameters[parameterIndex];
+            string methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
+
+            // find last attribute in the list of attributes which has the same name
+            Int32 AttributeIndex =
+                ListOfAttributesOfGrammarRule.FindLastIndex
+                (
+                    (x) => x.NameStringIndex == MethodParameters[parameterIndex].NameStringIndex
+                );
+            if (AttributeIndex < 0)
+            {
+               // no attribute with the same name as the formal parameter
+               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+              $"There is no attribute with the same name as the formal parameter \"{methodParameterName}\""
+              + $" of method \"{semanticPriority!.MethodName }\".");
+               MethodParameter.Implementation = ParameterImplementation.NotAssigned;
+               continue;
+            }
+
+            AttributeStruct Attribute = ListOfAttributesOfGrammarRule[AttributeIndex];
+
+            Debug.Assert(MethodParameter.NameStringIndex == Attribute.NameStringIndex);
+
+            if (Attribute.Level < NestingLevel // access to context is not implemented
+                || Attribute.PositionInProduction > maximalAttributenumber // redundant, might be relevant if access to context would be allowed
+                || Attribute.PositionInProduction < NumberOfFirstAttribute // redundant, might be relevant if access to context would be allowed
+                )
+            {
+               // last attribute with same name as formal parameter is defined at a different level
+               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                   $"The attribute \"{methodParameterName}\", "
+                   + $"which is used as formal parameter of method \"{semanticPriority!.MethodName}\", "
+                   + "is outside of the paranthesized grammar rule. "
+                   );
+               // TODO allow restricted access to attributes left of parantheses (restrictions?)
+               // TODO design and allow access (from priority function) to the attributes of the look ahead terminal symbol (to be implemented in analysis of a lower level definition)
+               MethodParameter.Implementation = ParameterImplementation.NotAssigned;
+               continue;
+            }
+
+            Debug.Assert(MethodParameter.NameStringIndex == Attribute.NameStringIndex);
+            // A parameter of a priority method must be associated with a left side attribute
+            if (Attribute.LeftSide)
+            {
+               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                   $"The formal parameter \"{methodParameterName}\" of the priority method \"{semanticPriority!.MethodName}\" "
+                   + $"must not be associated to an attribute of the left side of the definition");
+               MethodParameter.Implementation = ParameterImplementation.NotAssigned;
+               continue;
+            }
+
+            // A parameter of a priority method must be a value or an in parameter
+            if (MethodParameter.Implementation != ParameterImplementation.ValueOrInCall
+                && MethodParameter.Implementation != ParameterImplementation.ValueOrInClearCall)
+            {
+               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                   $"The formal parameter \"{methodParameterName}\", "
+                   + $"of the priority method \"{semanticPriority!.MethodName}\", "
+                   + "is not a value or a in parameter."
+                   );
+               MethodParameter.Implementation = ParameterImplementation.NotAssigned;
+               continue;
+            }
+
+            // Has been checked already when the attribute had been added to MethodParameters[]:
+            if (Attribute.TypeStringIndex != MethodParameter.TypeStringIndex)
+            {
+               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+              $"The type \"{GlobalVariables.GetStringOfIndex(Attribute.TypeStringIndex)}\" of the attribute \"{GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)}\"" +
+              $" differs from the parameters type \"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)}\" ");
+               MethodParameter.Implementation = ParameterImplementation.NotAssigned;
+               MethodParameter.Implementation = ParameterImplementation.NotAssigned;
+               continue;
+            }
+
+            // MethodParameter passed all checks 
+            MethodParameter.Offset = Attribute.PositionInProduction - maximalAttributenumber;
+         }
+      }
    }
+}

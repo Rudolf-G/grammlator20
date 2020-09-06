@@ -132,8 +132,12 @@ namespace Grammlator {
          DisplayStates(Protocol);
          outputMessage(MessageTypeOrDestinationEnum.StateProtocol1, Protocol.ToString());
          Protocol.Clear();
-         if (ContainsStateWithoutActions())
-            outputMessage(MessageTypeOrDestinationEnum.Abort, "Check your grammar: there is a state without actions");
+
+         ParserState? ErrorState = ContainsStateWithoutActions();
+         if (ErrorState != null)
+            outputMessage(MessageTypeOrDestinationEnum.Abort,
+               $"Check your grammar (endless loop?). State {ErrorState.IdNumber + 1} has no actions caused by terminal symbols."
+               );
 
          // ----- Do phase 4
          outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 4: optimizations");
@@ -147,8 +151,12 @@ namespace Grammlator {
          DisplayStates(Protocol); // dazu evtl. die Items der Zustände erweitern ???
          outputMessage(MessageTypeOrDestinationEnum.StateProtocol2, Protocol.ToString());
          Protocol.Clear();
-         if (ContainsStateWithoutActions())
-            outputMessage(MessageTypeOrDestinationEnum.Abort, "Check your grammar: there is a state without actions");
+
+         ErrorState = ContainsStateWithoutActions();
+         if (ErrorState!=null)
+            outputMessage(MessageTypeOrDestinationEnum.Abort, 
+               $"Check your grammar (endless loop?). State {ErrorState.IdNumber+1} has no actions caused by terminal symbols."
+               );
          Protocol.Capacity = 0;
 
          // ----- Do phase 5 with a specific code generator
@@ -195,15 +203,14 @@ namespace Grammlator {
          return foundError;
       }
 
-      public static bool ContainsStateWithoutActions()
+      public static ParserState? ContainsStateWithoutActions()
       {
-         bool foundError = false;
          foreach (ParserState state in ListOfAllStates)
          {
             if (state.Actions.Count == 0)
-               foundError = true;
+               return state;
          }
-         return foundError;
+         return null;
       }
    }
 }

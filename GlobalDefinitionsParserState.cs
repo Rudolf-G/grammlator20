@@ -121,7 +121,7 @@ namespace Grammlator {
          else if (StateStackNumber <= -2)
          {
             sb.Append(" (*")
-              .Append(-StateStackNumber-2)
+              .Append(-StateStackNumber - 2)
               .Append(") ");
          }
          sb.AppendLine(": ")
@@ -133,8 +133,8 @@ namespace Grammlator {
          return sb;
       }
 
-      internal override void NameToSb(StringBuilder sb)
-          => sb.Append(P5CodegenCS.GotoLabel(this, false));
+      internal override StringBuilder NameToSb(StringBuilder sb)
+          => sb.Append("goto ").Append(P5CodegenCS.GotoLabel(this, false));
 
       /// <summary>
       /// Checks the states actions whether there is exactly one action of type
@@ -346,8 +346,10 @@ namespace Grammlator {
          //         might solving conflicts lead to endless loops?
 
          // Reduce the subsetOfConflictSymbols to the intersection of conflicting actions,
-         // find the highest constant priority action of those actions and all  dynamic priotity conflicting actions
-         var dynamicPriorityActions = new ListOfParserActions(10); // usually will be empty or very short
+         // find the highest constant priority action of those actions and all  dynamic priority conflicting actions
+         var dynamicPriorityActions
+            = new ListOfParserActions(10); // usually will be empty or very short
+
          int indexOfActionWithPriority
             = FindHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols, dynamicPriorityActions);
 
@@ -372,7 +374,7 @@ namespace Grammlator {
                         dynamicPriorityActions: dynamicPriorityActions
                 );
 
-            indexOfActionWithPriority = this.Actions!.Count;
+            // indexOfActionWithPriority = this.Actions!.Count;
             this.Actions.Add(prioritySelectAction);
             prioritySelectAction.IdNumber = GlobalVariables.ListOfAllPrioritySelectActions.Count;
             GlobalVariables.ListOfAllPrioritySelectActions.Add(prioritySelectAction);
@@ -381,8 +383,7 @@ namespace Grammlator {
          }
 
          // Log the conflict
-         sb.AppendLine()
-            .Append(" caused by == ");
+         sb.AppendLine().Append("caused by == ");
          subsetOfConflictSymbols.BitsToStringbuilder(
              sb,
              GlobalVariables.TerminalSymbolByIndex,
@@ -391,57 +392,72 @@ namespace Grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
+         BitArray thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Length);// TODO allocate only once
+
          // action might be removed from State.Actions inside the following loop.
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
          // Hence a loop with an eplicit index is used.
 
          // For each action in the parser state 
-         // determine action symbols and priority and determine the action with the highest priority
+         // log the actions priority and determine the action with the highest priority
+         // remove the conflict symbols from lower priority actions
          for (Int32 IndexOfAction = 0; IndexOfAction < State!.Actions!.Count; IndexOfAction++)
          {
             ParserAction action = State.Actions[IndexOfAction];
-            if (!(action is ConditionalAction conditionalAction))
-               continue;
-
-            if (action is NonterminalTransition)
+            if (action is NonterminalTransition || !(action is ConditionalAction conditionalAction))
                continue;
 
             BitArray symbolsOfThisAction = conditionalAction.TerminalSymbols;
             if (symbolsOfThisAction == null)
                continue;
 
+            if (thisActionsConflictSymbols.Assign(subsetOfConflictSymbols).And(symbolsOfThisAction).Empty())
+               continue; // no conflict
+
             if (IndexOfAction == indexOfActionWithPriority)
             {
-               sb.Append("  priority ")
-                 .Append(conditionalAction.Priority)
-                 .Append(" => not modified: ");
+               if (dynamicPriorityActions.Count > 0)
+                  symbolsOfThisAction.ExceptWith(subsetOfConflictSymbols); // moved to PrioritySelectAction
+               else
+               {
+                  sb.Append("  priority ");
+                  conditionalAction.AppendPriorityTo(sb);
+                  sb.Append(" => highest constant priority: ");
 
-               conditionalAction.ToStringbuilder(sb)
-                 .AppendLine();
+                  conditionalAction.NextAction.NameToSb(sb)
+                    .AppendLine();
+               }
+            }
+            else if (action is PrioritySelectAction)
+            {
+               conditionalAction.NextAction.NameToSb(sb).AppendLine();
             }
             else
             {
                symbolsOfThisAction.ExceptWith(subsetOfConflictSymbols);
+
                // Write log:
-               sb.Append("  priority ")
-                 .Append(conditionalAction.Priority)
-                 .Append(" => modified to: ");
-
-               conditionalAction.ToStringbuilder(sb)
-                 .AppendLine();
-
-               if (symbolsOfThisAction.Empty())
+               if (!(conditionalAction.HasPriorityFunction()))
                {
-                  // Delete actions without remaining terminal symbols.
-                  // This may cause that other actions can not be reached.
-                  // If not deleted there might result code with If(true)... and code that can be never be reached
+                  sb.Append("  priority: ");
+                  conditionalAction.AppendPriorityTo(sb);
+                  sb.AppendLine(" => lost this conflict ");
+                  sb.Append("      ");
+                  conditionalAction.NextAction.NameToSb(sb).AppendLine();
 
-                  sb.AppendLine("    This action has been deleted because no input symbols remained.");
-
-                  State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
-                  // This can not be replaced by State.Actions.RemoveAt(IndexOfAction);
-                  // because then the indexes (which are used in loops) would skip one element
+                  if (symbolsOfThisAction.Empty())
+                     sb.AppendLine("    This action has been deleted because no input symbols remained.");
                }
+
+            }
+
+            if (symbolsOfThisAction.Empty())
+            {
+               // Delete actions without remaining terminal symbols.
+               State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
+
+               // This can not be replaced by State.Actions.RemoveAt(IndexOfAction);
+               // because then the indexes (which are used in loops) would skip one element
             }
          } // for (int IndexOfAction ...
 
@@ -474,7 +490,8 @@ namespace Grammlator {
          // determine action symbols and priority and determine the action with the highest priority
          for (Int32 IndexOfAction = 0; IndexOfAction < this.Actions!.Count; IndexOfAction++)
          {
-            if (!(this.Actions[IndexOfAction] is ConditionalAction action))
+            if (!(this.Actions[IndexOfAction] is ConditionalAction action)
+               || (this.Actions[IndexOfAction] is NonterminalTransition))
                continue;
 
             // Has this action at least one symbol in common with the subsetOfConflictSymbols
@@ -482,8 +499,7 @@ namespace Grammlator {
             if (symbolsOfThisAction == null)
                continue; // it hasn't, no conflict
 
-            thisActionsConflictSymbols.Assign(subsetOfConflictSymbols).And(symbolsOfThisAction);
-            if (thisActionsConflictSymbols.Empty())
+            if (thisActionsConflictSymbols.Assign(subsetOfConflictSymbols).And(symbolsOfThisAction).Empty())
                continue; // no, it hasn't
 
             // Yes, it has
@@ -584,7 +600,7 @@ namespace Grammlator {
 
          Actions.RemoveFromEnd(DeletedActionsCount);
       }
-      
+
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
          base.Generate(codegen, out accept); // throw not implemented exception

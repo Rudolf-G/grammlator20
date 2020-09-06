@@ -2,6 +2,7 @@ using GrammlatorRuntime;
 using System;
 using System.Diagnostics;
 using System.Text;
+using System.Windows.Xps;
 
 namespace Grammlator {
    /// <summary>
@@ -55,6 +56,12 @@ namespace Grammlator {
    /// Grammlator syntaxchecker Level 0: input for lexical analysis Lex1
    /// </summary>
    internal class P1cInputClassifier: IGrammlatorInput<ClassifierResult> { //GrammlatorInput<ClassifierResult> {
+
+      // TODO use the Rune struct https://docs.microsoft.com/en-gb/dotnet/api/system.text.rune?view=netcore-3.1
+      // and the EnumerateRunes Method
+      // https://docs.microsoft.com/en-gb/dotnet/api/system.memoryextensions.enumeraterunes?view=netcore-3.1
+      //  foreach (Rune r in s){}
+      // bzw. explzitem Aufruf der enumerator-Methoden https://docs.microsoft.com/de-de/dotnet/csharp/iterators
 
       /// <summary>
       /// Constructor
@@ -110,17 +117,7 @@ namespace Grammlator {
          get; protected set;
          }
 
-      ///// <summary>
-      ///// Returns a local stack with the attributes of Symbol (if any). It is empty if accepted == true.
-      ///// </summary>
-      //protected StackOfMultiTypeElements AttributesOfSymbol {
-      //   get;
-      //   // private set{ _AttributesOfSymbol = value; }
-      //   } = new StackOfMultiTypeElements(10);
-
       Int32 PositionOfSymbol;
-
-
 
       /// <summary>
       /// All lines starting (after trimming) with the <see cref="GrammarlineMarker"/> (e.g. "//|"),

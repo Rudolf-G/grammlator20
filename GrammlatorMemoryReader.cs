@@ -130,14 +130,15 @@ namespace Grammlator {
 
          // Find end of line
          int eolIndex = Remainder.IndexOfAny<char>('\r', '\n');
-
+         ReadOnlyMemory<char> result;
          // Cases: no end of line, '\r', "\r\n" or '\n' 
          EoLLength = 1; // default: /r or /n
          if (eolIndex < 0)
             { // no end of line
             EoLLength = 0;
+            result = Source[Position..^1];
             Position = Source.Length; // last line of input
-            return Source[Position..^1];
+            return result;
             }
          // else
          if (Remainder[eolIndex] == '\r'
@@ -147,7 +148,7 @@ namespace Grammlator {
             EoLLength = 2; // "\r\n"
             }
 
-         ReadOnlyMemory<char> result = Source[Position..(Position + eolIndex + EoLLength)];
+         result = Source[Position..(Position + eolIndex + EoLLength)];
          Position += result.Length;
          return result;
          }

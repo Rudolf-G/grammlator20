@@ -135,7 +135,7 @@ namespace grammlator {
             }
          }
 
-      private void MenuItemTranslateStandard_Click(Object sender, RoutedEventArgs e)
+      private void MenuItemTranslateStandard_Click(Object _1, RoutedEventArgs _2)
          => Translate();
 
       private void MenuItemLoadSourceFile_Click(Object sender, RoutedEventArgs e)
@@ -267,9 +267,9 @@ namespace grammlator {
 
          // Display statistics
          BufferMessage(MessageTypeOrDestinationEnum.Information,
-             $"Input  contains {SourceTextBox.Text.Length,7} characters"); // in {SourceTextBox.GetLineFromCharIndex(Int32.MaxValue),5} lines.");
+             $"Input  contains {SourceTextBox.Text.Length,7} characters, {SourceTextBox.Text.CountLines(),7} lines");
          BufferMessage(MessageTypeOrDestinationEnum.Information,
-             $"Result contains {ResultText.Length,7} characters"); // {ResultTextBox.GetLineFromCharIndex(Int32.MaxValue),5} lines.");
+             $"Result contains {ResultText.Length,7} characters, {ResultText.CountLines(),7} lines");
 
 
          // If there is an error move the cursor in SourceTextBox to the position of the error
@@ -395,7 +395,7 @@ namespace grammlator {
          ResultTextBox.Focus();
          }
 
-      private void CompareIgnoringSeparators_Click(Object sender, RoutedEventArgs e)
+      private void CompareIgnoringSeparators_Click(Object _1, RoutedEventArgs _2)
          {
          /* Compare result and source 
           * and set both cursors to the first lines which are different.
@@ -415,7 +415,7 @@ namespace grammlator {
       const Int32 ListboxDistanceAtRight = 35; // used to avoid horizontal scrollbar in Listbox
 
 #pragma warning disable IDE1006 // Benennungsstile
-      private void lb_SizeChanged(Object sender, SizeChangedEventArgs e)
+      private void lb_SizeChanged(Object sender, SizeChangedEventArgs _)
          { // Adjust Width of contained TextBox (may be contained in a ListBoxItem)
          if (!(sender is ListBox lb))
             return;

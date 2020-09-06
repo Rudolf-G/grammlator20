@@ -36,8 +36,6 @@ namespace Grammlator
 
       private void OutputAndClearCodeLine()
       {
-         //if (resultbuilder.Length > 0)
-         //   resultbuilder.AppendLine();
          resultbuilder.Append(CodeLine.TrimEnd(' '));
          resultbuilder.AppendLine();
          CodeLine.Clear();
@@ -111,7 +109,7 @@ namespace Grammlator
       {
          // new line if length is already beyond column
          if (LineLength > column)
-            OutputandClearLine();
+            AppendLine();
          // fill up to column with space 
          CodeLine.Insert(CodeLine.Length, " ", column - LineLength);
       }
@@ -179,14 +177,14 @@ namespace Grammlator
       public void AppendLine(Char c)
       {
          CodeLine.Append(c);
-         OutputandClearLine();
+         AppendLine();
       }
 
       public void AppendWithOptionalLinebreak(Char c)
       {
          if (LineLength > 10 && (LineLength + 1) >= LineLengthLimit)
          {
-            OutputandClearLine();
+            AppendLine();
             Indent();
          }
          CodeLine.Append(c);
@@ -258,7 +256,7 @@ namespace Grammlator
       /// </summary>
       public P5CodegenCS AppendLineAndIndent()
       {
-         OutputandClearLine();
+         AppendLine();
          IndentExactly();
          return this;
       }
@@ -281,7 +279,7 @@ namespace Grammlator
       public P5CodegenCS AppendLine(String s)
       {
          CodeLine.Append(s);
-         OutputandClearLine();
+         AppendLine();
          return this;
       }
 
@@ -292,14 +290,17 @@ namespace Grammlator
       public void AppendLineWithOptionalLinebreak(params String[] stringsToAppend)
       {
          AppendWithOptionalLinebreak(stringsToAppend);
-         OutputandClearLine();
+         AppendLine();
       }
 
       /// <summary>
-      /// Output the code line, if not empty, and clear the code line
+      /// Trim and output the code line, even if empty, and clear the code line
       /// </summary>
-      public void OutputandClearLine() =>
-          OutputAndClearCodeLine();
+      public P5CodegenCS AppendLine()
+      {
+         OutputAndClearCodeLine();
+         return this;
+      }
 
       public void AppendWithPrefix(String Prefix, String s)
       {
@@ -379,7 +380,7 @@ namespace Grammlator
          if (!string.IsNullOrEmpty(comment))
             Append(" // ").
                Append(comment);
-         OutputandClearLine();
+         AppendLine();
       }
 
       // keine neue Zeile anfangen
@@ -426,7 +427,7 @@ namespace Grammlator
          SetCol(0);
          CodeLine.Append(s)
              .Append(": ");
-         OutputandClearLine();
+         AppendLine();
       }
 
 
@@ -461,22 +462,20 @@ namespace Grammlator
          Append(") ");
       }
 
-      public void GenerateSemanticMethodCall(VoidMethodClass semantischeAktion)
+      public P5CodegenCS GenerateSemanticMethodCall(MethodClass semanticMethod, bool asInstruction)
       {
-         IndentExactly();
-         OutputandClearLine(); // empty line preceding method call
-         IndentAndAppend(semantischeAktion.MethodName);
+         IndentAndAppend(semanticMethod.MethodName);
          Append("(");
 
          // Generate actual parameters for method call
          IndentationLevel++;
 
          Int32 count = 0;
-         foreach (MethodParameterStruct Parameter in semantischeAktion.MethodParameters)
+         foreach (MethodParameterStruct Parameter in semanticMethod.MethodParameters)
          {
             string ParameterTypeString=GlobalVariables.GetStringOfIndex(Parameter.TypeStringIndex);
 
-            OutputandClearLine();
+            AppendLine();
             IndentAndAppend(GlobalVariables.GetStringOfIndex(Parameter.NameStringIndex));
             Append(": ");
             switch (Parameter.Implementation)
@@ -522,16 +521,17 @@ namespace Grammlator
                }
             }
             count++;
-            if (count < semantischeAktion.MethodParameters.Length)
+            if (count < semanticMethod.MethodParameters.Length)
                Append(", ");
          }
 
-         if (semantischeAktion.MethodParameters.Length > 0)
+         if (semanticMethod.MethodParameters.Length > 0)
             IndentExactly();
-         AppendLine("); ");
+         Append(")");
+
          IndentationLevel--;
 
-         OutputandClearLine(); // empty line following method call
+         return this;
       }
 
       public void GenerateAttributeStackAdjustment(Int32 AttributkellerKorrektur)

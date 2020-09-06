@@ -537,7 +537,7 @@ namespace Grammlator {
             .IdentifierAndAttributesToSB(reduceStringBuilder)
             .Append("= ");
          Definition
-             .ToStringbuilder(reduceStringBuilder, Definition!.Elements.Length + 1);
+             .ElementsToStringbuilder(reduceStringBuilder, Definition!.Elements.Length + 1);
          String description = reduceStringBuilder.ToString();
          reduceStringBuilder.Clear();
 
