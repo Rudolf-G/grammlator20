@@ -422,10 +422,8 @@ namespace Grammlator {
                {
                   sb.Append("  priority ");
                   conditionalAction.AppendPriorityTo(sb);
-                  sb.Append(" => highest constant priority: ");
-
-                  conditionalAction.NextAction.NameToSb(sb)
-                    .AppendLine();
+                  sb.Append(" => highest priority: ");
+                  conditionalAction.NextAction.NameToSb(sb).AppendLine();
                }
             }
             else if (action is PrioritySelectAction)
@@ -439,10 +437,9 @@ namespace Grammlator {
                // Write log:
                if (!(conditionalAction.HasPriorityFunction()))
                {
-                  sb.Append("  priority: ");
+                  sb.Append("  priority ");
                   conditionalAction.AppendPriorityTo(sb);
-                  sb.AppendLine(" => lost this conflict ");
-                  sb.Append("      ");
+                  sb.Append(" => is overruled: ");
                   conditionalAction.NextAction.NameToSb(sb).AppendLine();
 
                   if (symbolsOfThisAction.Empty())

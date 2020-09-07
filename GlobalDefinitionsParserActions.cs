@@ -366,6 +366,13 @@ namespace Grammlator {
          return sb;
       }
 
+      internal override StringBuilder NameToSb(StringBuilder sb)
+      {
+         DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
+         ElementsToStringbuilder(sb, Int32.MaxValue);
+         return sb;
+      }
+
       internal void ElementsToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
           => Elements.Append(sb, MarkiertesElement, this.AttributeIdentifierStringIndexArray);
 

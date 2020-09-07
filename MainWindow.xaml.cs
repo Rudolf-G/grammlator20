@@ -473,6 +473,8 @@ namespace grammlator {
                pos = SourceTextBox.Text.Length - 1;
             LineNumber = SourceTextBox.GetLineIndexFromCharacterIndex(pos);
             ColumnNumber = pos - SourceTextBox.GetCharacterIndexFromLineIndex(LineNumber);
+            if (ColumnNumber < 0)
+               ColumnNumber = 0; // repair strange results of GetCharacterIndexFromLineIndex
             MessageIncludingPosition = $"Line {LineNumber + 1,5} column {ColumnNumber + 1,3} {message}";
             }
          else
