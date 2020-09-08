@@ -334,11 +334,11 @@ namespace Grammlator {
             return DefinitionToReplace; // notnull dummy
 
          case RelationtypeEnum.ComputeBranches:
-            BranchcasesList ListOfBranchcases = ConstructListOfBranchcases(StatesOfThisLevel, definedSymbol);
+            BranchcasesList SortedListOfBranchcases = ConstructListOfBranchcases(StatesOfThisLevel, definedSymbol);
             ParserAction NextAction =
-                    ListOfBranchcases.Count == 1
-                    ? ListOfBranchcases[0].BranchcaseAction // no branch, single action
-                    : FindOrConstructBranch(ListOfBranchcases);
+                    SortedListOfBranchcases.Count == 1
+                    ? SortedListOfBranchcases[0].BranchcaseAction // no branch, single action
+                    : FindOrConstructBranch(SortedListOfBranchcases);
 
             StatesOfThisLevel.Clear();
 
@@ -436,7 +436,8 @@ namespace Grammlator {
       }
 
       /// <summary>
-      /// Construct a list (action/StateStacknumber) which contains for each state the action resulting if the inputSymbol is input into this state.
+      /// Construct a sorted list (action/StateStacknumber) which for each state contains
+      /// the action resulting if the inputSymbol is input into this state.
       /// If all actions are equivalent remove all except the first entries from the list.
       /// </summary>
       /// <param name="StatesAcceptingThisSymbol">List of parserstates accepting the <paramref name="inputSymbol"/>"/></param>
@@ -665,14 +666,17 @@ namespace Grammlator {
 
       static int SimplifiedNextActionRecursionCount = 0;
       /// <summary>
-      /// If action has a chain of unambigous next actions the last of these will be returned,
-      /// otherwise the action. Next actions of type <see cref="Definition"/> are not removed.
-      /// This method performs different optimizations. It must be used to avoid unnecessary look ahead.
+      /// This method performs and iterates different essential transformations.
+      /// Nonterminal transitions which are already analyzed (definition replaced by some other next action) are replaced by their next action.
+      /// States with only one next action and no other effects are replaced by this action.
+      /// This removes unnecessary look ahead operations.
+      /// Chains of reduce actions are shortened if possible.
       /// </summary>
       /// <param name="action">the action to start from</param>
       /// <returns>the last action of the chain of redundant actions</returns>
       internal static ParserAction SimplifiedNextAction(ParserAction action)
       {
+         return action.Simplify();
          switch (action)
          {
          case NonterminalTransition nonterminalTransition:
@@ -698,8 +702,10 @@ namespace Grammlator {
 
             if (state.StateStackNumber != -1)
                return action; // state modifies state stack and can not be skipped
+
             if (!(state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip))
                return action; // more than one action or not a lookahead action
+
             if (ActionToSkip.NextAction is Definition)
                return action; // definitions must not be moved out of the state
 
@@ -768,7 +774,7 @@ namespace Grammlator {
             {
                BranchcaseStruct branchCase = branchCaseList[i];
                // ????????????????????? branchCase.BranchcaseAction = SimplifiedNextAction(branchCase.BranchcaseAction);
-               // TOCHECK may this cause endless recursion ?? 
+               // TOCHECK Can this cause endless recursion ?? 
                branchCaseList[i] = branchCase;
             }
 
@@ -887,68 +893,46 @@ namespace Grammlator {
          SimplifyChainOfReductions(Reduction);
       }
 
-      public static BranchAction FindOrConstructBranch(BranchcasesList newListOfCases)
+      /// <summary>
+      /// Finds a branch with a list equal to the new list or containing the new list or contained in the new list (and be expanded).
+      /// Else a new branch will be constructed and returned.
+      /// </summary>
+      /// <param name="newSortedListOfCases"></param>
+      /// <returns></returns>
+      public static BranchAction FindOrConstructBranch(BranchcasesList newSortedListOfCases)
       {
-         /* Optimierungsmöglichkeit (derzeit teils realisiert ??):
-          * es können bereits vorhandene Verzweigungen gesucht werden, die die
-          * neue Verzweigung enthalten oder mit ihr zu einer komplexeren ver-
-          * einigt werden koennen 
-          * Achtung: einfach implementierbare Falllisten sollten nicht Teil von komplizierten werden !!!!
-         */
+         // Not implemented: combine branches with compatible cases
 
-         // Search: compare with all existing branches
-         foreach (BranchAction NextExistingBranch in GlobalVariables.ListOfAllBranchActions)
+         // search in all existing branches after normalizing ("simplyfying") the actions of the existing branches
+         foreach (BranchAction ExistingBranch in GlobalVariables.ListOfAllBranchActions)
          {
-            BranchcasesList NextExistingBranchCases = NextExistingBranch.ListOfCases;
+            BranchcasesList ExistingListOfCases = ExistingBranch.ListOfCases;
 
-            // also supersets will be accepted
-            BranchcaseStruct NextNewCase;
-
-            // test all cases of the new list whether they are contained in NextExistingBranch
-            for (Int32 NewCaseindex = 0; NewCaseindex < newListOfCases.Count; NewCaseindex++)
+            for (int i = 0; i < ExistingListOfCases.Count; i++)
             {
-               NextNewCase = newListOfCases[NewCaseindex];
-
-               // search the BranchcaseCondition of the new list in the existing branch
-               Boolean NewCaseIsContainedInBranch = false;
-               for (Int32 ExistingCaseindex = 0; ExistingCaseindex < NextExistingBranchCases.Count; ExistingCaseindex++)
-               {
-                  // Select the next case to compare and ignore all cases with smaller BranchcaseCondition
-                  BranchcaseStruct NextExistingCase = NextExistingBranchCases[ExistingCaseindex];
-                  if (NextExistingCase.BranchcaseCondition == NextNewCase.BranchcaseCondition)
-                  {
-                     // The following SimplifiedNextAction() may reduces the number of generated lines.
-                     // Is this the right place to do it???
-                     NextExistingCase.BranchcaseAction = SimplifiedNextAction(NextExistingCase.BranchcaseAction);
-                     NextExistingBranchCases[ExistingCaseindex] = NextExistingCase;
-
-                     NewCaseIsContainedInBranch =
-                        NextExistingCase.BranchcaseAction == NextNewCase.BranchcaseAction;
-
-                     break; // found the unique NextExistingCase with .BranchcaseCondition == NextNewCase.BranchcaseCondition
-                  }
-               }
-
-               if (!NewCaseIsContainedInBranch)
-                  goto CheckNextExistingBranch; // NextNewCase is not contained in NextExistingBranch=> check next exisitng branch 
-
-               // continue: check next case of newListOfCases
+               BranchcaseStruct c = ExistingListOfCases[i];
+               c.BranchcaseAction = SimplifiedNextAction(c.BranchcaseAction);
+               ExistingListOfCases[i] = c;
             }
 
-            // new list is contained in NextExistingBranch
-            // not implemented: expand an existing case list if there is no contradiction
 
-            return NextExistingBranch; // return the branch (equal or superset)
+            BranchcasesList.CompareResult cr = ExistingListOfCases.Containing(newSortedListOfCases);
+            if (cr == BranchcasesList.CompareResult.contains || cr == BranchcasesList.CompareResult.equal)
+               return ExistingBranch;
 
-CheckNextExistingBranch:
-            ;
+            if (cr == BranchcasesList.CompareResult.isContained)
+            {  // the existing branch is contained in the new one: modify it
+               ExistingBranch.ListOfCases = newSortedListOfCases;
+               return ExistingBranch;
+            }
+
          }
 
          // all existing branches have been checked and no one contains the new list of cases
 
          // Construct a new branch
          var NewBranch = new BranchAction(
-             ListOfCases: new BranchcasesList(newListOfCases),
+             ListOfCases: new BranchcasesList(newSortedListOfCases),
              IdNumber: GlobalVariables.ListOfAllBranchActions.Count);
 
          GlobalVariables.ListOfAllBranchActions.Add(NewBranch);

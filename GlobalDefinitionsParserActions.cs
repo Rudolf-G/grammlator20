@@ -201,6 +201,15 @@ namespace Grammlator {
       /// <param name="sb"></param>
       internal virtual StringBuilder NameToSb(StringBuilder sb)
          => ToStringbuilder(sb); // some methods overwrite NameToSb to avoid endless recursion
+
+      /// <summary>
+      /// Return a "simpler" <see cref="ParserAction"/> which can replace this action or return this
+      /// </summary>
+      /// <returns></returns>
+      internal virtual ParserAction Simplify()
+      {
+         return this;
+      }
    }
 
    internal class ListOfParserActions : List<ParserAction> {
@@ -627,12 +636,46 @@ namespace Grammlator {
 
       internal override StringBuilder NameToSb(StringBuilder sb)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
+
+      private int SimplifyRecursionCount = 0;
+      internal override ParserAction Simplify()
+      {
+         if (SimplifyRecursionCount > 0)
+            return this;
+
+         List<BranchcaseStruct> branchCaseList = ListOfCases;
+
+         // Simplify the actions of a branch 
+         for (Int32 i = 0; i < branchCaseList.Count; i++)
+         {
+            SimplifyRecursionCount++;
+
+            BranchcaseStruct branchCase = branchCaseList[i];
+            branchCase.BranchcaseAction = branchCase.BranchcaseAction.Simplify();
+            branchCaseList[i] = branchCase;
+
+            SimplifyRecursionCount--;
+         }
+
+         Debug.Assert(branchCaseList.Count > 0);
+
+         // test if all cases now (after optimization) have the same action
+         BranchcaseStruct branchCase0 = branchCaseList[0];
+         for (Int32 i = 1; i < branchCaseList.Count; i++)
+         {
+            if (branchCaseList[i].BranchcaseAction != branchCase0.BranchcaseAction)
+               return this; // at least one is different: return the (optimized) branch
+         }
+
+         // all cases have the same action 
+         return branchCase0.BranchcaseAction;
+      }
    }
 
    internal class BranchcasesList : List<BranchcaseStruct> {
       internal BranchcasesList(Int32 capacity) : base(capacity) { }
 
-      internal BranchcasesList()
+      private BranchcasesList()
       {
       }
 
@@ -646,6 +689,59 @@ namespace Grammlator {
       int Comparision(BranchcaseStruct a, BranchcaseStruct b)
       {
          return a.BranchcaseCondition - b.BranchcaseCondition;
+      }
+
+      internal enum CompareResult { equal, contains, isContained, different };
+      /// <summary>
+      /// Compares this and the <see cref="BranchcasesList"/> <paramref name="other"/> 
+      /// (both must be sorted) and returns
+      /// equal if both are equal,
+      /// contains if this contains other,
+      /// isContaind if other contains this
+      /// different else
+      /// </summary>
+      /// <param name="other"></param>
+      /// <returns></returns>
+      internal CompareResult Containing(BranchcasesList other)
+      {
+         if (this.Count >= other.Count)
+            return Containing(longer: this, shorter: other);
+
+         return Containing(longer: other, shorter: other)
+            switch
+         {
+            CompareResult.contains => CompareResult.isContained,
+            CompareResult.isContained => CompareResult.contains,
+            _ => CompareResult.different
+         };
+      }
+
+      /// <summary>
+      /// <paramref name="longer"/>.Count must be greater or equal <paramref name="shorter"/>.Count, both lists must be sorted!
+      /// <para>returns <see cref="CompareResult.equal"/> if both arguments are equal</para>
+      /// <para>returns <see cref="CompareResult.contains"/> if <paramref name="longer"/> contains <paramref name="shorter"/></para>
+      /// else returns <see cref="CompareResult.different"/>
+      /// </summary>
+      /// <param name="longer"></param>
+      /// <param name="shorter"></param>
+      /// <returns></returns>
+      private CompareResult Containing(BranchcasesList longer, BranchcasesList shorter)
+      {
+         Debug.Assert(longer.Count >= shorter.Count);
+
+         // all elements of the shorter list must be contained in the longer one, else different
+         int skipped = 0;
+         for (int iShorter = 0; iShorter < shorter.Count; iShorter++)
+         {
+            while (shorter[iShorter].BranchcaseCondition != longer[iShorter + skipped].BranchcaseCondition
+                || shorter[iShorter].BranchcaseAction != longer[iShorter + skipped].BranchcaseAction)
+            {
+               skipped++;
+               if (skipped > longer.Count - shorter.Count)
+                  return CompareResult.different;
+            }
+         }
+         return longer.Count == shorter.Count ? CompareResult.equal : CompareResult.contains;
       }
    }
 
@@ -758,6 +854,46 @@ namespace Grammlator {
             sb.Append(") ");
          }
          sb.AppendLine();
+      }
+
+      int SimplifyRecursionCount = 0;
+      internal override ParserAction Simplify()
+      {
+         if (SimplifyRecursionCount > 10)
+            return this;
+
+         /* After replacing all Definitions by reduceActions
+             * there may exist identical reduce actions in the list of all reduce actions. 
+             * Replace all references by a reference to the first one
+             */
+
+         if (NextAction == GlobalVariables.TheEndOfGeneratedCodeAction
+            && StateStackAdjustment == 0
+            && AttributeStackAdjustment == 0
+            && SemanticMethod == null)
+            return GlobalVariables.TheEndOfGeneratedCodeAction;
+
+         SimplifyRecursionCount++;
+
+         ReduceAction? foundReduceAction = GlobalVariables.ListOfAllReductions.Find(
+            (listedReduceAction) =>
+            listedReduceAction.StateStackAdjustment == StateStackAdjustment
+            && listedReduceAction.SemanticMethod == SemanticMethod
+            && listedReduceAction.AttributeStackAdjustment == AttributeStackAdjustment
+            && (listedReduceAction.NextAction = listedReduceAction.NextAction.Simplify()) == NextAction
+            );
+
+         SimplifyRecursionCount--;
+
+         Debug.Assert(foundReduceAction != null); // ListOfAllReductions must contain this !
+
+         if (!foundReduceAction.Description.Contains(Description))
+         {
+            foundReduceAction.Description =
+               String.Concat(foundReduceAction.Description, Environment.NewLine, "or: ", Description);
+         }
+
+         return foundReduceAction; // is a preceding listed reduce action or the given reduce action
       }
 
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
@@ -1095,6 +1231,11 @@ namespace Grammlator {
       internal override void CountUsage(Boolean Accept)
           => throw new ErrorInGrammlatorProgramException(
               $"Program error: NonterminalTransition.CountUsage({Accept}) must never be called.");
+
+      internal override ParserAction Simplify()
+      {
+         return NextAction is Definition ? this : NextAction.Simplify();
+      }
    }
 
    /// <summary>

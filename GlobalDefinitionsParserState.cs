@@ -598,6 +598,43 @@ namespace Grammlator {
          Actions.RemoveFromEnd(DeletedActionsCount);
       }
 
+      private int SimplifyRecursionCount = 0;
+      internal override ParserAction Simplify()
+      {
+         //Prohibit an endless loop caused a.g. by "B=B??1??"
+         if (SimplifyRecursionCount > 10)
+            return this;
+
+         /* if the parser state does not push on the state stack
+          * and if it has no shift and no shift-reduce action
+          * and only one look ahead action (perhaps after solving conflicts)
+          * which is not "apply definition",
+          * then the "goto state action" MUST be replaced 
+          * by the next action of the single look ahead action
+          * to avoid unnecessary look ahead
+          */
+         //CHECK here the definition "B=B??1??" causes an endless loop
+         /*
+          * the state contains only one look ahead action: if (allTerminalSymbols)  goto state
+          */
+
+         if (
+               StateStackNumber != -1 // state modifies state stack and can not be skipped
+            || !(RedundantLookaheadOrSelectActionOrNull() is LookaheadAction Action)
+            // more than one action or not a lookahead action
+            || Action.NextAction is Definition
+            // state modifies state stack and can not be skipped
+            )
+            return this;
+
+         SimplifyRecursionCount++;
+         Action.NextAction = Action.NextAction.Simplify();
+         SimplifyRecursionCount--;
+
+         // after removing nonterminal transitions the state will contain no other actions 
+         return Action;
+      }
+
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
          base.Generate(codegen, out accept); // throw not implemented exception

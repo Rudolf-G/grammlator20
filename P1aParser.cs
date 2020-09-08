@@ -870,7 +870,7 @@ namespace Grammlator {
          LexerResult ParserInput;
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Sun, 06 Sep 2020 18:38:22 GMT (grammlator, File version 2020.07.28.0 06.09.2020 18:31:52)
+#region grammlator generated Tue, 08 Sep 2020 18:57:15 GMT (grammlator, File version 2020.07.28.0 08.09.2020 18:52:13)
   Int32 StateStackInitialCount = _s.Count;
   Int32 AttributeStackInitialCount = _a.Count;
   // State1:
@@ -970,11 +970,11 @@ AcceptBranch5:
 Branch5:
   if (_s.Peek() == 2)
      goto Reduce24;
-Reduce82:
+Reduce81:
   /* sAdjust: -1
    * GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "=", outerDefinitions;◄ */
   _s.Pop();
-Reduce78:
+Reduce77:
   /* sAdjust: -1, aAdjust: -2
    * GrammarRuleList= GrammarRuleList, GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes);◄ */
   _s.Pop();
@@ -993,7 +993,7 @@ State78:
   if (ParserInput == LexerResult.NumberSign)
      {
      Lexer.AcceptSymbol();
-     // Reduce75:
+     // Reduce74:
      /* sAdjust: -2
       * TerminatorAtEndOfGrammar= NumberSign;◄
       * then: GrammlatorGrammar= OptionalGrammlatorSettings, OptionalDeclarationOfTerminalSymbols, GrammarRuleList, TerminatorAtEndOfGrammar;◄ */
@@ -1041,7 +1041,7 @@ State84:
   Debug.Assert(ParserInput != LexerResult.Colon
      && (ParserInput < LexerResult.CSharpEnd || ParserInput > LexerResult.StarEqual)
      && ParserInput != LexerResult.NumberSign && ParserInput != LexerResult.GroupStart);
-  // Reduce83:
+  // Reduce82:
   /* aAdjust: 1
    * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ */
   _a.Allocate();
@@ -1050,7 +1050,7 @@ State84:
      NumberOfAttributes: out _a.PeekRef(0)._Int32
      );
 
-Branch16:
+Branch14:
   switch (_s.Peek())
   {
   case 0:
@@ -1059,7 +1059,7 @@ Branch16:
   case 6:
      goto State72;
   case 10:
-     // Reduce77:
+     // Reduce76:
      {
      /* outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes);◄ */
 
@@ -1221,7 +1221,7 @@ Reduce38:
   case 4:
      goto Reduce39;
   case 11:
-     goto Reduce82;
+     goto Reduce81;
   /*case 2:
   default: break; */
   }
@@ -1346,11 +1346,12 @@ Branch8:
   case 11:
      goto Reduce25;
   case 3:
-     // Reduce67:
+     // Reduce66:
      {
      /* sAdjust: -1, aAdjust: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄
-      * then: Definition= SequenceOfElements, EndOfDefinition;◄ */
+      * then: NestedDefinitionList= NestedDefinitionList, "|", Definition;◄
+      * or: Definition= SequenceOfElements, EndOfDefinition;◄ */
      _s.Pop();
 
      EndOfDefinitionWithMethodRecognized(
@@ -1358,7 +1359,7 @@ Branch8:
         );
 
      _a.Free();
-     goto Branch15;
+     goto Branch13;
      }
   case 6:
      // Reduce61:
@@ -1374,7 +1375,7 @@ Branch8:
      goto State63;
      }
   case 9:
-     // Reduce70:
+     // Reduce69:
      {
      /* aAdjust: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ */
@@ -1408,13 +1409,7 @@ Branch4:
   case 11:
      goto State30;
   case 3:
-     // Reduce66:
-     {
-     /* sAdjust: -1
-      * Definition= SequenceOfElements, EndOfDefinition;◄ */
-     _s.Pop();
-     goto Branch15;
-     }
+     goto Reduce64;
   case 6:
      goto State63;
   case 9:
@@ -1615,7 +1610,7 @@ Reduce59:
      );
 
   _a.Free(6);
-  // Branch12:
+  // Branch11:
   switch (_s.Peek())
   {
   case 0:
@@ -1637,7 +1632,7 @@ State77:
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
-  // Reduce74:
+  // Reduce73:
   /* sAdjust: -1
    * SimpleElement(Symbol Symbol)= "(", NestedElement(Symbol Symbol), ")";◄ */
   _s.Pop();
@@ -1684,12 +1679,13 @@ State67:
      {
      /* sAdjust: -1
       * EndOfDefinitionWithoutSemantics= ;◄
-      * then: Definition= SequenceOfElements, EndOfDefinition;◄ */
+      * then: NestedDefinitionList= NestedDefinitionList, "|", Definition;◄
+      * or: Definition= SequenceOfElements, EndOfDefinition;◄ */
      _s.Pop();
 
      EndOfDefinitionWithoutSemanticsRecognized();
 
-     goto Branch15;
+     goto Branch13;
      }
   } // end of switch
   Debug.Assert(ParserInput <= LexerResult.Plus || ParserInput >= LexerResult.TerminatorSymbol);
@@ -1701,6 +1697,44 @@ HandleError67:
      goto State67;
      };
   goto EndWithError;
+
+Reduce64:
+  /* sAdjust: -1
+   * NestedDefinitionList= NestedDefinitionList, "|", Definition;◄
+   * or: Definition= SequenceOfElements, EndOfDefinition;◄ */
+  _s.Pop();
+Branch13:
+  switch (_s.Peek())
+  {
+  case 6:
+     goto State68;
+  case 7:
+     goto State65;
+  case 8:
+     goto Reduce64;
+  /*case 9:
+  default: break; */
+  }
+State71:
+  const String StateDescription71 =
+       "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions●;\r\n"
+     + "NestedDefinitionList= NestedDefinitionList, ►\"|\", Definition;";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
+     goto AcceptState66;
+  if (ParserInput <= LexerResult.CSharpStart
+     || ParserInput >= LexerResult.Name)
+     {
+     if (ErrorHandler(71, StateDescription71, ParserInput))
+        goto State71;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
+Reduce68:
+  /* sAdjust: -1
+   * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions;◄ */
+  _s.Pop();
+  goto Reduce59;
 
 State3:
   const String StateDescription3 =
@@ -2401,7 +2435,7 @@ State45:
      );
 
   _a.Free(2);
-Branch10:
+Branch9:
   switch (_s.Peek())
   {
   case 0:
@@ -2412,10 +2446,7 @@ Branch10:
      /* sAdjust: -1
       * formalParameters= formalParameters, Comma, formalParameter;◄ */
      _s.Pop();
-     // Branch9:
-     if (_s.Peek() == 0)
-        goto State39;
-     goto State54;
+     goto Branch9;
      }
   /*case 2:
   default: break; */
@@ -2456,7 +2487,7 @@ State43:
         );
 
      _a.Free(3);
-     goto Branch10;
+     goto Branch9;
      }
   if (ParserInput == LexerResult.Questionmark)
      {
@@ -2482,7 +2513,7 @@ State43:
      );
 
   _a.Free(2);
-  goto Branch10;
+  goto Branch9;
 
 State44:
   const String StateDescription44 =
@@ -2507,7 +2538,7 @@ State44:
      );
 
   _a.Free(3);
-  goto Branch10;
+  goto Branch9;
 
 State47:
   const String StateDescription47 =
@@ -2552,7 +2583,7 @@ State48:
      );
 
   _a.Free();
-Branch11:
+Branch10:
   if (_s.Peek() == 0)
      goto State37;
 State52:
@@ -2618,7 +2649,7 @@ State49:
         );
 
      _a.Free(3);
-     goto Branch11;
+     goto Branch10;
      }
   if (ParserInput != LexerResult.GroupStart)
      {
@@ -2639,7 +2670,7 @@ State49:
      );
 
   _a.Free(2);
-  goto Branch11;
+  goto Branch10;
 
 AcceptState50:
   Lexer.AcceptSymbol();
@@ -2811,14 +2842,10 @@ State65:
   /* sAdjust: -1
    * NestedDefinitions= EndOfDefinition, "|", NestedDefinitionList;◄ */
   _s.Pop();
-  // Branch13:
+  // Branch12:
   if (_s.Peek() == 6)
      goto Reduce60;
-Reduce69:
-  /* sAdjust: -1
-   * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions;◄ */
-  _s.Pop();
-  goto Reduce59;
+  goto Reduce68;
 
 AcceptState66:
   Lexer.AcceptSymbol();
@@ -2885,7 +2912,7 @@ State69:
   case LexerResult.RepeatEnd:
   case LexerResult.OptionEnd:
   case LexerResult.DefinitionSeparatorSymbol:
-     // Reduce68:
+     // Reduce67:
      {
      /* EndOfDefinitionWithoutSemantics= ;◄ */
 
@@ -2921,24 +2948,7 @@ State70:
      goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
-  goto Reduce69;
-
-State71:
-  const String StateDescription71 =
-       "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions●;\r\n"
-     + "NestedDefinitionList= NestedDefinitionList, ►\"|\", Definition;";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     goto AcceptState66;
-  if (ParserInput <= LexerResult.CSharpStart
-     || ParserInput >= LexerResult.Name)
-     {
-     if (ErrorHandler(71, StateDescription71, ParserInput))
-        goto State71;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
-  goto Reduce69;
+  goto Reduce68;
 
 State72:
   const String StateDescription72 =
@@ -2948,7 +2958,7 @@ State72:
   if (ParserInput <= LexerResult.DefiningSymbol)
      {
      Lexer.AcceptSymbol();
-     // Reduce71:
+     // Reduce70:
      /* NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes), "=";◄ */
 
      LeftSideOfNestedProduction(
@@ -2984,7 +2994,7 @@ State73:
      }
   Debug.Assert(ParserInput == LexerResult.RepeatEnd);
   Lexer.AcceptSymbol();
-  // Reduce72:
+  // Reduce71:
   /* sAdjust: -1
    * RepeatedElement(Symbol Symbol)= "{", NestedElement(Symbol Symbol), "}";◄ */
   _s.Pop();
@@ -3014,7 +3024,7 @@ State75:
      }
   Debug.Assert(ParserInput == LexerResult.OptionEnd);
   Lexer.AcceptSymbol();
-  // Reduce73:
+  // Reduce72:
   /* sAdjust: -1
    * RepeatedElement(Symbol Symbol)= "[", NestedElement(Symbol Symbol), "]";◄ */
   _s.Pop();
@@ -3062,7 +3072,7 @@ State80:
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-  // Reduce79:
+  // Reduce78:
   /* aAdjust: -1
    * ListOfExcludedTerminalSymbols= Name(Int32 stringIndex);◄ */
 
@@ -3089,12 +3099,12 @@ State81:
      }
   Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
   Lexer.AcceptSymbol();
-  // Reduce80:
+  // Reduce79:
   /* GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "-=", ListOfExcludedTerminalSymbols, ";";◄ */
 
   EndOfListOfExcludedTerminalSymbols();
 
-  goto Reduce78;
+  goto Reduce77;
 
 State82:
   const String StateDescription82 =
@@ -3108,7 +3118,7 @@ State82:
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-  // Reduce81:
+  // Reduce80:
   /* aAdjust: -1
    * ListOfExcludedTerminalSymbols= ListOfExcludedTerminalSymbols, "|", Name(Int32 nameIndex);◄ */
 
@@ -3181,7 +3191,7 @@ State85:
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
-  // Reduce85:
+  // Reduce84:
   /* aAdjust: 1
    * "(Attributes)"(Int32 numberOfAttributes)= "(", ")";◄ */
   _a.Allocate();
@@ -3190,16 +3200,16 @@ State85:
      numberOfAttributes: out _a.PeekRef(0)._Int32
      );
 
-Branch17:
+Branch15:
   if (_s.Peek() == 0)
-     // Reduce84:
+     // Reduce83:
      {
      /* sAdjust: -1
       * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex), "(Attributes)"(Int32 NumberOfAttributes);◄ */
      _s.Pop();
-     goto Branch16;
+     goto Branch14;
      }
-  // Reduce91:
+  // Reduce90:
   /* sAdjust: -1
    * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex), "(Attributes)"(Int32 NumberOfAttributes);◄ */
   _s.Pop();
@@ -3223,7 +3233,7 @@ State86:
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
-  // Reduce87:
+  // Reduce86:
   /* aAdjust: 1
    * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 number), ")";◄ */
   _a.Allocate();
@@ -3234,9 +3244,9 @@ State86:
      number: _a.PeekRef(-1)._Int32
      );
 
-Branch18:
+Branch16:
   if (_s.Peek() == 1)
-     // Reduce88:
+     // Reduce87:
      {
      /* sAdjust: -1, aAdjust: -1
       * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 numberBeforeGroup), Comma, "Attributes)"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup);◄ */
@@ -3251,14 +3261,14 @@ Branch18:
         );
 
      _a.Free();
-     goto Branch18;
+     goto Branch16;
      }
-  // Reduce86:
+  // Reduce85:
   /* sAdjust: -1, aAdjust: -1
    * "(Attributes)"(Int32 numberOfAttributes)= "(", "Attributes)"(Int32 numberOfAttributes, Int32 smallestNumber);◄ */
   _s.Pop();
   _a.Free();
-  goto Branch17;
+  goto Branch15;
 
 State87:
   const String StateDescription87 =
@@ -3288,7 +3298,7 @@ State88:
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-  // Reduce89:
+  // Reduce88:
   /* aAdjust: -1
    * Attribut(Int32 number)= Name(Int32 typeStringIndex), Name(Int32 nameStringIndex);◄ */
 
@@ -3332,7 +3342,7 @@ State89:
   Debug.Assert(ParserInput == LexerResult.Percent
      || ParserInput == LexerResult.CSharpStart
      || ParserInput >= LexerResult.DefinitionSeparatorSymbol);
-  // Reduce90:
+  // Reduce89:
   /* sAdjust: -1, aAdjust: 1
    * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ */
   _s.Pop();
@@ -3363,7 +3373,7 @@ State91:
   if (ParserInput >= LexerResult.TerminatorSymbol)
      {
      Lexer.AcceptSymbol();
-     goto Reduce92;
+     goto Reduce91;
      }
   if (ParserInput != LexerResult.StarEqual
      && ParserInput != LexerResult.Name && ParserInput != LexerResult.StringResult)
@@ -3374,7 +3384,7 @@ State91:
      }
   Debug.Assert(ParserInput == LexerResult.StarEqual
      || ParserInput == LexerResult.Name || ParserInput == LexerResult.StringResult);
-Reduce92:
+Reduce91:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(Int32 nameIndex), ":", StringResult(Int32 stringIndex), ";"?;◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
@@ -3410,35 +3420,7 @@ Reduce39:
   /*case 11:
   default: break; */
   }
-  goto Reduce82;
-
-Branch15:
-  switch (_s.Peek())
-  {
-  case 6:
-     goto State68;
-  case 7:
-     goto State65;
-  case 9:
-     goto State71;
-  /*case 8:
-  default: break; */
-  }
-  // Reduce64:
-  /* sAdjust: -1
-   * NestedDefinitionList= NestedDefinitionList, "|", Definition;◄ */
-  _s.Pop();
-  // Branch14:
-  switch (_s.Peek())
-  {
-  case 6:
-     goto State68;
-  case 7:
-     goto State65;
-  /*case 9:
-  default: break; */
-  }
-  goto State71;
+  goto Reduce81;
 
 HandleError23:
   if (ErrorHandler(23, StateDescription23, ParserInput))
@@ -3464,7 +3446,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Sun, 06 Sep 2020 18:38:22 GMT (grammlator, File version 2020.07.28.0 06.09.2020 18:31:52)
+#endregion grammlator generated Tue, 08 Sep 2020 18:57:15 GMT (grammlator, File version 2020.07.28.0 08.09.2020 18:52:13)
          /* ************************ code written by programmer ******************** */
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }
