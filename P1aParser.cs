@@ -870,7 +870,7 @@ namespace Grammlator {
          LexerResult ParserInput;
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Tue, 08 Sep 2020 18:57:15 GMT (grammlator, File version 2020.07.28.0 08.09.2020 18:52:13)
+#region grammlator generated Tue, 08 Sep 2020 23:53:47 GMT (grammlator, File version 2020.07.28.0 08.09.2020 23:53:18)
   Int32 StateStackInitialCount = _s.Count;
   Int32 AttributeStackInitialCount = _a.Count;
   // State1:
@@ -3446,7 +3446,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Tue, 08 Sep 2020 18:57:15 GMT (grammlator, File version 2020.07.28.0 08.09.2020 18:52:13)
+#endregion grammlator generated Tue, 08 Sep 2020 23:53:47 GMT (grammlator, File version 2020.07.28.0 08.09.2020 23:53:18)
          /* ************************ code written by programmer ******************** */
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }

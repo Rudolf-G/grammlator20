@@ -707,12 +707,12 @@ namespace Grammlator {
          if (this.Count >= other.Count)
             return Containing(longer: this, shorter: other);
 
-         return Containing(longer: other, shorter: other)
+         return Containing(longer: other, shorter: this)
             switch
          {
             CompareResult.contains => CompareResult.isContained,
             CompareResult.isContained => CompareResult.contains,
-            _ => CompareResult.different
+            _ => CompareResult.different // never CompareResult.equal because length differs
          };
       }
 

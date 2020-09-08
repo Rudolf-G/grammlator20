@@ -449,7 +449,7 @@ namespace Grammlator {
          var ListOfCases = new BranchcasesList(StatesAcceptingThisSymbol.Count);
 
          ParserState State1 = StatesAcceptingThisSymbol[0];
-         ParserAction Action1 = SimplifiedNextAction(State1.ActionCausedBy(inputSymbol));
+         ParserAction Action1 = State1.ActionCausedBy(inputSymbol).Simplify();
 
          // Add the first case
          AddCase(ListOfCases, State1.StateStackNumber, Action1);
@@ -461,7 +461,7 @@ namespace Grammlator {
          {
             // Find the action caused by inputSymbol and add it to the list of cases
             ParserState StateI = StatesAcceptingThisSymbol[StateIndex];
-            ParserAction ActionI = SimplifiedNextAction(StateI.ActionCausedBy(inputSymbol));
+            ParserAction ActionI = StateI.ActionCausedBy(inputSymbol).Simplify();
             AddCase(ListOfCases, StateI.StateStackNumber, ActionI);
 
             // Determine if this Action is equivalent to the first action
@@ -589,7 +589,7 @@ namespace Grammlator {
             newReduceAction.AttributeStackAdjustment = 0; // the halt action will remove the attributes from the stack (if any)
          }
 
-         newReduceAction.NextAction = SimplifiedNextAction(newReduceAction.NextAction);
+         newReduceAction.NextAction = newReduceAction.NextAction.Simplify();
 
          SimplifyChainOfReductions(newReduceAction);
 
@@ -645,7 +645,7 @@ namespace Grammlator {
             //           3. combine reductions
 
             // remove nonterminal transitions (!) and do some more optimizations
-            existingReduceAction.NextAction = SimplifiedNextAction(existingReduceAction.NextAction);
+            existingReduceAction.NextAction = existingReduceAction.NextAction.Simplify();
             SimplifyChainOfReductions(existingReduceAction);
             // end of simple solution
 
@@ -663,138 +663,6 @@ namespace Grammlator {
 
          return null;
       }
-
-      static int SimplifiedNextActionRecursionCount = 0;
-      /// <summary>
-      /// This method performs and iterates different essential transformations.
-      /// Nonterminal transitions which are already analyzed (definition replaced by some other next action) are replaced by their next action.
-      /// States with only one next action and no other effects are replaced by this action.
-      /// This removes unnecessary look ahead operations.
-      /// Chains of reduce actions are shortened if possible.
-      /// </summary>
-      /// <param name="action">the action to start from</param>
-      /// <returns>the last action of the chain of redundant actions</returns>
-      internal static ParserAction SimplifiedNextAction(ParserAction action)
-      {
-         // return action.Simplify();
-         switch (action)
-         {
-         case NonterminalTransition nonterminalTransition:
-         {
-            if (nonterminalTransition.NextAction is Definition)
-               return action; // nonterminal transitions next action has still to be resolved
-            return nonterminalTransition.NextAction; // nonterminal transitions must be skipped !!
-         }
-
-         case ParserState state:
-            /* if the parser state does not push on the state stack
-             * and if it has no shift and no shift-reduce action
-             * and only one look ahead action (perhaps after solving conflicts)
-             * which is not "apply definition",
-             * then the "goto state action" MUST be replaced 
-             * by the next action of the single look ahead action
-             * to avoid unnecessary look ahead
-             */
-            //CHECK here the definition "B=B??1??" causes an endless loop
-            /*
-             * the state contains only one look ahead action: if (allTerminalSymbols)  goto state
-             */
-
-            if (state.StateStackNumber != -1)
-               return action; // state modifies state stack and can not be skipped
-
-            if (!(state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip))
-               return action; // more than one action or not a lookahead action
-
-            if (ActionToSkip.NextAction is Definition)
-               return action; // definitions must not be moved out of the state
-
-            /*The example "//|  *= A; A= A??2??;" will cause an endless loop if recursion is not limited
-             * because the second state contains only one look ahead action: if (allTerminalSymbols)  "second state"
-             * */
-
-            if (SimplifiedNextActionRecursionCount < 100) // CHECK SimplifiedNextActionRecursionCount < 100
-            {
-               SimplifiedNextActionRecursionCount++;
-               ActionToSkip.NextAction = SimplifiedNextAction(ActionToSkip.NextAction);
-               SimplifiedNextActionRecursionCount--;
-               return ActionToSkip.NextAction;
-            }
-
-            // after removing nonterminal transitions a state will contain no actions 
-            return action;
-
-         //return ( //e.g. replaces a next reduce action with the first equivalent reduce action
-         //    state.StateStackNumber == -1
-         //    && (state.RedundantLookaheadOrSelectActionOrNull() is LookaheadAction ActionToSkip)
-         //    && !(ActionToSkip.NextAction is Definition))
-         //    // definitions must not be moved out of the state
-         //    ? ActionToSkip.NextAction = SimplifiedNextAction(ActionToSkip.NextAction)
-         //    : action;
-
-         case ReduceAction reduceAction:
-         {
-            /* After replacing all Definitions by reduceActions
-             * there may exist identical reduce actions in the list of all reduce actions. 
-             * Replace all references by a reference to the first one
-             */
-
-            if (reduceAction.NextAction == GlobalVariables.TheEndOfGeneratedCodeAction
-               && reduceAction.StateStackAdjustment == 0
-               && reduceAction.AttributeStackAdjustment == 0
-               && reduceAction.SemanticMethod == null)
-               return GlobalVariables.TheEndOfGeneratedCodeAction;
-
-            ReduceAction? result = GlobalVariables.ListOfAllReductions.Find(
-               (listedReduceAction) => listedReduceAction.StateStackAdjustment == reduceAction.StateStackAdjustment
-               && listedReduceAction.SemanticMethod == reduceAction.SemanticMethod
-               && listedReduceAction.AttributeStackAdjustment == reduceAction.AttributeStackAdjustment
-               && listedReduceAction.NextAction == reduceAction.NextAction
-               && !(listedReduceAction.NextAction is Definition));
-            if (result != null)
-            {
-               if (!result.Description.Contains(reduceAction.Description))
-               {
-                  result.Description =
-                     String.Concat(result.Description, Environment.NewLine, "or: ", reduceAction.Description);
-               }
-               return result; // is a preceding listed reduce action or the given reduce action
-            }
-
-            Debug.Fail("ReduceAction not found in list");
-            return reduceAction;
-         }
-
-         case BranchAction branch:
-         {
-            List<BranchcaseStruct> branchCaseList = branch.ListOfCases;
-
-            // Simplify the actions of a branch 
-            for (Int32 i = 0; i < branchCaseList.Count; i++)
-            {
-               BranchcaseStruct branchCase = branchCaseList[i];
-               // ????????????????????? branchCase.BranchcaseAction = SimplifiedNextAction(branchCase.BranchcaseAction);
-               // TOCHECK Can this cause endless recursion ?? 
-               branchCaseList[i] = branchCase;
-            }
-
-            Debug.Assert(branchCaseList.Count > 0);
-
-            // test if all cases now (after optimization) have the same action
-            BranchcaseStruct branchCase0 = branchCaseList[0];
-            for (Int32 i = 1; i < branchCaseList.Count; i++)
-            {
-               if (branchCaseList[i].BranchcaseAction != branchCase0.BranchcaseAction)
-                  return branch; // at least one is different: return the (optimized) branch
-            }
-
-            // all cases have the same action 
-            return branchCase0.BranchcaseAction;
-         }
-         }
-
-         return action;
-      } // SimplyfiedNextAction(ParserAction action) 
 
       /// <summary>
       /// Test if <paramref name="Reduction"/>.NextAction is also a <see cref="ReduceAction"/> and combine them if possible
@@ -911,7 +779,7 @@ namespace Grammlator {
             for (int i = 0; i < ExistingListOfCases.Count; i++)
             {
                BranchcaseStruct c = ExistingListOfCases[i];
-               c.BranchcaseAction = SimplifiedNextAction(c.BranchcaseAction);
+               c.BranchcaseAction = c.BranchcaseAction.Simplify();
                ExistingListOfCases[i] = c;
             }
 
@@ -991,7 +859,7 @@ namespace Grammlator {
                //   keep action -> nonterminal transition -> definition
                //   replace action -> nonterminal transition >= other action
                //        by action -> other action
-               ActionWithNextAction.NextAction = SimplifiedNextAction(ActionWithNextAction.NextAction);
+               ActionWithNextAction.NextAction = ActionWithNextAction.NextAction.Simplify();
 
                // falls die Aktionenliste mehrere terminale Übergänge mit gleicher Folgeaktion enthält, diese zusammenfassen
                if (ActionWithNextAction is TerminalTransition ActionAsTerminalTransition)
@@ -1031,7 +899,7 @@ namespace Grammlator {
          // Simplify next action of reductions
          foreach (ReduceAction r in GlobalVariables.ListOfAllReductions)
          {
-            r.NextAction = SimplifiedNextAction(r.NextAction);
+            r.NextAction = r.NextAction.Simplify();
             SimplifyChainOfReductions(r); // CHECK compute x.Calls and simplify using x.Calls ??
          }
 
@@ -1041,7 +909,7 @@ namespace Grammlator {
             for (Int32 CaseIndex = 0; CaseIndex < branch.ListOfCases.Count; CaseIndex++)
             {
                BranchcaseStruct Branchcase = branch.ListOfCases[CaseIndex];
-               Branchcase.BranchcaseAction = SimplifiedNextAction(Branchcase.BranchcaseAction);
+               Branchcase.BranchcaseAction = Branchcase.BranchcaseAction.Simplify();
                branch.ListOfCases[CaseIndex] = Branchcase;
             }
          }
