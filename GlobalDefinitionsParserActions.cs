@@ -880,7 +880,8 @@ namespace Grammlator {
             listedReduceAction.StateStackAdjustment == StateStackAdjustment
             && listedReduceAction.SemanticMethod == SemanticMethod
             && listedReduceAction.AttributeStackAdjustment == AttributeStackAdjustment
-            && (listedReduceAction.NextAction = listedReduceAction.NextAction.Simplify()) == NextAction
+            && listedReduceAction.NextAction == NextAction 
+//            && (listedReduceAction.NextAction = listedReduceAction.NextAction.Simplify()) == NextAction
             );
 
          SimplifyRecursionCount--;
@@ -1234,7 +1235,7 @@ namespace Grammlator {
 
       internal override ParserAction Simplify()
       {
-         return NextAction is Definition ? this : NextAction.Simplify();
+         return NextAction is Definition ? this : NextAction;
       }
    }
 

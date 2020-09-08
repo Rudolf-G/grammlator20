@@ -676,7 +676,7 @@ namespace Grammlator {
       /// <returns>the last action of the chain of redundant actions</returns>
       internal static ParserAction SimplifiedNextAction(ParserAction action)
       {
-         return action.Simplify();
+         // return action.Simplify();
          switch (action)
          {
          case NonterminalTransition nonterminalTransition:

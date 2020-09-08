@@ -627,12 +627,12 @@ namespace Grammlator {
             )
             return this;
 
+         // after removing nonterminal transitions the state will contain no other actions 
          SimplifyRecursionCount++;
          Action.NextAction = Action.NextAction.Simplify();
          SimplifyRecursionCount--;
 
-         // after removing nonterminal transitions the state will contain no other actions 
-         return Action;
+         return Action.NextAction;
       }
 
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
