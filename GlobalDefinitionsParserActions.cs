@@ -1285,7 +1285,7 @@ namespace Grammlator {
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isPriorityBranchAction;
 
-      internal ParserAction? ConstantPriorityAction;
+      internal ParserActionWithNextAction? ConstantPriorityAction;
       // ConstantPriority is copied from ConstantPriorityAction because ConstantPriorityAction may be modified later
       internal readonly Int32 ConstantPriority;
       internal readonly ListOfParserActions DynamicPriorityActions; // the elements of the list may be modified later !

@@ -662,12 +662,62 @@ namespace Grammlator {
          return GenerateCondionalActionsOfBranch(BranchactionToGenerate, out Accept);
       }
 
-      private ParserAction GeneratePriorityBranch(out Boolean Accept, PriorityBranchAction ps)
+      private ParserAction GeneratePriorityBranch(out Boolean accept, PriorityBranchAction ps)
       {
-         // TODO Replace priority switch by If-Then-Else (if 1 constant priority and 1 dynamic priority or no constant and 2 dynamic priorities)
+         // TOCHECK reorder instructions depending on next? In switch case: result depends on order! Keep constant priority first!
 
          codegen.IndentExactly();
          codegen.AppendLine("/* Dynamic priority controlled actions */");
+         int PrioritiesCount = ps.DynamicPriorityActions.Count + ((ps.ConstantPriorityAction == null) ? 0 : 1);
+
+         if( PrioritiesCount==2)
+            return GeneratePriorityBranchAsIfThen(out accept, ps);
+
+         return GeneratePriorityBranchAsSwitch(out accept, ps);
+      }
+
+      private ParserAction GeneratePriorityBranchAsIfThen(out Boolean accept, PriorityBranchAction ps)
+      {
+         codegen.Append(" if (");
+         codegen.IncrementIndentationLevel();
+
+         // First argument of comparision
+         int DynamicIndex = 0;
+         ParserActionWithNextAction IfDependentAction;
+         if (ps.ConstantPriorityAction != null)
+         {
+            codegen.Append(ps.ConstantPriority);
+            IfDependentAction = ps.ConstantPriorityAction;
+         }
+         else
+         {
+            codegen
+              .AppendLine() // empty line preceding method call
+              .GenerateSemanticMethodCall(ps.PriorityFunctions[0]);
+            DynamicIndex = 1;
+            IfDependentAction = (ConditionalAction)ps.DynamicPriorityActions[0];
+         }
+
+         // ">=" and second argument of comparision and end of condition
+         codegen.AppendLine()
+            .DecrementIndentationLevel().IndentExactly().Append(">= ").IncrementIndentationLevel()
+            .GenerateSemanticMethodCall(ps.PriorityFunctions[DynamicIndex])
+            .AppendLine().DecrementIndentationLevel().IndentExactly().AppendLine(")");
+
+         // Conditional action
+         codegen.IncrementIndentationLevel();
+         GenerateCodeSequence
+            (IfDependentAction.NextAction,
+            accept: IfDependentAction is TerminalTransition ? true : false,
+            labelMustBeGenerated: false);
+         codegen.DecrementIndentationLevel();
+
+         accept = ps.DynamicPriorityActions[^1] is TerminalTransition; // TOCHECK must be adapated if another action is the default
+         return ((ConditionalAction)ps.DynamicPriorityActions[^1]).NextAction;
+      }
+
+      private ParserAction GeneratePriorityBranchAsSwitch(out Boolean accept, PriorityBranchAction ps)
+      {
 
          codegen.AppendInstruction($"switch({GlobalVariables.MethodIndexOfMaximum}(");
          // TODO allow user to set MethodIndexOfMaximum
@@ -725,10 +775,9 @@ namespace Grammlator {
                labelMustBeGenerated: false);
             codegen.DecrementIndentationLevel();
          }
-
          codegen.IndentExactly().Append("}");
 
-         Accept = false; // dynamic priority actions always look ahead: can not be accepting actions
+         accept = ps.DynamicPriorityActions[^1] is TerminalTransition;
          return ((ConditionalAction)ps.DynamicPriorityActions[^1]).NextAction;
       }
 
