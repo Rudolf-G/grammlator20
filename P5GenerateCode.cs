@@ -681,15 +681,15 @@ namespace Grammlator {
 
          for (Int32 i = 0; i < ps.DynamicPriorityActions.Count; i++)
          {
-            if (i > 0)
-               codegen.Append(", ");
             codegen.IndentExactly()
                .AppendLine() // empty line preceding method call
-               .GenerateSemanticMethodCall(ps.PriorityFunctions[i], asInstruction: false);
+               .GenerateSemanticMethodCall(ps.PriorityFunctions[i]);
             if (i < ps.DynamicPriorityActions.Count - 1)
                codegen.Append(",");
-            codegen.AppendLine() // end of line
-               .AppendLine(); // empty line following method call
+            codegen.AppendLine(); // end of line
+
+            if (i == ps.DynamicPriorityActions.Count - 1)
+               codegen.AppendLine(); // empty line following method call
          }
          codegen.Indent().Append("))");
 
@@ -743,7 +743,7 @@ namespace Grammlator {
       private ParserAction? GenerateState(out Boolean Accept, ParserState State, StringBuilder sbTemp)
       {
          // Generate description
-         State.CoreItems.ToStringbuilder(sbTemp);
+         State.CoreItems.AppendToSB(sbTemp);
 
          if (State.ContainsErrorHandlerCall && !string.IsNullOrEmpty(GlobalVariables.VariableNameStateDescription))
          {

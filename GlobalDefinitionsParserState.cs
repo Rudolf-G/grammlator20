@@ -109,7 +109,7 @@ namespace Grammlator {
          return (NonterminalTransition)result;
       }
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append(P5CodegenCS.GotoLabel(this, false));
          if (StateStackNumber >= 0)
@@ -128,12 +128,12 @@ namespace Grammlator {
            .AppendLine("Items:");
          CoreItems.ToStringbuilderMitZusatzinfo(sb)
            .Append("Actions: ");
-         Actions?.ToStringbuilder(sb)
+         Actions?.AppendToSB(sb)
            .AppendLine();
          return sb;
       }
 
-      internal override StringBuilder NameToSb(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb)
           => sb.Append("goto ").Append(P5CodegenCS.GotoLabel(this, false));
 
       /// <summary>
@@ -423,12 +423,12 @@ namespace Grammlator {
                   sb.Append("  priority ");
                   conditionalAction.AppendPriorityTo(sb);
                   sb.Append(" => highest priority: ");
-                  conditionalAction.NextAction.NameToSb(sb).AppendLine();
+                  conditionalAction.NextAction.AppendShortToSB(sb).AppendLine();
                }
             }
             else if (action is PrioritySelectAction)
             {
-               conditionalAction.NextAction.NameToSb(sb).AppendLine();
+               conditionalAction.NextAction.AppendShortToSB(sb).AppendLine();
             }
             else
             {
@@ -440,7 +440,7 @@ namespace Grammlator {
                   sb.Append("  priority ");
                   conditionalAction.AppendPriorityTo(sb);
                   sb.Append(" => is overruled: ");
-                  conditionalAction.NextAction.NameToSb(sb).AppendLine();
+                  conditionalAction.NextAction.AppendShortToSB(sb).AppendLine();
 
                   if (symbolsOfThisAction.Empty())
                      sb.AppendLine("    This action has been deleted because no input symbols remained.");
@@ -838,7 +838,7 @@ namespace Grammlator {
          return true;
       }
 
-      internal void ToStringbuilder(StringBuilder sb)
+      internal void AppendToSB(StringBuilder sb)
       {
          Boolean isfirst = true;
          foreach (ItemStruct Item in this)
@@ -859,7 +859,7 @@ namespace Grammlator {
          {
             Definition d = Item.SymbolDefinition;
             d.DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
-            d.ToStringbuilder(sb, Item.ElementNr);
+            d.AppendToSB(sb, Item.ElementNr);
             sb.AppendLine();
          }
          return sb;

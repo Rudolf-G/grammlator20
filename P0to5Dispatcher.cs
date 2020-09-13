@@ -198,7 +198,7 @@ namespace Grammlator {
          {
             if (state.Actions.Count == 0)
                foundError = true;
-            state.ToStringbuilder(sb);
+            state.AppendToSB(sb);
          }
          return foundError;
       }

@@ -382,12 +382,13 @@ namespace Grammlator {
       /// <returns>array of the type identifiers</returns>
       internal Int32[] GetAttributeIdentifierStringIndexes(Int32 count)
          {
+         // TODO if there are errors in the source then count can be > Count resulting in runtime error
          if (count == 0)
             return Array.Empty<Int32>();
 
          var AttributeIdentifierStringIndexes = new Int32[count];
          for (Int32 i = 0; i < count; i++)
-            AttributeIdentifierStringIndexes[i] = this[Count - count + i].NameStringIndex; // PROBLEM ??? if==0, ..[].Legth==3, this.Count==2, count == 3
+            AttributeIdentifierStringIndexes[i] = this[Count - count + i].NameStringIndex;
 
          return AttributeIdentifierStringIndexes;
          }
@@ -926,7 +927,7 @@ namespace Grammlator {
             return;
             }
          // sb.AppendLine("    rules:");
-         NontrivialDefinitionsList.ToStringbuilder(sb);
+         NontrivialDefinitionsList.AppendToSB(sb);
          }
 
       /// <summary>

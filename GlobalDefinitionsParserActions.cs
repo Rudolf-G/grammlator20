@@ -2,9 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.Text;
-using System.Windows.Media;
 
 namespace Grammlator {
    /// <summary>
@@ -75,7 +73,7 @@ namespace Grammlator {
       //    }
 
       /// <summary>
-      /// The <see cref="ParserActionType"/>  is used for ToStringbuilder (...) and for comparisions
+      /// The <see cref="ParserActionType"/>  is used for AppendToSB (...) and for comparisions
       /// </summary>
       internal abstract ParserActionEnum ParserActionType {
          get;
@@ -189,7 +187,7 @@ namespace Grammlator {
       internal virtual ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
          => throw new NotImplementedException($"Codegeneration is not implemented for {ParserActionType}");
 
-      internal virtual StringBuilder ToStringbuilder(StringBuilder sb)
+      internal virtual StringBuilder AppendToSB(StringBuilder sb)
          => sb.Append("Action ")
            .Append(IdNumber + 1)
            .Append(", ")
@@ -199,8 +197,8 @@ namespace Grammlator {
       /// nonrecursive short description of the <see cref="ParserAction"/>
       /// </summary>
       /// <param name="sb"></param>
-      internal virtual StringBuilder NameToSb(StringBuilder sb)
-         => ToStringbuilder(sb); // some methods overwrite NameToSb to avoid endless recursion
+      internal virtual StringBuilder AppendShortToSB(StringBuilder sb)
+         => AppendToSB(sb); // some methods overwrite AppendShortToSB to avoid endless recursion
 
       /// <summary>
       /// Return a "simpler" <see cref="ParserAction"/> which can replace this action or return this
@@ -230,7 +228,7 @@ namespace Grammlator {
 
       internal void RemoveFromEnd(int count) => RemoveRange(this.Count - count, count);
 
-      internal virtual StringBuilder ToStringbuilder(StringBuilder sb)
+      internal virtual StringBuilder AppendToSB(StringBuilder sb)
       {
          Int32 number = 1;
          if (this.Count == 0)
@@ -248,7 +246,7 @@ namespace Grammlator {
             {
                sb.Append(number++)
                  .Append(". ");
-               a.ToStringbuilder(sb);
+               a.AppendToSB(sb);
                sb.AppendLine();
             }
          }
@@ -366,16 +364,16 @@ namespace Grammlator {
               && (AttributestackAdjustment == 0);
       // && (PriorityFunction == null);
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append("recognized ");
          DefinedSymbol!.IdentifierAndAttributesToSB(sb).AppendLine("= ");
          sb.Append("      ");
-         ToStringbuilder(sb, Int32.MaxValue); // do not mark any element
+         AppendToSB(sb, Int32.MaxValue); // do not mark any element
          return sb;
       }
 
-      internal override StringBuilder NameToSb(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb)
       {
          DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
          ElementsToStringbuilder(sb, Int32.MaxValue);
@@ -385,7 +383,7 @@ namespace Grammlator {
       internal void ElementsToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
           => Elements.Append(sb, MarkiertesElement, this.AttributeIdentifierStringIndexArray);
 
-      internal StringBuilder ToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
+      internal StringBuilder AppendToSB(StringBuilder sb, Int32 MarkiertesElement)
       {
          ElementsToStringbuilder(sb, MarkiertesElement);
 
@@ -591,7 +589,7 @@ namespace Grammlator {
          return count;
       }
 
-      internal virtual void ToStringbuilder(StringBuilder sb)
+      internal virtual void AppendToSB(StringBuilder sb)
       {
          Int32 number = 1;
          if (this.Count == 0)
@@ -601,7 +599,7 @@ namespace Grammlator {
             sb.Append("    ")
               .Append(number++)
               .Append(". ");
-            d.ToStringbuilder(sb, Int32.MaxValue) // do not mark any element
+            d.AppendToSB(sb, Int32.MaxValue) // do not mark any element
              .AppendLine();
          }
       }
@@ -634,7 +632,7 @@ namespace Grammlator {
          }
       }
 
-      internal override StringBuilder NameToSb(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
 
       private int SimplifyRecursionCount = 0;
@@ -780,10 +778,10 @@ namespace Grammlator {
             NextAction?.CountUsage(false);
       }
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append("    then: ");
-         return NextAction.NameToSb(sb);
+         return NextAction.AppendShortToSB(sb);
       }
    }
 
@@ -812,18 +810,12 @@ namespace Grammlator {
       /// </summary>
       internal Boolean FirstAdjustAttributeStackThenCallMethod;
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append(P5CodegenCS.GotoLabel(this, false));
          AppendAdjustmentsAndMethod(sb);
-         return base.ToStringbuilder(sb);
-      }
-
-      //internal override StringBuilder NameToSb(StringBuilder sb)
-      //{
-      //   sb.Append(P5CodegenCS.GotoLabel(this, false));
-      //   return base.ToStringbuilder(sb);
-      //}
+         return base.AppendToSB(sb);
+      }      
 
       private void AppendAdjustmentsAndMethod(StringBuilder sb)
       {
@@ -946,7 +938,7 @@ namespace Grammlator {
          {
             codegen.IndentExactly()
                .AppendLine() // empty line preceding method call
-               .GenerateSemanticMethodCall(this.SemanticMethod, asInstruction: true)
+               .GenerateSemanticMethodCall(this.SemanticMethod)
                .AppendLine(";")
                .AppendLine(); // empty line following method call
          }
@@ -1037,10 +1029,10 @@ namespace Grammlator {
          return sb;
       }
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          ConditionToStringbuilder(sb);
-         return base.ToStringbuilder(sb);
+         return base.AppendToSB(sb);
       }
 
       /// <summary>
@@ -1163,14 +1155,14 @@ namespace Grammlator {
             NextAction?.CountUsage(true); // terminal transition: accept == true !!!
       }
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          ConditionToStringbuilder(sb)
            .Append("    then:  accept; then: ");
          if (NextAction == null)
             return sb.Append("no action (halt)");
          else
-            return NextAction.NameToSb(sb);
+            return NextAction.AppendShortToSB(sb);
       }
    }
 
@@ -1217,7 +1209,7 @@ namespace Grammlator {
          this.InputSymbol = inputSymbol;
       }
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append("if nonterminal == ")
            .AppendLine(InputSymbol.Identifier)
@@ -1225,7 +1217,7 @@ namespace Grammlator {
          if (NextAction == null)
             sb.Append("no action (halt)");
          else
-            NextAction.NameToSb(sb);
+            NextAction.AppendShortToSB(sb);
          return sb;
       }
 
@@ -1266,9 +1258,9 @@ namespace Grammlator {
          this.PriorityFunction = definition.PriorityFunction;
       }
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
-         base.ToStringbuilder(sb);
+         base.AppendToSB(sb);
          return sb;
       }
    }
@@ -1300,7 +1292,7 @@ namespace Grammlator {
                                                                     // The PriorityFunctions are copied from PriorityActions because those may be modified later
       internal readonly IntMethodClass[] PriorityFunctions;
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.AppendLine("Select by dynamic priority: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 
@@ -1310,21 +1302,21 @@ namespace Grammlator {
               .Append("    ");
 
             if (ConstantPriorityAction is ConditionalAction ca)
-               ca.NextAction.NameToSb(sb); // the condition (terminal symbols) must not be used
+               ca.NextAction.AppendShortToSB(sb); // the condition (terminal symbols) must not be used
             else
-               ConstantPriorityAction.NameToSb(sb);
+               ConstantPriorityAction.AppendShortToSB(sb);
             sb.AppendLine();
          }
-         // PriorityFunctions and DynamicPriorityActions ToStringbuilder(sb);
+         // PriorityFunctions and DynamicPriorityActions AppendToSB(sb);
          for (int i = 0; i < DynamicPriorityActions.Count; i++)
          {
             sb.Append("    ")
               .Append(PriorityFunctions[i].MethodName)
               .Append(": ");
             if (DynamicPriorityActions[i] is ConditionalAction ca)
-               ca.NextAction.NameToSb(sb); // the condition (terminal symbols) must not be used
+               ca.NextAction.AppendShortToSB(sb); // the condition (terminal symbols) must not be used
             else
-               DynamicPriorityActions[i].NameToSb(sb);
+               DynamicPriorityActions[i].AppendShortToSB(sb);
             sb.AppendLine();
          }
 
@@ -1335,9 +1327,19 @@ namespace Grammlator {
       {
          base.CountUsage(Accept);
 
-         ConstantPriorityAction?.CountUsage(false);
+         if (Calls != 1)
+            return;
+
+         if (ConstantPriorityAction != null)
+         {
+            if (ConstantPriorityAction is TerminalTransition t)
+               t.NextAction.CountUsage(true);
+            else
+               ((LookaheadAction)ConstantPriorityAction).NextAction.CountUsage(false);
+         }
+
          foreach (ParserAction a in DynamicPriorityActions)
-            ((ConditionalAction)a).NextAction.CountUsage(false);  // TOCHECK accept of conditional action within prioritybranch ??
+            ((LookaheadAction)a).NextAction.CountUsage(false);
       }
    }
    internal sealed class PrioritySelectAction : ConditionalAction {
@@ -1359,7 +1361,7 @@ namespace Grammlator {
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isPrioritySelectAction;
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append("if Symbol == ");
          TerminalSymbols.BitsToStringbuilder(
@@ -1367,7 +1369,7 @@ namespace Grammlator {
             .AppendLine("; ");
 
          sb.Append("    then: ");
-         NextAction.ToStringbuilder(sb);
+         NextAction.AppendToSB(sb);
 
          return sb;
       }
@@ -1380,10 +1382,10 @@ namespace Grammlator {
          => this.InputClass = InputClass;
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isAcceptAction;
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append("accept, then :");
-         return base.ToStringbuilder(sb);
+         return base.AppendToSB(sb);
       }
    }
 
@@ -1419,7 +1421,7 @@ namespace Grammlator {
 
       internal ParserState State;
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          return ConditionToStringbuilder(sb)
            .Append("    then: call error handler from state ")
@@ -1500,16 +1502,16 @@ namespace Grammlator {
          get; set;
       }
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append(P5CodegenCS.GotoLabel(this, false)).
             Append(", AttributestackAdjustment ").
             Append(AttributestackAdjustment);
-         base.ToStringbuilder(sb);
+         base.AppendToSB(sb);
          return sb;
       }
 
-      internal override StringBuilder NameToSb(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
 
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
@@ -1548,14 +1550,14 @@ namespace Grammlator {
       internal ErrorHaltAction() : base(GlobalVariables.TheEndOfGeneratedCodeAction) { }
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isErrorhaltAction;
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append(P5CodegenCS.GotoLabel(this, false));
-         base.ToStringbuilder(sb);
+         base.AppendToSB(sb);
          return sb;
       }
 
-      internal override StringBuilder NameToSb(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
 
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
@@ -1602,11 +1604,11 @@ namespace Grammlator {
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isDeletedParserAction;
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.AppendLine("action deleted by optimization: ")
            .Append("      ");
-         return NextAction.NameToSb(sb);
+         return NextAction.AppendShortToSB(sb);
       }
    }
 
@@ -1624,14 +1626,14 @@ namespace Grammlator {
          return codegen.GenerateEndOfCodeAction();
       }
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append(P5CodegenCS.GotoLabel(this, false));
-         base.ToStringbuilder(sb);
+         base.AppendToSB(sb);
          return sb;
       }
 
-      internal override StringBuilder NameToSb(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
    }
 
@@ -1656,24 +1658,24 @@ namespace Grammlator {
          return this.NextAction;
       }
 
-      internal override StringBuilder ToStringbuilder(StringBuilder sb)
+      internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append(P5CodegenCS.GotoLabel(this, false)).
             Append("(push value: ").
             Append(StateStackNumber.ToString()).
             AppendLine(") ");
-         base.ToStringbuilder(sb);
+         base.AppendToSB(sb);
          return sb;
       }
 
-      internal override StringBuilder NameToSb(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb)
       {
          sb.Append(P5CodegenCS.GotoLabel(this, false)).
             Append(" (push value: ").
             Append(StateStackNumber.ToString()).
             AppendLine(")");
 
-         return base.NameToSb(sb);
+         return base.AppendShortToSB(sb);
       }
 
 

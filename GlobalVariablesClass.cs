@@ -34,7 +34,7 @@ namespace Grammlator {
          InitialValues.Add("VariableErrorStateNumber", "ErrorStateNumber");
          InitialValues.Add("VariableSymbol", "PeekSymbol()");
          InitialValues.Add("VariableStateStackInitialCount", "StateStackInitialCount");
-         InitialValues.Add("MethodIndexOfMaximum", "Method.IndexOfMaximum");
+         InitialValues.Add("MethodIndexOfMaximum", "Methods.IndexOfMaximum");
          InitialValues.Add("OptimizeStateStackNumbers", "1");
       }
 

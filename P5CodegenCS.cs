@@ -462,7 +462,7 @@ namespace Grammlator
          Append(") ");
       }
 
-      public P5CodegenCS GenerateSemanticMethodCall(MethodClass semanticMethod, bool asInstruction)
+      public P5CodegenCS GenerateSemanticMethodCall(MethodClass semanticMethod)
       {
          IndentAndAppend(semanticMethod.MethodName);
          Append("(");
