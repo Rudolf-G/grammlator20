@@ -325,18 +325,19 @@ namespace Grammlator {
                 $"The number of elements in enum \"{GlobalVariables.GetStringOfIndex(EnumNameStringIndex)}\" differs from the number of terminal symbols."
                 );
             }
-         Int32 enumIndex = 0;
+         Int32 enumIndex = -1;
          foreach (Int32 dictNameIndex in SymbolDictionary.Keys)
             {
+            if (++enumIndex >= Enumlist.Count)
+               break;
             if (dictNameIndex != Enumlist[enumIndex])
                {
                string name = GlobalVariables.GetStringOfIndex(dictNameIndex);
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The name \"{name}\" in the terminal definition and the corresponding name \"{Enumlist[enumIndex]}\" in the enum are different.");
+                   $"The name \"{name}\" in the terminal definition and the corresponding name \"{GlobalVariables.GetStringOfIndex(Enumlist[enumIndex])}\""
+                   +" in the enum are different.");
                // break; // no break: test for more errors in the enum
                }
-            if (++enumIndex >= Enumlist.Count)
-               break;
             }
          Enumlist.Clear();
          }
@@ -735,7 +736,7 @@ namespace Grammlator {
          {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error, 
                $"Expected {typeof(IntMethodClass)} method, got {method?.GetType()}");
-            intMethod = new IntMethodClass("@error");
+            intMethod = new IntMethodClass("@error", Lexer.LexerTextPos);
             method = intMethod;
          }
 

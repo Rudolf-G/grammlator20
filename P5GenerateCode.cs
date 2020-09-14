@@ -664,8 +664,9 @@ namespace Grammlator {
 
       private ParserAction GeneratePriorityBranch(out Boolean accept, PriorityBranchAction ps)
       {
-         // TOCHECK reorder instructions depending on next? In switch case: result depends on order! Keep constant priority first!
-
+         // TOCHECK The sequence of the actions is relevant if there are some with same priority: make it reproducible.
+         // If there is a constant condition, this is always first. Only this may be a shift operation
+         // which should have higher priority than LookAhead operations.
          codegen.IndentExactly();
          codegen.AppendLine("/* Dynamic priority controlled actions */");
          int PrioritiesCount = ps.DynamicPriorityActions.Count + ((ps.ConstantPriorityAction == null) ? 0 : 1);
@@ -682,7 +683,6 @@ namespace Grammlator {
          codegen.IncrementIndentationLevel();
 
          // First argument of comparision
-         int DynamicIndex = 0;
          ParserActionWithNextAction IfDependentAction;
          if (ps.ConstantPriorityAction != null)
          {
@@ -694,14 +694,13 @@ namespace Grammlator {
             codegen
               .AppendLine() // empty line preceding method call
               .GenerateSemanticMethodCall(ps.PriorityFunctions[0]);
-            DynamicIndex = 1;
             IfDependentAction = (ConditionalAction)ps.DynamicPriorityActions[0];
          }
 
          // ">=" and second argument of comparision and end of condition
          codegen.AppendLine()
             .DecrementIndentationLevel().IndentExactly().Append(">= ").IncrementIndentationLevel()
-            .GenerateSemanticMethodCall(ps.PriorityFunctions[DynamicIndex])
+            .GenerateSemanticMethodCall(ps.PriorityFunctions[^1])
             .AppendLine().DecrementIndentationLevel().IndentExactly().AppendLine(")");
 
          // Conditional action

@@ -7,9 +7,9 @@
     <Authors>Dr. Rudolf Gardill</Authors>
     <PackageIcon>Grammlator.ico</PackageIcon>
     <ApplicationIcon>Grammlator.ico</ApplicationIcon>
-    <AssemblyVersion>20.2.0.0</AssemblyVersion>
+    <AssemblyVersion>20.3.0.0</AssemblyVersion>
     <StartupObject>grammlator.App</StartupObject>
-    <FileVersion>2020.07.28.0</FileVersion>
+    <FileVersion>2020.09.14.0</FileVersion>
     <Version>2020.04.01</Version>
     <PackageLicenseExpression>Without warranty</PackageLicenseExpression>
     <Copyright>Dr. Rudolf Gardill</Copyright>

@@ -477,16 +477,18 @@ namespace Grammlator {
    /// </summary>
    internal class MethodClass {
       internal readonly String MethodName;
+      internal readonly Int32 Position;
 
       /// <summary>
       /// Array with one entry for each of the formal parameters of the method
       /// </summary>
       internal MethodParameterStruct[] MethodParameters;
 
-      internal MethodClass(String methodName)
+      internal MethodClass(String methodName, Int32 position)
          {
          MethodName = methodName;
          MethodParameters = Array.Empty<MethodParameterStruct>();
+         Position = position;
          }
       }
 
@@ -494,7 +496,7 @@ namespace Grammlator {
    /// Stores the name and the parameters of a semantic method specified in the grammar
    /// </summary>
    internal class VoidMethodClass: MethodClass {
-      internal VoidMethodClass(String methodName) : base(methodName)
+      internal VoidMethodClass(String methodName, Int32 position) : base(methodName, position)
          {
          }
       }
@@ -503,7 +505,7 @@ namespace Grammlator {
    /// Stores the name and the parameters of a semantic priority specified in the grammar
    /// </summary>
    internal class IntMethodClass: MethodClass {
-      internal IntMethodClass(String methodName) : base(methodName)
+      internal IntMethodClass(String methodName, Int32 position) : base(methodName, position)
          {
          }
       }

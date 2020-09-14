@@ -75,7 +75,7 @@ namespace Grammlator {
          if (SymbolDictionary.ContainsKey(nameIndex))
          {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                $"The terminal symbol {Name} has been already defined");
+                $"The terminal symbol {Name} has already been defined");
             // continue to keep integrity of the data structures
          }
          else
@@ -125,7 +125,7 @@ namespace Grammlator {
                if (ns.IsDefined)
                {
                   P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                      $"{symbolName} has been already defined as nonterminal symbol. ");
+                      $"{symbolName} has already been defined as nonterminal symbol. ");
                   // TODO test behaviour after error
                }
 
@@ -819,16 +819,16 @@ namespace Grammlator {
 
          if (typeString == "int" || typeString == "Int32")
          {
-            method = new IntMethodClass(methodName: name);
+            method = new IntMethodClass(methodName: name, Lexer.LexerTextPos);
          }
          else if (typeString == "void")
          {
-            method = new VoidMethodClass(methodName: name);
+            method = new VoidMethodClass(methodName: name, Lexer.LexerTextPos);
          }
          else
          {
             CreateParserErrorMessage($"expected \"int\" or \"Int32\" or \"void\", found \"{typeString}\" (will be interpreted as \"void\").");
-            method = new VoidMethodClass(methodName: name);
+            method = new VoidMethodClass(methodName: name, Lexer.LexerTextPos);
          }
       }
 
@@ -1013,7 +1013,7 @@ namespace Grammlator {
             }
 
             // This checks if there are assignments to all attributes of the defined symbol and set their fields
-            EvaluateVoidMethodParameters(semanticMethod: null);
+            CheckAndResetLeftSideAttributes(semanticMethod: null);
 
             // remove the attributes of the trivial definition from ListOfAttributesOfSyntaxRule
             ListOfAttributesOfGrammarRule.RemoveFromEnd(TrivialElement.NumberOfAttributes);
@@ -1056,8 +1056,8 @@ namespace Grammlator {
 
             ActualListOfNontrivialDefinitions.Add(NewDefinition);
 
-            EvaluateIntMethodParameters(NewDefinition.PriorityFunction);
-            EvaluateVoidMethodParameters(NewDefinition.SemanticMethod);
+            EvaluateIntMethodParameters(NewDefinition);
+            EvaluateVoidMethodParameters(NewDefinition);
 
             // Remove the attributes of the new definition from ListOfAttributesOfSyntaxRule
             ListOfAttributesOfGrammarRule.RemoveFromEnd(NumberOfAttributesOfNewDefinition);
@@ -1133,8 +1133,9 @@ namespace Grammlator {
       /// Checks the methods parameters, computes their stack offsets and updates their implementation
       /// </summary>
       /// <param name="semanticMethod"></param>
-      private void EvaluateVoidMethodParameters(VoidMethodClass? semanticMethod)
+      private void EvaluateVoidMethodParameters(Definition definition)
       {
+         VoidMethodClass? semanticMethod = definition.SemanticMethod;
          Int32 NumberOfFirstAttribute = AttributeNumberAtStartOfDefinition + 1;
          Int32 NumberOfLastAttributeOfRightSide = AttributeCounter;
          Int32 maximalAttributenumber
@@ -1152,12 +1153,14 @@ namespace Grammlator {
           **************************************************************************************/
 
          // for each method parameter find a corresponding attribute, check compatibility and assign offset
+         bool error = false;
          for (Int32 parameterIndex = 0; parameterIndex < MethodParameters.Length; parameterIndex++)
          {
+            /*** check method parameter ***/
             ref MethodParameterStruct MethodParameter = ref MethodParameters[parameterIndex];
             string methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
 
-            // find last attribute in the list of attributes which has the same name
+            /*** find last attribute in the list of attributes which has the same name ***/
             Int32 AttributeIndex =
                 ListOfAttributesOfGrammarRule.FindLastIndex
                 (
@@ -1166,12 +1169,17 @@ namespace Grammlator {
             if (AttributeIndex < 0)
             {
                // no attribute with the same name as the formal parameter
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-              $"There is no attribute with the same name as the formal parameter \"{methodParameterName}\""
-              + $" of method \"{semanticMethod!.MethodName }\".");
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                  $"Error in method \"{semanticMethod!.MethodName }\" formal parameter \"{methodParameterName}\": "
+                  + "missing attribute with the same name.",
+                  semanticMethod!.Position
+                  );
+               error = true;
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
+
+            /*** check compatibility of method parameter and last attribute with the same name***/
 
             AttributeStruct Attribute = ListOfAttributesOfGrammarRule[AttributeIndex];
 
@@ -1181,13 +1189,14 @@ namespace Grammlator {
                 )
             {
                // last attribute with same name as formal parameter is defined at a different level
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The attribute \"{methodParameterName}\", "
-                   + $"which is used as formal parameter of method \"{semanticMethod!.MethodName}\", "
-                   + "is outside of the paranthesized grammar rule. "
-                   );
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                  $"Error in method \"{semanticMethod!.MethodName }\" formal parameter \"{methodParameterName}\": "
+                  + "the attribute with the same name is not inside the parantheses of the nested grammar rule.",
+                  semanticMethod!.Position
+                  );
                // TODO allow restricted access to attributes left of parantheses (restrictions?)
                // TODO design and allow access (from priority method) to the attributes of the look ahead terminal symbol (to be implemented in analysis of a lower level definition)
+               error = true;
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
@@ -1198,28 +1207,34 @@ namespace Grammlator {
             String errorDescription = AttributeParameterMatchError(Attribute, MethodParameter);
             if (!string.IsNullOrEmpty(errorDescription))
             {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The attribute \"{methodParameterName}\", "
-                   + $"and the associated formal parameter of method \"{semanticMethod!.MethodName}\", "
-                   + "are not compatible: "
-                   + errorDescription
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                  $"Error in method \"{semanticMethod!.MethodName }\": the formal parameter \"{methodParameterName}\" "
+                  + "and the attribute with the same name are not compatible:"
+                   + errorDescription,
+                  semanticMethod!.Position
                    );
+               error = true;
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
 
-            // Has been checked already when the attribute had been added to MethodParameters[]:
+            // Compare types:
             if (Attribute.TypeStringIndex != MethodParameter.TypeStringIndex)
             {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-              $"The type \"{GlobalVariables.GetStringOfIndex(Attribute.TypeStringIndex)}\" of the attribute \"{GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)}\"" +
-              $" differs from the parameters type \"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)}\" ");
-               MethodParameter.Implementation = ParameterImplementation.NotAssigned;
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                  $"Error in method \"{semanticMethod!.MethodName }\": the type of the formal parameter  "
+                  + $"\"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)} {methodParameterName}\""
+                  + $" is different from the type of the attribute \""
+                  + $"{GlobalVariables.GetStringOfIndex(Attribute.TypeStringIndex)} {GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)}\"",
+                  semanticMethod.Position
+                   );
+               error = true;
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
 
-            // MethodParameter passed all checks 
+            /* The MethodParameter and the attribute passed all checks,
+             * set MethodParameter.Implementation, Attribute.Implementation, OverlayedAttribute.Implementation */
             MethodParameter.Offset = Attribute.PositionInProduction - maximalAttributenumber;
 
             switch (Attribute.OverlayType)
@@ -1233,20 +1248,19 @@ namespace Grammlator {
                Int32 OverlayedAttributeIndex = AttributeIndex - CountOfAttributesOfLeftSide;
                AttributeStruct OverlayedAttribute = ListOfAttributesOfGrammarRule[OverlayedAttributeIndex];
 
-               Debug.Assert(OverlayedAttribute.LeftSide);// PROBLEM Assert fails (example CSSyntachchecker.Lexer)
+               Debug.Assert(OverlayedAttribute.LeftSide);
                Debug.Assert(OverlayedAttribute.NameStringIndex == MethodParameter.NameStringIndex);
                Debug.Assert(OverlayedAttribute.PositionInProduction == Attribute.PositionInProduction);
 
                OverlayedAttribute.Implementation = MethodParameter.Implementation;
                ListOfAttributesOfGrammarRule[OverlayedAttributeIndex] = OverlayedAttribute;
             }
-
             break;
+
             case AttributeStruct.OverlayEnum.outClearAttribute:
             {
-               Debug.Assert(MethodParameter.Implementation == ParameterImplementation.OutCall);
-               // Attribute is in left side
                Debug.Assert(Attribute.LeftSide);
+               Debug.Assert(MethodParameter.Implementation == ParameterImplementation.OutCall);
                // There is an overlayed right side attribute with same position and different name
                Int32 OverlayedAttributeIndex = AttributeIndex + CountOfAttributesOfLeftSide;
                AttributeStruct OverlayedAttribute = ListOfAttributesOfGrammarRule[OverlayedAttributeIndex];
@@ -1254,7 +1268,7 @@ namespace Grammlator {
                // Assume there is no such parameter, then clearing must be done by Attribute out access:
                MethodParameter.Implementation = ParameterImplementation.OutClearCall;
 
-               // Search such parameter
+               // Search that formal parameter
                for (Int32 SearchIndex = 0; SearchIndex < MethodParameters.Length; SearchIndex++)
                {
                   if (MethodParameters[SearchIndex].NameStringIndex == OverlayedAttribute.NameStringIndex)
@@ -1267,6 +1281,7 @@ namespace Grammlator {
                }
             }
             break;
+
             case AttributeStruct.OverlayEnum.inClearAttribute:
                MethodParameter.Implementation = ParameterImplementation.ValueOrInClearCall;
                break;
@@ -1278,15 +1293,23 @@ namespace Grammlator {
             // end of loop over all parameters of method
          }
 
+         if (error)
+            return;
+
          /**************************************************************************************
           ********  Part 2: Check Assignments To And Reset Left Side Attributes          *******
           **************************************************************************************/
 
+         CheckAndResetLeftSideAttributes(semanticMethod);
+      }
+
+      private void CheckAndResetLeftSideAttributes(VoidMethodClass? semanticMethod)
+      {
          /* For each attribute of the definitions left side check if a value will be assigned
-              * (implementation commented out:) either by default assignment (no overlay with an attribute of the right side)
-              * or by overlay with an attribute of same name and type
-              * or by an out or ref parameter of the method
-              */
+                       * (implementation commented out:) either by default assignment (no overlay with an attribute of the right side)
+                       * or by overlay with an attribute of same name and type
+                       * or by an out or ref parameter of the method
+                       */
 
          for (Int32 indexOfLeftSideAttrib = ListOfAttributesOfGrammarRule.Count - 1
              ; indexOfLeftSideAttrib >= 0 && ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].Level == NestingLevel
@@ -1307,16 +1330,19 @@ namespace Grammlator {
                   if (semanticMethod == null)
                   {
                      P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                        "There must be an overlaying attribute or a method with a ref or out parameter with the name and type of the attribute "
-                        + $"\"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\""
+                        $"The attribute \"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\""
+                        + " of the left side of the definition must be assigned a value by an overlaying attribute or a method."
                         );
                   }
                   else
                   {
-                     P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                     GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
                         $"The method \"{semanticMethod.MethodName}\" "
-                        + "must have a ref or out parameter with the name and type of the attribute "
-                        + $"\"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\"");
+                        + "doesn't have a ref or out parameter with the name and type of the attribute "
+                        + $"\"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\""
+                        + " of the left side of the definition.",
+                        semanticMethod.Position
+                        );
                   }
                }
                // The left side attribute may be used in another definition:
@@ -1328,8 +1354,9 @@ namespace Grammlator {
          }
       }
 
-      private void EvaluateIntMethodParameters(IntMethodClass? semanticPriority)
+      private void EvaluateIntMethodParameters(Definition definition)
       {
+         IntMethodClass? semanticPriority = definition.PriorityFunction;
          Int32 NumberOfFirstAttribute = AttributeNumberAtStartOfDefinition + 1;
          Int32 NumberOfLastAttributeOfRightSide = AttributeCounter;
          Int32 maximalAttributenumber
@@ -1358,9 +1385,12 @@ namespace Grammlator {
             if (AttributeIndex < 0)
             {
                // no attribute with the same name as the formal parameter
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-              $"There is no attribute with the same name as the formal parameter \"{methodParameterName}\""
-              + $" of method \"{semanticPriority!.MethodName }\".");
+               // no attribute with the same name as the formal parameter
+              GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                  $"Error in semantic priority \"{semanticPriority!.MethodName }\" formal parameter \"{methodParameterName}\": "
+                  + "missing attribute with the same name.",
+                  semanticPriority!.Position
+                  );
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
@@ -1375,24 +1405,25 @@ namespace Grammlator {
                 )
             {
                // last attribute with same name as formal parameter is defined at a different level
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The attribute \"{methodParameterName}\", "
-                   + $"which is used as formal parameter of method \"{semanticPriority!.MethodName}\", "
-                   + "is outside of the paranthesized grammar rule. "
-                   );
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                  $"Error in  priority method \"{semanticPriority!.MethodName }\" formal parameter \"{methodParameterName}\": "
+                  + "the attribute with the same name is not inside the parantheses of the nested grammar rule.",
+                  semanticPriority!.Position
+                  );
                // TODO allow restricted access to attributes left of parantheses (restrictions?)
                // TODO design and allow access (from priority function) to the attributes of the look ahead terminal symbol (to be implemented in analysis of a lower level definition)
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
 
-            Debug.Assert(MethodParameter.NameStringIndex == Attribute.NameStringIndex);
-            // A parameter of a priority method must be associated with a left side attribute
             if (Attribute.LeftSide)
             {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The formal parameter \"{methodParameterName}\" of the priority method \"{semanticPriority!.MethodName}\" "
-                   + $"must not be associated to an attribute of the left side of the definition");
+               // A parameter of a priority method must not be associated with a left side attribute
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                  $"Error in  priority method \"{semanticPriority!.MethodName }\": the formal parameter \"{methodParameterName}\""
+                     + " has the same name as an attribute of the left side of the definition",
+                     semanticPriority!.Position
+                     );
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
@@ -1401,22 +1432,25 @@ namespace Grammlator {
             if (MethodParameter.Implementation != ParameterImplementation.ValueOrInCall
                 && MethodParameter.Implementation != ParameterImplementation.ValueOrInClearCall)
             {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The formal parameter \"{methodParameterName}\", "
-                   + $"of the priority method \"{semanticPriority!.MethodName}\", "
-                   + "is not a value or a in parameter."
-                   );
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                  $"Error in  priority method \"{semanticPriority!.MethodName }\": the formal parameter \"{methodParameterName}\""
+                     + "is not a value parameter or an in parameter.",
+                     semanticPriority!.Position
+                     );
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
-
-            // Has been checked already when the attribute had been added to MethodParameters[]:
+ 
+            // Compare types:
             if (Attribute.TypeStringIndex != MethodParameter.TypeStringIndex)
             {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-              $"The type \"{GlobalVariables.GetStringOfIndex(Attribute.TypeStringIndex)}\" of the attribute \"{GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)}\"" +
-              $" differs from the parameters type \"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)}\" ");
-               MethodParameter.Implementation = ParameterImplementation.NotAssigned;
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                  $"Error in priority method \"{semanticPriority!.MethodName }\": the type of the formal parameter "
+                  + $"\"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)} {methodParameterName}\""
+                  + $" is different from the type of the attribute \""
+                  + $"{GlobalVariables.GetStringOfIndex(Attribute.TypeStringIndex)} {GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)}\"",
+                  semanticPriority.Position
+                   );
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
