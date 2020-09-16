@@ -32,7 +32,7 @@ namespace Grammlator {
       GroupEnd, RepeatEnd, OptionEnd,  // these are the characters ) } ] 
 
       Name /* Attribute (Int32 stringIndex) */, // try (Position, Length
-      StringResult /* should be named String, but this is avoided, Attribute (Int32 stringIndex) */,
+      LexerString /* should be named String, but this is avoided, Attribute (Int32 stringIndex) */,
 
       DefinitionSeparatorSymbol, // |
       TerminatorSymbol // ;
@@ -56,7 +56,7 @@ namespace Grammlator {
                LexerResult.MinusEqual => "-=",
                LexerResult.DoubleQuestionmark => "??",
                LexerResult.StarEqual => "*=",
-               LexerResult.StringResult => "string",
+               LexerResult.LexerString => "string",
                LexerResult.Name => "name",
                LexerResult.CSharpStart => "C# code",
                LexerResult.CSharpEnd => "end of C# Code",
@@ -379,7 +379,7 @@ namespace Grammlator {
 
       //| StartsymbolString(Int32 stringIndex)=
       //|    String(Int32 stringIndex)
-      private void AssignStringToStartsymbol() => Symbol = LexerResult.StringResult;
+      private void AssignStringToStartsymbol() => Symbol = LexerResult.LexerString;
 
       //| StartsymbolStarEqual=
       //|    Asterisk(int i1), DefiningSymbol(int i2)
@@ -499,7 +499,7 @@ namespace Grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated Sun, 06 Sep 2020 18:39:35 GMT (grammlator, File version 2020.07.28.0 06.09.2020 18:39:12)
+#region grammlator generated Mon, 14 Sep 2020 13:25:04 GMT (grammlator, File version 2020.09.14.0 14.09.2020 13:10:56)
   Int32 AttributeStackInitialCount = _a.Count;
   // State1:
   /* *Startsymbol= ►Gap, CharacterToPassOn;
@@ -909,7 +909,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Sun, 06 Sep 2020 18:39:35 GMT (grammlator, File version 2020.07.28.0 06.09.2020 18:39:12)
+#endregion grammlator generated Mon, 14 Sep 2020 13:25:04 GMT (grammlator, File version 2020.09.14.0 14.09.2020 13:10:56)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }
       }

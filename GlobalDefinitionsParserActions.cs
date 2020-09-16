@@ -254,8 +254,8 @@ namespace Grammlator {
       }
 
       /// <summary>
-      /// Yields all actions of the state whereby instead of a PrioritySelectActions its
-      /// NextAction is used and if it is a PriorityBranchAction
+      /// Yields all actions of the list of actions whereby instead of a PrioritySelectActions its
+      /// NextAction is used and if it is a PriorityBranchAction yields all dependend actions
       /// </summary>
       public IEnumerable<ParserAction> PriorityUnwindedSetOfActions {
          get {

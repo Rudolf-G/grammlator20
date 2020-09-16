@@ -707,7 +707,7 @@ namespace Grammlator {
          codegen.IncrementIndentationLevel();
          GenerateCodeSequence
             (IfDependentAction.NextAction,
-            accept: IfDependentAction is TerminalTransition ? true : false,
+            accept: IfDependentAction is TerminalTransition,
             labelMustBeGenerated: false);
          codegen.DecrementIndentationLevel();
 

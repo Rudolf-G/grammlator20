@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -39,16 +40,24 @@ namespace Grammlator {
          var p4 = new P4ReplaceNonterminalsAndOptimize();
 
          p4.P4aComputeStateStackNumbersAndBranches();
-         P4bShortenChainsOfActions();
+
+         //Shorten chains of actions and remove states which have been skipped by optimization
+         P4bShortenChainsOfActionsAndRemoveSkippedStates();
+
 
          // Now  ListOfAllStates[0] is definitely assigned and GlobalVariables.Startaction may be used
-         p4.P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeComplexity();
+         p4.P4cRemoveNotLongerUsedActionsFromStates();
 
          // For each Parseraction compute the number of AcceptCalls and Calls
          GlobalVariables.Startaction.CountUsage(Accept: false);
 
+         // 
+         p4.P4ePropagateLookAheadTerminals();
+
+         p4.P4fAddErrorhandlingActionsAndComputeComplexityOfStates();
+
          // Move push operations from states to actions if this reduces the number of those operations
-         p4.MoveStateStackPushOperations();
+         p4.P4gMoveStateStackPushOperations();
       }
 
       /// <summary>
@@ -841,9 +850,9 @@ namespace Grammlator {
       }
 
       /// <summary>
-      /// Shorten chains of actions and remove xxx
+      /// Shorten chains of actions and remove states which have been skipped by optimization
       /// </summary>
-      public static void P4bShortenChainsOfActions()
+      public static void P4bShortenChainsOfActionsAndRemoveSkippedStates()
       {
 
          for (Int32 StateIndex = 0; StateIndex < GlobalVariables.ListOfAllStates.Count; StateIndex++)
@@ -881,14 +890,14 @@ namespace Grammlator {
                }
             }
 
-            // Remove states which have ben skipped by optimization
+            // Remove states which have been skipped by optimization
             Int32 IndexOfNextState = StateIndex + 1;
             while (IndexOfNextState < GlobalVariables.ListOfAllStates.Count
                 && GlobalVariables.ListOfAllStates[IndexOfNextState].StateStackNumber < 0)
             {
                ParserAction? singleAction = GlobalVariables.ListOfAllStates[IndexOfNextState].RedundantLookaheadOrSelectActionOrNull();
                if (singleAction == null)
-                  break; // Der Zustand ist erreichbar
+                  break; // The state can be reached
                if (!(singleAction is LookaheadAction))
                   break;
                GlobalVariables.ListOfAllStates.RemoveAt(IndexOfNextState);
@@ -918,18 +927,13 @@ namespace Grammlator {
          // because it is used as Startaction
       }
 
-      private void P4cRemoveNotLongerUsedActionsFromStatesAddErrorActionsComputeComplexity()
+      private void P4cRemoveNotLongerUsedActionsFromStates()
       {
          // for each state
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
          {
-            static Int32 max(Int32 a, Int32 b)
-                => a > b ? a : b;
-
             // Remove not longer used actions of this state
             Int32 DeletedActionsCount = 0;
-            Int32 MaximumActionComplexity = 0;
-            Int32 ActionComplexitySum = 0;
 
             for (Int32 ActionIndex = 0; ActionIndex < State.Actions.Count; ActionIndex++)
             {
@@ -941,16 +945,8 @@ namespace Grammlator {
                }
                else
                {
-                  // Compute Terminalcount and SumOfWeights of the remaining action
-                  if (State.Actions[ActionIndex] is ConditionalAction c)
-                  {
-                     c.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);
-                     MaximumActionComplexity = max(MaximumActionComplexity, c.Complexity);
-                     ActionComplexitySum += c.Complexity;
-                  }
-
-                  // Shift the action by DeletedActionsCount places to the front
-                  // and replace the first unused action in State.Actions with this action
+                  // Shift this remaining action by DeletedActionsCount places to the front
+                  // and replace the unused action in State.Actions with this action
                   if (DeletedActionsCount > 0)
                      State.Actions[ActionIndex - DeletedActionsCount] = State.Actions[ActionIndex];
                }
@@ -959,11 +955,37 @@ namespace Grammlator {
             // Remove all deleted actions of this state
             if (DeletedActionsCount > 0)
                State.Actions.RemoveFromEnd(DeletedActionsCount);
+         }
+      }
+
+      private void P4fAddErrorhandlingActionsAndComputeComplexityOfStates()
+      {
+         foreach (ParserState State in GlobalVariables.ListOfAllStates)
+         {
+            static Int32 max(Int32 a, Int32 b)
+                => a > b ? a : b;
+
+            Int32 MaximumActionComplexity = 0;
+            Int32 ActionComplexitySum = 0;
+
+            for (Int32 ActionIndex = 0; ActionIndex < State.Actions.Count; ActionIndex++)
+            {
+
+               // Compute Terminalcount and SumOfWeights of the action
+               if (State.Actions[ActionIndex] is ConditionalAction c)
+               {
+                  c.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);
+                  MaximumActionComplexity = max(MaximumActionComplexity, c.Complexity);
+                  ActionComplexitySum += c.Complexity;
+               }
+            }
 
             // Add error handling actions
             ErrorhandlingAction? e = State.CheckAndAddErrorAction(GlobalVariables.ErrorHandlerIsDefined);
+
             if (e != null)
             {
+               e.CountUsage(false);
                e.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);
                MaximumActionComplexity = max(MaximumActionComplexity, e.Complexity);
                ActionComplexitySum += e.Complexity;
@@ -976,7 +998,82 @@ namespace Grammlator {
          }
       }
 
-      private void MoveStateStackPushOperations()
+      /// <summary>
+      /// Propagate all look ahead terminal symbols of all actions  of all states
+      /// to states with AcceptCalls==0.
+      /// For all states with AcceptCalls>0
+      /// set <see cref="state.PossibleInputTerminals"/> to all terminal symbols. 
+      /// </summary>
+      private void P4ePropagateLookAheadTerminals()
+      {
+         /* There may be states which are reached only via look ahead parseractions.
+          * These states can only see terminals that have been tested already.
+          * If such a state has actions for all of the visible terminals
+          * then it does not need an error action.
+          * */
+         foreach (ParserState state in GlobalVariables.ListOfAllStates)
+         {
+            if (state.AcceptCalls > 0)
+            {
+               state.PossibleInputTerminals = GlobalVariables.AllTerminalSymbols;
+            }
+
+            foreach (ParserAction action in state.Actions.PriorityUnwindedSetOfActions)
+            {
+               switch (action)
+               {
+               case LookaheadAction la:
+                  BitArray TerminalsToPropagate = la.TerminalSymbols;
+                  Propagate(la.NextAction, TerminalsToPropagate);
+                  break;
+               case PrioritySelectAction ps:
+                  BitArray SelectTerminalsToPropagate = ps.TerminalSymbols;
+                  Propagate(ps.NextAction, SelectTerminalsToPropagate);
+                  break;
+               }
+            }
+
+         }
+      }
+
+      int PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
+      private void Propagate(ParserAction? action, BitArray terminals)
+      {
+         if (action == null)
+            return;
+
+         if (PropagateRecursionDepth > 100)
+            return;
+         PropagateRecursionDepth++;
+
+         switch (action)
+         {
+         case BranchAction b:
+            foreach (BranchcaseStruct c in b.ListOfCases)
+            {
+               Propagate(c.BranchcaseAction, terminals);
+            }
+            break;
+         case ReduceAction r:
+            Propagate(r.NextAction, terminals);
+            break;
+         case ParserState state:
+            if (state.AcceptCalls > 0)
+               return;
+            if (state.PossibleInputTerminals == null)
+               state.PossibleInputTerminals = new BitArray(terminals);
+            else
+               _ = state.PossibleInputTerminals.Or(terminals);
+            break;
+         case LookaheadAction _:
+         case PriorityBranchAction _:
+         case PrioritySelectAction _:
+            throw new ArgumentException();
+         }
+         PropagateRecursionDepth--;
+      }
+
+      private void P4gMoveStateStackPushOperations()
       {
          /* Concept:
           * If possible move the push(p) from states into reduce actions and combine with pop() actions
@@ -1072,5 +1169,6 @@ namespace Grammlator {
          // The state does not longer push on the state stack
          state.StateStackNumber = -state.StateStackNumber - 2;
       }
+
    }
 }

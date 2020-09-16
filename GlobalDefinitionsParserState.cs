@@ -40,6 +40,8 @@ namespace Grammlator {
       /// </summary>
       internal List<ParserState> PredecessorList = emptyPredecessorList;
 
+      internal BitArray? PossibleInputTerminals = null;
+
       internal Boolean ContainsErrorHandlerCall {
          get;
          set;
@@ -537,7 +539,11 @@ namespace Grammlator {
       /// <returns>The added action or null if none added</returns>
       public ErrorhandlingAction? CheckAndAddErrorAction(Boolean ErrorHandlerIsDefined)
       {
-         var allowedSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions with constant priority
+         BitArray allowedSymbols;
+         //if (PossibleInputTerminals == null)
+         allowedSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions with constant priority
+         //else
+         //   allowedSymbols = new BitArray(PossibleInputTerminals!).Not();
          ErrorhandlingAction e;
          Int32 counter = 0;
          Boolean containsLookaheadAction = false;
@@ -554,7 +560,7 @@ namespace Grammlator {
          if (counter == 0)
             return null; // there is an unconditional action
 
-         var notAllowedSymbols = (BitArray)(new BitArray(allowedSymbols)).Not();
+         var notAllowedSymbols = new BitArray(allowedSymbols).Not();
          if (notAllowedSymbols.Empty())
             return null;
 
