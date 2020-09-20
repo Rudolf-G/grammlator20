@@ -34,7 +34,7 @@ namespace Grammlator {
       /// some tests
       /// </summary>
       public static void Test()
-         {
+      {
          // tests functions of BitAray which use CopyTo and expect a special order of the returned bits
          var b = new BitArray(0);
          Debug.Assert(b.Empty());
@@ -90,7 +90,7 @@ namespace Grammlator {
          Debug.Assert(!b.All());
          Debug.Assert(!b.Empty());
          Debug.Assert(b.PopulationCount() == 1);
-         }
+      }
 
       /// <summary>
       /// Copies the source to the destination (by destination.SetAll(false); destination.Or(source);)
@@ -101,7 +101,7 @@ namespace Grammlator {
       /// <exception cref="ArgumentNullException">Thrown if destination or source are null</exception>
       /// <exception cref="ArgumentException">Thrown if source and destination do not have the same length</exception>
       public static BitArray Assign(this BitArray destination, BitArray source)
-         {
+      {
          if (destination == null)
             throw new ArgumentNullException(nameof(destination));
          if (ReferenceEquals(destination, source))
@@ -109,7 +109,7 @@ namespace Grammlator {
          destination.SetAll(false);
          destination.Or(source);
          return destination;
-         }
+      }
 
       /// <summary>
       /// computes Or(subtrahend).Xor(subtrahend): all bits which are true in subtrahend will be set to false in the actual BitArray
@@ -119,7 +119,7 @@ namespace Grammlator {
       /// <returns>An array containing the result of the bitwise OR operation, which is a reference to the current BitArray object.</returns>
       /// <exception cref="ArgumentNullException"><paramref name="minuend"/> is <c>null</c>.</exception>
       public static BitArray ExceptWith(this BitArray minuend, BitArray subtrahend)
-         {
+      {
          // The name "ExceptWith" conforms to ISet<T>, elsewhere this function is nameded "Inhibition", "Substraction"
          // Bit (0-1 = 0, 1-1 = 0, 0-0 = 0, 1-0 = 1), 
          if (minuend == null)
@@ -127,7 +127,7 @@ namespace Grammlator {
 
          minuend.Or(subtrahend).Xor(subtrahend);
          return minuend;
-         }
+      }
 
       /// <summary>
       /// Checks if all bits are 0
@@ -136,7 +136,7 @@ namespace Grammlator {
       /// <returns>true if all Bits are true</returns>
       /// <exception cref="ArgumentNullException"><paramref name="bits"/> is <c>null</c>.</exception>
       public static Boolean Empty(this BitArray bits)
-         {
+      {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits));
 
@@ -152,7 +152,7 @@ namespace Grammlator {
          Int32 length = ((bits.Count - 1) / 32) + 1;
          Int32[] a = staticarray; // try to use staticarray (not thread save!)
          if (a.Length < length) // staticarray is too short, so accept overhead by new
-            a = new Int32[length]; 
+            a = new Int32[length];
 
          bits.CopyTo(a, 0); // beware of undefined state of unused bits 
          a[length - 1] &= mask[(bits.Count - 1) % 32]; // set unused bits of last used element to 0
@@ -162,7 +162,7 @@ namespace Grammlator {
                return false;
 
          return true;
-         }
+      }
 
       /// <summary>
       /// Checks if all bits are 1
@@ -171,7 +171,7 @@ namespace Grammlator {
       /// <returns>returns true if all bits are set</returns>
       /// <exception cref="ArgumentNullException"><paramref name="bits"/> is <c>null</c>.</exception>
       public static Boolean All(this BitArray bits)
-         {
+      {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits));
 
@@ -196,7 +196,7 @@ namespace Grammlator {
                return false;
 
          return true;
-         }
+      }
 
       /// <summary>
       /// Checks if all bits are equal
@@ -206,7 +206,7 @@ namespace Grammlator {
       /// <returns>true if equal</returns>
       /// <exception cref="ArgumentNullException"><paramref name="rightArgument"/> is <c>null</c>.</exception>
       public static Boolean IsEqualTo(this BitArray leftArgument, BitArray rightArgument)
-         {
+      {
          if (rightArgument == null)
             throw new ArgumentNullException(nameof(rightArgument));
          if (leftArgument == null)
@@ -215,12 +215,12 @@ namespace Grammlator {
          if (leftArgument.Count != rightArgument.Count)
             return false;
          for (Int32 i = 0; i < leftArgument.Count; i++)
-            {
+         {
             if (leftArgument[i] != rightArgument[i])
                return false;
-            }
-         return true;
          }
+         return true;
+      }
 
       /// <summary>
       /// Appends the <paramref name="BitNames"/> (or the indexes if no names) of all bits which are true to the 
@@ -238,24 +238,24 @@ namespace Grammlator {
       internal static StringBuilder BitsToStringbuilder(
               this BitArray Bits, StringBuilder Sb,
               Object[]? BitNames = null, String Delimiter = ", ", String? All = null, String? Empty = null)
-         {
+      {
          if (BitNames != null && BitNames.Length < Bits.Length)
-            {
+         {
             throw new ArgumentOutOfRangeException
                ($"Length of {nameof(BitNames)} == {BitNames.Length} is less than the number of bits == {Bits.Length} in call of {nameof(BitsToStringbuilder)}");
-            }
+         }
 
          Boolean isFirst = true;
          if (All != null && Bits.All())
-            {
+         {
             Sb.Append(All);
-            }
+         }
          else
-            {
+         {
             for (Int32 i = 0; i < Bits.Length; i++)
-               {
+            {
                if (Bits[i])
-                  {
+               {
                   if (isFirst)
                      isFirst = false;
                   else
@@ -264,14 +264,14 @@ namespace Grammlator {
                      Sb.Append(i);
                   else
                      Sb.Append(BitNames[i].ToString());
-                  }
                }
+            }
 
             if (isFirst && Empty != null)
                Sb.Append(Empty);
-            }
-         return Sb;
          }
+         return Sb;
+      }
 
       /// <summary>
       /// The lowest index for which element[i]=true
@@ -279,18 +279,18 @@ namespace Grammlator {
       /// </summary>
       /// <param name="bits"></param>
       public static Int32 IndexOfFirstTrueElement(this BitArray bits)
-         {
+      {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(IndexOfFirstTrueElement)}");
 
          Int32 i;
          for (i = 0; i <= bits.Count; i++)
-            {
+         {
             if (bits[i])
                return i;
-            }
-         return -1;
          }
+         return -1;
+      }
 
       /// <summary>
       /// The highest index for which element[i]=true
@@ -298,34 +298,34 @@ namespace Grammlator {
       /// </summary>
       /// <param name="bits"></param>
       public static Int32 IndexOfLastTrueElement(this BitArray bits)
-         {
+      {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(IndexOfLastTrueElement)}");
 
          Int32 i;
          for (i = bits.Count - 1; i >= 0; i--)
-            {
+         {
             if (bits[i])
                return i;
-            }
-         return -1;
          }
+         return -1;
+      }
 
       /// <summary>
       /// Returns the Tuple (int IndexOfFirstTrueElement, int IndexOfLastTrueelement) or (-1,-1) if no such element
       /// </summary>
       /// <param name="bits"></param>
       public static (Int32 IndexOfFirstTrueElement, Int32 IndexOfLastTrueElement) IndexOfFirstAndLastTrueElement(this BitArray bits)
-         {
+      {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(IndexOfFirstAndLastTrueElement)}");
 
          Int32 iLast;
          for (iLast = bits.Count - 1; iLast >= 0; iLast--)
-            {
+         {
             if (bits[iLast])
                break;
-            }
+         }
          if (iLast == -1)
             return (-1, -1);
 
@@ -335,7 +335,7 @@ namespace Grammlator {
          while (!bits[iFirst])
             iFirst++;
          return (iFirst, iLast);
-         }
+      }
 
       /// <summary>
       /// Find the next element which is true and return the index of this element or this.count if not found
@@ -344,7 +344,7 @@ namespace Grammlator {
       /// <param name="index">Index to start with, default is 0</param>
       /// <returns>Index of found element or this.count if not found</returns>
       public static Int32 FindNextTrue(this BitArray bits, Int32 index = -1)
-         {
+      {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(FindNextTrue)}");
 
@@ -352,54 +352,60 @@ namespace Grammlator {
             index = 0;
 
          while (index < bits.Count && !bits[index])
-            {
+         {
             index++;
-            }
-         return index;
          }
+         return index;
+      }
 
       /// <summary>
-      /// Find the next element which is false and return the index of this element or this.count if not found
+      /// Find the next element which is false and return the index of this element or LastIndex+1 if not found
       /// </summary>
-      /// <param name="bits"></param>
-      /// <param name="index">Index to start with, default is 0</param>
+      /// <param name="bits">the BitArray</param>
+      /// <param name="index">Index to start with, default is -1, if value is less than -1 then -1 is used</param>
+      /// <param name="lastIndex">Index to end with, default is int.MaxValue, 
+      /// if the value is greater or equal bits.Count then Bits.Count-1 is used</param>
       /// <returns>Index of found element or this.count if not found</returns>
-      public static Int32 FindNextFalse(this BitArray bits, Int32 index = 0)
-         {
+      public static Int32 FindNextFalse(this BitArray bits, Int32 index = -1, Int32 lastIndex = int.MaxValue)
+      {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(FindNextFalse)}");
 
          if (++index < 0)
             index = 0;
 
-         while (index < bits.Count && bits[index])
-            {
+         if (lastIndex >= bits.Count)
+            lastIndex = bits.Count - 1;
+
+         while (index <= lastIndex && bits[index])
+         {
             index++;
-            }
-         return index;
          }
+         return index;
+      }
 
       /// <summary>
-      /// Find the preceding element which is false and return the index of this element or this.count if not found
+      /// Find the preceding element which is false and return the index of this element or -1 if not found
       /// </summary>
-      /// <param name="bits"></param>
-      /// <param name="index"></param>
+      /// <param name="bits">the BitArray</param>
+      /// <param name="index">Index to start with, default is Int32.MaxValue, if value is greater or equal than bits.Count
+      /// then bits.Count-1 is used</param>
       /// <returns></returns>
       public static Int32 FindPrecedingFalse(this BitArray bits, Int32 index = Int32.MaxValue)
-         {
+      {
          if (bits == null)
-            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(FindNextFalse)}");
+            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(FindPrecedingFalse)}");
 
          if (--index >= bits.Count)
             index = bits.Count - 1;
 
-         while (index > 0 && bits[index])
-            {
+         while (index >= 0 && bits[index])
+         {
             index--;
-            }
+         }
 
          return index;
-         }
+      }
 
       /// <summary>
       /// Computes the number of Bits set in the Arg
@@ -407,7 +413,7 @@ namespace Grammlator {
       /// <param name="Arg">The argument which 1 bits are to be counted</param>
       /// <returns>the number of 1 bits</returns>
       private static Int32 PopulationCount(Int32 Arg)
-         {
+      {
          UInt32 ArgPositive = unchecked((UInt32)Arg);
 
          // The following algorithm and comments have been found in: http://dflund.se/~john_e/gems/gem002d.html (no longer exists)
@@ -471,7 +477,7 @@ namespace Grammlator {
            i4 =   (i3 * 0x001010101) >> 24
            return (Int32)i4;
          */
-         }
+      }
 
       /// <summary>
       /// Computes the number of set bits
@@ -479,7 +485,7 @@ namespace Grammlator {
       /// <param name="bits">the bitarray whose bits are to be counted</param>
       /// <returns>the number of bits with value 1 (true)</returns>
       public static Int32 PopulationCount(this BitArray bits)
-         {
+      {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(PopulationCount)}");
 
@@ -499,6 +505,6 @@ namespace Grammlator {
             sum += PopulationCount(a[i]);
 
          return sum;
-         }
       }
    }
+}

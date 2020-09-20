@@ -1,4 +1,5 @@
 using GrammlatorRuntime;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,11 +37,11 @@ namespace Grammlator {
 
       DefinitionSeparatorSymbol, // |
       TerminatorSymbol // ;
-      };
+   };
 
    public static class LexerResultExtensions {
       public static string MyToString(this LexerResult lr)
-         {
+      {
          const string MyDisplay = "=:%xx-xxx?*+,#([{\u2047x)}]xx|;"; // \u2047 is "??" as one character
 
          Debug.Assert(lr != LexerResult.Error);
@@ -52,32 +53,32 @@ namespace Grammlator {
          if (result != 'x')
             return result.ToString();
          String s = lr switch
-            {
-               LexerResult.MinusEqual => "-=",
-               LexerResult.DoubleQuestionmark => "??",
-               LexerResult.StarEqual => "*=",
-               LexerResult.LexerString => "string",
-               LexerResult.Name => "name",
-               LexerResult.CSharpStart => "C# code",
-               LexerResult.CSharpEnd => "end of C# Code",
-               _ => lr.ToString(),
-               };
+         {
+            LexerResult.MinusEqual => "-=",
+            LexerResult.DoubleQuestionmark => "??",
+            LexerResult.StarEqual => "*=",
+            LexerResult.LexerString => "string",
+            LexerResult.Name => "name",
+            LexerResult.CSharpStart => "C# code",
+            LexerResult.CSharpEnd => "end of C# Code",
+            _ => lr.ToString(),
+         };
          return s;
-         }
       }
+   }
 
 
    /// <summary>
    /// Grammlator lexer (uses input classifier, is used by parser)
    /// </summary>
-   internal class P1bLexer: GrammlatorInputApplication<LexerResult> {
+   internal class P1bLexer : GrammlatorInputApplication<LexerResult> {
 
       private readonly P1cInputClassifier inputClassifier;
 
       public P1bLexer(SpanReaderWithCharacterAndLineCounter sourceReader,
           StackOfMultiTypeElements attributeStack, Stack<Int32> stateStack)
           : base(attributeStack, stateStack)
-         {
+      {
          Source = sourceReader.Source;
          inputClassifier = new P1cInputClassifier(sourceReader, attributeStack);
          //this._a = attributeStack;
@@ -85,7 +86,7 @@ namespace Grammlator {
 
          LexerTextPos = 0;
          Accepted = true;
-         }
+      }
 
       private readonly ReadOnlyMemory<char> Source;
 
@@ -94,17 +95,17 @@ namespace Grammlator {
       /// </summary>
       public Int32 LexerTextPos {
          get; private set;
-         }
+      }
 
       /// <summary>
       /// Skips all input lines which are not grammar lines.
       /// The next symbol will be CSharpEnd.
       /// </summary>
       public void SkipToEndOfCSLines()
-         {
+      {
          Accepted = true;
          inputClassifier.SkipToEndOfCSLines();
-         }
+      }
 
       /// <summary>
       /// Skips whitespace and comment lines and checks if the reached line starts with the given markers
@@ -112,27 +113,27 @@ namespace Grammlator {
       /// <param name="markers">true if input line contains the squence of markers (and optional whitespace)</param>
       /// <returns>true if the markers are found in the input line</returns>
       public Boolean MarkedLineFollows(params String[] markers)
-         {
+      {
          ClassifierResult s;
          if (inputClassifier.Accepted)
-            {
+         {
             do
-               {
+            {
                // skip whitespace (may be multiple lines)
                inputClassifier.AcceptSymbol();
                s = inputClassifier.PeekSymbol();
 
-               } while (s == ClassifierResult.WhiteSpace);
-            }
-         return inputClassifier.IsMarkedLine(markers);
+            } while (s == ClassifierResult.WhiteSpace);
          }
+         return inputClassifier.IsMarkedLine(markers);
+      }
 
       /// <summary>
       /// Makes the next symbol available for Phase1. If accepted==false does nothing (symbol is already available)
       /// Else computes the next Symbol, pushs its attributes to an internal stack and sets accepted to false.
       /// </summary>
       public override LexerResult PeekSymbol()
-         { // Bestimmen des naechsten terminalen Symbols fuer lex2
+      { // Bestimmen des naechsten terminalen Symbols fuer lex2
          if (!Accepted)
             return Symbol;
          Accepted = false;
@@ -142,19 +143,19 @@ namespace Grammlator {
          //    might be incremented after skipping whitespace and comments
 
          try
-            {
+         {
             Debug.Assert(AttributesOfSymbol.Count == 0); // TODO Check : after syntax errors?
             EvaluateInput(); // stores the attributes in AttributesOfSymbol
-            }
-         catch (ApplicationException)
-            {
-            throw;
-            }
-         return Symbol;
          }
+         catch (ApplicationException)
+         {
+            throw;
+         }
+         return Symbol;
+      }
 
       private bool ErrorHandler(Int32 LexerStateNumber, String stateDescription, ClassifierResult symbol)
-         {
+      {
 
          var aCountBeforeAccept = _a.Count;
          LexerTextPos = inputClassifier.InputPosition;
@@ -171,7 +172,7 @@ namespace Grammlator {
          _a.Free(_a.Count - aCountBeforeAccept);  // discard the attributes of the discarded terminal symbol
          return true; // continue parsing
          ;
-         }
+      }
 
       private readonly StringBuilder NameBuilder = new StringBuilder(30);
 
@@ -358,7 +359,7 @@ namespace Grammlator {
          OtherCharacter, // allowed only in comments
          Apostrophe,     // delimits string constants used as names
          Letter, Digit   // as part of names and numbers
-         };
+      };
 
       //| // Declaration of the startsymbol: the attributes of the definitions are used as attributes of the generated symbols
       //| *= 
@@ -456,10 +457,10 @@ namespace Grammlator {
       //| SequenceOfLettersOrDigits=
       //|    Letter(int  index)
       private void Found1stLetterOfName(int index)
-         {
+      {
          Name1stIndex = index;
          NameLastIndex = index;
-         }
+      }
 
       private int Name1stIndex, NameLastIndex;
 
@@ -472,9 +473,9 @@ namespace Grammlator {
 
       //| String(Int32 stringIndex) = Apostrophe(int startIndex), StringCharacterSequence, Apostrophe(int endIndex)
       private void GetStringIndex(int startIndex, int endIndex, out Int32 stringIndex)
-         {
+      {
          stringIndex = GlobalVariables.GetIndexOfString(Source[startIndex..(endIndex + 1)]);
-         }
+      }
 
       //| StringCharacterSequence=
       //|      /* empty */
@@ -495,22 +496,12 @@ namespace Grammlator {
 #pragma warning disable CA1502 // Avoid excessive complexity
       private void EvaluateInput() // von lex1
 #pragma warning restore CA1502 // Avoid excessive complexity
-         {
+      {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated Mon, 14 Sep 2020 13:25:04 GMT (grammlator, File version 2020.09.14.0 14.09.2020 13:10:56)
+#region grammlator generated Sun, 20 Sep 2020 11:56:02 GMT (grammlator, File version 2020.09.14.0 20.09.2020 11:44:07)
   Int32 AttributeStackInitialCount = _a.Count;
-  // State1:
-  /* *Startsymbol= ►Gap, CharacterToPassOn;
-   * *Startsymbol= ►Gap, Name(Int32 stringIndex);
-   * *Startsymbol= ►Gap, StartsymbolNumber(Int32 value);
-   * *Startsymbol= ►Gap, StartsymbolString(Int32 stringIndex);
-   * *Startsymbol= ►Gap, StartsymbolDoubleQuestionmark;
-   * *Startsymbol= ►Gap, StartsymbolStarEqual;
-   * *Startsymbol= ►Gap, StartsymbolMinusEqual;
-   * *Startsymbol= ►Gap, StartsymbolCSharpStart;
-   * *Startsymbol= ►Gap, StartsymbolCSharpEnd; */
 Reduce1:
   /* Gap= GapString;◄ */
 
@@ -538,8 +529,7 @@ State2:
      inputClassifier.AcceptSymbol();
      // Reduce3:
      /* aAdjust: -1
-      * StartsymbolCSharpStart= CSharpStart(int i);◄
-      * then: *Startsymbol= Gap, StartsymbolCSharpStart;◄ */
+      * StartsymbolCSharpStart= CSharpStart(int i);◄ */
 
      AssignCSharpStartToSymbol();
 
@@ -551,8 +541,7 @@ State2:
      inputClassifier.AcceptSymbol();
      // Reduce4:
      /* aAdjust: -1
-      * StartsymbolCSharpEnd= CSharpEnd(int i);◄
-      * then: *Startsymbol= Gap, StartsymbolCSharpEnd;◄ */
+      * StartsymbolCSharpEnd= CSharpEnd(int i);◄ */
 
      AssignCSharpEndToSymbol();
 
@@ -887,8 +876,7 @@ State8:
 
 Reduce2:
   /* aAdjust: -1
-   * CharacterToPassOn= OneCharacterToPassOn(int index);◄
-   * then: *Startsymbol= Gap, CharacterToPassOn;◄ */
+   * CharacterToPassOn= OneCharacterToPassOn(int index);◄ */
 
   TranslateCharToLexerResult(
      index: _a.PeekRef(0)._int
@@ -909,8 +897,8 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Mon, 14 Sep 2020 13:25:04 GMT (grammlator, File version 2020.09.14.0 14.09.2020 13:10:56)
+#endregion grammlator generated Sun, 20 Sep 2020 11:56:05 GMT (grammlator, File version 2020.09.14.0 20.09.2020 11:44:07)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-         }
       }
    }
+}

@@ -144,8 +144,8 @@ namespace Grammlator {
       /// </summary>
       public void AcceptSymbol()
          {
-         if (Accepted)
-            return;
+         //if (Accepted)
+         //   return;
          Accepted = true;
 
         // Push position to the stack of attributes

@@ -635,6 +635,8 @@ namespace Grammlator {
       internal override StringBuilder AppendShortToSB(StringBuilder sb)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
 
+      internal BitArray? PossibleInputTerminals = null;
+
       private int SimplifyRecursionCount = 0;
       internal override ParserAction Simplify()
       {
@@ -649,6 +651,13 @@ namespace Grammlator {
             SimplifyRecursionCount++;
 
             BranchcaseStruct branchCase = branchCaseList[i];
+
+            if (branchCase.BranchcaseAction is LookaheadOrNonterminalTransition LaOrNt)
+            {
+               if (!(LaOrNt.NextAction is Definition))
+                  branchCase.BranchcaseAction = LaOrNt.NextAction;
+            };
+
             branchCase.BranchcaseAction = branchCase.BranchcaseAction.Simplify();
             branchCaseList[i] = branchCase;
 
@@ -815,7 +824,7 @@ namespace Grammlator {
          sb.Append(P5CodegenCS.GotoLabel(this, false));
          AppendAdjustmentsAndMethod(sb);
          return base.AppendToSB(sb);
-      }      
+      }
 
       private void AppendAdjustmentsAndMethod(StringBuilder sb)
       {
@@ -849,15 +858,23 @@ namespace Grammlator {
       }
 
       int SimplifyRecursionCount = 0;
-      internal override ParserAction Simplify()
+      internal override ParserAction Simplify() // ReduceAction
       {
-         if (SimplifyRecursionCount > 10)
+         if (SimplifyRecursionCount > 2)
             return this;
 
          /* After replacing all Definitions by reduceActions
              * there may exist identical reduce actions in the list of all reduce actions. 
              * Replace all references by a reference to the first one
              */
+
+         if (NextAction is LookaheadOrNonterminalTransition LaOrNt)
+         {
+            if (!(LaOrNt.NextAction is Definition))
+               NextAction = LaOrNt.NextAction;
+         }
+
+         Debug.Assert(!(NextAction is NonterminalTransition));
 
          if (NextAction == GlobalVariables.TheEndOfGeneratedCodeAction
             && StateStackAdjustment == 0
@@ -872,8 +889,8 @@ namespace Grammlator {
             listedReduceAction.StateStackAdjustment == StateStackAdjustment
             && listedReduceAction.SemanticMethod == SemanticMethod
             && listedReduceAction.AttributeStackAdjustment == AttributeStackAdjustment
-            && listedReduceAction.NextAction == NextAction 
-//            && (listedReduceAction.NextAction = listedReduceAction.NextAction.Simplify()) == NextAction
+            && listedReduceAction.NextAction == NextAction
+            //            && (listedReduceAction.NextAction = listedReduceAction.NextAction.Simplify()) == NextAction
             );
 
          SimplifyRecursionCount--;
@@ -1225,9 +1242,34 @@ namespace Grammlator {
           => throw new ErrorInGrammlatorProgramException(
               $"Program error: NonterminalTransition.CountUsage({Accept}) must never be called.");
 
-      internal override ParserAction Simplify()
+      internal override ParserAction Simplify() // NonterminalTransition
       {
-         return NextAction is Definition ? this : NextAction;
+         /* Each NonterminalTransition is a ConditionalAction of a specific ParserState.
+          * The NextAction of a NonterminalTransition initially is
+          * a ParserState or a Definition and my be changed by transformations.
+          * 
+          * All Definitions occuring as NextAction of a NonterminalTransition,
+          * a TerminalTransition or a LookaheadAction
+          * are replaced step by step by some other ParserAction.
+          * This other ParserAction may be another NonterminalTransition.
+          * 
+          * As long as its NextAction is a Definition the NonterminalTransition
+          * can not be replaced anywhere. 
+          */
+         if (NextAction is Definition)
+            return this;
+
+         /* 
+          * As ConditionalAction of a ParserState it must not be replaced by its NextAction
+          * except in very special cases: see ParserState.Simplify()).
+          * 
+          * Otherwise a NonterminalTransition occuring as NextAction can
+          * be replaced by its NextAction.
+          * 
+          * After all Definitions of the grammar are replaced the NonterminalTransitions are not longer used.
+          * 
+          */
+         return NextAction.Simplify();
       }
    }
 
@@ -1263,6 +1305,32 @@ namespace Grammlator {
          base.AppendToSB(sb);
          return sb;
       }
+
+      internal override ParserAction Simplify() // LookaheadAction
+      {
+         /* Each LookaheadAction is a ConditionalAction of a specific ParserState.
+          * The NextAction of a LookaheadAction initially is
+          * a ParserState or a Definition and my be changed by transformations.
+          * 
+          * All Definitions occuring as NextAction of a NonterminalTransition,
+          * a TerminalTransition or a LookaheadAction
+          * are replaced step by step by some other ParserAction.
+          * This other ParserAction may be another NonterminalTransition.
+          * 
+          * As long as its NextAction is a Definition the LookaheadAction
+          * can not be replaced anywhere. */
+         if (NextAction is Definition)
+            return this;
+
+         /* As ConditionalAction of a ParserState it must not be replaced by its NextAction
+          * except in very special cases: see ParserState.Simplify()).
+          * 
+          * Otherwise a NonterminalTransition occuring as NextAction can
+          * be replaced by its NextAction.
+          */
+         return NextAction.Simplify();
+      }
+
    }
 
    internal sealed class PriorityBranchAction : ParserAction {
@@ -1409,7 +1477,7 @@ namespace Grammlator {
          State = state;
       }
 
-      internal override void CountUsage(Boolean Accept)
+      internal override void CountUsage(Boolean Accept) // ErrorhandlingAction
       {
          Debug.Assert(this.Calls == 0 && this.AcceptCalls == 0);
          base.CountUsage(Accept);
@@ -1595,12 +1663,14 @@ namespace Grammlator {
       }
    }
 
-   internal sealed class DeletedParserAction : ParserAction { // : ActionWithNextAction" ??? no, NextAction should be ignored because it can not be reached
-      public ParserAction NextAction {
+   internal sealed class DeletedParserAction : ParserAction {
+      // : ActionWithNextAction" ??? no, NextAction should be ignored because it can not be reached
+      public ParserAction? NextAction {
          get;
       }
 
       public DeletedParserAction(ParserAction NextAction) => this.NextAction = NextAction;
+      public DeletedParserAction() => this.NextAction = null;
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isDeletedParserAction;
 
@@ -1608,7 +1678,8 @@ namespace Grammlator {
       {
          sb.AppendLine("action deleted by optimization: ")
            .Append("      ");
-         return NextAction.AppendShortToSB(sb);
+         NextAction?.AppendShortToSB(sb);
+         return sb;
       }
    }
 

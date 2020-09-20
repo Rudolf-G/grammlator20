@@ -871,11 +871,9 @@ namespace Grammlator {
          LexerResult ParserInput;
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Mon, 14 Sep 2020 15:24:27 GMT (grammlator, File version 2020.09.14.0 14.09.2020 15:13:07)
+#region grammlator generated Sun, 20 Sep 2020 16:10:09 GMT (grammlator, File version 2020.09.14.0 20.09.2020 16:06:00)
   Int32 StateStackInitialCount = _s.Count;
   Int32 AttributeStackInitialCount = _a.Count;
-  // State1:
-  /* *Startsymbol= ►GrammlatorGrammar; */
 State2:
   const String StateDescription2 =
        "GrammlatorGrammar= OptionalGrammlatorSettings, ►OptionalDeclarationOfTerminalSymbols, GrammarRuleList, TerminatorAtEndOfGrammar;\r\n"
@@ -952,19 +950,11 @@ Reduce22:
 
   EndOfDefinitionWithoutSemanticsRecognized();
 
-State28:
-  const String StateDescription28 =
-       "outerDefinitions= EndOfDefinitionWithoutSemantics, ►\";\";\r\n"
-     + "outerDefinitions= EndOfDefinition, ►\"|\", outerDefinitionList;";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
+  // State28:
+  /* outerDefinitions= EndOfDefinitionWithoutSemantics, ►";";
+   * outerDefinitions= EndOfDefinition, ►"|", outerDefinitionList; */
+  if (ParserInput <= LexerResult.DefinitionSeparatorSymbol)
      goto AcceptState29;
-  if (ParserInput < LexerResult.TerminatorSymbol)
-     {
-     if (ErrorHandler(28, StateDescription28, ParserInput))
-        goto State28;
-     goto EndWithError;
-     }
   Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
 AcceptBranch5:
   Lexer.AcceptSymbol();
@@ -1193,19 +1183,11 @@ State31:
 
   EndOfDefinitionWithoutSemanticsRecognized();
 
-State32:
-  const String StateDescription32 =
-       "outerDefinitionList= SequenceOfElements, EndOfDefinition, ►\"|\", outerDefinitionList;\r\n"
-     + "outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithoutSemantics, ►\";\";";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
+  // State32:
+  /* outerDefinitionList= SequenceOfElements, EndOfDefinition, ►"|", outerDefinitionList;
+   * outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithoutSemantics, ►";"; */
+  if (ParserInput <= LexerResult.DefinitionSeparatorSymbol)
      goto AcceptState33;
-  if (ParserInput < LexerResult.TerminatorSymbol)
-     {
-     if (ErrorHandler(32, StateDescription32, ParserInput))
-        goto State32;
-     goto EndWithError;
-     }
   Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
 AcceptReduce38:
   Lexer.AcceptSymbol();
@@ -1624,8 +1606,7 @@ Reduce59:
 State77:
   const String StateDescription77 =
        "SimpleElement(Symbol Symbol)= \"(\", NestedElement(Symbol Symbol), ►\")\";";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.GroupEnd)
+  if (ParserInput > LexerResult.GroupEnd)
      {
      if (ErrorHandler(77, StateDescription77, ParserInput))
         goto State77;
@@ -2342,16 +2323,8 @@ State38:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-State41:
-  const String StateDescription41 =
-       "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), \"(\", eFormalParameters, ►\")\";";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.GroupEnd)
-     {
-     if (ErrorHandler(41, StateDescription41, ParserInput))
-        goto State41;
-     goto EndWithError;
-     }
+  // State41:
+  /* CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ►")"; */
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce43;
 
@@ -2612,16 +2585,8 @@ State53:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-State55:
-  const String StateDescription55 =
-       "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), \"(\", eFormalParameters, ►\")\";";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.GroupEnd)
-     {
-     if (ErrorHandler(55, StateDescription55, ParserInput))
-        goto State55;
-     goto EndWithError;
-     }
+  // State55:
+  /* CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ►")"; */
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce53;
 
@@ -2982,7 +2947,6 @@ State72:
 State73:
   const String StateDescription73 =
        "RepeatedElement(Symbol Symbol)= \"{\", NestedElement(Symbol Symbol), ►\"}\";";
-  ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.RepeatEnd)
      {
      if (ErrorHandler(73, StateDescription73, ParserInput))
@@ -3012,8 +2976,7 @@ AcceptState74:
 State75:
   const String StateDescription75 =
        "RepeatedElement(Symbol Symbol)= \"[\", NestedElement(Symbol Symbol), ►\"]\";";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.OptionEnd)
+  if (ParserInput < LexerResult.OptionEnd)
      {
      if (ErrorHandler(75, StateDescription75, ParserInput))
         goto State75;
@@ -3443,7 +3406,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Mon, 14 Sep 2020 15:24:27 GMT (grammlator, File version 2020.09.14.0 14.09.2020 15:13:07)
+#endregion grammlator generated Sun, 20 Sep 2020 16:10:09 GMT (grammlator, File version 2020.09.14.0 20.09.2020 16:06:00)
          /* ************************ code written by programmer ******************** */
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }

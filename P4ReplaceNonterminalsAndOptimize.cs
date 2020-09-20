@@ -41,12 +41,15 @@ namespace Grammlator {
 
          p4.P4aComputeStateStackNumbersAndBranches();
 
+         // p4.P4cRemoveNotLongerUsedActionsFromStates();
+
+         GlobalVariables.Startaction = GlobalVariables.ListOfAllStates[0];
+
          //Shorten chains of actions and remove states which have been skipped by optimization
-         P4bShortenChainsOfActionsAndRemoveSkippedStates();
+         P4bShortenChainsOfActionsDeleteNonterminalTransitions();
 
-
-         // Now  ListOfAllStates[0] is definitely assigned and GlobalVariables.Startaction may be used
-         p4.P4cRemoveNotLongerUsedActionsFromStates();
+         // Now  ListOfAllStates[0] is definitely assigned and GlobalVariables.Startaction may be defined and used
+         p4.P4cRemoveNotLongerUsedActionsFromStates(); // TOCHECK second call needed ??
 
          // For each Parseraction compute the number of AcceptCalls and Calls
          GlobalVariables.Startaction.CountUsage(Accept: false);
@@ -263,7 +266,9 @@ namespace Grammlator {
                              DefinitionToReplace: definition,
                              Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1)
                          )!;
-                     Debug.Assert(!(actionWithNextAction.NextAction is Definition));
+                     Debug.Assert(!(actionWithNextAction.NextAction is Definition)); // ??????????????
+                                                                                     // actionWithNextAction.NextAction may be NonterminalTransition;
+
                      break;
                   }
                }
@@ -348,6 +353,9 @@ namespace Grammlator {
                     SortedListOfBranchcases.Count == 1
                     ? SortedListOfBranchcases[0].BranchcaseAction // no branch, single action
                     : FindOrConstructBranch(SortedListOfBranchcases);
+
+            // Debug.Assert(!(NextAction is NonterminalTransition)); // ??????????
+            Debug.Assert(!(NextAction is Definition)); // ???????
 
             StatesOfThisLevel.Clear();
 
@@ -452,13 +460,16 @@ namespace Grammlator {
       /// <param name="StatesAcceptingThisSymbol">List of parserstates accepting the <paramref name="inputSymbol"/>"/></param>
       /// <param name="inputSymbol">The nonterminal symbol which is allowed as input in each of the states</param>
       /// <returns></returns>
-      private static BranchcasesList ConstructListOfBranchcases(List<ParserState> StatesAcceptingThisSymbol, NonterminalSymbol inputSymbol)
+      private static BranchcasesList ConstructListOfBranchcases(
+         List<ParserState> StatesAcceptingThisSymbol, NonterminalSymbol inputSymbol)
       {
          // wird aufgerufen aus VorgängerSindNacharn,nach günstigeKennungenBerechnen()
          var ListOfCases = new BranchcasesList(StatesAcceptingThisSymbol.Count);
 
          ParserState State1 = StatesAcceptingThisSymbol[0];
          ParserAction Action1 = State1.ActionCausedBy(inputSymbol).Simplify();
+
+         Debug.Assert(!(Action1 is LookaheadAction l) || !(l.NextAction is NonterminalTransition));
 
          // Add the first case
          AddCase(ListOfCases, State1.StateStackNumber, Action1);
@@ -470,7 +481,18 @@ namespace Grammlator {
          {
             // Find the action caused by inputSymbol and add it to the list of cases
             ParserState StateI = StatesAcceptingThisSymbol[StateIndex];
-            ParserAction ActionI = StateI.ActionCausedBy(inputSymbol).Simplify();
+
+            NonterminalTransition NT = StateI.ActionCausedBy(inputSymbol);
+            ParserAction ActionI;
+            if (NT.NextAction is Definition)
+               ActionI = NT;
+            else
+               ActionI = NT.NextAction.Simplify();
+
+            Debug.Assert(!(ActionI is Definition));
+
+            Debug.Assert(!(ActionI is LookaheadAction la) || !(la.NextAction is NonterminalTransition));
+
             AddCase(ListOfCases, StateI.StateStackNumber, ActionI);
 
             // Determine if this Action is equivalent to the first action
@@ -541,6 +563,8 @@ namespace Grammlator {
           ParserAction NextActionOfReduce)
       {
          Debug.Assert(stateStackAdjustment >= 0);
+         // Debug.Assert(!(NextActionOfReduce is NonterminalTransition)); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 
          // Compose description
          Definition.DefinedSymbol!
@@ -552,7 +576,7 @@ namespace Grammlator {
          reduceStringBuilder.Clear();
 
          // construct reduceAction
-         var newReduceAction = new ReduceAction(NextActionOfReduce) {
+         ReduceAction newReduceAction = new ReduceAction(NextActionOfReduce) {
             IdNumber = GlobalVariables.ListOfAllReductions.Count,// starting with 0
             Description = description,
             StateStackAdjustment = stateStackAdjustment,
@@ -598,9 +622,16 @@ namespace Grammlator {
             newReduceAction.AttributeStackAdjustment = 0; // the halt action will remove the attributes from the stack (if any)
          }
 
+         // Debug.Assert(!(newReduceAction.NextAction is NonterminalTransition)); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
          newReduceAction.NextAction = newReduceAction.NextAction.Simplify();
 
+         // Debug.Assert(!(newReduceAction.NextAction is NonterminalTransition)); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
          SimplifyChainOfReductions(newReduceAction);
+
+         // Debug.Assert(!(newReduceAction.NextAction is NonterminalTransition)); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 
          // search equivalent ReduceAction ignoring match of the descriptions
          ReduceAction? foundReduceAction = SearchEquivalentReduceAction(newReduceAction);
@@ -682,7 +713,7 @@ namespace Grammlator {
          if (!(Reduction.NextAction is ReduceAction nextReduction))
             return;
 
-         // The NextAction of Reduction is also a ReduceAction
+         // The NextAction of Reduction is also a ReduceAction, both may be combined
 
          // TODO add correct handling of semantic PriorityFunction
 
@@ -692,7 +723,8 @@ namespace Grammlator {
 
          if (Reduction.SemanticMethod != null && nextReduction.SemanticMethod != null)
             return; // // both have semantic methods: do not combine
-         else if (Reduction.SemanticMethod == null && nextReduction.SemanticMethod == null)
+
+         if (Reduction.SemanticMethod == null && nextReduction.SemanticMethod == null)
          {
             // The reductions may be combined: both have no semantic action
             // AttributeStackAdjustment s can be combined (added)
@@ -850,11 +882,11 @@ namespace Grammlator {
       }
 
       /// <summary>
-      /// Shorten chains of actions and remove states which have been skipped by optimization
+      /// Shorten chains of actions
       /// </summary>
-      public static void P4bShortenChainsOfActionsAndRemoveSkippedStates()
+      public static void P4bShortenChainsOfActionsDeleteNonterminalTransitions()
       {
-
+         ParserAction DeletedAction = new DeletedParserAction();
          for (Int32 StateIndex = 0; StateIndex < GlobalVariables.ListOfAllStates.Count; StateIndex++)
          {
             ParserState State = GlobalVariables.ListOfAllStates[StateIndex];
@@ -864,14 +896,17 @@ namespace Grammlator {
                if (!(State.Actions[ActionIndex] is ParserActionWithNextAction ActionWithNextAction))
                   continue; // no chain
 
-               // mandatory: 
-               //   keep action -> nonterminal transition -> definition
-               //   replace action -> nonterminal transition >= other action
-               //        by action -> other action
-               ActionWithNextAction.NextAction = ActionWithNextAction.NextAction.Simplify();
+               if (ActionWithNextAction is NonterminalTransition)
+               {
+                  State.Actions[ActionIndex] = DeletedAction; // delete nonterminal transitions
+                  continue; // 
+               }
 
-               // falls die Aktionenliste mehrere terminale Übergänge mit gleicher Folgeaktion enthält, diese zusammenfassen
-               if (ActionWithNextAction is TerminalTransition ActionAsTerminalTransition)
+               ActionWithNextAction.NextAction = ActionWithNextAction.NextAction.Simplify();
+               // do not replace ActionWithNextAction: this would replace conditional actions
+
+               // if State.Actions contains different TerminalTransitions with the same NextAction then combine these
+               if (State.Actions[ActionIndex] is TerminalTransition ActionAsTerminalTransition)
                {
                   for (Int32 ActionToCompareIndex = 0; ActionToCompareIndex < ActionIndex; ActionToCompareIndex++)
                   {
@@ -881,27 +916,11 @@ namespace Grammlator {
                      if (ActionToCompare.NextAction == ActionAsTerminalTransition.NextAction)
                      {
                         ActionToCompare.TerminalSymbols.Or(ActionAsTerminalTransition.TerminalSymbols);
-                        State.Actions.RemoveAt(ActionIndex); // erfordert Korrektur des Aktionenindex !!!
-                        ActionIndex--; // so that the new action (if any) at this index will be checked also
-                                       // ActionToCompareIndex is smaller than ActionIndex and not affected by remove
+                        State.Actions[ActionIndex] = DeletedAction;
                         break;
                      }
                   }
                }
-            }
-
-            // Remove states which have been skipped by optimization
-            Int32 IndexOfNextState = StateIndex + 1;
-            while (IndexOfNextState < GlobalVariables.ListOfAllStates.Count
-                && GlobalVariables.ListOfAllStates[IndexOfNextState].StateStackNumber < 0)
-            {
-               ParserAction? singleAction = GlobalVariables.ListOfAllStates[IndexOfNextState].RedundantLookaheadOrSelectActionOrNull();
-               if (singleAction == null)
-                  break; // The state can be reached
-               if (!(singleAction is LookaheadAction))
-                  break;
-               GlobalVariables.ListOfAllStates.RemoveAt(IndexOfNextState);
-               // IndexOfNextState must not be incremented because the next tate has been moved o the place of the deleted state
             }
          }
 
@@ -912,7 +931,7 @@ namespace Grammlator {
             SimplifyChainOfReductions(r); // CHECK compute x.Calls and simplify using x.Calls ??
          }
 
-         // Simplify naxt action of branch actions
+         // Simplify next action of branch actions
          foreach (BranchAction branch in GlobalVariables.ListOfAllBranchActions)
          {
             for (Int32 CaseIndex = 0; CaseIndex < branch.ListOfCases.Count; CaseIndex++)
@@ -923,8 +942,7 @@ namespace Grammlator {
             }
          }
 
-         //do not remove the first state: not  SimplifiedNextAction(GlobalVariables.ListOfAllStates[0]);
-         // because it is used as Startaction
+         GlobalVariables.Startaction = GlobalVariables.Startaction.Simplify();
       }
 
       private void P4cRemoveNotLongerUsedActionsFromStates()
@@ -958,10 +976,148 @@ namespace Grammlator {
          }
       }
 
+      /// <summary>
+      /// Propagate all look ahead terminal symbols of all actions  of all states
+      /// to states with AcceptCalls==0.
+      /// For all states with AcceptCalls>0
+      /// set <see cref="state.PossibleInputTerminals"/> to all terminal symbols. 
+      /// </summary>
+      private void P4ePropagateLookAheadTerminals()
+      {
+         /* There may be states which are reached only via look ahead parseractions.
+          * These states can only see terminals that have been tested already.
+          * If such a state has actions for all of the visible terminals
+          * then it does not need an error action.
+          * */
+
+         // Preset PossibleInputTerminals for each state
+         foreach (ParserState state in GlobalVariables.ListOfAllStates.Where(s => s.Calls > 0))
+            if (state.AcceptCalls > 0)
+               state.PossibleInputTerminals = new BitArray(GlobalVariables.AllTerminalSymbols);
+            else
+               state.PossibleInputTerminals = new BitArray(GlobalVariables.AllTerminalSymbols.Count);
+
+         // Propagate from states with PossibleInputTerminals set to AllTerminalSymbols
+         foreach (ParserState state in GlobalVariables.ListOfAllStates.Where(s => s.AcceptCalls > 0))
+            PropagateFromState(state);
+
+         // Propagate from Startaction
+         Propagate(GlobalVariables.Startaction!, GlobalVariables.AllTerminalSymbols);
+
+      }
+
+      private void PropagateFromState(ParserState state)
+      {
+         foreach (ParserAction action in state.Actions.PriorityUnwindedSetOfActions)
+         {
+            switch (action)
+            {
+            case TerminalTransition t:
+               Propagate(t.NextAction, GlobalVariables.AllTerminalSymbols);
+               break;
+            case AcceptAction aa:
+               Propagate(aa.NextAction, GlobalVariables.AllTerminalSymbols);
+               break;
+            case LookaheadAction la:
+               Propagate(la, la.TerminalSymbols);
+               break;
+            case ReduceAction r:
+               Propagate(r, state.PossibleInputTerminals!);
+               break;
+            case BranchAction b:
+               Propagate(b, state.PossibleInputTerminals!);
+               break;
+            case ParserState nextState:
+               Propagate(nextState, state.PossibleInputTerminals!);
+               break;
+            case HaltAction _:
+            case ErrorHaltAction _:
+            case EndOfGeneratedCodeAction _:
+               return; // does not popagate to a state
+            case PrioritySelectAction _: // handled by PriorityUnwindedSetOfActions and must not occur
+            case PriorityBranchAction _:
+            case NonterminalTransition _: // has already been removed
+            case DeletedParserAction _:
+            default:
+               throw new ArgumentException();
+            }
+         }
+      }
+
+      int PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
+      readonly BitArray test = new BitArray(GlobalVariables.AllTerminalSymbols.Count);
+
+      private void Propagate(ParserAction? action, BitArray terminals)
+      {
+         if (action == null)
+            return;
+
+         if (PropagateRecursionDepth > 100) // TODO make Propagate a method of the actions
+            return;
+
+         PropagateRecursionDepth++;
+
+         switch (action)
+         {
+         // TerminalTransition propagates AllTerminalSymbols:  accepts input followed by Peek
+         case TerminalTransition t:
+            Propagate(t.NextAction, GlobalVariables.AllTerminalSymbols);
+            break;
+         // conditional actions propagate the terminals of their condition:
+         case AcceptAction aa:
+            Propagate(aa.NextAction, GlobalVariables.AllTerminalSymbols);
+            break;
+         case LookaheadAction la:
+            BitArray TerminalsToPropagate = la.TerminalSymbols;
+            Propagate(la.NextAction, la.TerminalSymbols);
+            break;
+         case ReduceAction r:
+            Propagate(r.NextAction, terminals!);
+            break;
+         case BranchAction b:
+            if (b.PossibleInputTerminals == null)
+               b.PossibleInputTerminals = new BitArray(terminals!);
+            else
+            {
+               if (test.Assign(terminals).ExceptWith(b.PossibleInputTerminals!).Empty())
+                  break; // PossibleInputTerminals >= terminals
+               b.PossibleInputTerminals.Or(terminals);
+            }
+            foreach (ParserAction a in b.ListOfCases.Select(c => c.BranchcaseAction))
+               Propagate(a, terminals!);
+            break;
+         case ParserState state:
+            if (state.AcceptCalls > 0)
+               break; // handled in P4ePropagateLookAheadTerminals()
+            if (test.Assign(terminals).ExceptWith(state.PossibleInputTerminals!).Empty())
+               break; // PossibleInputTerminals >= terminals
+
+            _ = state.PossibleInputTerminals!.Or(terminals);
+            PropagateFromState(state);
+            break;
+         case HaltAction _:
+         case ErrorHaltAction _:
+         case EndOfGeneratedCodeAction _:
+            break; // does not popagate to a state
+         case PrioritySelectAction _: // handled by PriorityUnwindedSetOfActions and must not occur
+         case PriorityBranchAction _:
+         case NonterminalTransition _: // has already been removed
+         case DeletedParserAction _:
+         default:
+            throw new ArgumentException();
+         }
+
+         PropagateRecursionDepth--;
+         return;
+      }
+
       private void P4fAddErrorhandlingActionsAndComputeComplexityOfStates()
       {
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
          {
+            if (State.Calls == 0)
+               continue;
+
             static Int32 max(Int32 a, Int32 b)
                 => a > b ? a : b;
 
@@ -996,81 +1152,6 @@ namespace Grammlator {
              */
             State.IfComplexity = ActionComplexitySum - MaximumActionComplexity;
          }
-      }
-
-      /// <summary>
-      /// Propagate all look ahead terminal symbols of all actions  of all states
-      /// to states with AcceptCalls==0.
-      /// For all states with AcceptCalls>0
-      /// set <see cref="state.PossibleInputTerminals"/> to all terminal symbols. 
-      /// </summary>
-      private void P4ePropagateLookAheadTerminals()
-      {
-         /* There may be states which are reached only via look ahead parseractions.
-          * These states can only see terminals that have been tested already.
-          * If such a state has actions for all of the visible terminals
-          * then it does not need an error action.
-          * */
-         foreach (ParserState state in GlobalVariables.ListOfAllStates)
-         {
-            if (state.AcceptCalls > 0)
-            {
-               state.PossibleInputTerminals = GlobalVariables.AllTerminalSymbols;
-            }
-
-            foreach (ParserAction action in state.Actions.PriorityUnwindedSetOfActions)
-            {
-               switch (action)
-               {
-               case LookaheadAction la:
-                  BitArray TerminalsToPropagate = la.TerminalSymbols;
-                  Propagate(la.NextAction, TerminalsToPropagate);
-                  break;
-               case PrioritySelectAction ps:
-                  BitArray SelectTerminalsToPropagate = ps.TerminalSymbols;
-                  Propagate(ps.NextAction, SelectTerminalsToPropagate);
-                  break;
-               }
-            }
-
-         }
-      }
-
-      int PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
-      private void Propagate(ParserAction? action, BitArray terminals)
-      {
-         if (action == null)
-            return;
-
-         if (PropagateRecursionDepth > 100)
-            return;
-         PropagateRecursionDepth++;
-
-         switch (action)
-         {
-         case BranchAction b:
-            foreach (BranchcaseStruct c in b.ListOfCases)
-            {
-               Propagate(c.BranchcaseAction, terminals);
-            }
-            break;
-         case ReduceAction r:
-            Propagate(r.NextAction, terminals);
-            break;
-         case ParserState state:
-            if (state.AcceptCalls > 0)
-               return;
-            if (state.PossibleInputTerminals == null)
-               state.PossibleInputTerminals = new BitArray(terminals);
-            else
-               _ = state.PossibleInputTerminals.Or(terminals);
-            break;
-         case LookaheadAction _:
-         case PriorityBranchAction _:
-         case PrioritySelectAction _:
-            throw new ArgumentException();
-         }
-         PropagateRecursionDepth--;
       }
 
       private void P4gMoveStateStackPushOperations()

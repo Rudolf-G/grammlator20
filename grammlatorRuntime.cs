@@ -102,8 +102,8 @@ namespace GrammlatorRuntime {
       /// </summary>
       public virtual void AcceptSymbol()
       {
-         if (Accepted)
-            return;
+         //if (Accepted)
+         //   return;
          Accepted = true;
          _a.CopyAndRemoveFrom(AttributesOfSymbol);
       }

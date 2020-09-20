@@ -671,7 +671,7 @@ namespace Grammlator {
          codegen.AppendLine("/* Dynamic priority controlled actions */");
          int PrioritiesCount = ps.DynamicPriorityActions.Count + ((ps.ConstantPriorityAction == null) ? 0 : 1);
 
-         if( PrioritiesCount==2)
+         if (PrioritiesCount == 2)
             return GeneratePriorityBranchAsIfThen(out accept, ps);
 
          return GeneratePriorityBranchAsSwitch(out accept, ps);
@@ -844,26 +844,29 @@ namespace Grammlator {
 
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
          // This is prepared  by shortening chains in phase 4 und implemented by the following.
-         // TOCHECK 05 (low priority) Not yet implemented: "FetchSymbol();" needs not to be generated if all pathes leading to the state
-         //   contain a "FetchSymbol();" and then not a "Accept(...)"
 
-         if (State.Actions.Count == 1 && !(State.Actions[0] is TerminalTransition))
+         if (!(State.PossibleInputTerminals!.IsEqualTo(GlobalVariables.AllTerminalSymbols)))
          {
-            // generate unconditional action
+            // there has been look ahead: no InstructionAssignSymbol needed
          }
          else if (State.Actions.Count >= 1)
          {
             // If the state contains more than one action or one action, which is a terminal transition (all symbols allowed),
-            // "PeekSymbol()" must be generated
-            Debug.Assert(State.Actions.Count > 1
+            // "PeekSymbol()" must be generated but not if it is only one unconditional action
+            if (State.Actions.Count > 1
                 || State.Actions[0] is LookaheadAction
                 || State.Actions[0] is TerminalTransition
                 || State.Actions[0] is ErrorhandlingAction
-                );
-
-            codegen.IndentExactly();
-
-            codegen.AppendWithOptionalLinebreak(GlobalVariables.InstructionAssignSymbol);
+                )
+            {
+               codegen.IndentExactly()
+                     .AppendWithOptionalLinebreak(GlobalVariables.InstructionAssignSymbol);
+            }
+            else
+            {
+               Accept = false; // returned action is not a terminal transition
+               return State.Actions[0];
+            }
          }
          else // State.Actions.Count = 0
          {
@@ -908,17 +911,17 @@ namespace Grammlator {
          */
 
          // Test the state if it contains an unconditional action
-         ParserAction? unconditionalAction = FindUnconditionalAction(state, out Int32 NumberOfConditionalActions);
-         if (unconditionalAction != null && NumberOfConditionalActions <= 0)
-         {
-            accept = false;
-            return unconditionalAction;
-         }
+         //ParserAction? unconditionalAction = FindUnconditionalAction(state, out Int32 NumberOfConditionalActions);
+         //if (unconditionalAction != null && NumberOfConditionalActions <= 0)
+         //{
+         //   accept = false;
+         //   return unconditionalAction;
+         //}
 
-         Debug.Assert(
-            NumberOfConditionalActions == state.Actions.Count,
-            "Error in phase 5: unconditional and other actions must not occur together in the same state"
-            );
+         //Debug.Assert(
+         //   NumberOfConditionalActions == state.Actions.Count,
+         //   "Error in phase 5: unconditional and other actions must not occur together in the same state"
+         //   );
 
          if (state.IfComplexity > GlobalVariables.IfToSwitchBorder)
             return GenerateSwitchWithActionsOfState(state, out accept);
@@ -975,25 +978,27 @@ namespace Grammlator {
          codegen.Append(")");
          codegen.GenerateBeginOfBlock();
 
-         Int32 LeadingCount = 0, TrailingCount = 0, TerminalsCount = 0;
+         Int32 IndexOfLastUsedTerminal = state.PossibleInputTerminals!.IndexOfLastTrueElement();
+         Int32 IndexOfFirstUsedTerminal = state.PossibleInputTerminals!.IndexOfFirstTrueElement();
+
+         Int32 LeadingCount = 0, TrailingCount = 0;
          ConditionalAction? LeadingAction = null, TrailingAction = null;
 
          for (int i = 0; i < state.Actions.Count; i++)
          {
             var ThisAction = (ConditionalAction)state.Actions[i];
             BitArray Terminals = ThisAction.TerminalSymbols;
-            TerminalsCount = Terminals.Count;
             Int32 TerminalIndex = Terminals.FindNextTrue(-1); // not (LeadingCount - 1) because we want to find bugs
             Boolean IsDefaultAction = false;
 
-            // Special case if Terminals contains the first terminal
-            if (TerminalIndex == 0)
+            // Special case if Terminals contains the first used terminal
+            if (TerminalIndex == IndexOfFirstUsedTerminal)
             {
                // remember this action and the count of leading terminals
                Debug.Assert(LeadingCount == 0, "Phase5: LeadingCount already != 0");
                LeadingAction = ThisAction;
-               LeadingCount = Terminals.FindNextFalse(0);
-               TerminalIndex = Terminals.FindNextTrue(LeadingCount);
+               LeadingCount = Terminals.FindNextFalse(IndexOfFirstUsedTerminal) - IndexOfFirstUsedTerminal;
+               TerminalIndex = Terminals.FindNextTrue(IndexOfFirstUsedTerminal + LeadingCount);
                IsDefaultAction = true;
 
                // generate first part of comment
@@ -1005,13 +1010,13 @@ namespace Grammlator {
                    );
             }
 
-            // Special case if Terminals contains the last terminal
-            if (Terminals[TerminalsCount - 1])
+            // Special case if Terminals contains the last used terminal
+            if (Terminals[IndexOfLastUsedTerminal])
             {
                // remember this action and the count of trailing terminals
                Debug.Assert(TrailingCount == 0, "Phase5: TrailingCount already != 0");
                TrailingAction = ThisAction;
-               TrailingCount = TerminalsCount - Terminals.FindPrecedingFalse(Terminals.Count) - 1;
+               TrailingCount = IndexOfLastUsedTerminal - Terminals.FindPrecedingFalse(IndexOfLastUsedTerminal);
                IsDefaultAction = true;
 
                // generate first part of comment
@@ -1019,7 +1024,7 @@ namespace Grammlator {
                codegen.Append("// >= ");
                codegen.AppendWithPrefix(
                    GlobalVariables.TerminalSymbolEnum,
-                   GlobalVariables.TerminalSymbolByIndex[TerminalsCount - TrailingCount].Identifier
+                   GlobalVariables.TerminalSymbolByIndex[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
                    );
             }
 
@@ -1034,7 +1039,7 @@ namespace Grammlator {
 
             // if remaining terminal symbols, for each 
             bool RemainingSymbols = false;
-            while (TerminalIndex < TerminalsCount - TrailingCount)
+            while (TerminalIndex < IndexOfLastUsedTerminal - TrailingCount + 1)
             {
                RemainingSymbols = true;
                // generate "case TerminalSymbol: " 
@@ -1109,7 +1114,7 @@ namespace Grammlator {
                codegen.Append(" >= ")
                .AppendWithPrefix(
                    GlobalVariables.TerminalSymbolEnum,
-                   GlobalVariables.TerminalSymbolByIndex[TerminalsCount - TrailingCount].Identifier
+                   GlobalVariables.TerminalSymbolByIndex[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
                    );
             }
             else
@@ -1144,7 +1149,7 @@ namespace Grammlator {
             codegen.Append(" >= ");
             codegen.AppendWithPrefix(
                 GlobalVariables.TerminalSymbolEnum,
-                GlobalVariables.TerminalSymbolByIndex[TerminalsCount - TrailingCount].Identifier
+                GlobalVariables.TerminalSymbolByIndex[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
                 );
          }
          else if (ActionsSwapped)
@@ -1162,7 +1167,7 @@ namespace Grammlator {
             codegen.Append(" >= ");
             codegen.AppendWithPrefix(
                 GlobalVariables.TerminalSymbolEnum,
-                GlobalVariables.TerminalSymbolByIndex[TerminalsCount - TrailingCount].Identifier
+                GlobalVariables.TerminalSymbolByIndex[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
                 );
          }
          codegen.AppendLine(");");
@@ -1187,7 +1192,7 @@ namespace Grammlator {
       {
          // all terminal symbols which are condition of one action can be ignored
          // in the conditions of all following actions (are not relevant)
-         var relevantSymbols = new BitArray(GlobalVariables.AllTerminalSymbols);
+         var relevantSymbols = new BitArray(State.PossibleInputTerminals!);
 
          for (int i = 0; i < State.Actions.Count - 1; i++)
          {
@@ -1236,6 +1241,7 @@ namespace Grammlator {
             case ReduceAction _:
             case HaltAction _:
             case BranchAction _:
+            case EndOfGeneratedCodeAction _:
             {
                if (unconditionalAction != null)
                {

@@ -9,7 +9,7 @@ namespace Grammlator {
    internal static class InitialSettings {
       static readonly Dictionary<string, string> InitialValues = new Dictionary<string, string>(40);
       static InitialSettings()
-         {
+      {
          InitialValues.Add("AttributeStack", "_a");
          InitialValues.Add("CSharpCommentlineMarker", "//");
          InitialValues.Add("CSharpPragmaMarker", "#pragma");
@@ -40,26 +40,26 @@ namespace Grammlator {
 
       public static String GetString(String name) => InitialValues[name]; // TODO check not found
       public static Int32 GetInt(String name)
-         {
+      {
          if (Int32.TryParse(GetString(name), out Int32 result))
             return result; // TODO check conversion error
          throw new ErrorInSourcedataException($"{name} is not a number");
-         }
       }
+   }
 
-   class MemoryComparer: IEqualityComparer<ReadOnlyMemory<char>> {
+   class MemoryComparer : IEqualityComparer<ReadOnlyMemory<char>> {
       public bool Equals(ReadOnlyMemory<char> rom1, ReadOnlyMemory<char> rom2)
          => rom1.Span.SequenceEqual(rom2.Span);
 
       public int GetHashCode(ReadOnlyMemory<char> rom)
          => string.GetHashCode(rom.Span);
-      }
+   }
 
 
    internal static class GlobalVariables {
 
       static GlobalVariables()
-         {
+      {
          Startsymbol = new NonterminalSymbol("*Startsymbol",
             position: 0,
             symbolNumber: 0,
@@ -69,7 +69,7 @@ namespace Grammlator {
          TerminalSymbolByIndex = Array.Empty<TerminalSymbol>();
          OutputMessage = OutputToNirwana;
          OutputMessageAndPosition = OutputToNirwana;
-         }
+      }
       private static String GetVersioninfo {
          get {
 
@@ -123,8 +123,8 @@ namespace Grammlator {
                .Append(FileWrittenDate)
                .Append(")")
                .ToString();
-            }
          }
+      }
 
       private static readonly String VersionInfo = GetVersioninfo;
       internal static String TranslationInfo => DateTime.Now.ToString("r") + VersionInfo;
@@ -143,7 +143,7 @@ namespace Grammlator {
       static readonly List<string> IndexToString = new List<string>(1000);
 
       static public Int32 GetIndexOfString(ReadOnlyMemory<char> MemorySpan)
-         {
+      {
          if (MemoryToIndexDictionary.TryGetValue(MemorySpan, out int result))
             return result;
 
@@ -157,10 +157,10 @@ namespace Grammlator {
          IndexToString.Add(s); // allocation of string which usually will be used later for output
          MemoryToIndexDictionary.Add(newSpan, IndexToString.Count - 1);
          return IndexToString.Count - 1;
-         }
+      }
 
       static public Int32 GetIndexOfString(String s)
-         {
+      {
          ReadOnlyMemory<char> m = s.AsMemory();
          if (MemoryToIndexDictionary.TryGetValue(m, out int result))
             return result;
@@ -168,19 +168,19 @@ namespace Grammlator {
          IndexToString.Add(s); // string is alrady available
          MemoryToIndexDictionary.Add(m, IndexToString.Count - 1);
          return IndexToString.Count - 1;
-         }
+      }
 
       static public Int32 GetIndexOfEmptyString()
-         {
+      {
          return GetIndexOfString(ReadOnlyMemory<char>.Empty);
-         }
+      }
 
       static public string GetStringOfIndex(Int32 i) => IndexToString[i];
 
       public static void ResetGlobalVariables(
                 Action<MessageTypeOrDestinationEnum, String> OutputMessage,
                 Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPosition)
-         {
+      {
          // Reset all static variables 
 
          /* Reset initial values of all variables which can be modified by grammlator settings in P1Parser */
@@ -254,7 +254,7 @@ namespace Grammlator {
 
          ListOfAllPriorityBranchActions.Clear();
          ListOfAllPriorityBranchActions.Capacity = InitialCapacityOfListOfAllPriorityBranchActions;
-         }
+      }
       /* Options:
        * */
 
@@ -351,32 +351,36 @@ namespace Grammlator {
 
       internal static string AttributeStack = InitialSettings.GetString("AttributeStack");
 
-      internal static bool OptimizeStateStackNumbers= InitialSettings.GetString("OptimizeStateStackNumbers")=="1";
+      internal static bool OptimizeStateStackNumbers = InitialSettings.GetString("OptimizeStateStackNumbers") == "1";
 
       internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage {
          get; private set;
-         }
+      }
 
-      private static void  OutputToNirwana(MessageTypeOrDestinationEnum a, String s) { }
-      private static void OutputToNirwana(MessageTypeOrDestinationEnum a, String s, Int32 i) { }
+      private static void OutputToNirwana(MessageTypeOrDestinationEnum a, String s)
+      {
+      }
+      private static void OutputToNirwana(MessageTypeOrDestinationEnum a, String s, Int32 i)
+      {
+      }
 
       internal static Action<MessageTypeOrDestinationEnum, String, Int32> OutputMessageAndPosition {
          get; private set;
-         }
+      }
 
       /// <summary>
       ///  The number of terminal symbols is defined in phase1. It may be zero.
       /// </summary>
       internal static Int32 NumberOfTerminalSymbols {
          get; set;
-         } // wird beim Erkennen des ersten nichtterminalen Symbols bestimmt
+      } // wird beim Erkennen des ersten nichtterminalen Symbols bestimmt
 
       /// <summary>
       /// The number of nonterminal symbols ist defined at the end of phase1.
       /// </summary>
       internal static Int32 NumberOfNonterminalSymbols {
          get; set;
-         }
+      }
 
       /// <summary>
       /// The <see cref="Startsymbol"/> "*Startsymbol" with all its definitions and used symbols is the result of phase1.
@@ -385,7 +389,7 @@ namespace Grammlator {
       /// </summary>
       internal static NonterminalSymbol Startsymbol {
          get; private set;
-         }
+      }
 
       /// <summary>
       /// Used to get terminal symbols by its indexes
@@ -399,14 +403,14 @@ namespace Grammlator {
       /// </summary>
       /// <param name="symbolDictionary"></param>
       internal static void DefineArrayTerminalSymbolByIndex(Dictionary<Int32, Symbol> symbolDictionary)
-         {
+      {
          TerminalSymbolByIndex = new TerminalSymbol[NumberOfTerminalSymbols];
          foreach (KeyValuePair<Int32, Symbol> pair in symbolDictionary)
-            {
+         {
             if (pair.Value is TerminalSymbol terminal)
                TerminalSymbolByIndex[terminal.SymbolNumber] = terminal;
-            }
          }
+      }
 
       /// <summary>
       /// Gets a terminal symbol by its index, which is the symbols number
@@ -430,9 +434,7 @@ namespace Grammlator {
       ///  and is used as root of all actions in P4 to count usage and in P5 generate the code
       /// </summary>
       internal static ParserAction Startaction {
-         get {
-            return ListOfAllStates[0];
-         }
+         get; set;
       }
 
       /// <summary>
@@ -483,10 +485,10 @@ namespace Grammlator {
       /// <see cref="ListOfAllHaltActions"/>[0] is defined for use as initial <see cref="HaltAction"/>,
       /// all other entries are defined and used in phase 4 and used in phase 5.
       /// </summary>
-      internal static readonly List<HaltAction> ListOfAllHaltActions 
+      internal static readonly List<HaltAction> ListOfAllHaltActions
          = new List<HaltAction>(InitialCapacityOfListOfAllHaltActions);
 
-      internal static readonly List<PushStateAction> ListOfAllPushStateActions 
+      internal static readonly List<PushStateAction> ListOfAllPushStateActions
          = new List<PushStateAction>(InitialCapacityOfListOfAllPushStateActions);
 
       /// <summary>
@@ -498,5 +500,5 @@ namespace Grammlator {
       /// used in <see cref="P5GenerateCode"/> and <see cref="HaltAction.Generate(P5CodegenCS, out bool)"/>
       /// </summary>
       internal static Boolean reductionsModifyAttributStack;
-      } // class GlobalVariables
-   }
+   } // class GlobalVariables
+}

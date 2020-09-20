@@ -72,7 +72,7 @@ namespace Grammlator {
          this.IdNumber = Number; // IDNumber >= 0
       }
 
-      internal override void CountUsage(Boolean Accept)
+      internal override void CountUsage(Boolean Accept) // ParserState
       {
          if (Calls > 0)
          {
@@ -140,41 +140,43 @@ namespace Grammlator {
 
       /// <summary>
       /// Checks the states actions whether there is exactly one action of type
-      /// <see cref="TerminalTransition"/>
+      /// <see cref="LookaheadAction"/> 
       /// with all terminal symbols allowed
-      /// or of type <see cref="LookaheadAction"/> or 
-      /// <see cref="PrioritySelectAction"/>.
-      /// If yes returns this action else returns null. 
+      /// or of type <see cref="PrioritySelectAction"/>.
+      /// If yes returns the index of this action else returns n-1. 
       /// </summary>
-      /// <returns>the only one terminal action or null</returns>
-      internal ParserActionWithNextAction? RedundantLookaheadOrSelectActionOrNull()
+      /// <returns>the index of the only one terminal action (or of the 1st of eqivalent actions) or -1</returns>
+      internal int IndexOfRedundantLookaheadOrSelectAction()
       {
-         ParserActionWithNextAction? theOnlyOneAction = null;
 
-         foreach (ParserAction action in Actions!)
+         int FirstFoundIndex = -1;
+
+         for (int i = 0; i < Actions.Count; i++)
          {
-            ParserActionWithNextAction FittingAction;
+            int FoundIndex;
 
-            switch (action)
+            switch (Actions[i])
             {
             case TerminalTransition transition:
                if (!transition.TerminalSymbols.Empty())
                {
                   // a TerminalTransition, even if caused by all symbols,
                   // can not be skipped because the accept must be generated
-                  return null; // there must be one more action in the state, for example error handling
+                  return -1;
                }
                // ...TerminalSymbols.Empty(): this transition will never be executed, can be ignored
                // This may happen if there is also a IF ( ...All()) ...
                continue;
             case LookaheadAction lookAction:
                if (lookAction.TerminalSymbols.All())
-                  FittingAction = lookAction; // action with all terminal symbols allowed (or no terminal symbols defined)
+                  FoundIndex = i;
+               // FittingAction = lookAction; // action with all terminal symbols allowed (or no terminal symbols defined)
                else if (lookAction.TerminalSymbols.Empty()) // only correct after preceding "if( ...ALL())"
                   continue; // this action will never be executed
                else
                {
-                  FittingAction = lookAction;
+                  FoundIndex = i;
+                  // FittingAction = lookAction;
                   // TOCHECK this may cause deferred error recognition because the error handling action may not be generated
                   // return null; // this variant allows early error recognition
                }
@@ -182,35 +184,41 @@ namespace Grammlator {
                break;
             case PrioritySelectAction selectAction:
                if (selectAction.NextAction is TerminalTransition)
-                  return null; // see above ????
+                  return -1; // see above ????
 
                // The selectAction contains only Definitions -> LookAheadActions
                if (selectAction.TerminalSymbols.All())
-                  FittingAction = selectAction; // action with all terminal symbols allowed (or no terminal symbols defined)
-               else if (selectAction.TerminalSymbols.Empty()) // must not occur
+                  FoundIndex = i;
+               // FittingAction = selectAction; // action with all terminal symbols allowed (or no terminal symbols defined)
+               else if (selectAction.TerminalSymbols.Empty()) // must not occur because some terminals must cause the conflict
                   continue; // this action will never be executed
                else
                {
-                  FittingAction = selectAction;
+                  FoundIndex = i;
+                  // FittingAction = selectAction;
                   // TOCHECK this may cause deferred error recognition because the error handling action may not be generated
                   // return null; // this variant allows early error recognition
                }
 
                break;
-            case ReduceAction reduceAction: // TO add !!!!
-               FittingAction = reduceAction;
+            case ReduceAction _:
+               FoundIndex = i;
                break;
-            default:
-               continue; // ignore all other types of actions
+            case DeletedParserAction _:
+            case NonterminalTransition _:
+               continue;
+            default: // all other types of actions
+               Debug.Assert(false);
+               throw new ArgumentException();
             }
 
-            if (theOnlyOneAction == null || theOnlyOneAction.Equals(FittingAction))
-               theOnlyOneAction = FittingAction;
-            else if (theOnlyOneAction != FittingAction)
-               return null; // more than one action
+            if (FirstFoundIndex == -1)
+               FirstFoundIndex = FoundIndex;
+            else if (!(Actions[FirstFoundIndex].Equals(Actions[FoundIndex])))
+               return -1; // more than one action
          } // foreach
 
-         return theOnlyOneAction;
+         return FirstFoundIndex;
       }
 
       /// <summary>
@@ -540,21 +548,22 @@ namespace Grammlator {
       public ErrorhandlingAction? CheckAndAddErrorAction(Boolean ErrorHandlerIsDefined)
       {
          BitArray allowedSymbols;
-         //if (PossibleInputTerminals == null)
-         allowedSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions with constant priority
-         //else
-         //   allowedSymbols = new BitArray(PossibleInputTerminals!).Not();
+         if (PossibleInputTerminals == null)
+            allowedSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions
+         else
+            allowedSymbols = new BitArray(PossibleInputTerminals!).Not();
+
          ErrorhandlingAction e;
          Int32 counter = 0;
-         Boolean containsLookaheadAction = false;
+         //Boolean containsLookaheadAction = false;
 
          foreach (ConditionalAction conditionalAction in Actions.OfType<ConditionalAction>())
          {
             Debug.Assert(!(conditionalAction is NonterminalTransition));
             allowedSymbols.Or(conditionalAction.TerminalSymbols);
             counter++;
-            if (conditionalAction is LookaheadAction)
-               containsLookaheadAction = true;
+            //if (conditionalAction is LookaheadAction)
+            //   containsLookaheadAction = true;
          }
 
          if (counter == 0)
@@ -564,13 +573,13 @@ namespace Grammlator {
          if (notAllowedSymbols.Empty())
             return null;
 
-         if (counter == 1 // one action
-             &&
-             containsLookaheadAction // not a terminal transition => lookahead action)
-             )
-         {
-            return null; // execute lookahead action without condition
-         }
+         //if (counter == 1 // one action
+         //    &&
+         //    containsLookaheadAction // not a terminal transition => lookahead action)
+         //    )
+         //{
+         //   return null; // execute lookahead action without condition
+         //}
          // TODO check this might be used earlier by optimizations ? This causes late error recognition
 
          // Add ErrorhandlingAction
@@ -605,10 +614,28 @@ namespace Grammlator {
       }
 
       private int SimplifyRecursionCount = 0;
-      internal override ParserAction Simplify()
+      internal override ParserAction Simplify() // ParserState
       {
-         //Prohibit an endless loop caused a.g. by "B=B??1??"
-         if (SimplifyRecursionCount > 10)
+         /*
+          * In general a ParserState contains only conditional actions of type:
+          *   TerminalTransition
+          *   NonterminalTransition
+          *   LookaheadAction
+          * These actions must not be simplified, but the respective NextAction may be.
+          * 
+          * Equivalent actions may be combined to one action.
+          * 
+          * A link to a ParserState which contains only one LookaheadAction
+          * (and perhaps NonterminalTransitions) may be replaced by a link to
+          * the LookaheadAction.
+          * 
+          * The LookaheadActions will be removed after all Definitions of the grammar have been
+          * replaced.
+          */
+
+
+         //Prohibit an endless loop caused e.g. by "B=B??1??"
+         if (SimplifyRecursionCount > 2)
             return this;
 
          /* if the parser state does not push on the state stack
@@ -618,27 +645,39 @@ namespace Grammlator {
           * then the "goto state action" MUST be replaced 
           * by the next action of the single look ahead action
           * to avoid unnecessary look ahead
-          */
-         //CHECK here the definition "B=B??1??" causes an endless loop
-         /*
-          * the state contains only one look ahead action: if (allTerminalSymbols)  goto state
+          *
+          * The Problem "the definition "B=B??1??" causes an endless loop"
+          * is prevented by SimplifyRecursionCount
           */
 
-         if (
-               StateStackNumber != -1 // state modifies state stack and can not be skipped
-            || !(RedundantLookaheadOrSelectActionOrNull() is LookaheadAction Action)
-            // more than one action or not a lookahead action
-            || Action.NextAction is Definition
-            // state modifies state stack and can not be skipped
+         int IndexOfSingleAction = IndexOfRedundantLookaheadOrSelectAction();
+         if (IndexOfSingleAction >= 0
+            && Actions[IndexOfSingleAction] is LookaheadAction laAction
+            // exactly one lookahead action
+            && !(laAction.NextAction is Definition)
             )
-            return this;
+         {
+            Debug.Assert(!(laAction.NextAction is NonterminalTransition));
 
-         // after removing nonterminal transitions the state will contain no other actions 
-         SimplifyRecursionCount++;
-         Action.NextAction = Action.NextAction.Simplify();
-         SimplifyRecursionCount--;
 
-         return Action.NextAction;
+
+            if (StateStackNumber == -1)
+            {
+               // the state doesn't contain other actions except NonterminalTransition 
+               SimplifyRecursionCount++;
+               ParserAction result = laAction.NextAction.Simplify();
+               SimplifyRecursionCount--;
+
+               return result;
+            }
+            else
+            {
+               // the state can not be skipped but the laAction.NextAction can be made an unconditional action
+               Actions[IndexOfSingleAction] = laAction.NextAction.Simplify();
+            }
+         }
+
+         return this;
       }
 
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
