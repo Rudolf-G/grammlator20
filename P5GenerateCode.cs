@@ -501,27 +501,42 @@ namespace Grammlator {
           */
 
          /* Conflicting purposes:
-          * - order actions by increasing complexity, because preceding checks may reduce complexity of actions
+          * - order actions by increasing complexity, because preceding checks may reduce complexity of following checks
+          * - ignore weights in case of error actions, resulting in a higher priority
           * - order actions with decreasing sum of weights (probability) so that symbols
-          *   which occur with higher probability are checked first
-          * - give error actions lower priority
+          *   with higher probability are checked first
+          * - give actions which will be generated as goto or inline a higher priority  
           * 
           * Actions with same complexity should be ordered by decreasing weight
           *  
           */
 
-         Single PositionA = ActionA as ConditionalAction is ErrorhandlingAction
-             ? (ActionA).Complexity * 100_000
-             : (ActionA).Complexity * 100_000 - (ActionA).SumOfWeights;
+         Single PositionA = Position(ActionA);
 
-         Single PositionB = ActionB is ErrorhandlingAction
-             ? ActionB.Complexity * 100_000
-             : (ActionB.Complexity * 100_000) - ActionB.SumOfWeights;
+         Single PositionB = Position(ActionB);
 
          if (PositionA != PositionB)
             return (Int32)(PositionA - PositionB);
 
          return (ActionA).IdNumber - ActionB.IdNumber;
+      }
+
+      private static Single Position(ConditionalAction ActionA)
+      {
+         Single PositionA = ActionA is ErrorhandlingAction
+                      ? (ActionA).Complexity * 100_000
+                      : (ActionA).Complexity * 100_000 - 10 * (ActionA).SumOfWeights;
+
+         // if NextAction is called only once ( ...calls==1) it can be generated inline and
+         // perhaps the other actions NextAction might be generated at the end (lower indentation level)
+         // if NextAction has been generated already (... calls<=0) it will generate a goto
+         if (ActionA is TerminalTransition)
+            PositionA = PositionA + ((ActionA.NextAction.AcceptCalls == 1) ? -5.0f : 0.0f)
+               + ((ActionA.NextAction.AcceptCalls <= 0) ? -5.0f : 0.0f);
+         else
+            PositionA = PositionA + ((ActionA.NextAction.Calls == 1) ? -5.0f : 0.0f)
+               + ((ActionA.NextAction.Calls <= 0) ? -5.0f : -0.0f);
+         return PositionA;
       }
 
       /// <summary>
@@ -926,15 +941,16 @@ namespace Grammlator {
          if (state.IfComplexity > GlobalVariables.IfToSwitchBorder)
             return GenerateSwitchWithActionsOfState(state, out accept);
 
-         // Sort the actions by increasing complexity of the condition.
-         // Generated if cases can be ignored when generating conditions and the following more complex cases may be simplified.
-         // Another sort criterion is to check the most probable input first (the input with highest weight).
+         // Sort the actions dependent on their terminal inp. Criteria are
+         //   increasing complexity of the condition, so that there is a chance to 
+         //      make more complex conditions simpler by ignoring already checked terminals
+         //   decreasing probability of the SumOfWeights of the terminal symbols
 
          if (GlobalVariables.NumberOfTerminalSymbols > 0)
             state.Actions.Sort(CompareWeightandConditionComplexity);
 
-         // Eine Fehleraktion am Ende möglichst mit der vorletzten Aktion tauschen,
-         // da eine Fehleraktion immer die Sequenz unterbricht
+         // Exchange an ErrorhandlingAction at the end with the preceding action,
+         // because an ErrorhandlingAction has no NextAction which can be generated next without goto
          if (state.Actions.Count > 1 && state.Actions[^1] is ErrorhandlingAction)
          {
             ParserAction temp = state.Actions[^2];
@@ -942,9 +958,6 @@ namespace Grammlator {
             state.Actions[^1] = temp;
          }
 
-         // Test the state if it contains an unconditional action
-         // und eine geeignete Folgeaktion heraussuchen, die als letzte Aktion unbedingt
-         // erzeugt werden kann (möglichst keine Fehleraktion) - prüfen und die Intention  genau dokumentieren !!!!!
          // TODO diese Optimierung überarbeiten !!! keine Aktionen, die eine Marke erzeugen als Folgeaktion bevorzugen !!! 
 
          return GenerateConditionalActionsOfState(state, out accept);
@@ -988,7 +1001,7 @@ namespace Grammlator {
          {
             var ThisAction = (ConditionalAction)state.Actions[i];
             BitArray Terminals = ThisAction.TerminalSymbols;
-            Int32 TerminalIndex = Terminals.FindNextTrue(-1); // not (LeadingCount - 1) because we want to find bugs
+            Int32 TerminalIndex = Terminals.FindNextTrue(-1);
             Boolean IsDefaultAction = false;
 
             // Special case if Terminals contains the first used terminal
@@ -1175,7 +1188,7 @@ namespace Grammlator {
 
          // generate Action2
          accept = Action2 is TerminalTransition; // TOCHECK try to avoid the out parameter "accept"?
-         return Action2Generate; // TOCHECK: try to avoid the special handling of ErrorhandlingAction?
+         return Action2Generate;
       }
 
       /// <summary>

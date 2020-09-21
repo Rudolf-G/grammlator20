@@ -155,7 +155,7 @@ namespace Grammlator {
       //| LineLengthLimit: "150";
       //|
       //| // Terminal symbols and their probabilty to appear in input:
-      //|     DefiningSymbol % 18
+      //|     DefiningSymbol % 19
       //|     | Colon % 35        
       //|     | Percent
       //|     | CSharpEnd
@@ -167,15 +167,15 @@ namespace Grammlator {
       //|     | Questionmark
       //|     | Asterisk 
       //|     | Plus 
-      //|     | Comma % 20 
+      //|     | Comma
       //|     | NumberSign
       //|     
-      //|     | GroupStart % 35| OptionStart | RepeatStart
+      //|     | GroupStart %35| OptionStart %35 | RepeatStart %35
       //|     | DoubleQuestionmark 
-      //|     | CSharpStart % 2 
+      //|     | CSharpStart %19
       //|     | GroupEnd | RepeatEnd | OptionEnd
       //|     | Name(Int32 stringIndex) % 45
-      //|     | LexerString(Int32 stringIndex) % 43
+      //|     | LexerString(Int32 stringIndex) % 30
       //|     | DefinitionSeparatorSymbol % 45  
       //|     | TerminatorSymbol % 42
       public enum LexerResultCopy { // Defines the output of the lexer, which is assigned to Symbol to be used by the parser
@@ -871,7 +871,7 @@ namespace Grammlator {
          LexerResult ParserInput;
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Sun, 20 Sep 2020 16:10:09 GMT (grammlator, File version 2020.09.14.0 20.09.2020 16:06:00)
+#region grammlator generated Mon, 21 Sep 2020 09:59:19 GMT (grammlator, File version 2020.09.14.0 21.09.2020 09:35:34)
   Int32 StateStackInitialCount = _s.Count;
   Int32 AttributeStackInitialCount = _a.Count;
 State2:
@@ -1901,10 +1901,10 @@ State12:
      + "CSEnumElementList= CSEnumElementList, ►Comma, CSEnumElement;\r\n"
      + "FirstCSEnumElement= CSEnumElement, ►\"=\", Name(Int32 ignored);";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.Comma)
-     goto AcceptState13;
   if (ParserInput == LexerResult.RepeatEnd)
      goto AcceptReduce8;
+  if (ParserInput == LexerResult.Comma)
+     goto AcceptState13;
   if (ParserInput > LexerResult.DefiningSymbol)
      {
      if (ErrorHandler(12, StateDescription12, ParserInput))
@@ -1934,17 +1934,15 @@ State15:
        "CSEnumElements= \"{\", CSEnumElementList, ►\"}\";\r\n"
      + "CSEnumElementList= CSEnumElementList, ►Comma, CSEnumElement;";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.Comma)
-     goto AcceptState13;
-  if (ParserInput != LexerResult.RepeatEnd)
+  if (ParserInput == LexerResult.RepeatEnd)
+     goto AcceptReduce8;
+  if (ParserInput != LexerResult.Comma)
      {
      if (ErrorHandler(15, StateDescription15, ParserInput))
         goto State15;
      goto EndWithError;
      }
-  Debug.Assert(ParserInput == LexerResult.RepeatEnd);
-  goto AcceptReduce8;
-
+  Debug.Assert(ParserInput == LexerResult.Comma);
 AcceptState13:
   Lexer.AcceptSymbol();
 State13:
@@ -2333,17 +2331,15 @@ State39:
        "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), \"(\", eFormalParameters, ►\")\";\r\n"
      + "formalParameters= formalParameters, ►Comma, formalParameter;";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.Comma)
-     goto AcceptState40;
-  if (ParserInput != LexerResult.GroupEnd)
+  if (ParserInput == LexerResult.GroupEnd)
+     goto AcceptReduce43;
+  if (ParserInput != LexerResult.Comma)
      {
      if (ErrorHandler(39, StateDescription39, ParserInput))
         goto State39;
      goto EndWithError;
      }
-  Debug.Assert(ParserInput == LexerResult.GroupEnd);
-  goto AcceptReduce43;
-
+  Debug.Assert(ParserInput == LexerResult.Comma);
 AcceptState40:
   Lexer.AcceptSymbol();
 State40:
@@ -2646,13 +2642,13 @@ State50:
      Lexer.AcceptSymbol();
      goto State60;
      }
-  if (ParserInput == LexerResult.Number)
-     goto AcceptState59;
   if (ParserInput == LexerResult.Plus)
      {
      Lexer.AcceptSymbol();
      goto State58;
      }
+  if (ParserInput == LexerResult.Number)
+     goto AcceptState59;
   if (ParserInput != LexerResult.CSharpStart)
      {
      if (ErrorHandler(50, StateDescription50, ParserInput))
@@ -2767,12 +2763,12 @@ State64:
        "NestedDefinitions= EndOfDefinition, \"|\", ►NestedDefinitionList;";
   _s.Push(7);
   ParserInput = Lexer.PeekSymbol();
+  if (ParserInput == LexerResult.RepeatStart)
+     goto AcceptState61;
   if (ParserInput == LexerResult.GroupStart)
      goto AcceptState76;
   if (ParserInput == LexerResult.OptionStart)
      goto AcceptState74;
-  if (ParserInput == LexerResult.RepeatStart)
-     goto AcceptState61;
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
      {
      if (ErrorHandler(64, StateDescription64, ParserInput))
@@ -2816,12 +2812,12 @@ State66:
        "NestedDefinitionList= NestedDefinitionList, \"|\", ►Definition;";
   _s.Push(8);
   ParserInput = Lexer.PeekSymbol();
+  if (ParserInput == LexerResult.RepeatStart)
+     goto AcceptState61;
   if (ParserInput == LexerResult.GroupStart)
      goto AcceptState76;
   if (ParserInput == LexerResult.OptionStart)
      goto AcceptState74;
-  if (ParserInput == LexerResult.RepeatStart)
-     goto AcceptState61;
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
      {
      if (ErrorHandler(66, StateDescription66, ParserInput))
@@ -3406,7 +3402,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Sun, 20 Sep 2020 16:10:09 GMT (grammlator, File version 2020.09.14.0 20.09.2020 16:06:00)
+#endregion grammlator generated Mon, 21 Sep 2020 09:59:19 GMT (grammlator, File version 2020.09.14.0 21.09.2020 09:35:34)
          /* ************************ code written by programmer ******************** */
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
          }
