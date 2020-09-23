@@ -41,7 +41,9 @@ namespace Grammlator {
       /// Is the empty list, if an enum with no elements has been recognized. 
       /// Is null or empty after the last enum has been evaluated.
       /// </summary>
-      public List<Int32>? Enumlist = new List<Int32>();
+      private List<Int32> Enumlist = new List<Int32>();
+      Int64 EnumLastValue = -1;
+      Int64 EnumMaxValue = Int64.MinValue;
 
       /// <summary>
       /// The StringIndex of the name of the last enum the parser found in the source.
@@ -110,7 +112,7 @@ namespace Grammlator {
       {
          // The parser recognized the left side of a rule and has not yet evaluated any definition of this symbol
 
-         string symbolName = GlobalVariables.GetStringOfIndex(symbolNameIndex);
+         String symbolName = GlobalVariables.GetStringOfIndex(symbolNameIndex);
 
          Debug.Assert(!String.IsNullOrEmpty(symbolName), "Identifier IsNullOrEmpty");
 
@@ -201,7 +203,7 @@ namespace Grammlator {
       /// <returns>The found or created <see cref="Symbol"/> instance</returns>
       private Symbol EvaluateSymbolnameFoundInRightSide(Int32 nameIndex, Int32 NumberOfAttributes)
       {
-         string Name = GlobalVariables.GetStringOfIndex(nameIndex);
+         String Name = GlobalVariables.GetStringOfIndex(nameIndex);
 
          if (SymbolDictionary.TryGetValue(nameIndex, out Symbol? symbol) /*Symbol == null*/)
          {
@@ -210,7 +212,6 @@ namespace Grammlator {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                   $"The symbol {Name} has been used at its first occurence with a different number of attributes. "
                   );
-               // PROBLEM will cause index out of bounds
             }
             else if (!AttributeTypesCoincide(symbol))
             {
@@ -356,7 +357,7 @@ namespace Grammlator {
       /// <param name="type">the type of the grammar rule determines the postfix</param>
       /// <param name="nameOfSymbol">name of the symbol to which the postfix has to be appended</param>
       ///<returns>new name</returns>
-      private static String MakeNewName(TypeOfGrammarRule type, string nameOfSymbol)
+      private static String MakeNewName(TypeOfGrammarRule type, String nameOfSymbol)
       {
          String Postfix = type switch
          {
@@ -396,7 +397,7 @@ namespace Grammlator {
           */
 
          // Create (synthetic) name of new nonterminal symbol by adding postfix to existing name
-         string NewName = MakeNewName(type, existingSymbol.Identifier);
+         String NewName = MakeNewName(type, existingSymbol.Identifier);
          Int32 NewNameIndex = GlobalVariables.GetIndexOfString(NewName);
 
          // use existing (synthetic) symbol / definition if name already has been defined
@@ -415,7 +416,7 @@ namespace Grammlator {
             Symbol existingSymbol,
             TypeOfGrammarRule type,
             Int32 newNameIndex,
-            string newName)
+            String newName)
       {
          var newSymbol = new NonterminalSymbol(newName,
             Lexer.LexerTextPos,
@@ -934,7 +935,7 @@ namespace Grammlator {
          {
             Symbol Symbol = KeyValue.Value;
 
-            string GetNameOfSymbol()
+            String GetNameOfSymbol()
                => GlobalVariables.GetStringOfIndex(KeyValue.Key);
 
             if (Symbol != null)
@@ -982,7 +983,7 @@ namespace Grammlator {
       /// <param name="priorityFunction">null or C# Int32 method</param>
       /// <param name="semanticMethod">null or C# void method</param>
       /// <param name="optimizeTrivialDefinitions">if false there will be no special handling of trivial definitions</param>
-      private void EvaluateDefinition(Int32 constantPriority, IntMethodClass? priorityFunction, VoidMethodClass? semanticMethod, bool optimizeTrivialDefinitions)
+      private void EvaluateDefinition(Int32 constantPriority, IntMethodClass? priorityFunction, VoidMethodClass? semanticMethod, Boolean optimizeTrivialDefinitions)
       {
          // ActualAttributeNumber is the number of the last attribute of the right side
          Int32 AttributestackAdjustment = NumberOfLastAttributeOfLeftSide - AttributeCounter;
@@ -1073,12 +1074,12 @@ namespace Grammlator {
       /// <param name="excludedTerminalSymbols"></param>
       private void EvaluateExcludedTerminalSymbols(BitArray excludedTerminalSymbols)
       {
-         for (int IndexOfTerminalSymbol = 0; IndexOfTerminalSymbol < excludedTerminalSymbols.Length; IndexOfTerminalSymbol++)
+         for (Int32 IndexOfTerminalSymbol = 0; IndexOfTerminalSymbol < excludedTerminalSymbols.Length; IndexOfTerminalSymbol++)
          {
             if (excludedTerminalSymbols[IndexOfTerminalSymbol])
                continue;
             Symbol s = GlobalVariables.GetTerminalSymbolByIndex(IndexOfTerminalSymbol);
-            for (int IndexOfAttribute = 0; IndexOfAttribute < s.AttributenameStringIndexList.Length; IndexOfAttribute++)
+            for (Int32 IndexOfAttribute = 0; IndexOfAttribute < s.AttributenameStringIndexList.Length; IndexOfAttribute++)
             {
                AttributeCounter++;
                PushAttributeToListOfAttributesOfGrammarRule(s.AttributetypeStringIndexList[IndexOfAttribute], s.AttributenameStringIndexList[IndexOfAttribute]);
@@ -1153,12 +1154,12 @@ namespace Grammlator {
           **************************************************************************************/
 
          // for each method parameter find a corresponding attribute, check compatibility and assign offset
-         bool error = false;
+         Boolean error = false;
          for (Int32 parameterIndex = 0; parameterIndex < MethodParameters.Length; parameterIndex++)
          {
             /*** check method parameter ***/
             ref MethodParameterStruct MethodParameter = ref MethodParameters[parameterIndex];
-            string methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
+            String methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
 
             /*** find last attribute in the list of attributes which has the same name ***/
             Int32 AttributeIndex =
@@ -1205,7 +1206,7 @@ namespace Grammlator {
 
             // Are attribute and parameter compatible?
             String errorDescription = AttributeParameterMatchError(Attribute, MethodParameter);
-            if (!string.IsNullOrEmpty(errorDescription))
+            if (!String.IsNullOrEmpty(errorDescription))
             {
                GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
                   $"Error in method \"{semanticMethod!.MethodName }\": the formal parameter \"{methodParameterName}\" "
@@ -1374,7 +1375,7 @@ namespace Grammlator {
          for (Int32 parameterIndex = 0; parameterIndex < MethodParameters.Length; parameterIndex++)
          {
             ref MethodParameterStruct MethodParameter = ref MethodParameters[parameterIndex];
-            string methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
+            String methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
 
             // find last attribute in the list of attributes which has the same name
             Int32 AttributeIndex =

@@ -146,14 +146,14 @@ namespace Grammlator {
       /// If yes returns the index of this action else returns n-1. 
       /// </summary>
       /// <returns>the index of the only one terminal action (or of the 1st of eqivalent actions) or -1</returns>
-      internal int IndexOfRedundantLookaheadOrSelectAction()
+      internal Int32 IndexOfRedundantLookaheadOrSelectAction()
       {
 
-         int FirstFoundIndex = -1;
+         Int32 FirstFoundIndex = -1;
 
-         for (int i = 0; i < Actions.Count; i++)
+         for (Int32 i = 0; i < Actions.Count; i++)
          {
-            int FoundIndex;
+            Int32 FoundIndex;
 
             switch (Actions[i])
             {
@@ -360,7 +360,7 @@ namespace Grammlator {
          var dynamicPriorityActions
             = new ListOfParserActions(10); // usually will be empty or very short
 
-         int indexOfActionWithPriority
+         Int32 indexOfActionWithPriority
             = FindHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols, dynamicPriorityActions);
 
          // The  indexOfActionWithPriority may be -1 if only actions with dynamic priority are in conflict
@@ -569,22 +569,12 @@ namespace Grammlator {
          if (counter == 0)
             return null; // there is an unconditional action
 
-         var notAllowedSymbols = new BitArray(allowedSymbols).Not();
-         if (notAllowedSymbols.Empty())
-            return null;
-
-         //if (counter == 1 // one action
-         //    &&
-         //    containsLookaheadAction // not a terminal transition => lookahead action)
-         //    )
-         //{
-         //   return null; // execute lookahead action without condition
-         //}
-         // TODO check this might be used earlier by optimizations ? This causes late error recognition
+         if (allowedSymbols.All())
+            return null; // in this state all terminal symbols are allowed
 
          // Add ErrorhandlingAction
          e = new ErrorhandlingAction(
-             lookAhead: notAllowedSymbols,
+             lookAhead: new BitArray(allowedSymbols).Not(),
              idNumber: this.IdNumber, // use the IdNumber of the ParserState as IdNumber of the ErrorHandlingAction
              state: this
              );
@@ -613,7 +603,7 @@ namespace Grammlator {
          Actions.RemoveFromEnd(DeletedActionsCount);
       }
 
-      private int SimplifyRecursionCount = 0;
+      private Int32 SimplifyRecursionCount = 0;
       internal override ParserAction Simplify() // ParserState
       {
          /*
@@ -650,7 +640,7 @@ namespace Grammlator {
           * is prevented by SimplifyRecursionCount
           */
 
-         int IndexOfSingleAction = IndexOfRedundantLookaheadOrSelectAction();
+         Int32 IndexOfSingleAction = IndexOfRedundantLookaheadOrSelectAction();
          if (IndexOfSingleAction >= 0
             && Actions[IndexOfSingleAction] is LookaheadAction laAction
             // exactly one lookahead action

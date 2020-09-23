@@ -11,10 +11,17 @@ namespace Grammlator
    /// </summary>
    internal class P5CodegenCS
    {
-      public P5CodegenCS(StringBuilder Resultbuilder)
-          => this.resultbuilder = Resultbuilder;// fCode = new List<string>(100);
+      public P5CodegenCS(StringBuilder resultbuilder)
+      {
+         ResultBuilder = resultbuilder;
+         // Code is constructed in Codebuilder
+         // then definitions are appended to ResultBuilder
+         // then CodeBuilder is appended to Resultbuilder
+         CodeBuilder = new StringBuilder(20000);
+      }
 
-      private readonly StringBuilder resultbuilder;
+      private readonly StringBuilder ResultBuilder;
+      private StringBuilder CodeBuilder;
 
       /// <summary>
       /// a StringBuilder to store parts of the generated code until it is output 
@@ -32,19 +39,23 @@ namespace Grammlator
          get; private set;
       } = 0;
 
-      private int IndentationPosition() => IndentationLevel * IndentationWidth + 2;
+      private Int32 IndentationPosition() => IndentationLevel * IndentationWidth + 2;
 
       private void OutputAndClearCodeLine()
       {
-         resultbuilder.Append(CodeLine.TrimEnd(' '));
-         resultbuilder.AppendLine();
+         CodeBuilder.Append(CodeLine.TrimEnd(' '));
+         CodeBuilder.AppendLine();
          CodeLine.Clear();
       }
 
-      public void GenerateStartOfCode(
+      public void GenerateStartOfCodeAndCopyCodeToResultBuilder(
           Boolean GenerateStateStackInitialCountVariable,
-          Boolean GenerateAttributeStackInitialCountVariable)
+          Boolean GenerateAttributeStackInitialCountVariable,
+          Boolean[] IsUsedInIsIn)
       {
+
+         StringBuilder ResultPart2 = CodeBuilder;
+         CodeBuilder = ResultBuilder;
          Append(GlobalVariables.RegionString).
             Append(' ').
             Append(GlobalVariables.GrammlatorString).
@@ -72,6 +83,43 @@ namespace Grammlator
                .Append(GlobalVariables.AttributeStack)
                .AppendLine(".Count; ");
          }
+
+         Boolean AtLeastOne = false;
+         for (Int32 i = 0; i < IsUsedInIsIn.Length; i++)
+         {
+            if (IsUsedInIsIn[i])
+            {
+               AtLeastOne = true;
+               // generate e.g. "const Int64 _CSharpEnd = 2L << (Int32)LexerResult.CSharpEnd;"
+               String Identifier = GlobalVariables.TerminalSymbolByIndex[i].Identifier;
+               IndentExactly()
+                  .Append("const Int64 _")
+                  .Append(Identifier)
+                  .Append(" = 2L << (Int32)")
+                  .AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, Identifier)
+                  .AppendLine(';');
+            }
+         }
+
+         if (AtLeastOne)
+         {
+            /* generate e.g.
+             *    Boolean IsIn(Int64 flags)
+             *       => ((2L << (Int32)ParserInput) & flags) != 0;
+             */
+            IndentExactly().
+               Append("Boolean ")
+               .Append(GlobalVariables.IsInMethod.Substring(0, GlobalVariables.IsInMethod.IndexOf('#')))
+               .Append("Int64 flags)")
+               .Append("   => ((2L << (Int32)")
+               .Append(GlobalVariables.VariableNameSymbol)
+               .AppendLine(") & flags) != 0;");
+         }
+
+         AppendLine(); // write codeline to StringBuilder!
+
+         ResultBuilder.Append(ResultPart2);
+         return;
       }
 
       public void GenerateEndOfRegion()
@@ -125,7 +173,7 @@ namespace Grammlator
       /// <param name="Prefix">String to write after indentation before sToAppend</param>
       public void IndentAndAppendLines(String sToAppend, String Prefix)
       {
-         bool firstLine = true;
+         Boolean firstLine = true;
          foreach (String s in sToAppend.Split(lineSeparators, StringSplitOptions.None))
          {
             if (!firstLine)
@@ -180,7 +228,7 @@ namespace Grammlator
          AppendLine();
       }
 
-      public void AppendWithOptionalLinebreak(Char c)
+      public P5CodegenCS AppendWithOptionalLinebreak(Char c)
       {
          if (LineLength > 10 && (LineLength + 1) >= LineLengthLimit)
          {
@@ -188,6 +236,7 @@ namespace Grammlator
             Indent();
          }
          CodeLine.Append(c);
+         return this;
       }
 
       /// <summary>
@@ -302,7 +351,7 @@ namespace Grammlator
          return this;
       }
 
-      public void AppendWithPrefix(String Prefix, String s)
+      public P5CodegenCS AppendWithPrefix(String Prefix, String s)
       {
          if (!String.IsNullOrEmpty(Prefix))
          {
@@ -314,6 +363,7 @@ namespace Grammlator
          {
             Append(s);
          }
+         return this;
       }  
 
       /// <summary>
@@ -377,7 +427,7 @@ namespace Grammlator
          // DecrementIndentationLevel();
          IndentExactly();
          CodeLine.Append("}");
-         if (!string.IsNullOrEmpty(comment))
+         if (!String.IsNullOrEmpty(comment))
             Append(" // ").
                Append(comment);
          AppendLine();
@@ -396,7 +446,7 @@ namespace Grammlator
       /// <returns>The label assigned to the (accept) action</returns>
       public static String GotoLabel(ParserAction action, Boolean accept)
       {
-         string LabelPrefix = ParserEnumExtension.LabelPrefix(action.ParserActionType);
+         String LabelPrefix = ParserEnumExtension.LabelPrefix(action.ParserActionType);
          if (action.ParserActionType==ParserActionEnum.isErrorhaltAction ||
             action.ParserActionType==ParserActionEnum.isEndOfGeneratedCode) 
             // There is only one ErrorHaltAction, one end of generated code
@@ -431,7 +481,7 @@ namespace Grammlator
       }
 
 
-      public P5CodegenCS GenerateGoto(string label)
+      public P5CodegenCS GenerateGoto(String label)
       {
          IndentExactly();
          CodeLine.Append("goto ")
@@ -445,7 +495,7 @@ namespace Grammlator
          return GenerateGoto(GotoLabel(action, accept));
       }
 
-      public void GenerateIfSPeek(Boolean inverse, int condition)
+      public void GenerateIfSPeek(Boolean inverse, Int32 condition)
       {
          IndentExactly();
          if (inverse)
@@ -473,7 +523,7 @@ namespace Grammlator
          Int32 count = 0;
          foreach (MethodParameterStruct Parameter in semanticMethod.MethodParameters)
          {
-            string ParameterTypeString=GlobalVariables.GetStringOfIndex(Parameter.TypeStringIndex);
+            String ParameterTypeString =GlobalVariables.GetStringOfIndex(Parameter.TypeStringIndex);
 
             AppendLine();
             IndentAndAppend(GlobalVariables.GetStringOfIndex(Parameter.NameStringIndex));
@@ -582,7 +632,7 @@ namespace Grammlator
       /// <summary>
       /// for example ")."
       /// </summary>
-      public const string AttributePeekClearPart2 = ").";
+      public const String AttributePeekClearPart2 = ").";
 
       /// <summary>
       /// for example "_a.useup("
@@ -597,7 +647,7 @@ namespace Grammlator
       /// <summary>
       /// for example ")."
       /// </summary>
-      public const string AttributePeekRefPart2 = ").";
+      public const String AttributePeekRefPart2 = ").";
 
       /// <summary>
       /// Append attribute get reference expression e.g. "_a.PeekRef(-1)._String"

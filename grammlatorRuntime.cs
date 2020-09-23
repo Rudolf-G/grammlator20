@@ -318,49 +318,49 @@ namespace GrammlatorRuntime {
 #pragma warning disable CA1051 // Do not declare visible instance fields
 #pragma warning disable CS1591 // Fehledes XML-Kommentar für öffentlich sichtbaren Typ oder Element
       [FieldOffset(0)]
-      public object _object; // object types
+      public Object _object; // object types
 
       [FieldOffset(0)]
-      public string _string;
+      public String _string;
 
       [FieldOffset(8)]       // value fields must not overlap object fields
-      public bool _bool;
+      public Boolean _bool;
 
       [FieldOffset(8)]
-      public byte _byte;
+      public Byte _byte;
 
       [FieldOffset(8)]
-      public sbyte _sbyte;
+      public SByte _sbyte;
 
       [FieldOffset(8)]
-      public char _char;
+      public Char _char;
 
       [FieldOffset(8)]
-      public decimal _decimal;
+      public Decimal _decimal;
 
       [FieldOffset(8)]
-      public double _double;
+      public Double _double;
 
       [FieldOffset(8)]
-      public float _float;
+      public Single _float;
 
       [FieldOffset(8)]
-      public int _int;
+      public Int32 _int;
 
       [FieldOffset(8)]
-      public uint _uint;
+      public UInt32 _uint;
 
       [FieldOffset(8)]
-      public long _long;
+      public Int64 _long;
 
       [FieldOffset(8)]
-      public ulong _ulong;
+      public UInt64 _ulong;
 
       [FieldOffset(8)]
-      public short _short;
+      public Int16 _short;
 
       [FieldOffset(8)]
-      public ushort _ushort;
+      public UInt16 _ushort;
 #pragma warning restore CS1591 // Fehledes XML-Kommentar für öffentlich sichtbaren Typ oder Element
 #pragma warning restore CA1051 // Do not declare visible instance fields
    }

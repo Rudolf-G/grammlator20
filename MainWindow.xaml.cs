@@ -22,7 +22,7 @@ namespace grammlator {
          MenuItemReloadAndTranslate.IsEnabled = false;
          }
 
-      const string fileFilter = "cs files (*.cs)|*.cs|All files (*.*)|*.*";
+      const String fileFilter = "cs files (*.cs)|*.cs|All files (*.*)|*.*";
       readonly OpenFileDialog OpenSourceFileDialog = new OpenFileDialog() {
          AddExtension = false, ReadOnlyChecked = true,
          FilterIndex = 2, Filter = fileFilter
@@ -33,8 +33,8 @@ namespace grammlator {
          };
 
       String
-         SourceFilename = string.Empty,
-         ResultFilename = string.Empty;
+         SourceFilename = String.Empty,
+         ResultFilename = String.Empty;
 
       private readonly StringBuilder
          Resultbuilder = new StringBuilder(100_000),
@@ -80,7 +80,7 @@ namespace grammlator {
             SaveSourceOrResultDialog.FileName = Path.GetFileName(ResultFilename);
             }
 
-         bool? r = SaveSourceOrResultDialog.ShowDialog();
+         Boolean? r = SaveSourceOrResultDialog.ShowDialog();
 
          if (r != true)
             {
@@ -117,7 +117,7 @@ namespace grammlator {
             SaveSourceOrResultDialog.FileName = Path.GetFileName(saveFileFilename);
             }
 
-         bool? r = SaveSourceOrResultDialog.ShowDialog();
+         Boolean? r = SaveSourceOrResultDialog.ShowDialog();
 
          if (r != true)
             {
@@ -151,7 +151,7 @@ namespace grammlator {
             OpenSourceFileDialog.FileName = Path.GetFileName(SourceFilename);
             }
 
-         bool? result = OpenSourceFileDialog.ShowDialog();
+         Boolean? result = OpenSourceFileDialog.ShowDialog();
          if (result != true)
             {
             return;
@@ -221,7 +221,7 @@ namespace grammlator {
 
          try
             {
-            var source = new ReadOnlyMemory<char>(SourceTextBox.Text.ToCharArray());
+            var source = new ReadOnlyMemory<Char>(SourceTextBox.Text.ToCharArray());
             var SourceReader = new SpanReaderWithCharacterAndLineCounter(source);
             // Translate   ----- HERE WE GO -----
             Watch.Restart();
@@ -324,7 +324,7 @@ namespace grammlator {
             }
          }
 
-      private readonly List<Int32> ErrorPositions = new List<int>();
+      private readonly List<Int32> ErrorPositions = new List<Int32>();
 
       private void RemoveErrorBoxes()
          {
@@ -404,7 +404,7 @@ namespace grammlator {
          */
 
          CompareSourceAndResultSpan(SourceTextBox.Text, ResultTextBox.Text,
-             out ReadOnlySpan<char> differingSourceLine, out ReadOnlySpan<char> differingResultLine,
+             out ReadOnlySpan<Char> differingSourceLine, out ReadOnlySpan<Char> differingResultLine,
              out Int32 sourceDiffIndex, out Int32 resultDiffIndex);
 
          SetCursorTo(0, SourceTextBox, sourceDiffIndex, differingSourceLine.Length < 3 ? 3 : differingSourceLine.Length);
@@ -420,7 +420,7 @@ namespace grammlator {
          if (!(sender is ListBox lb))
             return;
 
-         foreach (object? o in lb.Items)
+         foreach (Object? o in lb.Items)
             if (o is TextBox tb)
                tb.Width = lb.ActualWidth - ListboxDistanceAtRight; // try to avoid horizontal scrollbar in Listbox
             else if (o is ListBoxItem li && li.Content is TextBox containedTb)
@@ -440,7 +440,7 @@ namespace grammlator {
       /// </summary>
       /// <param name="m"></param>
       /// <returns></returns>
-      string ReferenceToBox(String m)
+      String ReferenceToBox(String m)
        => m.AsSpan(0, m.Length > 35 ? 35 : m.Length).ToString()
           + $"...   see message box {ErrorPositions.Count + 1}";
 
@@ -481,7 +481,7 @@ namespace grammlator {
             pos = 0;
 
          // local method to format the message type for output
-         string messageHeader()
+         String messageHeader()
             => messageType==MessageTypeOrDestinationEnum.Error
             ? $"--<< {messageType.ToString() + ":",-15}"
             : $"---- {messageType.ToString() + ":",-15}";
@@ -537,15 +537,15 @@ namespace grammlator {
             }
          }
 
-      private static Boolean CompareSourceAndResultSpan(ReadOnlySpan<char> s1, ReadOnlySpan<char> s2,
-         out ReadOnlySpan<char> s1Line, out ReadOnlySpan<char> s2Line,
+      private static Boolean CompareSourceAndResultSpan(ReadOnlySpan<Char> s1, ReadOnlySpan<Char> s2,
+         out ReadOnlySpan<Char> s1Line, out ReadOnlySpan<Char> s2Line,
          out Int32 s1Index, out Int32 s2Index)
          {
          var s1Remain = s1;
          var s2Remain = s2;
 
-         s1Line = ReadOnlySpan<char>.Empty;
-         s2Line = ReadOnlySpan<char>.Empty;
+         s1Line = ReadOnlySpan<Char>.Empty;
+         s2Line = ReadOnlySpan<Char>.Empty;
 
          s1Index = 0;
          s2Index = 0;
@@ -574,7 +574,7 @@ namespace grammlator {
             else
                {
                s1Line = s1Remain;
-               s1Remain = ReadOnlySpan<char>.Empty;
+               s1Remain = ReadOnlySpan<Char>.Empty;
                }
 
             if (eol2Index >= 0)
@@ -585,7 +585,7 @@ namespace grammlator {
             else
                {
                s2Line = s2Remain;
-               s2Remain = ReadOnlySpan<char>.Empty;
+               s2Remain = ReadOnlySpan<Char>.Empty;
                }
 
 

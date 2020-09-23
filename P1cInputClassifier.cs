@@ -36,14 +36,14 @@ namespace Grammlator {
       };
 
    public static class ClassifierResultExtensions {
-      public static string MyToString(this ClassifierResult cr)
+      public static String MyToString(this ClassifierResult cr)
          {
-         const string MyDisplay = "=,|;-+:%*([{)]}#xx?x/x\"xx";
+         const String MyDisplay = "=,|;-+:%*([{)]}#xx?x/x\"xx";
 
-         if ((int)cr >= MyDisplay.Length)
+         if ((Int32)cr >= MyDisplay.Length)
             return cr.ToString();
 
-         char result = MyDisplay[(int)cr];
+         Char result = MyDisplay[(Int32)cr];
          if (result != 'x')
             return result.ToString();
          else
@@ -76,7 +76,7 @@ namespace Grammlator {
          this.SourceReader = SourceReader;
          this._a = attributeStack;
          Accepted = true;
-         inputLine = ReadOnlyMemory<char>.Empty;
+         inputLine = ReadOnlyMemory<Char>.Empty;
          CurrentColumn = inputLine.Length + 1; // Alike end of line had been recognized and accepted
 
          // Grammlator parameterization
@@ -263,7 +263,7 @@ namespace Grammlator {
       // private cAttributeStack _a;
 
       // Local fields
-      private ReadOnlyMemory<char> inputLine;
+      private ReadOnlyMemory<Char> inputLine;
 
       // The translation of input characters to ClassifierResults is supported by two arrays
 
@@ -330,7 +330,7 @@ namespace Grammlator {
       /// Return ' ' for empty lines, comment lines and grammar lines with only separators else return character at CurrentColumn.
       /// </summary>
       /// <returns>the 1st character of t</returns>
-      private char ReadAndPreprocessLineFromInput()
+      private Char ReadAndPreprocessLineFromInput()
          {
 
 

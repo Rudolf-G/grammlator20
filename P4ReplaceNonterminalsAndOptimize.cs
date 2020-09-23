@@ -639,7 +639,7 @@ namespace Grammlator {
          if (foundReduceAction != null)
          {
             // Has descriptions to be expanded?
-            bool containsDescription = foundReduceAction.Description.Contains(newReduceAction.Description);
+            Boolean containsDescription = foundReduceAction.Description.Contains(newReduceAction.Description);
             if (containsDescription)
                return foundReduceAction;
 
@@ -668,7 +668,7 @@ namespace Grammlator {
 
       private static ReduceAction? SearchEquivalentReduceAction(ReduceAction newReduceAction)
       {
-         for (int ir = 0; ir < GlobalVariables.ListOfAllReductions.Count; ir++)
+         for (Int32 ir = 0; ir < GlobalVariables.ListOfAllReductions.Count; ir++)
          {
             ReduceAction existingReduceAction = GlobalVariables.ListOfAllReductions[ir];
 
@@ -817,7 +817,7 @@ namespace Grammlator {
          {
             BranchcasesList ExistingListOfCases = ExistingBranch.ListOfCases;
 
-            for (int i = 0; i < ExistingListOfCases.Count; i++)
+            for (Int32 i = 0; i < ExistingListOfCases.Count; i++)
             {
                BranchcaseStruct c = ExistingListOfCases[i];
                c.BranchcaseAction = c.BranchcaseAction.Simplify();
@@ -1044,7 +1044,7 @@ namespace Grammlator {
          }
       }
 
-      int PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
+      Int32 PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
       readonly BitArray test = new BitArray(GlobalVariables.AllTerminalSymbols.Count);
 
       private void Propagate(ParserAction? action, BitArray terminals)
@@ -1178,7 +1178,7 @@ namespace Grammlator {
             if (State.StateStackNumber < 0)
                continue;
 
-            int removedPopCounter = 0, addedPushStateCounter = 0;
+            Int32 removedPopCounter = 0, addedPushStateCounter = 0;
 
             for (Int32 ActionIndex = 0; ActionIndex < State.Actions.Count; ActionIndex++)
             {

@@ -86,7 +86,7 @@ namespace Grammlator {
       /// assigning a string to read from
       /// </summary>
       /// <param name="source">The input of the reader</param>
-      public SpanReaderWithCharacterAndLineCounter(ReadOnlyMemory<char> source)
+      public SpanReaderWithCharacterAndLineCounter(ReadOnlyMemory<Char> source)
          {
          Source = source;
          SourceRemainder = source;
@@ -95,8 +95,8 @@ namespace Grammlator {
          EoLLength = -1;
          }
 
-      public ReadOnlyMemory<char> Source { get; private set; }
-      public ReadOnlyMemory<char> SourceRemainder { get; private set; }
+      public ReadOnlyMemory<Char> Source { get; private set; }
+      public ReadOnlyMemory<Char> SourceRemainder { get; private set; }
 
       /// <summary>
       /// Number of the last read line, initial value == -1
@@ -118,19 +118,19 @@ namespace Grammlator {
       /// </summary>
       /// <returns>Returns a slice of Source starting at Position and ending after the next '\r', '\n' or '\r''\n' or end of Source. Sets Position to the next character after the line. </returns>
 
-      public ReadOnlyMemory<char> ReadLine()
+      public ReadOnlyMemory<Char> ReadLine()
          {
 
          if (Position >= Source.Length)
-            return ReadOnlyMemory<char>.Empty;
+            return ReadOnlyMemory<Char>.Empty;
 
          LineNumber++;
 
-         ReadOnlySpan<char> Remainder = Source.Span.Slice(Position);
+         ReadOnlySpan<Char> Remainder = Source.Span.Slice(Position);
 
          // Find end of line
-         int eolIndex = Remainder.IndexOfAny<char>('\r', '\n');
-         ReadOnlyMemory<char> result;
+         Int32 eolIndex = Remainder.IndexOfAny<Char>('\r', '\n');
+         ReadOnlyMemory<Char> result;
          // Cases: no end of line, '\r', "\r\n" or '\n' 
          EoLLength = 1; // default: /r or /n
          if (eolIndex < 0)
@@ -173,9 +173,9 @@ namespace Grammlator {
          if (markers == null)
             throw new ArgumentNullException(nameof(markers));
 
-         int StartPosition = Position;
-         int StartOfLine;
-         ReadOnlySpan<char> lineSpan;
+         Int32 StartPosition = Position;
+         Int32 StartOfLine;
+         ReadOnlySpan<Char> lineSpan;
 
          while (true)
             {

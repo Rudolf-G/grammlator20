@@ -382,7 +382,6 @@ namespace Grammlator {
       /// <returns>array of the type identifiers</returns>
       internal Int32[] GetAttributeIdentifierStringIndexes(Int32 count)
          {
-         // TODO if there are errors in the source then count can be > Count resulting in runtime error
          if (count == 0)
             return Array.Empty<Int32>();
 
@@ -778,15 +777,15 @@ namespace Grammlator {
             }
 
          sb.Append('(')
-           .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[0]))  // PROBLEM 2 elements
+           .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[0]))
            .Append(' ')
-           .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[0])); // Problem but here no element
+           .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[0]));
          for (Int32 i = 2; i <= NumberOfAttributes; i++)
             {
             sb.Append(", ")
               .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[i - 1]))
               .Append(' ')
-              .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[i - 1])); // Problem but hereno element 
+              .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[i - 1]));
             }
          sb.Append(')');
          return sb;

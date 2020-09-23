@@ -157,7 +157,7 @@ namespace Grammlator {
          bits.CopyTo(a, 0); // beware of undefined state of unused bits 
          a[length - 1] &= mask[(bits.Count - 1) % 32]; // set unused bits of last used element to 0
 
-         for (int i = 0; i < length; i++)
+         for (Int32 i = 0; i < length; i++)
             if (a[i] != 0)
                return false;
 
@@ -191,7 +191,7 @@ namespace Grammlator {
          bits.CopyTo(a, 0); // beware of undefined state of unused bits 
          a[length - 1] |= ~mask[(bits.Count - 1) % 32]; // set unused bits to 1
 
-         for (int i = 0; i < length; i++)
+         for (Int32 i = 0; i < length; i++)
             if (a[i] != -1)
                return false;
 
@@ -366,7 +366,7 @@ namespace Grammlator {
       /// <param name="lastIndex">Index to end with, default is int.MaxValue, 
       /// if the value is greater or equal bits.Count then Bits.Count-1 is used</param>
       /// <returns>Index of found element or this.count if not found</returns>
-      public static Int32 FindNextFalse(this BitArray bits, Int32 index = -1, Int32 lastIndex = int.MaxValue)
+      public static Int32 FindNextFalse(this BitArray bits, Int32 index = -1, Int32 lastIndex = Int32.MaxValue)
       {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(FindNextFalse)}");
@@ -501,7 +501,7 @@ namespace Grammlator {
          a[length - 1] &= mask[(bits.Count - 1) % 32]; // set unused bits to 0
 
          Int32 sum = 0;
-         for (int i = 0; i < length; i++)
+         for (Int32 i = 0; i < length; i++)
             sum += PopulationCount(a[i]);
 
          return sum;

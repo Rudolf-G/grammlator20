@@ -64,7 +64,7 @@ namespace Grammlator {
                SourceReader.Position);
          }
 
-         int grammarPosition = SourceReader.Position;
+         Int32 grammarPosition = SourceReader.Position;
 
          // ----- Do phase 1
          outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 1: analyse the source and check usage of symbols.");
@@ -191,9 +191,9 @@ namespace Grammlator {
          }
       }
 
-      public static bool DisplayStates(StringBuilder sb)
+      public static Boolean DisplayStates(StringBuilder sb)
       {
-         bool foundError = false;
+         Boolean foundError = false;
          foreach (ParserState state in ListOfAllStates)
          {
             if (state.Actions.Count == 0)

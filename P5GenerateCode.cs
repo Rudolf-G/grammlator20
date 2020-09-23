@@ -13,7 +13,12 @@ namespace Grammlator {
       /// Generate code
       /// </summary>
       /// <param name="CodeGen"></param>
-      private P5GenerateCode(P5CodegenCS CodeGen) => this.codegen = CodeGen;
+      private P5GenerateCode(P5CodegenCS CodeGen)
+      {
+         this.codegen = CodeGen;
+         IsUsedInIsIn = new Boolean[GlobalVariables.NumberOfTerminalSymbols];
+      }
+
       private readonly P5CodegenCS codegen;
 
       /* TODO Not yet implemented:
@@ -37,6 +42,8 @@ namespace Grammlator {
 
       private readonly Int32 indentationLevelLimit = GlobalVariables.IndentationLevelLimit;
 
+      internal readonly Boolean[] IsUsedInIsIn;
+
       private void Execute()
       {
          // Determine whether the generated code will modify the attribute stack
@@ -50,12 +57,8 @@ namespace Grammlator {
             }
          }
 
-         codegen.GenerateStartOfCode(
-             GenerateStateStackInitialCountVariable: GlobalVariables.CountOfStatesWithStateStackNumber > 0,
-             GenerateAttributeStackInitialCountVariable:
-               GlobalVariables.reductionsModifyAttributStack && GlobalVariables.TheOnlyOneErrorHaltAction.Calls > 0
-             // The variable AttributeStackInitialCount is used by ErrorHaltActions, if the attributestack is used
-             );
+         // Check if the AttributeStack has to be reset here, because all xxx.Calls will be reset to 0
+         Boolean CodeContainsErrorHalt = GlobalVariables.TheOnlyOneErrorHaltAction.Calls > 0;
 
          // Prevent special actions from beeing generated somewhere inside the generated code.
          // They will be gnerated at the end of the generated code (see below).
@@ -90,6 +93,17 @@ namespace Grammlator {
          }
 
          codegen.GenerateEndOfRegion(); // and output code which may be buffered in codegen
+
+         // Now the declarations can be generated preceding the already generated instructions
+         codegen.GenerateStartOfCodeAndCopyCodeToResultBuilder(
+            GenerateStateStackInitialCountVariable: GlobalVariables.CountOfStatesWithStateStackNumber > 0,
+            GenerateAttributeStackInitialCountVariable:
+            GlobalVariables.reductionsModifyAttributStack && CodeContainsErrorHalt,
+            // The variable AttributeStackInitialCount is used by ErrorHaltActions, if the attributestack is used
+            IsUsedInIsIn
+            );
+
+         return;
       }
 
       private Boolean GeneratesGoto(Boolean generateAccept, ParserAction action, Int32 indentationLevel)
@@ -130,7 +144,7 @@ namespace Grammlator {
          ParserAction parserAction,
          ref Boolean beginOfBlockHasBeenGenerated)
       {
-         bool InsideBlock = codegen.IndentationLevel > 0;
+         Boolean InsideBlock = codegen.IndentationLevel > 0;
 
          if (generateAccept)
          {
@@ -176,21 +190,21 @@ namespace Grammlator {
       } // GenerateOptionalLabelOptionalAcceptOrGoto
 
       private Boolean GenerateLabelOrGotoOrNothing(
-         bool forceLabel, // because goto has been generated on IndentationLevel==0
-         bool commentIfNoLabel,
-         string label, // codegen.GenerateLabel(parserAction, generateAccept)
-         int calls, // = generateAccept ? parserAction.AcceptCalls : parserAction.Calls;
-         bool insideBlock // IndentationLevel > 0
+         Boolean forceLabel, // because goto has been generated on IndentationLevel==0
+         Boolean commentIfNoLabel,
+         String label, // codegen.GenerateLabel(parserAction, generateAccept)
+         Int32 calls, // = generateAccept ? parserAction.AcceptCalls : parserAction.Calls;
+         Boolean insideBlock // IndentationLevel > 0
          )
       {
          Debug.Assert(!(forceLabel && insideBlock));
 
-         bool GenerateGoto =
+         Boolean GenerateGoto =
             calls <= 0 // code has been already generated or must not be generated
             || (calls > 1 && insideBlock)  // code with more than 1 reference needs label but label not allowed in block
             || codegen.IndentationLevel >= indentationLevelLimit; // code would be indented to much
 
-         bool GenerateLabel =
+         Boolean GenerateLabel =
             !GenerateGoto &&
             (forceLabel || calls > 1);
 
@@ -216,7 +230,7 @@ namespace Grammlator {
          public Int32 MaxCondition, MinCondition;
          public ParserAction Action;
 
-         public ActionAndCounter(Int32 counter, ParserAction action, int minMaxCondition)
+         public ActionAndCounter(Int32 counter, ParserAction action, Int32 minMaxCondition)
          {
             this.Counter = counter;
             this.Action = action;
@@ -290,13 +304,13 @@ namespace Grammlator {
 
          Int32 MinIndex = 0, PriorityIndex = 0, MaxIndex = 0;
 
-         Int32 MinCondition = int.MaxValue;
-         Int32 MaxCondition = int.MinValue;
+         Int32 MinCondition = Int32.MaxValue;
+         Int32 MaxCondition = Int32.MinValue;
 
-         Int32 MinPriority = int.MinValue;
+         Int32 MinPriority = Int32.MinValue;
          Int32 Priority = Int32.MinValue;
 
-         for (int i = 0; i < CounterList.Count; i++)
+         for (Int32 i = 0; i < CounterList.Count; i++)
          {
             var actionAndCounter = CounterList[i];
             // Select a default action to be generated as last:
@@ -314,7 +328,7 @@ namespace Grammlator {
                 || actionAndCounter.Action is HaltAction
                 )
             {
-               thisPriority -= (int.MaxValue >> 1);
+               thisPriority -= (Int32.MaxValue >> 1);
             }
 
             if (actionAndCounter.MinCondition < MinCondition)
@@ -476,40 +490,26 @@ namespace Grammlator {
       }
 
       /// <summary>
-      /// Compare a1 and a2 such that sort will place
-      /// the action with the lower complexity ahead of the other one.
-      /// If both have the same complexity the action with the higher
-      /// sum of weights of its symbols will be placed ahead of the other.
-      /// The sum of weights of ErorHandlingActions is ignored.
+      /// Compare a and b such that the sort will will result in a-b:
+      /// <para>- if a is a <see cref="ConditionalAction>"/> and b is not</para>
+      /// <para>- if a has lower <see cref="ConditionalAction.Complexity"/></para>
+      /// <para>- if a has higher <see cref="ConditionalAction.SumOfWeights"/> (set to 0 for <see cref="ErrorhandlingAction"/>)</para>
+      /// <para>- if a has <see cref="ParserAction.Calls"/>&lt;= 1 and b not</para> 
+      /// <para> - if a has smaller <see cref="ParserAction.IdNumber"/></para>
       /// </summary>
       /// <param name="ActionA"></param>
-      /// <param name="a2"></param>
+      /// <param name="b"></param>
       /// <returns></returns>
-      private static Int32 CompareWeightandConditionComplexity(ParserAction a1, ParserAction a2)
+      private static Int32 CompareWeightandConditionComplexity(ParserAction? a, ParserAction? b)
       {
-         // a1 < a2 => <0
-         // a1 == a2 => 0
-         // a1 > a2 => >0 
-         if (!(a1 is ConditionalAction ActionA))
-            return (a2 == null) ? 0 : 1;
-         if (!(a2 is ConditionalAction ActionB))
+         // result < 0  sort order will be a then b
+         // result == 0  a will not happen if a != b
+         // result > 0  sort order will be b then a
+
+         if (!(a is ConditionalAction ActionA))
+            return (b == null) ? 0 : 1;
+         if (!(b is ConditionalAction ActionB))
             return -1;
-
-         /* prefer symbols with highest weight, so that the user can influence 
-          * the order of the generated if-tests (put the most frequent group of terminals symbols
-          * at the beginning or the end of the list of terminals symbols)
-          */
-
-         /* Conflicting purposes:
-          * - order actions by increasing complexity, because preceding checks may reduce complexity of following checks
-          * - ignore weights in case of error actions, resulting in a higher priority
-          * - order actions with decreasing sum of weights (probability) so that symbols
-          *   with higher probability are checked first
-          * - give actions which will be generated as goto or inline a higher priority  
-          * 
-          * Actions with same complexity should be ordered by decreasing weight
-          *  
-          */
 
          Single PositionA = Position(ActionA);
 
@@ -521,21 +521,20 @@ namespace Grammlator {
          return (ActionA).IdNumber - ActionB.IdNumber;
       }
 
-      private static Single Position(ConditionalAction ActionA)
+      private static Single Position(ConditionalAction action)
       {
-         Single PositionA = ActionA is ErrorhandlingAction
-                      ? (ActionA).Complexity * 100_000
-                      : (ActionA).Complexity * 100_000 - 10 * (ActionA).SumOfWeights;
+         Single PositionA = action.Complexity * 100_000
+            + (action is ErrorhandlingAction
+              ? -0
+              : -10 * action.SumOfWeights);
 
          // if NextAction is called only once ( ...calls==1) it can be generated inline and
          // perhaps the other actions NextAction might be generated at the end (lower indentation level)
          // if NextAction has been generated already (... calls<=0) it will generate a goto
-         if (ActionA is TerminalTransition)
-            PositionA = PositionA + ((ActionA.NextAction.AcceptCalls == 1) ? -5.0f : 0.0f)
-               + ((ActionA.NextAction.AcceptCalls <= 0) ? -5.0f : 0.0f);
+         if (action is TerminalTransition)
+            PositionA += ((action.NextAction.AcceptCalls <= 1) ? -5.0f : 0.0f);
          else
-            PositionA = PositionA + ((ActionA.NextAction.Calls == 1) ? -5.0f : 0.0f)
-               + ((ActionA.NextAction.Calls <= 0) ? -5.0f : -0.0f);
+            PositionA += ((action.NextAction.Calls <= 1) ? -5.0f : 0.0f);
          return PositionA;
       }
 
@@ -684,7 +683,7 @@ namespace Grammlator {
          // which should have higher priority than LookAhead operations.
          codegen.IndentExactly();
          codegen.AppendLine("/* Dynamic priority controlled actions */");
-         int PrioritiesCount = ps.DynamicPriorityActions.Count + ((ps.ConstantPriorityAction == null) ? 0 : 1);
+         Int32 PrioritiesCount = ps.DynamicPriorityActions.Count + ((ps.ConstantPriorityAction == null) ? 0 : 1);
 
          if (PrioritiesCount == 2)
             return GeneratePriorityBranchAsIfThen(out accept, ps);
@@ -726,7 +725,7 @@ namespace Grammlator {
             labelMustBeGenerated: false);
          codegen.DecrementIndentationLevel();
 
-         accept = ps.DynamicPriorityActions[^1] is TerminalTransition; // TOCHECK must be adapated if another action is the default
+         accept = ps.DynamicPriorityActions[^1] is TerminalTransition; // TOCHECK must be adapted if another action is the default
          return ((ConditionalAction)ps.DynamicPriorityActions[^1]).NextAction;
       }
 
@@ -734,7 +733,6 @@ namespace Grammlator {
       {
 
          codegen.AppendInstruction($"switch({GlobalVariables.MethodIndexOfMaximum}(");
-         // TODO allow user to set MethodIndexOfMaximum
 
          // IndexOfMaximum has to return the index of the 1st occurence of the greatest argument. Then:
          // TerminalTransition (priority 0) has priority over dynamic priority value 0 because it is generated 1st !! 
@@ -808,7 +806,7 @@ namespace Grammlator {
          // Generate description
          State.CoreItems.AppendToSB(sbTemp);
 
-         if (State.ContainsErrorHandlerCall && !string.IsNullOrEmpty(GlobalVariables.VariableNameStateDescription))
+         if (State.ContainsErrorHandlerCall && !String.IsNullOrEmpty(GlobalVariables.VariableNameStateDescription))
          {
             // Generate assignment to VariableNameStateDescription (if defined)
             codegen.Indent();
@@ -885,21 +883,10 @@ namespace Grammlator {
          }
          else // State.Actions.Count = 0
          {
-            // This shouldn't happen 'cause each state should at least contain one action (may be error action) 
-
-            // TOCHECK 05 (low priority) ist die Behandlung von Zuständen ohne terminale Aktion so ok?
-            // Sind Zustände, die keine erlaubte Aktion enthalten (resultierend aus z.B *=A; A=B; B=A;), entsprechend berücksichtigt
+            // This shouldn't happen 'cause each state should at least contain one action (may be error action)
             GlobalVariables.OutputMessage(
                 MessageTypeOrDestinationEnum.Error, "Check your grammar: no actions in state " + (State.IdNumber + 1).ToString());
-
-            ParserAction NextActionToGenerate = new ErrorhandlingAction(
-                GlobalVariables.AllTerminalSymbols,
-                idNumber: State.IdNumber,
-                State);
-            //NextActionToGenerate.Calls++;
-            //GlobalVariables.TheOnlyOneErrorHaltAction.Calls++;
-            Accept = false;
-            return NextActionToGenerate;
+            throw new ErrorInGrammlatorProgramException("Can not generate state without actions");
          }
 
          return SortAndGenerateConditionalActionsOfState(State, out Accept); // => next action to generate or null
@@ -925,26 +912,11 @@ namespace Grammlator {
             else                     => generate switch instruction
          */
 
-         // Test the state if it contains an unconditional action
-         //ParserAction? unconditionalAction = FindUnconditionalAction(state, out Int32 NumberOfConditionalActions);
-         //if (unconditionalAction != null && NumberOfConditionalActions <= 0)
-         //{
-         //   accept = false;
-         //   return unconditionalAction;
-         //}
-
-         //Debug.Assert(
-         //   NumberOfConditionalActions == state.Actions.Count,
-         //   "Error in phase 5: unconditional and other actions must not occur together in the same state"
-         //   );
-
          if (state.IfComplexity > GlobalVariables.IfToSwitchBorder)
             return GenerateSwitchWithActionsOfState(state, out accept);
 
-         // Sort the actions dependent on their terminal inp. Criteria are
-         //   increasing complexity of the condition, so that there is a chance to 
-         //      make more complex conditions simpler by ignoring already checked terminals
-         //   decreasing probability of the SumOfWeights of the terminal symbols
+         // Sort the actions dependent on their terminal inp.
+         // Sort criteria and order see CompareWeightandConditionComplexity
 
          if (GlobalVariables.NumberOfTerminalSymbols > 0)
             state.Actions.Sort(CompareWeightandConditionComplexity);
@@ -957,8 +929,6 @@ namespace Grammlator {
             state.Actions[^2] = state.Actions[^1];
             state.Actions[^1] = temp;
          }
-
-         // TODO diese Optimierung überarbeiten !!! keine Aktionen, die eine Marke erzeugen als Folgeaktion bevorzugen !!! 
 
          return GenerateConditionalActionsOfState(state, out accept);
       }
@@ -997,7 +967,7 @@ namespace Grammlator {
          Int32 LeadingCount = 0, TrailingCount = 0;
          ConditionalAction? LeadingAction = null, TrailingAction = null;
 
-         for (int i = 0; i < state.Actions.Count; i++)
+         for (Int32 i = 0; i < state.Actions.Count; i++)
          {
             var ThisAction = (ConditionalAction)state.Actions[i];
             BitArray Terminals = ThisAction.TerminalSymbols;
@@ -1051,7 +1021,7 @@ namespace Grammlator {
             }
 
             // if remaining terminal symbols, for each 
-            bool RemainingSymbols = false;
+            Boolean RemainingSymbols = false;
             while (TerminalIndex < IndexOfLastUsedTerminal - TrailingCount + 1)
             {
                RemainingSymbols = true;
@@ -1077,9 +1047,12 @@ namespace Grammlator {
                   // in addition to the code generated in the default action.
                   // If the statistics are not adjusted those code may be generated without label.
                   if (ThisAction is TerminalTransition)
-                     ThisAction.NextAction.AcceptCalls++;  // TOCHECK may .AcceptCalls++ whilst generating code be a bug (action may have been generated without label?)
+                     ThisAction.NextAction.AcceptCalls++;
+                  else if (ThisAction is ErrorhandlingAction && GlobalVariables.ErrorHandlerIsDefined)
+                     ThisAction.Calls++;
                   else
-                     ((ThisAction is ErrorhandlingAction && GlobalVariables.ErrorHandlerIsDefined) ? ThisAction : ThisAction.NextAction).Calls++;
+                     ThisAction.NextAction.Calls++;
+
                   // generate goto
                   codegen.GenerateGoto(
                      action: ThisAction is ErrorhandlingAction ? ThisAction : ThisAction.NextAction,
@@ -1207,7 +1180,7 @@ namespace Grammlator {
          // in the conditions of all following actions (are not relevant)
          var relevantSymbols = new BitArray(State.PossibleInputTerminals!);
 
-         for (int i = 0; i < State.Actions.Count - 1; i++)
+         for (Int32 i = 0; i < State.Actions.Count - 1; i++)
          {
             var a = (ConditionalAction)State.Actions[i];
             GenerateOneConditionalAction(a, relevantSymbols); // Modifies relevantSymbols
@@ -1274,7 +1247,7 @@ namespace Grammlator {
                break;
             }
 
-            case ErrorhandlingAction _:  // TOCHECK possible optimization has been performed
+            case ErrorhandlingAction _:
             case LookaheadAction _:
             case PrioritySelectAction _:
             {

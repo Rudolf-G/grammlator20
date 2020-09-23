@@ -66,7 +66,7 @@ namespace Grammlator {
       /// <param name="ThisSpan">the Span to check</param>
       /// <param name="start">The index of the first char of ThisSpan to check</param>
       /// <returns>returns the index of the first char which is not a separator, less or equal s.Length</returns>
-      internal static Int32 IndexBehindSeparators(this ReadOnlySpan<char> ThisSpan, Int32 start)
+      internal static Int32 IndexBehindSeparators(this ReadOnlySpan<Char> ThisSpan, Int32 start)
       {
          Int32 result = start;
          if (result < 0)
@@ -153,7 +153,7 @@ namespace Grammlator {
       /// <param name="Position">the Position to start the comparision</param>
       /// <param name="Pattern">the string to test for</param>
       /// <returns>returns true and Position after pattern if pattern found start of string, else false and Position unchanged</returns>
-      internal static Memory<char> StartsWithAndSkip(this Memory<char> ThisString, ref bool success, String Pattern)
+      internal static Memory<Char> StartsWithAndSkip(this Memory<Char> ThisString, ref Boolean success, String Pattern)
       {
          success = false;
          if (ThisString.IsEmpty || Pattern.Length > ThisString.Length)
@@ -206,12 +206,12 @@ namespace Grammlator {
       /// <param name="markers">the strings to be checked for</param>
       /// <returns>the index after the last marker if success else -1</returns>
 
-      internal static int IndexBehindMarkers(this ReadOnlySpan<char> ThisSpan, Int32 start, params String[] markers)
+      internal static Int32 IndexBehindMarkers(this ReadOnlySpan<Char> ThisSpan, Int32 start, params String[] markers)
       {
 
          Int32 result = start;
 
-         for (int i = 0; i < markers.Length; i++)
+         for (Int32 i = 0; i < markers.Length; i++)
          {
             result = ThisSpan.IndexBehindSeparators(result);
 

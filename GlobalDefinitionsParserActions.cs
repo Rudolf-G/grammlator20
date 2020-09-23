@@ -37,7 +37,7 @@ namespace Grammlator {
       /// Some of these will never occur in labels. They are provided for future modifications.
       /// </summary>
 
-      internal static string LabelPrefix(ParserActionEnum e)
+      internal static String LabelPrefix(ParserActionEnum e)
       {
          return e switch
          {
@@ -226,7 +226,7 @@ namespace Grammlator {
       /// <param name="CopyFrom"></param>
       internal ListOfParserActions(ListOfParserActions CopyFrom) : base(CopyFrom) { }
 
-      internal void RemoveFromEnd(int count) => RemoveRange(this.Count - count, count);
+      internal void RemoveFromEnd(Int32 count) => RemoveRange(this.Count - count, count);
 
       internal virtual StringBuilder AppendToSB(StringBuilder sb)
       {
@@ -637,7 +637,7 @@ namespace Grammlator {
 
       internal BitArray? PossibleInputTerminals = null;
 
-      private int SimplifyRecursionCount = 0;
+      private Int32 SimplifyRecursionCount = 0;
       internal override ParserAction Simplify()
       {
          if (SimplifyRecursionCount > 0)
@@ -693,7 +693,7 @@ namespace Grammlator {
          base.Sort(Comparision);
       }
 
-      int Comparision(BranchcaseStruct a, BranchcaseStruct b)
+      Int32 Comparision(BranchcaseStruct a, BranchcaseStruct b)
       {
          return a.BranchcaseCondition - b.BranchcaseCondition;
       }
@@ -737,8 +737,8 @@ namespace Grammlator {
          Debug.Assert(longer.Count >= shorter.Count);
 
          // all elements of the shorter list must be contained in the longer one, else different
-         int skipped = 0;
-         for (int iShorter = 0; iShorter < shorter.Count; iShorter++)
+         Int32 skipped = 0;
+         for (Int32 iShorter = 0; iShorter < shorter.Count; iShorter++)
          {
             while (shorter[iShorter].BranchcaseCondition != longer[iShorter + skipped].BranchcaseCondition
                 || shorter[iShorter].BranchcaseAction != longer[iShorter + skipped].BranchcaseAction)
@@ -857,7 +857,7 @@ namespace Grammlator {
          sb.AppendLine();
       }
 
-      int SimplifyRecursionCount = 0;
+      Int32 SimplifyRecursionCount = 0;
       internal override ParserAction Simplify() // ReduceAction
       {
          if (SimplifyRecursionCount > 2)
@@ -1034,7 +1034,7 @@ namespace Grammlator {
          sb.Append(0);
       }
 
-      public bool HasPriorityFunction()
+      public Boolean HasPriorityFunction()
          => this is LookaheadAction laAction && laAction.PriorityFunction != null;
 
       internal StringBuilder ConditionToStringbuilder(StringBuilder sb)
@@ -1083,7 +1083,7 @@ namespace Grammlator {
          Terminalcount = 0;
          SumOfWeights = 0;
 
-         for (int index = 0; index < TerminalSymbols.Count; index++)
+         for (Int32 index = 0; index < TerminalSymbols.Count; index++)
          {
             if (!TerminalSymbols[index])
                continue;
@@ -1376,7 +1376,7 @@ namespace Grammlator {
             sb.AppendLine();
          }
          // PriorityFunctions and DynamicPriorityActions AppendToSB(sb);
-         for (int i = 0; i < DynamicPriorityActions.Count; i++)
+         for (Int32 i = 0; i < DynamicPriorityActions.Count; i++)
          {
             sb.Append("    ")
               .Append(PriorityFunctions[i].MethodName)
@@ -1504,11 +1504,11 @@ namespace Grammlator {
       /// <returns>next action: <see cref="ErrorHaltAction>"/> </returns>
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
-         if (!string.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
+         if (!String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
          {
             //codegen.IndentExactly();
 
-            if (!string.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
+            if (!String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
             {   // generate ErrorHandlerCall   ErrorHandler(ErrorStateNumber, StateDescription, ParserInput);
                codegen
                   .Indent()
@@ -1710,7 +1710,7 @@ namespace Grammlator {
 
    internal class PushStateAction : ParserActionWithNextAction {
 
-      internal PushStateAction(int idNumber, int stateStackNumber, ParserAction nextAction)
+      internal PushStateAction(Int32 idNumber, Int32 stateStackNumber, ParserAction nextAction)
          : base(nextAction)
       {
          this.IdNumber = idNumber;

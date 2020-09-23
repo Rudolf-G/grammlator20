@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Grammlator {
    internal static class InitialSettings {
-      static readonly Dictionary<string, string> InitialValues = new Dictionary<string, string>(40);
+      static readonly Dictionary<String, String> InitialValues = new Dictionary<String, String>(40);
       static InitialSettings()
       {
          InitialValues.Add("AttributeStack", "_a");
@@ -23,6 +23,8 @@ namespace Grammlator {
          InitialValues.Add("InstructionAcceptSymbol", "AcceptSymbol();");
          InitialValues.Add("InstructionAssignSymbol", "");
          InitialValues.Add("InstructionErrorHalt", "");
+         InitialValues.Add("IsInMethod", "_1In(#)"); // # will be replaced by the sum of flags of terminal symbols
+         // "IsInMethod": 1st character '_' and second a digit avoids conflicts with user names and derived flag names ('_')
          InitialValues.Add("NestingLevelLimit", "5");
          InitialValues.Add("LineLengthLimit", "120");
          InitialValues.Add("NewLineConstant", "\\r\\n");
@@ -39,20 +41,28 @@ namespace Grammlator {
       }
 
       public static String GetString(String name) => InitialValues[name]; // TODO check not found
+      
       public static Int32 GetInt(String name)
       {
          if (Int32.TryParse(GetString(name), out Int32 result))
             return result; // TODO check conversion error
-         throw new ErrorInSourcedataException($"{name} is not a number");
+         throw new ErrorInSourcedataException($"{name} is not a Int32");
+      }
+
+      public static Boolean GetBoolean(String name)
+      {
+         if (Boolean.TryParse(GetString(name), out Boolean result))
+            return result; // TODO check conversion error
+         throw new ErrorInSourcedataException($"{name} is not a Boolean");
       }
    }
 
-   class MemoryComparer : IEqualityComparer<ReadOnlyMemory<char>> {
-      public bool Equals(ReadOnlyMemory<char> rom1, ReadOnlyMemory<char> rom2)
+   class MemoryComparer : IEqualityComparer<ReadOnlyMemory<Char>> {
+      public Boolean Equals(ReadOnlyMemory<Char> rom1, ReadOnlyMemory<Char> rom2)
          => rom1.Span.SequenceEqual(rom2.Span);
 
-      public int GetHashCode(ReadOnlyMemory<char> rom)
-         => string.GetHashCode(rom.Span);
+      public Int32 GetHashCode(ReadOnlyMemory<Char> rom)
+         => String.GetHashCode(rom.Span);
    }
 
 
@@ -77,8 +87,8 @@ namespace Grammlator {
             AssemblyName AssemblyName = ThisAssembly.GetName();
             String AssemblyFullPath = ThisAssembly.Location;
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(AssemblyFullPath);
-            string FileVersion = fvi.FileVersion;
-            string FileWrittenDate = System.IO.File.GetLastWriteTime(AssemblyFullPath).ToString();
+            String FileVersion = fvi.FileVersion;
+            String FileWrittenDate = System.IO.File.GetLastWriteTime(AssemblyFullPath).ToString();
 
             /* FileVersion is used instead of Version because Version generally should  be changed only to reflect major changes.
              */
@@ -137,18 +147,18 @@ namespace Grammlator {
       internal const Int32 InitialCapacityOfListOfAllPriorityBranchActions
          = InitialCapacityOfListOfAllPrioritySelectActions;
 
-      static readonly Dictionary<ReadOnlyMemory<char>, Int32> MemoryToIndexDictionary
-         = new Dictionary<ReadOnlyMemory<char>, Int32>(1000, new MemoryComparer());
+      static readonly Dictionary<ReadOnlyMemory<Char>, Int32> MemoryToIndexDictionary
+         = new Dictionary<ReadOnlyMemory<Char>, Int32>(1000, new MemoryComparer());
 
-      static readonly List<string> IndexToString = new List<string>(1000);
+      static readonly List<String> IndexToString = new List<String>(1000);
 
-      static public Int32 GetIndexOfString(ReadOnlyMemory<char> MemorySpan)
+      static public Int32 GetIndexOfString(ReadOnlyMemory<Char> MemorySpan)
       {
-         if (MemoryToIndexDictionary.TryGetValue(MemorySpan, out int result))
+         if (MemoryToIndexDictionary.TryGetValue(MemorySpan, out Int32 result))
             return result;
 
          String s = MemorySpan.ToString(); // allocation of string which usually will be used for output later
-         ReadOnlyMemory<char> newSpan = s.AsMemory(); // keep bytes referenced from dictionary together:  (don't use reference to source)
+         ReadOnlyMemory<Char> newSpan = s.AsMemory(); // keep bytes referenced from dictionary together:  (don't use reference to source)
 
          // Discussion: This solution allocates all strings as soon as they are known and avoids multiple instances of those strings.
          // An alternate method would be, to access the MemorySpans (scattered around the source) and to generate strings not before they are used.
@@ -161,8 +171,8 @@ namespace Grammlator {
 
       static public Int32 GetIndexOfString(String s)
       {
-         ReadOnlyMemory<char> m = s.AsMemory();
-         if (MemoryToIndexDictionary.TryGetValue(m, out int result))
+         ReadOnlyMemory<Char> m = s.AsMemory();
+         if (MemoryToIndexDictionary.TryGetValue(m, out Int32 result))
             return result;
 
          IndexToString.Add(s); // string is alrady available
@@ -172,10 +182,10 @@ namespace Grammlator {
 
       static public Int32 GetIndexOfEmptyString()
       {
-         return GetIndexOfString(ReadOnlyMemory<char>.Empty);
+         return GetIndexOfString(ReadOnlyMemory<Char>.Empty);
       }
 
-      static public string GetStringOfIndex(Int32 i) => IndexToString[i];
+      static public String GetStringOfIndex(Int32 i) => IndexToString[i];
 
       public static void ResetGlobalVariables(
                 Action<MessageTypeOrDestinationEnum, String> OutputMessage,
@@ -198,6 +208,7 @@ namespace Grammlator {
          InstructionAcceptSymbol = InitialSettings.GetString("InstructionAcceptSymbol");
          InstructionAssignSymbol = InitialSettings.GetString("InstructionAssignSymbol");
          InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
+         IsInMethod = InitialSettings.GetString("IsInMethod");
          // "NewLineConstant"
          LineLengthLimit = InitialSettings.GetInt("LineLengthLimit");
          IndentationLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
@@ -286,11 +297,16 @@ namespace Grammlator {
       internal static readonly String GeneratedString = InitialSettings.GetString("GeneratedString");
 
       /// <summary>
+      /// e.g. "_1In(#)". Will be set to "" if an enum is found and the maximum value of an element is &gt;63
+      /// </summary>
+      internal static String IsInMethod = InitialSettings.GetString("IsInMethod");
+
+      /// <summary>
       /// <see cref="NewLineWithEscapes"/> is defined by <see cref="Settings.NewLineConstant"/>
       /// and will typically be "\\r\\n"
       /// (unlike <see cref="System.Environment.NewLine"/> typically "\r\n").
       /// </summary>
-      internal static readonly string NewLineWithEscapes = InitialSettings.GetString("NewLineConstant");
+      internal static readonly String NewLineWithEscapes = InitialSettings.GetString("NewLineConstant");
 
       /// <summary>
       /// <see cref="ConditionalAction"/>s with complexity &lt;= <see cref="IfToSwitchBorder"/> are generated as if instruction sequence, others as switch statement
@@ -300,33 +316,33 @@ namespace Grammlator {
       /// <summary>
       /// <see cref="VariableNameStateDescription"/> is used to generate code
       /// </summary>
-      internal static string VariableNameStateDescription = InitialSettings.GetString("PrefixStateDescription");
+      internal static String VariableNameStateDescription = InitialSettings.GetString("PrefixStateDescription");
 
       /// <summary>
       /// <see cref="VariableNameSymbol"/> is used to generate code
       /// </summary>
-      internal static string VariableNameSymbol = InitialSettings.GetString("VariableSymbol");
+      internal static String VariableNameSymbol = InitialSettings.GetString("VariableSymbol");
 
       /// <summary>
       /// <see cref="TerminalSymbolEnum"/> (e.g. "LexerResult") is used to generated code
       ///  (e.g. "if (Symbol != LexerResult.Name)...;"
       /// </summary>
-      internal static string TerminalSymbolEnum = InitialSettings.GetString("TerminalSymbolEnum");
+      internal static String TerminalSymbolEnum = InitialSettings.GetString("TerminalSymbolEnum");
 
       /// <summary>
       /// <see cref="InstructionAssignSymbol"/> is used to generate code
       /// </summary>
-      internal static string InstructionAssignSymbol = InitialSettings.GetString("InstructionAssignSymbol");
+      internal static String InstructionAssignSymbol = InitialSettings.GetString("InstructionAssignSymbol");
 
       /// <summary>
       /// <see cref="InstructionAcceptSymbol"/> is used to generate code
       /// </summary>
-      internal static string InstructionAcceptSymbol = InitialSettings.GetString("InstructionAcceptSymbol");
+      internal static String InstructionAcceptSymbol = InitialSettings.GetString("InstructionAcceptSymbol");
 
       /// <summary>
       /// <see cref="InstructionErrorHalt"/> is used to generate code
       /// </summary>
-      internal static string InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
+      internal static String InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
 
       internal static Int32 IndentationLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
       internal static Int32 LineLengthLimit = InitialSettings.GetInt("LineLengthLimit");
@@ -334,24 +350,24 @@ namespace Grammlator {
       /// <summary>
       /// <see cref="ErrorHandlerMethod"/> is used to generate code
       /// </summary>
-      internal static string ErrorHandlerMethod = InitialSettings.GetString("ErrorHandlerMethod");
+      internal static String ErrorHandlerMethod = InitialSettings.GetString("ErrorHandlerMethod");
 
       /// <summary>
       /// ErrorHandlerIsDefined => !string.IsNullOrEmpty(ErrorHandlerMethod);
       /// </summary>
-      internal static bool ErrorHandlerIsDefined => !string.IsNullOrEmpty(ErrorHandlerMethod);
+      internal static Boolean ErrorHandlerIsDefined => !String.IsNullOrEmpty(ErrorHandlerMethod);
 
-      internal static string MethodIndexOfMaximum = InitialSettings.GetString("MethodIndexOfMaximum");
+      internal static String MethodIndexOfMaximum = InitialSettings.GetString("MethodIndexOfMaximum");
 
-      internal static string StateStackInitialCountVariable = InitialSettings.GetString("VariableStateStackInitialCount");
+      internal static String StateStackInitialCountVariable = InitialSettings.GetString("VariableStateStackInitialCount");
 
-      internal static string StateStack = InitialSettings.GetString("StateStack");
+      internal static String StateStack = InitialSettings.GetString("StateStack");
 
-      internal static string AttributeStackInitialCountVariable = InitialSettings.GetString("VariableAttributeStackInitialCount");
+      internal static String AttributeStackInitialCountVariable = InitialSettings.GetString("VariableAttributeStackInitialCount");
 
-      internal static string AttributeStack = InitialSettings.GetString("AttributeStack");
+      internal static String AttributeStack = InitialSettings.GetString("AttributeStack");
 
-      internal static bool OptimizeStateStackNumbers = InitialSettings.GetString("OptimizeStateStackNumbers") == "1";
+      internal static Boolean OptimizeStateStackNumbers = InitialSettings.GetString("OptimizeStateStackNumbers") == "1";
 
       internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage {
          get; private set;
@@ -497,7 +513,7 @@ namespace Grammlator {
       internal static Int32 CountOfStatesWithStateStackNumber;
 
       /// <summary>
-      /// used in <see cref="P5GenerateCode"/> and <see cref="HaltAction.Generate(P5CodegenCS, out bool)"/>
+      /// used in <see cref="P5GenerateCode"/> and <see cref="HaltAction.Generate(P5CodegenCS, out Boolean)"/>
       /// </summary>
       internal static Boolean reductionsModifyAttributStack;
    } // class GlobalVariables
