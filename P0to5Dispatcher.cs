@@ -49,7 +49,7 @@ namespace Grammlator {
 
          // ----- Copy input up to and including line starting with "#region" GrammarString
          Int32 StartOfMarkedLine =
-            SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, true, RegionString, GrammarString);
+            SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, true, RegionString.Value, GrammarString.Value);
          if (StartOfMarkedLine >= 0)
          {
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
@@ -78,7 +78,8 @@ namespace Grammlator {
          SourceReader.CopyFromTo(Resultbuilder, grammarPosition, SourceReader.Position);
 
          // Copy part between grammar and generated string to Resultbuilder
-         StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, false, RegionString, GrammlatorString, GeneratedString);
+         StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, false,
+            RegionString.Value, GrammlatorString.Value, GeneratedString.Value);
          if (StartOfMarkedLine >= 0)
          {
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
@@ -93,7 +94,8 @@ namespace Grammlator {
          }
 
          // Skip generated part
-         StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, false, false, EndregionString, GrammlatorString, GeneratedString);
+         StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, false, false,
+            EndregionString.Value, GrammlatorString.Value, GeneratedString.Value);
          if (StartOfMarkedLine >= 0)
          {
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,

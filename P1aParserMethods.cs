@@ -39,9 +39,8 @@ namespace Grammlator {
       /// Stores the StringIndexes of all elements of the last C# enum.
       /// Is null if the last optional enum has been omitted.
       /// Is the empty list, if an enum with no elements has been recognized. 
-      /// Is null or empty after the last enum has been evaluated.
       /// </summary>
-      private List<Int32> Enumlist = new List<Int32>();
+      private readonly List<Int32> Enumlist = new List<Int32>();
       Int64 EnumLastValue = -1;
       Int64 EnumMaxValue = Int64.MinValue;
 

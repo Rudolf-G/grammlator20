@@ -28,7 +28,8 @@ namespace Grammlator
       /// </summary>
       private readonly StringBuilder CodeLine = new StringBuilder();
 
-      private readonly Int32 LineLengthLimit = GlobalVariables.LineLengthLimit; // TOCHECK can more generated lines be shortened to LineLengthLimit
+      private readonly Int32 LineLengthLimit = GlobalVariables.LineLengthLimit.Value;
+      // TOCHECK can more generated lines be shortened to LineLengthLimit?
 
       /// <summary>
       /// number of spaces used per indentation level
@@ -56,11 +57,11 @@ namespace Grammlator
 
          StringBuilder ResultPart2 = CodeBuilder;
          CodeBuilder = ResultBuilder;
-         Append(GlobalVariables.RegionString).
+         Append(GlobalVariables.RegionString.Value).
             Append(' ').
-            Append(GlobalVariables.GrammlatorString).
+            Append(GlobalVariables.GrammlatorString.Value).
             Append(' ').
-            Append(GlobalVariables.GeneratedString).
+            Append(GlobalVariables.GeneratedString.Value).
             Append(' ').
             Append(GlobalVariables.TranslationInfo);
 
@@ -68,9 +69,9 @@ namespace Grammlator
          {
             IndentExactly()
                .Append("Int32 ")
-               .Append(GlobalVariables.StateStackInitialCountVariable)
+               .Append(GlobalVariables.StateStackInitialCountVariable.Value)
                .Append(" = ")
-               .Append(GlobalVariables.StateStack)
+               .Append(GlobalVariables.StateStack.Value)
                .AppendLine(".Count; ");
          }
 
@@ -78,9 +79,9 @@ namespace Grammlator
          {
             IndentExactly()
                .Append("Int32 ")
-               .Append(GlobalVariables.AttributeStackInitialCountVariable)
+               .Append(GlobalVariables.AttributeStackInitialCountVariable.Value)
                .Append(" = ")
-               .Append(GlobalVariables.AttributeStack)
+               .Append(GlobalVariables.AttributeStack.Value)
                .AppendLine(".Count; ");
          }
 
@@ -93,10 +94,11 @@ namespace Grammlator
                // generate e.g. "const Int64 _CSharpEnd = 2L << (Int32)LexerResult.CSharpEnd;"
                String Identifier = GlobalVariables.TerminalSymbolByIndex[i].Identifier;
                IndentExactly()
-                  .Append("const Int64 _")
+                  .Append("const Int64 ")
+                  .Append(GlobalVariables.FlagsPrefix.Value)
                   .Append(Identifier)
                   .Append(" = 2L << (Int32)")
-                  .AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, Identifier)
+                  .AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, Identifier)
                   .AppendLine(';');
             }
          }
@@ -109,10 +111,10 @@ namespace Grammlator
              */
             IndentExactly().
                Append("Boolean ")
-               .Append(GlobalVariables.IsInMethod.Substring(0, GlobalVariables.IsInMethod.IndexOf('#')))
+               .Append(GlobalVariables.IsInMethod.Value.Substring(0, GlobalVariables.IsInMethod.Value.IndexOf('#')))
                .Append("Int64 flags)")
-               .Append("   => ((2L << (Int32)")
-               .Append(GlobalVariables.VariableNameSymbol)
+               .Append(" => ((2L << (Int32)")
+               .Append(GlobalVariables.VariableNameSymbol.Value)
                .AppendLine(") & flags) != 0;");
          }
 
@@ -124,11 +126,11 @@ namespace Grammlator
 
       public void GenerateEndOfRegion()
       {
-         Append(GlobalVariables.EndregionString).
+         Append(GlobalVariables.EndregionString.Value).
             Append(' ').
-            Append(GlobalVariables.GrammlatorString).
+            Append(GlobalVariables.GrammlatorString.Value).
             Append(' ').
-            Append(GlobalVariables.GeneratedString).
+            Append(GlobalVariables.GeneratedString.Value).
             Append(' ').
             AppendLine(GlobalVariables.TranslationInfo);
       }
@@ -143,7 +145,7 @@ namespace Grammlator
       public void GenerateStateStackPushWithOptionalLinebreak(Int32 valueToPush)
       {
          IndentExactly();
-         Append(GlobalVariables.StateStack);
+         Append(GlobalVariables.StateStack.Value);
          AppendWithOptionalLinebreak(".Push(");
          Append(valueToPush);
          Append("); ");
@@ -436,7 +438,7 @@ namespace Grammlator
       // keine neue Zeile anfangen
 
       public void GenerateAcceptInstruction()
-          => AppendWithOptionalLinebreak(GlobalVariables.InstructionAcceptSymbol);
+          => AppendWithOptionalLinebreak(GlobalVariables.InstructionAcceptSymbol.Value);
 
       /// <summary>
       /// returns a label built from an action specific string and the actions IdNumber+1
@@ -500,12 +502,12 @@ namespace Grammlator
          IndentExactly();
          if (inverse)
             Append("if (")
-               .Append(GlobalVariables.StateStack)
+               .Append(GlobalVariables.StateStack.Value)
                .Append(".Peek() != ");
          //            AppendWithOptionalLinebreak("if (_s.Peek() != ");
          else
             Append("if (")
-               .Append(GlobalVariables.StateStack)
+               .Append(GlobalVariables.StateStack.Value)
                .Append(".Peek() == ");
          //   AppendWithOptionalLinebreak("if (_s.Peek() == ");
          AppendWithOptionalLinebreak(condition);
@@ -611,12 +613,12 @@ namespace Grammlator
       /// <summary>
       /// for example "_a."
       /// </summary>
-      public readonly String AttributeAccessPrefix = GlobalVariables.AttributeStack + ".";
+      public readonly String AttributeAccessPrefix = GlobalVariables.AttributeStack.Value + ".";
 
       /// <summary>
       /// for example "_a.x-"
       /// </summary>
-      public readonly String AttributeIndexPrefix = GlobalVariables.AttributeStack + ".x";
+      public readonly String AttributeIndexPrefix = GlobalVariables.AttributeStack.Value + ".x";
 
       /// <summary>
       /// for example "_", used to modify the type of the methods formal parameter
@@ -627,7 +629,7 @@ namespace Grammlator
       /// <summary>
       /// for example "_a.useup("
       /// </summary>
-      public readonly String AttributePeekClearPart1 = GlobalVariables.AttributeStack + ".PeekClear(";
+      public readonly String AttributePeekClearPart1 = GlobalVariables.AttributeStack.Value + ".PeekClear(";
 
       /// <summary>
       /// for example ")."
@@ -637,12 +639,12 @@ namespace Grammlator
       /// <summary>
       /// for example "_a.useup("
       /// </summary>
-      public readonly String AttributePeekRefPart1 = GlobalVariables.AttributeStack + ".PeekRef(";
+      public readonly String AttributePeekRefPart1 = GlobalVariables.AttributeStack.Value + ".PeekRef(";
 
       /// <summary>
       /// for example "_a.useup("
       /// </summary>
-      public readonly String AttributePeekRefClearPart1 = GlobalVariables.AttributeStack + ".PeekRefClear(";
+      public readonly String AttributePeekRefClearPart1 = GlobalVariables.AttributeStack.Value + ".PeekRefClear(";
 
       /// <summary>
       /// for example ")."

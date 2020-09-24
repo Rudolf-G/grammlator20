@@ -501,14 +501,14 @@ namespace Grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated Wed, 23 Sep 2020 16:19:55 GMT (grammlator, File version 2020.09.14.0 23.09.2020 16:19:12)
+#region grammlator generated Thu, 24 Sep 2020 16:33:07 GMT (grammlator, File version 2020.09.23.0 24.09.2020 16:32:34)
   Int32 AttributeStackInitialCount = _a.Count;
   const Int64 _CSharpStart = 2L << (Int32)ClassifierResult.CSharpStart;
   const Int64 _CSharpEnd = 2L << (Int32)ClassifierResult.CSharpEnd;
   const Int64 _Asterisk = 2L << (Int32)ClassifierResult.Asterisk;
   const Int64 _Slash = 2L << (Int32)ClassifierResult.Slash;
   const Int64 _Apostrophe = 2L << (Int32)ClassifierResult.Apostrophe;
-  Boolean _1In(Int64 flags)   => ((2L << (Int32)LexerInput) & flags) != 0;
+  Boolean _1In(Int64 flags) => ((2L << (Int32)LexerInput) & flags) != 0;
 
 Reduce1:
   /* Gap= GapString;◄ */
@@ -900,7 +900,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Wed, 23 Sep 2020 16:19:55 GMT (grammlator, File version 2020.09.14.0 23.09.2020 16:19:12)
+#endregion grammlator generated Thu, 24 Sep 2020 16:33:07 GMT (grammlator, File version 2020.09.23.0 24.09.2020 16:32:34)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

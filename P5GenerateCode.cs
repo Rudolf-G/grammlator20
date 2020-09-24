@@ -40,7 +40,7 @@ namespace Grammlator {
        *    
        *    */
 
-      private readonly Int32 indentationLevelLimit = GlobalVariables.IndentationLevelLimit;
+      private readonly Int32 NestingLevelLimit = GlobalVariables.NestingLevelLimit.Value;
 
       internal readonly Boolean[] IsUsedInIsIn;
 
@@ -120,7 +120,7 @@ namespace Grammlator {
 
          return action.Calls <= 0
              || (action.Calls >= 2 && indentationLevel > 0)
-             || indentationLevel >= indentationLevelLimit;
+             || indentationLevel >= NestingLevelLimit;
       }
 
       /// <summary>
@@ -202,7 +202,7 @@ namespace Grammlator {
          Boolean GenerateGoto =
             calls <= 0 // code has been already generated or must not be generated
             || (calls > 1 && insideBlock)  // code with more than 1 reference needs label but label not allowed in block
-            || codegen.IndentationLevel >= indentationLevelLimit; // code would be indented to much
+            || codegen.IndentationLevel >= NestingLevelLimit; // code would be indented to much
 
          Boolean GenerateLabel =
             !GenerateGoto &&
@@ -378,7 +378,7 @@ namespace Grammlator {
 
          codegen.IndentExactly()
             .Append("switch (")
-            .Append(GlobalVariables.StateStack)
+            .Append(GlobalVariables.StateStack.Value)
             .Append(".Peek())")
             .IndentExactly()
             .Append("{");
@@ -806,12 +806,12 @@ namespace Grammlator {
          // Generate description
          State.CoreItems.AppendToSB(sbTemp);
 
-         if (State.ContainsErrorHandlerCall && !String.IsNullOrEmpty(GlobalVariables.VariableNameStateDescription))
+         if (State.ContainsErrorHandlerCall && !String.IsNullOrEmpty(GlobalVariables.StateDescriptionPrefix.Value))
          {
             // Generate assignment to VariableNameStateDescription (if defined)
             codegen.Indent();
             codegen.Append("const String ");
-            codegen.Append(GlobalVariables.VariableNameStateDescription);
+            codegen.Append(GlobalVariables.StateDescriptionPrefix.Value);
             codegen.Append(State.IdNumber + 1);
             codegen.Append(" =");
             codegen.AppendLine();
@@ -873,7 +873,7 @@ namespace Grammlator {
                 )
             {
                codegen.IndentExactly()
-                     .AppendWithOptionalLinebreak(GlobalVariables.InstructionAssignSymbol);
+                     .AppendWithOptionalLinebreak(GlobalVariables.InstructionAssignSymbol.Value);
             }
             else
             {
@@ -912,7 +912,7 @@ namespace Grammlator {
             else                     => generate switch instruction
          */
 
-         if (state.IfComplexity > GlobalVariables.IfToSwitchBorder)
+         if (state.IfComplexity > GlobalVariables.IfToSwitchBorder.Value)
             return GenerateSwitchWithActionsOfState(state, out accept);
 
          // Sort the actions dependent on their terminal inp.
@@ -957,7 +957,7 @@ namespace Grammlator {
 
          codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("switch (");
-         codegen.Append(GlobalVariables.VariableNameSymbol);
+         codegen.Append(GlobalVariables.VariableNameSymbol.Value);
          codegen.Append(")");
          codegen.GenerateBeginOfBlock();
 
@@ -988,7 +988,7 @@ namespace Grammlator {
                codegen.IndentExactly();
                codegen.Append("// <= ");
                codegen.AppendWithPrefix(
-                   GlobalVariables.TerminalSymbolEnum,
+                   GlobalVariables.TerminalSymbolEnum.Value,
                    GlobalVariables.TerminalSymbolByIndex[LeadingCount - 1].Identifier
                    );
             }
@@ -1006,7 +1006,7 @@ namespace Grammlator {
                codegen.IndentExactly();
                codegen.Append("// >= ");
                codegen.AppendWithPrefix(
-                   GlobalVariables.TerminalSymbolEnum,
+                   GlobalVariables.TerminalSymbolEnum.Value,
                    GlobalVariables.TerminalSymbolByIndex[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
                    );
             }
@@ -1029,7 +1029,7 @@ namespace Grammlator {
                codegen.IndentExactly();
                codegen.Append("case ");
                codegen.AppendWithPrefix(
-                   GlobalVariables.TerminalSymbolEnum,
+                   GlobalVariables.TerminalSymbolEnum.Value,
                    GlobalVariables.TerminalSymbolByIndex[TerminalIndex].Identifier
                    );
                codegen.Append(":");
@@ -1086,7 +1086,7 @@ namespace Grammlator {
             // yes: generate if
             codegen.IndentExactly();
             codegen.Append("if (");
-            codegen.Append(GlobalVariables.VariableNameSymbol);
+            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
 
             // prefer action which generates goto as first action
             // TODO else prefer action which does not generate a label
@@ -1099,7 +1099,7 @@ namespace Grammlator {
 
                codegen.Append(" >= ")
                .AppendWithPrefix(
-                   GlobalVariables.TerminalSymbolEnum,
+                   GlobalVariables.TerminalSymbolEnum.Value,
                    GlobalVariables.TerminalSymbolByIndex[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
                    );
             }
@@ -1107,7 +1107,7 @@ namespace Grammlator {
             {
                codegen.Append(" <= ");
                codegen.AppendWithPrefix(
-                   GlobalVariables.TerminalSymbolEnum,
+                   GlobalVariables.TerminalSymbolEnum.Value,
                    GlobalVariables.TerminalSymbolByIndex[LeadingCount - 1].Identifier
                    );
             }
@@ -1124,35 +1124,35 @@ namespace Grammlator {
          codegen.Append("Debug.Assert(");
          if (Action1Generate == Action2Generate)
          {
-            codegen.Append(GlobalVariables.VariableNameSymbol);
+            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
             codegen.Append(" <= ");
             codegen.AppendWithPrefix(
-                GlobalVariables.TerminalSymbolEnum,
+                GlobalVariables.TerminalSymbolEnum.Value,
                 GlobalVariables.TerminalSymbolByIndex[LeadingCount - 1].Identifier
                 );
             codegen.Append(" || ");
-            codegen.Append(GlobalVariables.VariableNameSymbol);
+            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
             codegen.Append(" >= ");
             codegen.AppendWithPrefix(
-                GlobalVariables.TerminalSymbolEnum,
+                GlobalVariables.TerminalSymbolEnum.Value,
                 GlobalVariables.TerminalSymbolByIndex[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
                 );
          }
          else if (ActionsSwapped)
          {
-            codegen.Append(GlobalVariables.VariableNameSymbol);
+            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
             codegen.Append(" <= ");
             codegen.AppendWithPrefix(
-                GlobalVariables.TerminalSymbolEnum,
+                GlobalVariables.TerminalSymbolEnum.Value,
                 GlobalVariables.TerminalSymbolByIndex[LeadingCount - 1].Identifier
                 );
          }
          else
          {
-            codegen.Append(GlobalVariables.VariableNameSymbol);
+            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
             codegen.Append(" >= ");
             codegen.AppendWithPrefix(
-                GlobalVariables.TerminalSymbolEnum,
+                GlobalVariables.TerminalSymbolEnum.Value,
                 GlobalVariables.TerminalSymbolByIndex[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
                 );
          }

@@ -6,55 +6,88 @@ using System.Reflection;
 using System.Text;
 
 namespace Grammlator {
-   internal static class InitialSettings {
-      static readonly Dictionary<String, String> InitialValues = new Dictionary<String, String>(40);
-      static InitialSettings()
-      {
-         InitialValues.Add("AttributeStack", "_a");
-         InitialValues.Add("CSharpCommentlineMarker", "//");
-         InitialValues.Add("CSharpPragmaMarker", "#pragma");
-         InitialValues.Add("EndregionString", "#endregion");
-         InitialValues.Add("ErrorHandlerMethod", "");
-         InitialValues.Add("GeneratedString", "generated");
-         InitialValues.Add("GrammarlineMarker", "//|");
-         InitialValues.Add("GrammarString", "grammar");
-         InitialValues.Add("GrammlatorString", "grammlator");
-         InitialValues.Add("IfToSwitchBorder", "5");
-         InitialValues.Add("InstructionAcceptSymbol", "AcceptSymbol();");
-         InitialValues.Add("InstructionAssignSymbol", "");
-         InitialValues.Add("InstructionErrorHalt", "");
-         InitialValues.Add("IsInMethod", "_1In(#)"); // # will be replaced by the sum of flags of terminal symbols
-         // "IsInMethod": 1st character '_' and second a digit avoids conflicts with user names and derived flag names ('_')
-         InitialValues.Add("NestingLevelLimit", "5");
-         InitialValues.Add("LineLengthLimit", "120");
-         InitialValues.Add("NewLineConstant", "\\r\\n");
-         InitialValues.Add("PrefixStateDescription", "");
-         InitialValues.Add("RegionString", "#region");
-         InitialValues.Add("StateStack", "_s");
-         InitialValues.Add("TerminalSymbolEnum", "");
-         InitialValues.Add("VariableAttributeStackInitialCount", "AttributeStackInitialCount");
-         InitialValues.Add("VariableErrorStateNumber", "ErrorStateNumber");
-         InitialValues.Add("VariableSymbol", "PeekSymbol()");
-         InitialValues.Add("VariableStateStackInitialCount", "StateStackInitialCount");
-         InitialValues.Add("MethodIndexOfMaximum", "Methods.IndexOfMaximum");
-         InitialValues.Add("OptimizeStateStackNumbers", "1");
+
+   public class Setting {
+      public enum SettingType {
+         StringType, BooleanType, Int32Type
       }
 
-      public static String GetString(String name) => InitialValues[name]; // TODO check not found
-      
-      public static Int32 GetInt(String name)
+      public String Name { get; }
+      public String NameToLower { get; }
+      public SettingType HasType { get; }
+      public String InitialValueAsString { get; }
+      public String Description { get; }
+
+      public override String? ToString() => base.ToString();
+
+      public virtual String ValueAsString { get { return ""; } }
+
+      protected Setting(String name, SettingType hasType, String initialValueAsString, String description, List<Setting> settingList)
       {
-         if (Int32.TryParse(GetString(name), out Int32 result))
-            return result; // TODO check conversion error
-         throw new ErrorInSourcedataException($"{name} is not a Int32");
+         Name = name;
+         NameToLower = name.ToLower();
+         HasType = hasType;
+         InitialValueAsString = initialValueAsString;
+         Description = description;
+
+         settingList.Add(this);
       }
 
-      public static Boolean GetBoolean(String name)
+      public virtual void Reset() { }
+   }
+
+   public class Int32Setting : Setting {
+
+      public Int32 InitialValue { get; }
+      public Int32 Value { get; set; }
+      public override String ValueAsString { get { return Value.ToString(); } }
+
+      public Int32Setting(String name, Int32 initialValue, String description, List<Setting> settingList)
+         : base(name, SettingType.Int32Type, initialValue.ToString(), description, settingList)
       {
-         if (Boolean.TryParse(GetString(name), out Boolean result))
-            return result; // TODO check conversion error
-         throw new ErrorInSourcedataException($"{name} is not a Boolean");
+         InitialValue = initialValue;
+         Value = initialValue;
       }
+
+      public override String ToString() => Value.ToString();
+
+      public override void Reset() => Value = InitialValue;
+   }
+
+   public class BooleanSetting : Setting {
+
+      public Boolean InitialValue { get; }
+      public Boolean Value { get; set; }
+      public override String ValueAsString { get { return Value.ToString(); } }
+
+      public BooleanSetting(String name, Boolean initialValue, String description, List<Setting> settingList)
+         : base(name, SettingType.BooleanType, initialValue.ToString(), description, settingList)
+      {
+         InitialValue = initialValue;
+         Value = initialValue;
+      }
+
+      public override String ToString() => Value.ToString();
+
+      public override void Reset() => Value = InitialValue;
+   }
+
+   public class StringSetting : Setting {
+
+      public String InitialValue { get; }
+      public String Value { get; set; }
+      public override String ValueAsString { get { return Value; } }
+
+      public StringSetting(String name, String initialValue, String description, List<Setting> settingList)
+         : base(name, SettingType.StringType, initialValue.ToString(), description, settingList)
+      {
+         InitialValue = initialValue;
+         Value = initialValue;
+      }
+
+      public override String ToString() => Value;
+
+      public override void Reset() => Value = InitialValue;
    }
 
    class MemoryComparer : IEqualityComparer<ReadOnlyMemory<Char>> {
@@ -79,6 +112,7 @@ namespace Grammlator {
          TerminalSymbolByIndex = Array.Empty<TerminalSymbol>();
          OutputMessage = OutputToNirwana;
          OutputMessageAndPosition = OutputToNirwana;
+         Startaction = new DeletedParserAction();
       }
       private static String GetVersioninfo {
          get {
@@ -191,37 +225,13 @@ namespace Grammlator {
                 Action<MessageTypeOrDestinationEnum, String> OutputMessage,
                 Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPosition)
       {
+         // Reset all settings
+         foreach (Setting s in VisibleSettings)
+            s.Reset();
+         foreach (Setting s in InternalSettings)
+            s.Reset();
+
          // Reset all static variables 
-
-         /* Reset initial values of all variables which can be modified by grammlator settings in P1Parser */
-         // TODO there remain global variables which the user should be allowed to set
-         AttributeStack = InitialSettings.GetString("AttributeStack");
-         // "CSharpCommentlineMarker"
-         // "CSharpPragmaMarker"
-         // "EndregionString"
-         ErrorHandlerMethod = InitialSettings.GetString("ErrorHandlerMethod");
-         // "GeneratedString"
-         // "GrammarlineMarker"
-         // "GrammarString"
-         // "GrammlatorString"
-         IfToSwitchBorder = InitialSettings.GetInt("IfToSwitchBorder");
-         InstructionAcceptSymbol = InitialSettings.GetString("InstructionAcceptSymbol");
-         InstructionAssignSymbol = InitialSettings.GetString("InstructionAssignSymbol");
-         InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
-         IsInMethod = InitialSettings.GetString("IsInMethod");
-         // "NewLineConstant"
-         LineLengthLimit = InitialSettings.GetInt("LineLengthLimit");
-         IndentationLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
-         VariableNameStateDescription = InitialSettings.GetString("PrefixStateDescription");
-         // "RegionString"
-         StateStack = InitialSettings.GetString("StateStack");
-         TerminalSymbolEnum = InitialSettings.GetString("TerminalSymbolEnum");
-         AttributeStackInitialCountVariable = InitialSettings.GetString("VariableAttributeStackInitialCount");
-         // "VariableErrorStateNumber"
-         VariableNameSymbol = InitialSettings.GetString("VariableSymbol");
-         StateStackInitialCountVariable = InitialSettings.GetString("VariableStateStackInitialCount");
-         MethodIndexOfMaximum = InitialSettings.GetString("MethodIndexOfMaximum");
-
          GlobalVariables.OutputMessage = OutputMessage;
          GlobalVariables.OutputMessageAndPosition = outputMessageAndPosition;
          NumberOfTerminalSymbols = 0;
@@ -269,106 +279,243 @@ namespace Grammlator {
       /* Options:
        * */
 
-      /* Grammlator parametrization */
+      /* Grammlator settings */
+
+      internal static readonly List<Setting> VisibleSettings = new List<Setting>(25); // >=17
+      internal static readonly List<Setting> InternalSettings = new List<Setting>(15); // >=9
+
+      /// <summary>
+      /// e.g. "//" (not including the apostrophes)
+      /// </summary>
+      internal static readonly StringSetting GrammarLineMarker
+         = new StringSetting("GrammarLineMarker", "//|",
+         "This string is used to mark grammar lines: \"//|\"",
+         settingList: InternalSettings);
+
+      /// <summary>
+      /// e.g. "//" (not including the apostrophes)
+      /// </summary>
+      internal static readonly StringSetting CSharpCommentlineMarker
+         = new StringSetting("CSharpCommentlineMarker", "//",
+         "This string is used to mark comments in the grammar: \"//\"",
+         settingList: InternalSettings);
+
+      /// <summary>
+      /// e.g. "#pragma" (not including the apostrophes)
+      /// </summary>
+      internal static readonly StringSetting CSharpPragmaMarker
+         = new StringSetting("CSharpPragmaMarker", "#pragma",
+         "This string is used to mark pragmas in C#: \"#pragma\"",
+         settingList: InternalSettings);
+
+      /// <summary>
+      /// e.g. "#pragma" (not including the apostrophes)
+      /// </summary>
+      internal static readonly StringSetting FlagsPrefix
+         = new StringSetting("FlagsPrefix", "_f",
+         "This string is used as prefix to the names of terminals when flags are declared or used: \"_f\"",
+         settingList: InternalSettings);
+
 
       /// <summary>
       /// e.g. "#region" (not including the apostrophes)
       /// </summary>
-      internal static readonly String RegionString = InitialSettings.GetString("RegionString");
+      internal static readonly StringSetting RegionString
+         = new StringSetting("RegionString", "#region",
+         "The string starting a region: typically \"#region\"",
+         settingList: InternalSettings);
 
       /// <summary>
       /// e.g. "#endregion"  (not including the apostrophes)
       /// </summary>
-      internal static readonly String EndregionString = InitialSettings.GetString("EndregionString");
+      internal static readonly StringSetting EndregionString
+         = new StringSetting("EndregionString", "#endregion",
+         "The string ending a region: typically \"#endregion\"",
+         settingList: InternalSettings);
 
       /// <summary>
       /// e.g. "grammar"  (not including the apostrophes)
       /// </summary>
-      internal static readonly String GrammarString = InitialSettings.GetString("GrammarString");
+      internal static readonly StringSetting GrammarString
+         = new StringSetting("GrammarString", "grammar",
+         "The name of the region which contains the grammar, typically \"grammar\"",
+         settingList: InternalSettings);
 
       /// <summary>
       /// e.g. "grammlator"  (not including the apostrophes)
       /// </summary>
-      internal static readonly String GrammlatorString = InitialSettings.GetString("GrammlatorString");
+      internal static readonly StringSetting GrammlatorString
+         = new StringSetting("GrammlatorString", "grammlator",
+         "The 1st part of the name of the region which contains the grammlator generated code, typically \"grammlator\"",
+         settingList: InternalSettings);
 
       /// <summary>
       /// e.g. "generated"  (not including the apostrophes)
       /// </summary>
-      internal static readonly String GeneratedString = InitialSettings.GetString("GeneratedString");
+      internal static readonly StringSetting GeneratedString
+         = new StringSetting("GeneratedString", "generated",
+         "The second part of the name of the region which contains the grammlator generated code, typically \"generated\"",
+         settingList: InternalSettings);
 
       /// <summary>
       /// e.g. "_1In(#)". Will be set to "" if an enum is found and the maximum value of an element is &gt;63
       /// </summary>
-      internal static String IsInMethod = InitialSettings.GetString("IsInMethod");
+      internal static StringSetting IsInMethod
+         = new StringSetting("IsInMethod", "_IsIn(#)",
+         "The pattern defining the IsIn-Method, typically \"_IsIn(#)\"",
+         settingList: VisibleSettings);
 
       /// <summary>
       /// <see cref="NewLineWithEscapes"/> is defined by <see cref="Settings.NewLineConstant"/>
       /// and will typically be "\\r\\n"
       /// (unlike <see cref="System.Environment.NewLine"/> typically "\r\n").
       /// </summary>
-      internal static readonly String NewLineWithEscapes = InitialSettings.GetString("NewLineConstant");
+      internal static readonly StringSetting NewLineWithEscapes
+         = new StringSetting("NewLineWithEscapes", "\\r\\n",
+         "The string representing NewLine in printabel form, typically \"\\r\\n\"",
+         settingList: InternalSettings);
 
       /// <summary>
       /// <see cref="ConditionalAction"/>s with complexity &lt;= <see cref="IfToSwitchBorder"/> are generated as if instruction sequence, others as switch statement
       /// </summary>
-      internal static Int32 IfToSwitchBorder = InitialSettings.GetInt("IfToSwitchBorder");
+      internal static Int32Setting IfToSwitchBorder
+         = new Int32Setting("IfToSwitchBorder", 5,
+         "A sequence of conditional actions is generated as  sequence of if-statements, "
+         + "if its complexity is less or equal than this number (typically 5), "
+         + "else a switch statement will be generated.",
+         settingList: VisibleSettings);
 
       /// <summary>
-      /// <see cref="VariableNameStateDescription"/> is used to generate code
+      /// <see cref="StateDescriptionPrefix"/> is used as Prefix when generating names of constants
       /// </summary>
-      internal static String VariableNameStateDescription = InitialSettings.GetString("PrefixStateDescription");
+      internal static StringSetting StateDescriptionPrefix
+         = new StringSetting("StateDescriptionPrefix", "",
+         "if not empty grammlator will use this string "
+         + "as prefix of names of constants which get the description of the actual state "
+         + "and which are used in case of errors, e.g. \"StateDescription\"",
+         settingList: VisibleSettings);
 
       /// <summary>
-      /// <see cref="VariableNameSymbol"/> is used to generate code
+      /// <see cref="VariableNameSymbol"/> is used as variable name or method call in generated code
       /// </summary>
-      internal static String VariableNameSymbol = InitialSettings.GetString("VariableSymbol");
+      internal static StringSetting VariableNameSymbol
+         = new StringSetting("VariableNameSymbol", "PeekSymbol()",
+         "This variable name or method call will be used in the generated code "
+         + "to get the last peeked input terminal "
+         + "typically \"Symbol\" or e.g. \"PeekTerminal()\"",
+         settingList: VisibleSettings);
 
       /// <summary>
-      /// <see cref="TerminalSymbolEnum"/> (e.g. "LexerResult") is used to generated code
+      /// <see cref="TerminalSymbolEnum.Value"/> (e.g. "LexerResult") is used to generated code
       ///  (e.g. "if (Symbol != LexerResult.Name)...;"
       /// </summary>
-      internal static String TerminalSymbolEnum = InitialSettings.GetString("TerminalSymbolEnum");
+      internal static StringSetting TerminalSymbolEnum
+         = new StringSetting("TerminalSymbolEnum", "",
+         "This variable name or method call will be used in the generated code "
+         + "in combination with the names of the terminal symbols "
+         + " which are defined as elements of this enum, "
+         + "typically empty or the name of an enum.",
+         settingList: VisibleSettings);
 
       /// <summary>
       /// <see cref="InstructionAssignSymbol"/> is used to generate code
       /// </summary>
-      internal static String InstructionAssignSymbol = InitialSettings.GetString("InstructionAssignSymbol");
+      internal static StringSetting InstructionAssignSymbol
+         = new StringSetting("AssignSymbolInstruction", "",
+         "This string will be used in the generated code "
+         + "to assign a peeked terminal to a variable, "
+         + "typically empty or e.g. \"Symbol = Lexer.PeekSymbol();\"",
+         settingList: VisibleSettings);
 
       /// <summary>
       /// <see cref="InstructionAcceptSymbol"/> is used to generate code
       /// </summary>
-      internal static String InstructionAcceptSymbol = InitialSettings.GetString("InstructionAcceptSymbol");
+      internal static StringSetting InstructionAcceptSymbol
+         = new StringSetting("AcceptSymbolInstruction", "AcceptSymbol();",
+         "This instruction will be inserted in the generated code "
+         + "where a terminal symbol has to be accepted, "
+         + "typically e.g. \"AcceptSymbol();\"",
+         settingList: VisibleSettings);
 
       /// <summary>
       /// <see cref="InstructionErrorHalt"/> is used to generate code
       /// </summary>
-      internal static String InstructionErrorHalt = InitialSettings.GetString("InstructionErrorHalt");
+      internal static StringSetting InstructionErrorHalt
+         = new StringSetting("InstructionErrorHalt", "",
+         "This instruction will be inserted in the generated code "
+         + "where a error halt is handled (after return from the errorhandler), "
+         + "typically empty or e.g. \"return false;\"",
+         settingList: VisibleSettings);
 
-      internal static Int32 IndentationLevelLimit = InitialSettings.GetInt("NestingLevelLimit");
-      internal static Int32 LineLengthLimit = InitialSettings.GetInt("LineLengthLimit");
+      internal static Int32Setting NestingLevelLimit
+         = new Int32Setting("NestingLevelLimit", 5,
+         "This limits the nesting in the generated code. "
+         + "If this limit is reached a goto is generated instead of a inlined sequence of code. "
+         + "A typical value is \"5\"",
+         settingList: VisibleSettings);
+
+      internal static Int32Setting LineLengthLimit
+         = new Int32Setting("LineLengthLimit", 120,
+         "This limits the length of lines in the generated code. "
+         + "A typical value is \"120\"",
+         settingList: VisibleSettings);
 
       /// <summary>
       /// <see cref="ErrorHandlerMethod"/> is used to generate code
       /// </summary>
-      internal static String ErrorHandlerMethod = InitialSettings.GetString("ErrorHandlerMethod");
+      internal static StringSetting ErrorHandlerMethod
+         = new StringSetting("ErrorHandlerMethod", "",
+         "This defines the name of the error handler method. "
+         + "If it is empty a goto ErrorHalt is generated. "
+         + " Typically it is empty or e.g. \"ErrorHandler\"",
+         settingList: VisibleSettings);
 
       /// <summary>
       /// ErrorHandlerIsDefined => !string.IsNullOrEmpty(ErrorHandlerMethod);
       /// </summary>
-      internal static Boolean ErrorHandlerIsDefined => !String.IsNullOrEmpty(ErrorHandlerMethod);
+      internal static Boolean ErrorHandlerIsDefined => !String.IsNullOrEmpty(ErrorHandlerMethod.Value);
 
-      internal static String MethodIndexOfMaximum = InitialSettings.GetString("MethodIndexOfMaximum");
+      internal static StringSetting MethodIndexOfMaximum
+         = new StringSetting("MethodIndexOfMaximum", "Methods.IndexOfMaximum",
+         "This is the name of a method which accepts integer arguments and returns "
+         + "the index of the largest value. A call of this method is generated, if there are "
+         + " conflicts solved by dynamic priorities and 3 or more priorities have to be compared."
+         + " The initial value is \"Methods.IndexOfMaximum\" is the name of a method in grammlatorRuntime.cs.",
+         settingList: VisibleSettings);
 
-      internal static String StateStackInitialCountVariable = InitialSettings.GetString("VariableStateStackInitialCount");
+      internal static StringSetting StateStackInitialCountVariable
+         = new StringSetting("StateStackInitialCountVariable", "_StateStackInitialCount",
+         "This  variable is used in the generated code to store the initial size of the "
+         + "state stack - if a state stack is used."
+         + " The initial value is \"StateStackInitialCount\".",
+         settingList: VisibleSettings);
 
-      internal static String StateStack = InitialSettings.GetString("StateStack");
+      internal static StringSetting StateStack
+         = new StringSetting("StateStack", "_s",
+         "This name is used in the generated code as the name of the state stack."
+         + " The initial value is \"_s\"., which is defined in grammlatorRuntime.cs.",
+         settingList: VisibleSettings);
 
-      internal static String AttributeStackInitialCountVariable = InitialSettings.GetString("VariableAttributeStackInitialCount");
+      internal static StringSetting AttributeStackInitialCountVariable
+         = new StringSetting("AttributeStackInitialCountVariable", "_AttributeStackInitialCount",
+         "This  variable is used in the generated code to store the initial size of the "
+         + "attribute stack - if an attribute stack is needed."
+         + " The initial value is \"_AttributeStackInitialCount\".",
+         settingList: VisibleSettings);
 
-      internal static String AttributeStack = InitialSettings.GetString("AttributeStack");
+      internal static StringSetting AttributeStack
+         = new StringSetting("AttributeStack", "_a",
+         "This name is used in the generated code as the name of the attribute stack."
+         + " The initial value is \"_a\"., which is defined in grammlatorRuntime.cs.",
+            settingList: VisibleSettings);
 
-      internal static Boolean OptimizeStateStackNumbers = InitialSettings.GetString("OptimizeStateStackNumbers") == "1";
-
+      internal static BooleanSetting OptimizeStateStackNumbers
+         = new BooleanSetting("OptimizeStateStackNumbers", true,
+            "If this option is set to false, states push their own number on the stack. This improves "
+            + " readability of the generated code but may cause less performing switch statements. "
+            + " it may prohibit other optimizations performed by grammlator.",
+            settingList: VisibleSettings);
+            
       internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage {
          get; private set;
       }

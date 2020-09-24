@@ -176,9 +176,6 @@ namespace Grammlator {
                else
                {
                   FoundIndex = i;
-                  // FittingAction = lookAction;
-                  // TOCHECK this may cause deferred error recognition because the error handling action may not be generated
-                  // return null; // this variant allows early error recognition
                }
 
                break;
@@ -195,9 +192,6 @@ namespace Grammlator {
                else
                {
                   FoundIndex = i;
-                  // FittingAction = selectAction;
-                  // TOCHECK this may cause deferred error recognition because the error handling action may not be generated
-                  // return null; // this variant allows early error recognition
                }
 
                break;
@@ -402,7 +396,7 @@ namespace Grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
-         BitArray thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Length);// TODO allocate only once
+         BitArray thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Length);
 
          // action might be removed from State.Actions inside the following loop.
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
@@ -488,7 +482,7 @@ namespace Grammlator {
          // Test each action of the state if it causes a conflict with any preceding action 
 
          dynamicPriorityActions.Clear();
-         var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count); // TODO allocate only once
+         var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count);
 
          Int32 indexOfActionWithPriority = -1;
          Int32 highestPriority = Int32.MinValue;
@@ -777,7 +771,6 @@ namespace Grammlator {
           * and hence the numbers assigned to states.
           * The resulting order of actions is essential for comparing states.
           */
-         // TODO Check nachdem CompareErzeugtesSymbolFirst getrennt implementiert ist, könnte hier wieder die Elementnummer als erstes Kriterium genommen werden
          if (this.SymbolDefinition.DefinedSymbol!.SymbolNumber < other.SymbolDefinition.DefinedSymbol!.SymbolNumber)
             return -1;
          if (this.SymbolDefinition.DefinedSymbol!.SymbolNumber > other.SymbolDefinition.DefinedSymbol!.SymbolNumber)

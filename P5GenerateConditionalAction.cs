@@ -86,7 +86,7 @@ namespace Grammlator {
          Boolean test1sRecommended = AnalyseBlockList(blockList, out Int32 Complexity);
 
          if (Complexity > 350 // Allow e.g. 2 comparisions and 1 logical operator
-            && GlobalVariables.IsInMethod != ""
+            && GlobalVariables.IsInMethod.Value != ""
             && GlobalVariables.NumberOfTerminalSymbols <= 63
             // TODO correct condition: the value of each enum element must be >= 0  and  <=63
             )
@@ -363,8 +363,8 @@ namespace Grammlator {
             // special case: at beginning of relevant symbols test of start may be ommitted;
             // resp. must be omitted if the first terminal is intended to include all lower values
             TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockEnd);
-            codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " <= ");
-            codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, endTerminalSymbol.Identifier);
+            codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " <= ");
+            codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
 
             blockIndex += 2; // special case has been handled here, start the loop below with next block of same type 
          }
@@ -392,8 +392,8 @@ namespace Grammlator {
             {
                if (block.blockEnd == last)
                   goto default;
-               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " == ");
-               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, startTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " == ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                break;
             }
             case 2: // generate: check of two allowed symbols or special case
@@ -402,11 +402,11 @@ namespace Grammlator {
                   goto default;
                // compare two symbols: same complexity as test of interval but better readability
                // no parantheses necessary
-               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " == ");
-               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, startTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " == ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                codegen.Append(" || ");
-               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " == ");
-               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, endTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " == ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
                break;
             }
 
@@ -415,18 +415,18 @@ namespace Grammlator {
                if (block.blockEnd == last)
                {
                   // special case: at end the of relevant symbols test of end may be ommitted
-                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " >= ");
-                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, startTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " >= ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                }
                else
                { // generate: test closed interval of three or more symbols
                   if (useParentheses)
                      codegen.Append('(');
-                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " >= ");
-                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, startTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " >= ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                   codegen.Append(" && ");
-                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " <= ");
-                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, endTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " <= ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
                   if (useParentheses)
                      codegen.Append(')');
                }
@@ -491,8 +491,8 @@ namespace Grammlator {
 
             // special case: at beginning of relevant symbols test of start may be ommitted
             TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockEnd);
-            codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " > ");
-            codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, endTerminalSymbol.Identifier);
+            codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " > ");
+            codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
 
             blockIndex += 2; // special case has been handled here, start the loop below with next block of same type 
          }
@@ -520,8 +520,8 @@ namespace Grammlator {
             {
                if (block.blockEnd == last)
                   goto default;
-               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " != ");
-               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, startTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " != ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                break;
             }
             case 2: // generate: check of two allowed symbols or special case
@@ -530,11 +530,11 @@ namespace Grammlator {
                   goto default;
                // compare two symbols: same complexity as test of interval but better readability
                // no parantheses necessary
-               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " != ");
-               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, startTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " != ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                codegen.Append(" && ");
-               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " != ");
-               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, endTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " != ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
                break;
             }
             default:// generate: check a sequence of three or more allowed symbols
@@ -543,18 +543,18 @@ namespace Grammlator {
                {
                   // special case: at end the of relevant symbols test of end must be ommitted
                   // because the last terminal symbol represents al fllowing symbols
-                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " < ");
-                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, startTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " < ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                }
                else
                { // generate: test closed interval of three or more symbols
                   if (useParentheses)
                      codegen.Append('(');
-                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " < ");
-                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, startTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " < ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                   codegen.Append(" || ");
-                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol, " > ");
-                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum, endTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.VariableNameSymbol.Value, " > ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
                   if (useParentheses)
                      codegen.Append(')');
                }
@@ -566,22 +566,22 @@ namespace Grammlator {
 
       private void GenerateIsIn(BitArray Condition, BitArray Relevant)
       {
-         Int32 NumberSignIndex = GlobalVariables.IsInMethod.IndexOf('#');
+         Int32 NumberSignIndex = GlobalVariables.IsInMethod.Value.IndexOf('#');
          codegen.IncrementIndentationLevel();
          BitArray InverseCondition = new BitArray(Condition).Not().And(Relevant);
          if (Condition.PopulationCount() < InverseCondition.PopulationCount())
          {
             codegen
-               .Append(GlobalVariables.IsInMethod.Substring(0, NumberSignIndex));
+               .Append(GlobalVariables.IsInMethod.Value.Substring(0, NumberSignIndex));
             GenerateIsInArguments(Condition);
          }
          else
          {
             codegen.Append('!')
-               .Append(GlobalVariables.IsInMethod.Substring(0, NumberSignIndex));
+               .Append(GlobalVariables.IsInMethod.Value.Substring(0, NumberSignIndex));
             GenerateIsInArguments(InverseCondition);
          }
-         codegen.DecrementIndentationLevel().Append(GlobalVariables.IsInMethod.Substring(NumberSignIndex + 1));
+         codegen.DecrementIndentationLevel().Append(GlobalVariables.IsInMethod.Value.Substring(NumberSignIndex + 1));
       }
 
       private void GenerateIsInArguments(BitArray Condition)
@@ -596,7 +596,7 @@ namespace Grammlator {
             IsUsedInIsIn[i] = true; // the int constant "_(identifier of terminal symbol)" has to be declared
 
             codegen
-               .AppendWithOptionalLinebreak('_')
+               .AppendWithOptionalLinebreak(GlobalVariables.FlagsPrefix.Value)
                .Append(GlobalVariables.GetTerminalSymbolByIndex(i).Identifier);
          }
 

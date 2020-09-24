@@ -826,8 +826,8 @@ namespace Grammlator {
              .Append((SymbolNumber + 1).ToString("D2"))
              .Append(": ");
 
-         if (!String.IsNullOrEmpty(GlobalVariables.TerminalSymbolEnum))
-            sb.Append(GlobalVariables.TerminalSymbolEnum).Append('.');
+         if (!String.IsNullOrEmpty(GlobalVariables.TerminalSymbolEnum.Value))
+            sb.Append(GlobalVariables.TerminalSymbolEnum.Value).Append('.');
 
          IdentifierAndAttributesToSB(sb);
 

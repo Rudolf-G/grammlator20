@@ -263,14 +263,11 @@ namespace grammlator {
 
          ResultTextBox.Text = ResultText;
 
-         // TODO LbItem1.Content = xxx. firstErrorMessage; ???
-
          // Display statistics
          BufferMessage(MessageTypeOrDestinationEnum.Information,
              $"Input  contains {SourceTextBox.Text.Length,7} characters, {SourceTextBox.Text.CountLines(),7} lines");
          BufferMessage(MessageTypeOrDestinationEnum.Information,
              $"Result contains {ResultText.Length,7} characters, {ResultText.CountLines(),7} lines");
-
 
          // If there is an error move the cursor in SourceTextBox to the position of the error
          if (firstErrorIndex >= 0 && firstErrorIndex < ErrorPositions.Count)
@@ -604,14 +601,14 @@ namespace grammlator {
                continue; // lines are equal
 
             // Test if special lines and allow them to differ after the keywords
-            if (s1LineTrimmed.StartsWith(GlobalVariables.RegionString)
-                && s2LineTrimmed.StartsWith(GlobalVariables.RegionString))
+            if (s1LineTrimmed.StartsWith(GlobalVariables.RegionString.Value)
+                && s2LineTrimmed.StartsWith(GlobalVariables.RegionString.Value))
                {
                continue;
                }
 
-            if (s1LineTrimmed.StartsWith(GlobalVariables.EndregionString)
-                && s2LineTrimmed.StartsWith(GlobalVariables.EndregionString))
+            if (s1LineTrimmed.StartsWith(GlobalVariables.EndregionString.Value)
+                && s2LineTrimmed.StartsWith(GlobalVariables.EndregionString.Value))
                {
                continue;
                }

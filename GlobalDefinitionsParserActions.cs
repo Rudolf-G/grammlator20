@@ -934,12 +934,12 @@ namespace Grammlator {
          {
             if (this.StateStackAdjustment == 1)
             {
-               codegen.IndentAndAppend(GlobalVariables.StateStack)
+               codegen.IndentAndAppend(GlobalVariables.StateStack.Value)
                   .AppendLine(".Pop(); ");
             }
             else
             {
-               codegen.IndentAndAppend(GlobalVariables.StateStack)
+               codegen.IndentAndAppend(GlobalVariables.StateStack.Value)
                   .Append(".Discard(")
                   .Append(this.StateStackAdjustment)
                   .Append("); ");
@@ -1504,23 +1504,23 @@ namespace Grammlator {
       /// <returns>next action: <see cref="ErrorHaltAction>"/> </returns>
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
-         if (!String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
+         if (!String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod.Value))
          {
             //codegen.IndentExactly();
 
-            if (!String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod))
+            if (!String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod.Value))
             {   // generate ErrorHandlerCall   ErrorHandler(ErrorStateNumber, StateDescription, ParserInput);
                codegen
                   .Indent()
                   .Append("if (")
-                  .Append(GlobalVariables.ErrorHandlerMethod)
+                  .Append(GlobalVariables.ErrorHandlerMethod.Value)
                   .Append('(')
                   .Append(this.IdNumber + 1)
                   .Append(", ")
-                  .Append(GlobalVariables.VariableNameStateDescription)
+                  .Append(GlobalVariables.StateDescriptionPrefix.Value)
                   .Append(this.State.IdNumber + 1)
                   .Append(", ")
-                  .Append(GlobalVariables.VariableNameSymbol)
+                  .Append(GlobalVariables.VariableNameSymbol.Value)
                   .AppendLine("))");
 
                if (this.State.StateStackNumber >= 0)
@@ -1529,7 +1529,7 @@ namespace Grammlator {
                      .IncrementIndentationLevel()
                      .Indent()
                      .AppendLine("{")
-                     .IndentAndAppend(GlobalVariables.StateStack)
+                     .IndentAndAppend(GlobalVariables.StateStack.Value)
                      .AppendLine(".Pop(); ")
                      .GenerateGoto(this.State, accept: false)
                      .IndentAndAppendLine("};")
@@ -1592,13 +1592,13 @@ namespace Grammlator {
 
          if (GlobalVariables.ListOfAllStates[0].StateStackNumber >= 0)
             codegen.IndentExactly()
-               .Append(GlobalVariables.StateStack)
+               .Append(GlobalVariables.StateStack.Value)
                .Append(".Pop();");
 
          if (numberOfAttributesToStore != 0)
          {
             codegen.Append("AttributesOfSymbol.CopyAndRemoveFrom(")
-               .Append(GlobalVariables.AttributeStack)
+               .Append(GlobalVariables.AttributeStack.Value)
                .Append(", ")
                .Append(numberOfAttributesToStore)
                .AppendLine(");");
@@ -1636,27 +1636,27 @@ namespace Grammlator {
          // generate _s.Pop(x)
          if (GlobalVariables.CountOfStatesWithStateStackNumber > 0)
             codegen.IndentExactly()
-               .Append(GlobalVariables.StateStack)
+               .Append(GlobalVariables.StateStack.Value)
                .Append(".Discard(")
-               .Append(GlobalVariables.StateStack)
+               .Append(GlobalVariables.StateStack.Value)
                .Append(".Count - ")
-               .Append(GlobalVariables.StateStackInitialCountVariable)
+               .Append(GlobalVariables.StateStackInitialCountVariable.Value)
                .AppendLine(");");
          // codegen.IndentAndAppendLine("_s.Discard(_s.Count - StateStackInitialCount);");  // TODO als Ressource definieren
 
          // generate _a.Free(x)
          if (GlobalVariables.reductionsModifyAttributStack)
             codegen.IndentExactly()
-               .Append(GlobalVariables.AttributeStack)
+               .Append(GlobalVariables.AttributeStack.Value)
                .Append(".Free(")
-               .Append(GlobalVariables.AttributeStack)
+               .Append(GlobalVariables.AttributeStack.Value)
                .Append(".Count - ")
-               .Append(GlobalVariables.AttributeStackInitialCountVariable)
+               .Append(GlobalVariables.AttributeStackInitialCountVariable.Value)
                .AppendLine(");");
 
          // generate additional instruction
-         if (!String.IsNullOrEmpty(GlobalVariables.InstructionErrorHalt))
-            codegen.IndentAndAppendLine(GlobalVariables.InstructionErrorHalt);
+         if (!String.IsNullOrEmpty(GlobalVariables.InstructionErrorHalt.Value))
+            codegen.IndentAndAppendLine(GlobalVariables.InstructionErrorHalt.Value);
 
          accept = false;
          return GlobalVariables.TheOnlyOneErrorHaltAction.NextAction;

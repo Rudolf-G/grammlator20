@@ -113,7 +113,7 @@ namespace Grammlator {
              GlobalVariables.ListOfAllStates.Count - DetermineNotStackingStates();
 
          // Optionally assign small StateStackNumbers
-         if (GlobalVariables.OptimizeStateStackNumbers)
+         if (GlobalVariables.OptimizeStateStackNumbers.Value)
          {
             AssignStatesSmallStackNumbers();
          }
@@ -1033,7 +1033,7 @@ namespace Grammlator {
             case HaltAction _:
             case ErrorHaltAction _:
             case EndOfGeneratedCodeAction _:
-               return; // does not popagate to a state
+               return; // does not propagate to a state
             case PrioritySelectAction _: // handled by PriorityUnwindedSetOfActions and must not occur
             case PriorityBranchAction _:
             case NonterminalTransition _: // has already been removed
@@ -1098,7 +1098,7 @@ namespace Grammlator {
          case HaltAction _:
          case ErrorHaltAction _:
          case EndOfGeneratedCodeAction _:
-            break; // does not popagate to a state
+            break; // does not propagate to a state
          case PrioritySelectAction _: // handled by PriorityUnwindedSetOfActions and must not occur
          case PriorityBranchAction _:
          case NonterminalTransition _: // has already been removed
