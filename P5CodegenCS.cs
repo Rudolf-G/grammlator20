@@ -111,10 +111,9 @@ namespace Grammlator
              */
             IndentExactly().
                Append("Boolean ")
-               .Append(GlobalVariables.IsInMethod.Value.Substring(0, GlobalVariables.IsInMethod.Value.IndexOf('#')))
-               .Append("Int64 flags)")
-               .Append(" => ((2L << (Int32)")
-               .Append(GlobalVariables.VariableNameSymbol.Value)
+               .Append(GlobalVariables.IsInMethod.Value)
+               .Append("(Int64 flags) => ((2L << (Int32)")
+               .Append(GlobalVariables.SymbolNameOrFunctionCall.Value)
                .AppendLine(") & flags) != 0;");
          }
 
@@ -438,7 +437,7 @@ namespace Grammlator
       // keine neue Zeile anfangen
 
       public void GenerateAcceptInstruction()
-          => AppendWithOptionalLinebreak(GlobalVariables.InstructionAcceptSymbol.Value);
+          => AppendWithOptionalLinebreak(GlobalVariables.SymbolAcceptInstruction.Value);
 
       /// <summary>
       /// returns a label built from an action specific string and the actions IdNumber+1

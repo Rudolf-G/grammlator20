@@ -1506,44 +1506,48 @@ namespace Grammlator {
       {
          if (!String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod.Value))
          {
-            //codegen.IndentExactly();
-
-            if (!String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod.Value))
-            {   // generate ErrorHandlerCall   ErrorHandler(ErrorStateNumber, StateDescription, ParserInput);
+            // generate ErrorHandlerCall   ErrorHandler(ErrorStateNumber, StateDescription, ParserInput);
+            codegen
+               .Indent()
+               .Append("if (")
+               .Append(GlobalVariables.ErrorHandlerMethod.Value)
+               .Append('(')
+               .Append(this.IdNumber + 1)
+               .Append(", ");
+            if (String.IsNullOrEmpty(GlobalVariables.StateDescriptionPrefix.Value))
+               codegen.Append("\"\""); // empty error description
+            else
+            {
                codegen
-                  .Indent()
-                  .Append("if (")
-                  .Append(GlobalVariables.ErrorHandlerMethod.Value)
-                  .Append('(')
-                  .Append(this.IdNumber + 1)
-                  .Append(", ")
-                  .Append(GlobalVariables.StateDescriptionPrefix.Value)
-                  .Append(this.State.IdNumber + 1)
-                  .Append(", ")
-                  .Append(GlobalVariables.VariableNameSymbol.Value)
-                  .AppendLine("))");
-
-               if (this.State.StateStackNumber >= 0)
-               { // generate {_s.POP(..); goto state...;}
-                  codegen
-                     .IncrementIndentationLevel()
-                     .Indent()
-                     .AppendLine("{")
-                     .IndentAndAppend(GlobalVariables.StateStack.Value)
-                     .AppendLine(".Pop(); ")
-                     .GenerateGoto(this.State, accept: false)
-                     .IndentAndAppendLine("};")
-                     .DecrementIndentationLevel();
-               }
-               else
-               { // generate goto state...;
-                  codegen
-                     .IncrementIndentationLevel()
-                     .Indent()
-                     .GenerateGoto(this.State, accept: false)
-                     .DecrementIndentationLevel();
-               }
+               .Append(GlobalVariables.StateDescriptionPrefix.Value)
+               .Append(this.State.IdNumber + 1);
             }
+            codegen
+               .Append(", ")
+               .Append(GlobalVariables.SymbolNameOrFunctionCall.Value)
+               .AppendLine("))");
+
+            if (this.State.StateStackNumber >= 0)
+            { // generate {_s.POP(..); goto state...;}
+               codegen
+                  .IncrementIndentationLevel()
+                  .Indent()
+                  .AppendLine("{")
+                  .IndentAndAppend(GlobalVariables.StateStack.Value)
+                  .AppendLine(".Pop(); ")
+                  .GenerateGoto(this.State, accept: false)
+                  .IndentAndAppendLine("};")
+                  .DecrementIndentationLevel();
+            }
+            else
+            { // generate goto state...;
+               codegen
+                  .IncrementIndentationLevel()
+                  .Indent()
+                  .GenerateGoto(this.State, accept: false)
+                  .DecrementIndentationLevel();
+            }
+
          }
 
          accept = false;
@@ -1655,8 +1659,8 @@ namespace Grammlator {
                .AppendLine(");");
 
          // generate additional instruction
-         if (!String.IsNullOrEmpty(GlobalVariables.InstructionErrorHalt.Value))
-            codegen.IndentAndAppendLine(GlobalVariables.InstructionErrorHalt.Value);
+         if (!String.IsNullOrEmpty(GlobalVariables.ErrorHaltInstruction.Value))
+            codegen.IndentAndAppendLine(GlobalVariables.ErrorHaltInstruction.Value);
 
          accept = false;
          return GlobalVariables.TheOnlyOneErrorHaltAction.NextAction;

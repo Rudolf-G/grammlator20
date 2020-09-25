@@ -315,13 +315,13 @@ namespace Grammlator {
       //| /* ---- Start of Lex1 grammar as control structure  ---- */
       //|
       //| // Compiler settings
-      //| IfToSwitchBorder: "4";
-      //| Symbol: "LexerInput"
-      //| AssignSymbol: "LexerInput = inputClassifier.PeekSymbol();"
-      //| AcceptSymbol: "inputClassifier.AcceptSymbol();"
       //| TerminalSymbolEnum: "ClassifierResult"
-      //| StateDescription: "StateDescription"
+      //| SymbolNameOrFunctionCall: "LexerInput"
+      //| SymbolAssignInstruction: "LexerInput = inputClassifier.PeekSymbol();"
+      //| SymbolAcceptInstruction: "inputClassifier.AcceptSymbol();"
       //| ErrorHandlerMethod: "ErrorHandler"
+      //| StateDescriptionPrefix: "StateDescription"
+      //| IfToSwitchBorder: "4";
       //|
       //| // Declaration of the lexers terminal symbols (the output of the classifier):
       //|      DefiningSymbol(Int32 i)%7 | Comma(Int32 i)%7 | DefinitionSeparatorSymbol(Int32 i)%7 
@@ -501,14 +501,14 @@ namespace Grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated Thu, 24 Sep 2020 16:33:07 GMT (grammlator, File version 2020.09.23.0 24.09.2020 16:32:34)
-  Int32 AttributeStackInitialCount = _a.Count;
-  const Int64 _CSharpStart = 2L << (Int32)ClassifierResult.CSharpStart;
-  const Int64 _CSharpEnd = 2L << (Int32)ClassifierResult.CSharpEnd;
-  const Int64 _Asterisk = 2L << (Int32)ClassifierResult.Asterisk;
-  const Int64 _Slash = 2L << (Int32)ClassifierResult.Slash;
-  const Int64 _Apostrophe = 2L << (Int32)ClassifierResult.Apostrophe;
-  Boolean _1In(Int64 flags) => ((2L << (Int32)LexerInput) & flags) != 0;
+#region grammlator generated Fri, 25 Sep 2020 20:32:42 GMT (grammlator, File version 2020.09.23.0 25.09.2020 20:30:34)
+  Int32 _AttributeStackInitialCount = _a.Count;
+  const Int64 _fCSharpStart = 2L << (Int32)ClassifierResult.CSharpStart;
+  const Int64 _fCSharpEnd = 2L << (Int32)ClassifierResult.CSharpEnd;
+  const Int64 _fAsterisk = 2L << (Int32)ClassifierResult.Asterisk;
+  const Int64 _fSlash = 2L << (Int32)ClassifierResult.Slash;
+  const Int64 _fApostrophe = 2L << (Int32)ClassifierResult.Apostrophe;
+  Boolean _IsIn(Int64 flags) => ((2L << (Int32)LexerInput) & flags) != 0;
 
 Reduce1:
   /* Gap= GapString;◄ */
@@ -723,7 +723,7 @@ State9:
         goto State9;
      goto EndWithError;
      }
-  Debug.Assert(!_1In(_CSharpStart + _CSharpEnd + _Asterisk));
+  Debug.Assert(!_IsIn(_fCSharpStart + _fCSharpEnd + _fAsterisk));
   goto AcceptReduce25;
 
 AcceptReduce26:
@@ -757,7 +757,7 @@ State10:
         goto State10;
      goto EndWithError;
      }
-  Debug.Assert(!_1In(_CSharpStart + _CSharpEnd + _Asterisk + _Slash));
+  Debug.Assert(!_IsIn(_fCSharpStart + _fCSharpEnd + _fAsterisk + _fSlash));
   goto AcceptReduce25;
 
 State3:
@@ -829,7 +829,7 @@ State6:
         goto State6;
      goto EndWithError;
      }
-  Debug.Assert(!_1In(_CSharpStart + _CSharpEnd + _Apostrophe));
+  Debug.Assert(!_IsIn(_fCSharpStart + _fCSharpEnd + _fApostrophe));
   inputClassifier.AcceptSymbol();
   // Reduce22:
   /* aAdjust: -1
@@ -874,7 +874,7 @@ State8:
         goto State8;
      goto EndWithError;
      }
-  Debug.Assert(!_1In(_CSharpStart + _CSharpEnd + _Asterisk));
+  Debug.Assert(!_IsIn(_fCSharpStart + _fCSharpEnd + _fAsterisk));
   goto AcceptReduce25;
 
 Reduce2:
@@ -895,12 +895,12 @@ AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
 
 EndWithError:
   // This point is reached after an input error has been found
-  _a.Free(_a.Count - AttributeStackInitialCount);
+  _a.Free(_a.Count - _AttributeStackInitialCount);
 
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Thu, 24 Sep 2020 16:33:07 GMT (grammlator, File version 2020.09.23.0 24.09.2020 16:32:34)
+#endregion grammlator generated Fri, 25 Sep 2020 20:32:42 GMT (grammlator, File version 2020.09.23.0 25.09.2020 20:30:34)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

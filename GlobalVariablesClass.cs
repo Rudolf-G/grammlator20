@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Grammlator {
 
-   public class Setting {
+   public abstract class Setting {
       public enum SettingType {
          StringType, BooleanType, Int32Type
       }
@@ -22,7 +22,7 @@ namespace Grammlator {
 
       public virtual String ValueAsString { get { return ""; } }
 
-      protected Setting(String name, SettingType hasType, String initialValueAsString, String description, List<Setting> settingList)
+      protected Setting(String name, SettingType hasType, String initialValueAsString, List<Setting> settingList, String description)
       {
          Name = name;
          NameToLower = name.ToLower();
@@ -42,8 +42,8 @@ namespace Grammlator {
       public Int32 Value { get; set; }
       public override String ValueAsString { get { return Value.ToString(); } }
 
-      public Int32Setting(String name, Int32 initialValue, String description, List<Setting> settingList)
-         : base(name, SettingType.Int32Type, initialValue.ToString(), description, settingList)
+      public Int32Setting(String name, Int32 initialValue, List<Setting> settingList, String description)
+         : base(name, SettingType.Int32Type, initialValue.ToString(), settingList, description)
       {
          InitialValue = initialValue;
          Value = initialValue;
@@ -58,16 +58,16 @@ namespace Grammlator {
 
       public Boolean InitialValue { get; }
       public Boolean Value { get; set; }
-      public override String ValueAsString { get { return Value.ToString(); } }
+      public override String ValueAsString { get { return Value ? "true" : "false"; } }
 
-      public BooleanSetting(String name, Boolean initialValue, String description, List<Setting> settingList)
-         : base(name, SettingType.BooleanType, initialValue.ToString(), description, settingList)
+      public BooleanSetting(String name, Boolean initialValue, List<Setting> settingList, String description)
+         : base(name, SettingType.BooleanType, initialValue ? "true" : "false", settingList, description)
       {
          InitialValue = initialValue;
          Value = initialValue;
       }
 
-      public override String ToString() => Value.ToString();
+      public override String ToString() => Value ? "true" : "false";
 
       public override void Reset() => Value = InitialValue;
    }
@@ -78,8 +78,8 @@ namespace Grammlator {
       public String Value { get; set; }
       public override String ValueAsString { get { return Value; } }
 
-      public StringSetting(String name, String initialValue, String description, List<Setting> settingList)
-         : base(name, SettingType.StringType, initialValue.ToString(), description, settingList)
+      public StringSetting(String name, String initialValue, List<Setting> settingList, String description)
+         : base(name, SettingType.StringType, initialValue.ToString(), settingList, description)
       {
          InitialValue = initialValue;
          Value = initialValue;
@@ -281,89 +281,81 @@ namespace Grammlator {
 
       /* Grammlator settings */
 
-      internal static readonly List<Setting> VisibleSettings = new List<Setting>(25); // >=17
-      internal static readonly List<Setting> InternalSettings = new List<Setting>(15); // >=9
+      /// <summary>
+      /// To all elements of the list <see cref="VisibleSettings"/> values can be assigned by instructions at the beginning of the 
+      /// grammar part in the input file.
+      /// </summary>
+      internal static readonly List<Setting> VisibleSettings = new List<Setting>(25);
 
       /// <summary>
-      /// e.g. "//" (not including the apostrophes)
+      /// The values of the list <see cref="InternalSettings"/> can not be changed by instructions in the input file.
+      /// These settings allow to modify the grammlator program by the programmer.
+      /// </summary>
+      internal static readonly List<Setting> InternalSettings = new List<Setting>(15);
+
+      /// <summary>
+      /// e.g. "//|"
       /// </summary>
       internal static readonly StringSetting GrammarLineMarker
          = new StringSetting("GrammarLineMarker", "//|",
-         "This string is used to mark grammar lines: \"//|\"",
-         settingList: InternalSettings);
+         settingList: InternalSettings,
+         description: "This string is used to mark grammar lines: \"//|\"");
 
       /// <summary>
-      /// e.g. "//" (not including the apostrophes)
+      /// e.g. "//"
       /// </summary>
       internal static readonly StringSetting CSharpCommentlineMarker
          = new StringSetting("CSharpCommentlineMarker", "//",
-         "This string is used to mark comments in the grammar: \"//\"",
-         settingList: InternalSettings);
+         settingList: InternalSettings,
+         description: "This string is used to mark comments in the grammar: \"//\"");
 
       /// <summary>
-      /// e.g. "#pragma" (not including the apostrophes)
+      /// e.g. "#pragma"
       /// </summary>
       internal static readonly StringSetting CSharpPragmaMarker
          = new StringSetting("CSharpPragmaMarker", "#pragma",
-         "This string is used to mark pragmas in C#: \"#pragma\"",
-         settingList: InternalSettings);
-
-      /// <summary>
-      /// e.g. "#pragma" (not including the apostrophes)
-      /// </summary>
-      internal static readonly StringSetting FlagsPrefix
-         = new StringSetting("FlagsPrefix", "_f",
-         "This string is used as prefix to the names of terminals when flags are declared or used: \"_f\"",
-         settingList: InternalSettings);
-
+         settingList: InternalSettings,
+         description: "This string is used to mark pragmas in C#: \"#pragma\"");
 
       /// <summary>
       /// e.g. "#region" (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting RegionString
          = new StringSetting("RegionString", "#region",
-         "The string starting a region: typically \"#region\"",
-         settingList: InternalSettings);
+         settingList: InternalSettings,
+         description: "The string starting a region: typically \"#region\"");
 
       /// <summary>
       /// e.g. "#endregion"  (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting EndregionString
          = new StringSetting("EndregionString", "#endregion",
-         "The string ending a region: typically \"#endregion\"",
-         settingList: InternalSettings);
+         settingList: InternalSettings,
+         description: "The string ending a region: typically \"#endregion\"");
 
       /// <summary>
       /// e.g. "grammar"  (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting GrammarString
          = new StringSetting("GrammarString", "grammar",
-         "The name of the region which contains the grammar, typically \"grammar\"",
-         settingList: InternalSettings);
+         settingList: InternalSettings,
+         description: "The name of the region which contains the grammar, typically \"grammar\"");
 
       /// <summary>
       /// e.g. "grammlator"  (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting GrammlatorString
          = new StringSetting("GrammlatorString", "grammlator",
-         "The 1st part of the name of the region which contains the grammlator generated code, typically \"grammlator\"",
-         settingList: InternalSettings);
+         settingList: InternalSettings,
+         description: "The 1st part of the name of the region which contains the grammlator generated code, typically \"grammlator\"");
 
       /// <summary>
       /// e.g. "generated"  (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting GeneratedString
          = new StringSetting("GeneratedString", "generated",
-         "The second part of the name of the region which contains the grammlator generated code, typically \"generated\"",
-         settingList: InternalSettings);
-
-      /// <summary>
-      /// e.g. "_1In(#)". Will be set to "" if an enum is found and the maximum value of an element is &gt;63
-      /// </summary>
-      internal static StringSetting IsInMethod
-         = new StringSetting("IsInMethod", "_IsIn(#)",
-         "The pattern defining the IsIn-Method, typically \"_IsIn(#)\"",
-         settingList: VisibleSettings);
+         settingList: InternalSettings,
+         description: "The second part of the name of the region which contains the grammlator generated code, typically \"generated\"");
 
       /// <summary>
       /// <see cref="NewLineWithEscapes"/> is defined by <see cref="Settings.NewLineConstant"/>
@@ -372,150 +364,182 @@ namespace Grammlator {
       /// </summary>
       internal static readonly StringSetting NewLineWithEscapes
          = new StringSetting("NewLineWithEscapes", "\\r\\n",
-         "The string representing NewLine in printabel form, typically \"\\r\\n\"",
-         settingList: InternalSettings);
+settingList: InternalSettings,
+         description: @"The string representing NewLine in printable form, typically ""\\r\\n""");
 
-      /// <summary>
-      /// <see cref="ConditionalAction"/>s with complexity &lt;= <see cref="IfToSwitchBorder"/> are generated as if instruction sequence, others as switch statement
-      /// </summary>
-      internal static Int32Setting IfToSwitchBorder
-         = new Int32Setting("IfToSwitchBorder", 5,
-         "A sequence of conditional actions is generated as  sequence of if-statements, "
-         + "if its complexity is less or equal than this number (typically 5), "
-         + "else a switch statement will be generated.",
-         settingList: VisibleSettings);
-
-      /// <summary>
-      /// <see cref="StateDescriptionPrefix"/> is used as Prefix when generating names of constants
-      /// </summary>
-      internal static StringSetting StateDescriptionPrefix
-         = new StringSetting("StateDescriptionPrefix", "",
-         "if not empty grammlator will use this string "
-         + "as prefix of names of constants which get the description of the actual state "
-         + "and which are used in case of errors, e.g. \"StateDescription\"",
-         settingList: VisibleSettings);
-
-      /// <summary>
-      /// <see cref="VariableNameSymbol"/> is used as variable name or method call in generated code
-      /// </summary>
-      internal static StringSetting VariableNameSymbol
-         = new StringSetting("VariableNameSymbol", "PeekSymbol()",
-         "This variable name or method call will be used in the generated code "
-         + "to get the last peeked input terminal "
-         + "typically \"Symbol\" or e.g. \"PeekTerminal()\"",
-         settingList: VisibleSettings);
+      /*************************************/
 
       /// <summary>
       /// <see cref="TerminalSymbolEnum.Value"/> (e.g. "LexerResult") is used to generated code
       ///  (e.g. "if (Symbol != LexerResult.Name)...;"
       /// </summary>
       internal static StringSetting TerminalSymbolEnum
-         = new StringSetting("TerminalSymbolEnum", "",
-         "This variable name or method call will be used in the generated code "
-         + "in combination with the names of the terminal symbols "
-         + " which are defined as elements of this enum, "
-         + "typically empty or the name of an enum.",
-         settingList: VisibleSettings);
+         = new StringSetting("TerminalSymbolEnum", "", VisibleSettings,
+@"Typically this is the name of the C# enum which defines the terminal symbols.
+This name will be used in the generated code in combination with the names of the terminal symbols.
+Only in very special applications there is no explicit enum and TerminalSymbolEnum is """" 
+Example: """" in very simple applications else ""MyEnum""");
 
       /// <summary>
-      /// <see cref="InstructionAssignSymbol"/> is used to generate code
+      /// <see cref="SymbolNameOrFunctionCall"/> is used as variable name or method call in generated code
       /// </summary>
-      internal static StringSetting InstructionAssignSymbol
-         = new StringSetting("AssignSymbolInstruction", "",
-         "This string will be used in the generated code "
-         + "to assign a peeked terminal to a variable, "
-         + "typically empty or e.g. \"Symbol = Lexer.PeekSymbol();\"",
-         settingList: VisibleSettings);
+      internal static StringSetting SymbolNameOrFunctionCall
+         = new StringSetting("SymbolNameOrFunctionCall", "PeekSymbol()", VisibleSettings,
+@"This function call will be used in the generated code to peek the input terminal.
+Instead of a function call it may be a variable name. This has to be used in the SymbolAssignInstruction.
+Grammlator does not generated code which declares this variable or this function. This
+has to be done by the application programmer in the context.
+Examples: ""Symbol"" or ""PeekSymbol()"" 
+      Somewhere in the context there must be a declaration
+      ""MyEnum Symbol"" or ""MyEnum PeekSymbol(){....}""");
 
       /// <summary>
-      /// <see cref="InstructionAcceptSymbol"/> is used to generate code
+      /// <see cref="SymbolAssignInstruction"/> is used to generate code
       /// </summary>
-      internal static StringSetting InstructionAcceptSymbol
-         = new StringSetting("AcceptSymbolInstruction", "AcceptSymbol();",
-         "This instruction will be inserted in the generated code "
-         + "where a terminal symbol has to be accepted, "
-         + "typically e.g. \"AcceptSymbol();\"",
-         settingList: VisibleSettings);
+      internal static StringSetting SymbolAssignInstruction
+         = new StringSetting("SymbolAssignInstruction", "", VisibleSettings,
+@"This instruction is inserted in the generated code to assign the value of the next
+input symbol to a variable (see SymbolNameOrMethodCall).
+Examples: """" (if SymbolNameOrMethodCall is a method call)
+          or ""Symbol = MyReader.Peek();"" (if SymbolNameOrMethodCall is ""Symbol"")");
 
       /// <summary>
-      /// <see cref="InstructionErrorHalt"/> is used to generate code
+      /// <see cref="SymbolAcceptInstruction"/> is used to generate code
       /// </summary>
-      internal static StringSetting InstructionErrorHalt
-         = new StringSetting("InstructionErrorHalt", "",
-         "This instruction will be inserted in the generated code "
-         + "where a error halt is handled (after return from the errorhandler), "
-         + "typically empty or e.g. \"return false;\"",
-         settingList: VisibleSettings);
-
-      internal static Int32Setting NestingLevelLimit
-         = new Int32Setting("NestingLevelLimit", 5,
-         "This limits the nesting in the generated code. "
-         + "If this limit is reached a goto is generated instead of a inlined sequence of code. "
-         + "A typical value is \"5\"",
-         settingList: VisibleSettings);
-
-      internal static Int32Setting LineLengthLimit
-         = new Int32Setting("LineLengthLimit", 120,
-         "This limits the length of lines in the generated code. "
-         + "A typical value is \"120\"",
-         settingList: VisibleSettings);
+      internal static StringSetting SymbolAcceptInstruction
+         = new StringSetting("SymbolAcceptInstruction", "AcceptSymbol();", VisibleSettings,
+@"This instruction will be inserted in the generated code at all places where a
+terminal symbol has to be accepted.
+Example: ""AcceptSymbol();""  or ""_=MyReader.Read();""
+         This void method has to be declared somewhere in the context. 
+");
 
       /// <summary>
       /// <see cref="ErrorHandlerMethod"/> is used to generate code
       /// </summary>
       internal static StringSetting ErrorHandlerMethod
-         = new StringSetting("ErrorHandlerMethod", "",
-         "This defines the name of the error handler method. "
-         + "If it is empty a goto ErrorHalt is generated. "
-         + " Typically it is empty or e.g. \"ErrorHandler\"",
-         settingList: VisibleSettings);
+         = new StringSetting("ErrorHandlerMethod", "", VisibleSettings,
+@"This defines the name of the optional error handler method. The calls of the
+error handler are generated as part of states, in which the errors are detected.
+Examples: """" or ""ErrorHandler""
+   The ErroHandlerMethod has to be declared somewhere in the context.
+   Boolean ErrorHandler(Int32 stateNumber, String stateDescription, MyEnum symbol)");
+
+      /// <summary>
+      /// <see cref="ErrorHaltInstruction"/> is used to generate code
+      /// </summary>
+      internal static StringSetting ErrorHaltInstruction
+         = new StringSetting("ErrorHaltInstruction", "", VisibleSettings,
+@"This optional instruction will be inserted in the generated code so that it is executed
+when the generated parser detects an error in its input data.
+It is executed after the optional ErrorHandler has been called
+just before the jump to the end of generated code.
+Examples: """" or ""return false;""");
+
+      internal static StringSetting StateStack
+         = new StringSetting("StateStack", "_s", VisibleSettings,
+@"This name is used in the generated code as the name of the state stack.
+A typical value is ""_s"", which is defined in grammlatorRuntime.cs.");
+
+      internal static StringSetting AttributeStack
+         = new StringSetting("AttributeStack", "_a", VisibleSettings,
+@"This name is used in the generated code as the name of the attribute stack.
+A typical value is ""_a"", which is defined in grammlatorRuntime.cs.");
+
+      internal static BooleanSetting OptimizeStateStackNumbers
+        = new BooleanSetting("OptimizeStateStackNumbers", true, VisibleSettings,
+@"If this option is set to false, states push their own number on the stack. This improves
+readability of the generated code but may cause less performing switch statements.
+It may effect other optimizations performed by grammlator.");
+
+      internal static Int32Setting NestingLevelLimit
+        = new Int32Setting("NestingLevelLimit", 5, VisibleSettings,
+@"This limits the nesting in the generated code.
+If this limit is reached a goto is generated instead of an inlined sequence of code.
+A typical value is ""5""");
+
+      internal static Int32Setting LineLengthLimit
+         = new Int32Setting("LineLengthLimit", 120, VisibleSettings,
+ @"This limits the length of lines in the generated code.
+A typical value is ""120""");
+
+      /// <summary>
+      /// <see cref="ConditionalAction"/>s with complexity &lt;= <see cref="IfToSwitchBorder"/> are generated as if instruction sequence, others as switch statement
+      /// </summary>
+      internal static Int32Setting IfToSwitchBorder
+         = new Int32Setting("IfToSwitchBorder", 5, settingList: VisibleSettings,
+@"A sequence of conditional actions is generated as a sequence of if-statements, 
+if its complexity (estimated number of logical operations) is less or equal
+than this number (typically 5), else a switch statement will be generated.");
+
+      /// <summary>
+      /// <see cref="ConditionalAction"/>s with complexity &lt;= <see cref="IfToSwitchBorder"/> are generated as if instruction sequence, others as switch statement
+      /// </summary>
+      internal static Int32Setting CompareToFlagTestBorder
+         = new Int32Setting("CompareToFlagTestBorder", 3, settingList: VisibleSettings,
+@"The condition in If-statements can be generated as a sequence of < or > or = comparisions
+connected by && and ||. Or it can be generated as a test of flags (if no terminal
+symbol has a value >63). If the estmated complexity of the sequence of comparisions
+is greater than the CompareToFlagTestBorder then a test of flags will be generated.
+A typical value is ""3""");
+
+      /// <summary>
+      /// e.g. "_1In(#)". Will be set to "" if an enum is found and the maximum value of an element is &gt;63
+      /// </summary>
+      internal static StringSetting IsInMethod
+         = new StringSetting("IsInMethod", "_IsIn", settingList: VisibleSettings,
+@"The name of the Boolean IsIn-Method which grammlator will generate.
+If this name is """" then grammlator will not generate this method
+and the flag constants representing terminal symbols.
+Typically it is ""_IsIn"". It should be set to """", if any of the terminals
+represents a value > 63;
+Grammlator will set this pattern to """" if it recognizes that at least
+one of the terminal symbols has a value > 63.");
+
+      /// <summary>
+      /// e.g. "_f"
+      /// </summary>
+      internal static readonly StringSetting FlagsPrefix
+         = new StringSetting("FlagsPrefix", "_f", settingList: VisibleSettings,
+@"This string is used as prefix to the names of terminals to declare flag constants.
+The initial value ""_f"" will avoid conflicts with other names.");
+
+      /// <summary>
+      /// <see cref="StateDescriptionPrefix"/> is used as Prefix when generating names of constants
+      /// </summary>
+      internal static StringSetting StateDescriptionPrefix
+         = new StringSetting("StateDescriptionPrefix", "", settingList: VisibleSettings,
+@"For each generated state, for which a call of ErrorHandler is
+generated, grammlator combines this string and the number of the state
+to the name of a constant with the description of the state.
+This constant is used as argument of the generated error handler.
+If the prefix is the empty string, then no constant is generated
+and the empty string is used as argument in the call of the ErrorHandler.");
+
+      internal static StringSetting StateStackInitialCountVariable
+         = new StringSetting("StateStackInitialCountVariable", "_StateStackInitialCount", VisibleSettings,
+@"This variable is declared and used in the generated code to store the initial size of
+the state stack (if a state stack is used in the generated code).
+A typical value is ""StateStackInitialCount"".");
+
+      internal static StringSetting AttributeStackInitialCountVariable
+         = new StringSetting("AttributeStackInitialCountVariable", "_AttributeStackInitialCount", VisibleSettings,
+@"This  variable is declared and used in the generated code to store the initial size of the
+attribute stack (if an attribute stack is used in the generated code).
+A typical value is ""_AttributeStackInitialCount"".");
+
+      internal static StringSetting MethodIndexOfMaximum
+   = new StringSetting("MethodIndexOfMaximum", "Methods.IndexOfMaximum", VisibleSettings,
+@"This is the name of a method which accepts integer arguments and returns
+the index of the largest value. A call of this method is generated, if there are
+conflicts solved by dynamic priorities and 3 or more priorities have to be compared.
+A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlatorRuntime.cs.");
 
       /// <summary>
       /// ErrorHandlerIsDefined => !string.IsNullOrEmpty(ErrorHandlerMethod);
       /// </summary>
       internal static Boolean ErrorHandlerIsDefined => !String.IsNullOrEmpty(ErrorHandlerMethod.Value);
 
-      internal static StringSetting MethodIndexOfMaximum
-         = new StringSetting("MethodIndexOfMaximum", "Methods.IndexOfMaximum",
-         "This is the name of a method which accepts integer arguments and returns "
-         + "the index of the largest value. A call of this method is generated, if there are "
-         + " conflicts solved by dynamic priorities and 3 or more priorities have to be compared."
-         + " The initial value is \"Methods.IndexOfMaximum\" is the name of a method in grammlatorRuntime.cs.",
-         settingList: VisibleSettings);
-
-      internal static StringSetting StateStackInitialCountVariable
-         = new StringSetting("StateStackInitialCountVariable", "_StateStackInitialCount",
-         "This  variable is used in the generated code to store the initial size of the "
-         + "state stack - if a state stack is used."
-         + " The initial value is \"StateStackInitialCount\".",
-         settingList: VisibleSettings);
-
-      internal static StringSetting StateStack
-         = new StringSetting("StateStack", "_s",
-         "This name is used in the generated code as the name of the state stack."
-         + " The initial value is \"_s\"., which is defined in grammlatorRuntime.cs.",
-         settingList: VisibleSettings);
-
-      internal static StringSetting AttributeStackInitialCountVariable
-         = new StringSetting("AttributeStackInitialCountVariable", "_AttributeStackInitialCount",
-         "This  variable is used in the generated code to store the initial size of the "
-         + "attribute stack - if an attribute stack is needed."
-         + " The initial value is \"_AttributeStackInitialCount\".",
-         settingList: VisibleSettings);
-
-      internal static StringSetting AttributeStack
-         = new StringSetting("AttributeStack", "_a",
-         "This name is used in the generated code as the name of the attribute stack."
-         + " The initial value is \"_a\"., which is defined in grammlatorRuntime.cs.",
-            settingList: VisibleSettings);
-
-      internal static BooleanSetting OptimizeStateStackNumbers
-         = new BooleanSetting("OptimizeStateStackNumbers", true,
-            "If this option is set to false, states push their own number on the stack. This improves "
-            + " readability of the generated code but may cause less performing switch statements. "
-            + " it may prohibit other optimizations performed by grammlator.",
-            settingList: VisibleSettings);
-            
       internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage {
          get; private set;
       }

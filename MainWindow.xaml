@@ -84,6 +84,12 @@
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
                          Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="ResultTextBox_MouseEnter"/>
             </TabItem>
+            <TabItem x:Name="TabItemInfo" Header="Info">
+                <TextBox x:Name="InfoTextBox" Text="No info"
+                         TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
+                         UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
+                         Padding="5,5,5,5" FontFamily="Consolas" />
+            </TabItem>
         </TabControl>
         <ListBox Name="lb" Grid.Row="3" Grid.ColumnSpan="1" SelectionMode="Single" SizeChanged="lb_SizeChanged"
                  HorizontalContentAlignment="Left" VerticalContentAlignment="Top"/>
@@ -106,6 +112,9 @@
             </MenuItem>
             <MenuItem Header="_Compare">
                 <MenuItem x:Name="CompareIgnoringSeparators" Header=".. ignoring leading separators" Click="CompareIgnoringSeparators_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem x:Name="MenuItemDisplaySettings" Header="Display settings" Click="ShowSettings_Click"/>
             </MenuItem>
         </Menu>
     </Grid>

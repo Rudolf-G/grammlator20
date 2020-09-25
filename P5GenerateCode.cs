@@ -806,7 +806,10 @@ namespace Grammlator {
          // Generate description
          State.CoreItems.AppendToSB(sbTemp);
 
-         if (State.ContainsErrorHandlerCall && !String.IsNullOrEmpty(GlobalVariables.StateDescriptionPrefix.Value))
+         if (State.ContainsErrorHandlerCall
+            && !String.IsNullOrEmpty(GlobalVariables.StateDescriptionPrefix.Value)
+            && !String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod.Value)
+            )
          {
             // Generate assignment to VariableNameStateDescription (if defined)
             codegen.Indent();
@@ -873,7 +876,7 @@ namespace Grammlator {
                 )
             {
                codegen.IndentExactly()
-                     .AppendWithOptionalLinebreak(GlobalVariables.InstructionAssignSymbol.Value);
+                     .AppendWithOptionalLinebreak(GlobalVariables.SymbolAssignInstruction.Value);
             }
             else
             {
@@ -957,7 +960,7 @@ namespace Grammlator {
 
          codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("switch (");
-         codegen.Append(GlobalVariables.VariableNameSymbol.Value);
+         codegen.Append(GlobalVariables.SymbolNameOrFunctionCall.Value);
          codegen.Append(")");
          codegen.GenerateBeginOfBlock();
 
@@ -1086,7 +1089,7 @@ namespace Grammlator {
             // yes: generate if
             codegen.IndentExactly();
             codegen.Append("if (");
-            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
+            codegen.Append(GlobalVariables.SymbolNameOrFunctionCall.Value);
 
             // prefer action which generates goto as first action
             // TODO else prefer action which does not generate a label
@@ -1124,14 +1127,14 @@ namespace Grammlator {
          codegen.Append("Debug.Assert(");
          if (Action1Generate == Action2Generate)
          {
-            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
+            codegen.Append(GlobalVariables.SymbolNameOrFunctionCall.Value);
             codegen.Append(" <= ");
             codegen.AppendWithPrefix(
                 GlobalVariables.TerminalSymbolEnum.Value,
                 GlobalVariables.TerminalSymbolByIndex[LeadingCount - 1].Identifier
                 );
             codegen.Append(" || ");
-            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
+            codegen.Append(GlobalVariables.SymbolNameOrFunctionCall.Value);
             codegen.Append(" >= ");
             codegen.AppendWithPrefix(
                 GlobalVariables.TerminalSymbolEnum.Value,
@@ -1140,7 +1143,7 @@ namespace Grammlator {
          }
          else if (ActionsSwapped)
          {
-            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
+            codegen.Append(GlobalVariables.SymbolNameOrFunctionCall.Value);
             codegen.Append(" <= ");
             codegen.AppendWithPrefix(
                 GlobalVariables.TerminalSymbolEnum.Value,
@@ -1149,7 +1152,7 @@ namespace Grammlator {
          }
          else
          {
-            codegen.Append(GlobalVariables.VariableNameSymbol.Value);
+            codegen.Append(GlobalVariables.SymbolNameOrFunctionCall.Value);
             codegen.Append(" >= ");
             codegen.AppendWithPrefix(
                 GlobalVariables.TerminalSymbolEnum.Value,
