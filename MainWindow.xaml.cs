@@ -22,17 +22,14 @@ namespace grammlator {
          Title = "grammlator - no file -";
          MenuItemTranslateStandard.IsEnabled = false;
          MenuItemReloadAndTranslate.IsEnabled = false;
+         FocusTextBox += HandleFocusTextBox;
+         OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
       }
 
       const String fileFilter = "cs files (*.cs)|*.cs|All files (*.*)|*.*";
       readonly OpenFileDialog OpenSourceFileDialog = new OpenFileDialog() {
          AddExtension = false,
          ReadOnlyChecked = true,
-         FilterIndex = 2,
-         Filter = fileFilter
-      };
-      readonly SaveFileDialog SaveSourceOrResultDialog = new SaveFileDialog() {
-         AddExtension = false,
          FilterIndex = 2,
          Filter = fileFilter
       };
@@ -68,103 +65,9 @@ namespace grammlator {
          errors = 0;
          firstErrorIndex = -1;
          aborted = false;
-      }
+      }      
 
-      private void MenuItemSaveResult_Click(Object sender, RoutedEventArgs e)
-      {
-         SaveSourceOrResultDialog.Title = "Save result";
-         if (String.IsNullOrEmpty(ResultFilename))
-         {
-            // no source filename known
-            SaveSourceOrResultDialog.FileName = "";
-         }
-         else
-         {
-            // use the ResultFilename , which was set on last translate
-            SaveSourceOrResultDialog.InitialDirectory = Path.GetDirectoryName(ResultFilename);
-            SaveSourceOrResultDialog.FileName = Path.GetFileName(ResultFilename);
-         }
-
-         Boolean? r = SaveSourceOrResultDialog.ShowDialog();
-
-         if (r != true)
-         {
-            return;
-         }
-
-         try
-         {
-            File.WriteAllText(SaveSourceOrResultDialog.FileName, ResultTextBox.Text);
-            ResultFilename = SaveSourceOrResultDialog.FileName;
-         }
-         catch (Exception ex)
-         {
-            MessageBox.Show($"Error: Could not write to file. Original error: {ex.Message}");
-         }
-
-      }
-
-      private void MenuItemSaveSource_Click(Object sender, RoutedEventArgs e)
-      {
-
-         SaveSourceOrResultDialog.Title = "Save source file";
-         String saveFileFilename = SourceFilename; // may be ""
-
-         if (String.IsNullOrEmpty(saveFileFilename))
-         {
-            // no source filename known
-            SaveSourceOrResultDialog.FileName = "";
-         }
-         else
-         {
-            // use the ResultFilename , which was set on last translate
-            SaveSourceOrResultDialog.InitialDirectory = Path.GetDirectoryName(saveFileFilename);
-            SaveSourceOrResultDialog.FileName = Path.GetFileName(saveFileFilename);
-         }
-
-         Boolean? r = SaveSourceOrResultDialog.ShowDialog();
-
-         if (r != true)
-         {
-            return;
-         }
-
-         try
-         {
-            File.WriteAllText(SaveSourceOrResultDialog.FileName, SourceTextBox.Text);
-            EnableMenuItemsStoreFileName(SaveSourceOrResultDialog.FileName);
-         }
-         catch (Exception ex)
-         {
-            MessageBox.Show($"Error: Could not write to file. Original error: {ex.Message}");
-         }
-      }
-
-      private void MenuItemTranslateStandard_Click(Object _1, RoutedEventArgs _2)
-         => Translate();
-
-      private void MenuItemLoadSourceFile_Click(Object sender, RoutedEventArgs e)
-      {
-         OpenSourceFileDialog.Title = "Load source file";
-         if (String.IsNullOrEmpty(SourceFilename))
-         {
-            OpenSourceFileDialog.FileName = "";
-         }
-         else
-         {
-            OpenSourceFileDialog.InitialDirectory = Path.GetDirectoryName(SourceFilename);
-            OpenSourceFileDialog.FileName = Path.GetFileName(SourceFilename);
-         }
-
-         Boolean? result = OpenSourceFileDialog.ShowDialog();
-         if (result != true)
-         {
-            return;
-         }
-
-         ClearResultsAndReadFileToSourceTextbox();
-
-      }
+      
 
       private Boolean ClearResultsAndReadFileToSourceTextbox()
       {
@@ -178,6 +81,7 @@ namespace grammlator {
             // show source file with cursor at first position
             SetCursorTo(0, SourceTextBox, 0, 0);
             GrammlatorTabControl.SelectedIndex = 0;
+            OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
 
             EnableMenuItemsStoreFileName(OpenSourceFileDialog.FileName);
          }
@@ -219,7 +123,6 @@ namespace grammlator {
 
       private void Translate()
       {
-
          ClearAllResults();
 
          ResultFilename = "Errors_in_Source"; // default, is replaced after successfull translation
@@ -313,19 +216,7 @@ namespace grammlator {
          else
             GrammlatorTabControl.SelectedIndex = 1; // Log
       }
-
-      private void MenuItemReloadAndTranslate_Click(Object sender, RoutedEventArgs e)
-      {
-         if (String.IsNullOrEmpty(SourceFilename))
-         {
-            MessageBox.Show("unknown filename");
-         }
-         else if (ClearResultsAndReadFileToSourceTextbox())
-         {
-            Translate();
-         }
-      }
-
+            
       private readonly List<Int32> ErrorPositions = new List<Int32>();
 
       private void RemoveErrorBoxes()
@@ -374,8 +265,6 @@ namespace grammlator {
             if (Index < ErrorPositions.Count)
                SetCursorOfSourceTextbox(ErrorPositions[Index]);
          }
-         else
-            MessageBox.Show("sender is not a textbox ");
       }
 
       private void SetCursorOfSourceTextbox(Int32 position)
@@ -386,34 +275,8 @@ namespace grammlator {
          else
             SetCursorTo(0, SourceTextBox, 0);
       }
-
-      private void SourceTextBox_MouseEnter(Object sender, System.Windows.Input.MouseEventArgs e)
-      {
-         SourceTextBox.Focus();
-      }
-
-      private void ResultTextBox_MouseEnter(Object sender, System.Windows.Input.MouseEventArgs e)
-      {
-         ResultTextBox.Focus();
-      }
-
-      private void CompareIgnoringSeparators_Click(Object _1, RoutedEventArgs _2)
-      {
-         /* Compare result and source 
-          * and set both cursors to the first lines which are different.
-          * Thereby ignore text after #region and after #endregion up to the end of the line
-          * because this may contain the time of the grammlator translation which is not relevant
-         */
-
-         CompareSourceAndResultSpan(SourceTextBox.Text, ResultTextBox.Text,
-             out ReadOnlySpan<Char> differingSourceLine, out ReadOnlySpan<Char> differingResultLine,
-             out Int32 sourceDiffIndex, out Int32 resultDiffIndex);
-
-         SetCursorTo(0, SourceTextBox, sourceDiffIndex, differingSourceLine.Length < 3 ? 3 : differingSourceLine.Length);
-         SetCursorTo(6, ResultTextBox, resultDiffIndex, differingResultLine.Length < 3 ? 3 : differingResultLine.Length);
-         GrammlatorTabControl.SelectedIndex = 0;
-      }
-
+           
+      
       const Int32 ListboxDistanceAtRight = 35; // used to avoid horizontal scrollbar in Listbox
 
 #pragma warning disable IDE1006 // Benennungsstile
@@ -436,31 +299,7 @@ namespace grammlator {
 
       private static void AppendLine(StringBuilder sb, String s1, String s2)
          => sb.Append(s1).AppendLine(s2);
-
-      private void ShowSettings_Click(Object sender, RoutedEventArgs e)
-      {
-         StringBuilder InfoBuilder = new StringBuilder(1000);
-         String Delimiter;
-
-         InfoBuilder.AppendLine("The grammlator settings are:").AppendLine();
-
-         foreach (Setting s in GlobalVariables.VisibleSettings)
-         {
-            if (s.HasType == Setting.SettingType.StringType)
-               Delimiter = "\"";
-            else
-               Delimiter = "";
-
-            InfoBuilder.Append(s.Name).Append(": ")
-               .Append(Delimiter).Append(s.InitialValueAsString).Append(Delimiter)
-               .AppendLine(";")
-               .Append("/* ").Append(s.Description).AppendLine(" */")
-               .AppendLine();
-         }
-         InfoTextBox.Text = InfoBuilder.ToString();
-         GrammlatorTabControl.SelectedIndex = 7;         
-      }
-
+            
       /// <summary>
       /// returns shortened message with reference to not yet created next messagebox
       /// </summary>
