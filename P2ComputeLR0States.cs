@@ -36,11 +36,6 @@ namespace Grammlator {
 
       private readonly ListOfParserActions ActionsOfActualState = new ListOfParserActions(100);
 
-      /// <summary>
-      /// Sum of the number of actions of all parser states.
-      /// </summary>
-      private Int32 NumberOfActions = 0;
-
       private readonly BitArray EmptyLookAheadSet = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
 
       private void ComputeLR0StatesAndActions()
@@ -71,7 +66,9 @@ namespace Grammlator {
             {
                ActionsOfActualState.Add(
                   new NonterminalTransition(
-                      NumberOfActions++, GlobalVariables.Startsymbol, GlobalVariables.ListOfAllHaltActions[0], EmptyLookAheadSet)
+                      GlobalVariables.NumberOfActions++,
+                      GlobalVariables.Startsymbol,
+                      GlobalVariables.ListOfAllHaltActions[0], EmptyLookAheadSet)
                       );
             }
 
@@ -83,8 +80,10 @@ namespace Grammlator {
                if (CoreItem.ElementNr >= CoreItem.SymbolDefinition.Elements.Length)
                {   // enditem: add reduce action to ActionsOfActualState
                   ActionsOfActualState.Add(
-                     new LookaheadAction(number: NumberOfActions++, definition: CoreItem.SymbolDefinition,
-                     EmptyLookAheadSet, GlobalVariables.ListOfAllHaltActions[0]
+                     new LookaheadAction(
+                        number: GlobalVariables.NumberOfActions++,
+                        lookAheadSet: EmptyLookAheadSet,
+                        nextAction: CoreItem.SymbolDefinition
                      )
                      );
                }
@@ -274,8 +273,9 @@ namespace Grammlator {
             if (nonterminalInputSymbol.NontrivialDefinitionsList.Count > 0)
             {
                ActionsOfActualState.Add(
-                   new NonterminalTransition(NumberOfActions++,
-                       nonterminalInputSymbol, nextAction, EmptyLookAheadSet)
+                   new NonterminalTransition(
+                      GlobalVariables.NumberOfActions++,
+                      nonterminalInputSymbol, nextAction, EmptyLookAheadSet)
                    );
             }
          }
@@ -296,7 +296,9 @@ namespace Grammlator {
                var inputSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
                inputSymbols[inputSymbol.SymbolNumber] = true;
                ActionsOfActualState.Add(
-                   new TerminalTransition(NumberOfActions++, inputSymbols, nextAction));
+                   new TerminalTransition(
+                      GlobalVariables.NumberOfActions++,
+                      inputSymbols, nextAction));
             }
             else
             {
@@ -368,9 +370,9 @@ namespace Grammlator {
             {
                ActionsOfActualState.Add(
                   new LookaheadAction(
-                        number: NumberOfActions++,
-                        definition: Definition,
-                        EmptyLookAheadSet, GlobalVariables.ListOfAllHaltActions[0]
+                        number: GlobalVariables.NumberOfActions++,
+                        lookAheadSet: EmptyLookAheadSet,
+                        nextAction: Definition
                         )
                   );
             }

@@ -84,10 +84,6 @@ namespace Grammlator {
             base.CountUsage(Accept);
             foreach (ParserAction actionOfParserstate in Actions)
                actionOfParserstate.CountUsage(false);
-
-            // Generating the error handler will generate a call of the state
-            if (ContainsErrorHandlerCall)
-               base.CountUsage(false);
          }
       }
 
@@ -539,7 +535,7 @@ namespace Grammlator {
       /// and if this is the case add an error action.
       /// </summary>
       /// <returns>The added action or null if none added</returns>
-      public ErrorhandlingAction? CheckAndAddErrorAction(Boolean ErrorHandlerIsDefined)
+      public ConditionalAction? CheckAndAddErrorAction(Boolean ErrorHandlerIsDefined)
       {
          BitArray allowedSymbols;
          if (PossibleInputTerminals == null)
@@ -547,17 +543,13 @@ namespace Grammlator {
          else
             allowedSymbols = new BitArray(PossibleInputTerminals!).Not();
 
-         ErrorhandlingAction e;
          Int32 counter = 0;
-         //Boolean containsLookaheadAction = false;
 
          foreach (ConditionalAction conditionalAction in Actions.OfType<ConditionalAction>())
          {
             Debug.Assert(!(conditionalAction is NonterminalTransition));
             allowedSymbols.Or(conditionalAction.TerminalSymbols);
             counter++;
-            //if (conditionalAction is LookaheadAction)
-            //   containsLookaheadAction = true;
          }
 
          if (counter == 0)
@@ -566,14 +558,28 @@ namespace Grammlator {
          if (allowedSymbols.All())
             return null; // in this state all terminal symbols are allowed
 
-         // Add ErrorhandlingAction
-         e = new ErrorhandlingAction(
+         ConditionalAction e;
+         if (GlobalVariables.ErrorHandlerIsDefined)
+         {
+            // Add ErrorhandlingAction
+            e = new ErrorhandlingAction(
              lookAhead: new BitArray(allowedSymbols).Not(),
              idNumber: this.IdNumber, // use the IdNumber of the ParserState as IdNumber of the ErrorHandlingAction
              state: this
              );
-         Actions!.Add(e);
+         }
+         else
+         { // Add LookaheadAction with nextAction ErrorHaltAction
+            e = new LookaheadAction(
+               number: GlobalVariables.NumberOfActions++,
+               lookAheadSet: new BitArray(allowedSymbols).Not(),
+               nextAction: GlobalVariables.TheOnlyOneErrorHaltAction
+               );
+         }
 
+         Actions.Add(e);
+         e.CountUsage(false);
+         e.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);
          ContainsErrorHandlerCall = ErrorHandlerIsDefined;
          return e;
       }

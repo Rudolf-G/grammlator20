@@ -614,7 +614,7 @@ namespace Grammlator {
             if (GotoHasBeenGenerated)
                break;
 
-            // gegebenenfalls Blockanfang erzeugen
+            // if need generate begin of block
             if (!BeginOfBlockHasBeenGenerated && codegen.IndentationLevel > 0)
             {
                codegen.GenerateBeginOfBlock();
@@ -906,10 +906,6 @@ namespace Grammlator {
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
       private ParserAction? SortAndGenerateConditionalActionsOfState(ParserState state, out Boolean accept)
       {
-         // vorher : Aktion zeigt auf Zustand
-         // nachher: result == Folgeaktion == null oder 
-         //          result == Folgeaktion und akzeptieren geben die Folgeaktion an    
-
          /* only one action in state => return it 
             only few actions         => generate if instructions
             else                     => generate switch instruction
@@ -1051,7 +1047,7 @@ namespace Grammlator {
                   // If the statistics are not adjusted those code may be generated without label.
                   if (ThisAction is TerminalTransition)
                      ThisAction.NextAction.AcceptCalls++;
-                  else if (ThisAction is ErrorhandlingAction && GlobalVariables.ErrorHandlerIsDefined)
+                  else if (ThisAction is ErrorhandlingAction)
                      ThisAction.Calls++;
                   else
                      ThisAction.NextAction.Calls++;
@@ -1078,8 +1074,8 @@ namespace Grammlator {
          // implement "default:" as fall through
 
          ConditionalAction Action1 = LeadingAction, Action2 = TrailingAction;
-         ParserAction Action1Generate = (Action1 is ErrorhandlingAction && GlobalVariables.ErrorHandlerIsDefined) ? Action1 : Action1.NextAction;
-         ParserAction Action2Generate = (Action2 is ErrorhandlingAction && GlobalVariables.ErrorHandlerIsDefined) ? Action2 : Action2.NextAction;
+         ParserAction Action1Generate = Action1 is ErrorhandlingAction? Action1 : Action1.NextAction;
+         ParserAction Action2Generate = Action2 is ErrorhandlingAction? Action2 : Action2.NextAction;
 
          Boolean ActionsSwapped = false;
 

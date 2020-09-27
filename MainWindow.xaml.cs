@@ -138,10 +138,13 @@ namespace grammlator {
             else
             {
                // Set ResultFilename only after successfull translation
-               ResultFilename =
-                   Path.GetDirectoryName(SourceFilename) + "\\" +
-                   Path.GetFileNameWithoutExtension(SourceFilename) + "-generated" +
-                   Path.GetExtension(SourceFilename);
+               if (!String.IsNullOrEmpty(SourceFilename))
+                  ResultFilename =
+                      Path.GetDirectoryName(SourceFilename) + "\\" +
+                      Path.GetFileNameWithoutExtension(SourceFilename) + "-generated" +
+                      Path.GetExtension(SourceFilename);
+               else
+                  ResultFilename = "";
             }
          }
          catch (ErrorInSourcedataException e)

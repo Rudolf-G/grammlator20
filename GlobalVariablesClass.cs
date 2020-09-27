@@ -232,6 +232,7 @@ namespace Grammlator {
             s.Reset();
 
          // Reset all static variables 
+         GlobalVariables.NumberOfActions = 0;
          GlobalVariables.OutputMessage = OutputMessage;
          GlobalVariables.OutputMessageAndPosition = outputMessageAndPosition;
          NumberOfTerminalSymbols = 0;
@@ -641,8 +642,10 @@ A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlato
       /// </summary>
       internal static BitArray AllTerminalSymbols = EmptyBitarray; // assigned in Phases1to5Controller
 
+      // Number of all terminal and nonterminal transitions and lookahead actions generated in P2 and in P4
+      internal static Int32 NumberOfActions;
       /// <summary>
-      /// Defined an used in phase 4, used in phase 5
+      /// Defined and used in phase 4, used in phase 5
       /// </summary>
       internal static readonly List<ReduceAction> ListOfAllReductions = new List<ReduceAction>(InitialCapacityOfListOfAllReductions);
 

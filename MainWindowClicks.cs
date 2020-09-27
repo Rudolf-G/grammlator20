@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -154,7 +155,26 @@ namespace grammlator {
          OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
       }
 
-      private void ShowSettings_Click(Object sender, RoutedEventArgs e)
+      private void DisplayExample_Click(Object sender, RoutedEventArgs e)
+      {
+         // String s= Environment.GetFolderPath(Environment.SpecialFolder.Resources);
+         Assembly ThisAssembly = typeof(GlobalVariables).Assembly;
+         String AssemblyFullPath = ThisAssembly.Location;
+         String AssemblyDirectory = AssemblyFullPath.Substring(0, AssemblyFullPath.LastIndexOf('\\') + 1);
+         String FileFullPath = AssemblyDirectory + "GrammlatorConsoleExample.txt";
+         bool exists=File.Exists(FileFullPath);
+         if (exists)
+         {
+            using var reader = new StreamReader(FileFullPath);
+            InfoTextBox.Text = reader.ReadToEnd();
+         }
+         else
+            InfoTextBox.Text = "File not found: " + FileFullPath;
+         GrammlatorTabControl.SelectedIndex = 7;
+         OnFocusTextBox(new FocusTextBoxEventArgs(InfoTextBox));
+      }
+
+      private void DisplaySettings_Click(Object sender, RoutedEventArgs e)
       {
          StringBuilder InfoBuilder = new StringBuilder(1000);
          String Delimiter;
@@ -176,6 +196,7 @@ namespace grammlator {
          }
          InfoTextBox.Text = InfoBuilder.ToString();
          GrammlatorTabControl.SelectedIndex = 7;
+         OnFocusTextBox(new FocusTextBoxEventArgs(InfoTextBox));
       }
 
       private void SourceTextBox_MouseEnter(Object sender, System.Windows.Input.MouseEventArgs e)

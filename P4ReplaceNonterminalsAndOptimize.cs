@@ -1136,13 +1136,11 @@ namespace Grammlator {
                }
             }
 
-            // Add error handling actions
-            ErrorhandlingAction? e = State.CheckAndAddErrorAction(GlobalVariables.ErrorHandlerIsDefined);
+            // Add error handling action or LookAheadAction
+            ConditionalAction? e = State.CheckAndAddErrorAction(GlobalVariables.ErrorHandlerIsDefined);
 
             if (e != null)
             {
-               e.CountUsage(false);
-               e.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);
                MaximumActionComplexity = max(MaximumActionComplexity, e.Complexity);
                ActionComplexitySum += e.Complexity;
             }

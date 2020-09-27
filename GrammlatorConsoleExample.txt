@@ -1,0 +1,60 @@
+using System; // .NET Core 3.1 Console Application
+using System.Diagnostics;
+
+namespace GrammlatorConsoleExample {
+   class Program {
+      static void Main(string[] args)
+      {
+         Console.WriteLine(@"Please type ""hello""");
+         new HelloExample().Answer(Console.ReadLine());
+      }
+   }
+
+   class HelloExample {
+      #region grammar
+      //| /* grammlator settings: */
+      //| TerminalSymbolEnum: "SomeLetters";
+      //| SymbolNameOrFunctionCall: "Peek()";
+      //| SymbolAcceptInstruction: "Accepted = true;";
+      //| ErrorHaltInstruction: "Console.WriteLine("":-("");";
+      //|
+      //| /* declaration of terminal symbols: */
+      //|    e | f | g | h | i | j | k | l | m | n | o | EndOfLine | other
+      // Option: grammlator compares this with the C# enum implementation:  
+      enum SomeLetters { e, f, g, h, i, j, k, l, m, n, o, EndOfLine, other };
+      //|
+      //| /* The 1st grammar rule defines the startsymbol "*=" */
+      //| *= h, e, l, l, o, EndOfLine
+      private static void Hello() => Console.WriteLine(":-)");
+      // This C# method will be called when "h, e, l, l, o, EndOfLine" is recognized 
+      //| 
+      #endregion grammar
+
+      public string Answer(string line)
+      {
+         static SomeLetters CharToSomeLetters(Char c)
+            => c < 'e' | c > 'o' ? SomeLetters.other : (SomeLetters)(c - 'e');
+
+         int Column = -1;
+         Boolean Accepted = true;
+         SomeLetters NextLetter = 0;
+
+         SomeLetters Peek()
+         {
+            if (Accepted)
+               NextLetter = (++Column >= line.Length)
+                  ? SomeLetters.EndOfLine
+                  : CharToSomeLetters(line[Column]);
+            Accepted = false;
+            return NextLetter;
+         }
+
+#region grammlator generated
+// This lines
+// are replaced by grammlator
+#endregion grammlator generated
+
+         return ":-)";
+      }
+   }
+}

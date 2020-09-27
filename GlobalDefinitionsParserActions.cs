@@ -1291,13 +1291,15 @@ namespace Grammlator {
       /// </summary>
       /// <param name="number">a unique number within all look ahead actions</param>
       /// <param name="definition">the <see cref="Definition"/> to be applied when the parser executes the <see cref="LookaheadAction"/></param>
-      internal LookaheadAction(Int32 number, Definition definition, BitArray lookAheadSet, ParserAction nextAction)
+      internal LookaheadAction(Int32 number, BitArray lookAheadSet, ParserAction nextAction)
          : base(lookAheadSet, nextAction)
       {
          this.IdNumber = number;
-         this.NextAction = definition;
-         this.ConstantPriority = definition.ConstantPriority;
-         this.PriorityFunction = definition.PriorityFunction;
+         if (NextAction is Definition definition)
+         {
+            this.ConstantPriority = definition.ConstantPriority;
+            this.PriorityFunction = definition.PriorityFunction;
+         }
       }
 
       internal override StringBuilder AppendToSB(StringBuilder sb)
