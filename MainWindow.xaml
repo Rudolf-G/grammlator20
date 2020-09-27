@@ -46,7 +46,8 @@
                 <TextBox x:Name="SourceTextBox" Text="No Source"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True" IsEnabled="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="SourceTextBox_MouseEnter"/>
+                         Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="SourceTextBox_MouseEnter" 
+                         TextChanged="SourceTextBox_TextChanged"/>
             </TabItem>
             <TabItem x:Name="TabItemLog" Header=" Log ">
                 <TextBox x:Name="LogTextBox" Text="Log is empty"
@@ -91,7 +92,7 @@
                          Padding="5,5,5,5" FontFamily="Consolas" />
             </TabItem>
         </TabControl>
-        <ListBox Name="lb" Grid.Row="3" Grid.ColumnSpan="1" SelectionMode="Single" SizeChanged="lb_SizeChanged"
+        <ListBox Name="GrammlatorListBox" Grid.Row="3" Grid.ColumnSpan="1" SelectionMode="Single" SizeChanged="ListBox_SizeChanged"
                  HorizontalContentAlignment="Left" VerticalContentAlignment="Top"/>
 
         <Menu x:Name="GrammlatorMenu">

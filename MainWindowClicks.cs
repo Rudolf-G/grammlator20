@@ -18,6 +18,17 @@ namespace grammlator {
          Filter = fileFilter
       };
 
+      private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs args)
+      {
+         if (MenuItemTranslateStandard == null)
+            return;
+
+         if ((sender as TextBox)?.LineCount > 10)
+            MenuItemTranslateStandard.IsEnabled = true;
+         else
+            MenuItemTranslateStandard.IsEnabled = false;
+      }
+
       private void MenuItemSaveResult_Click(Object sender, RoutedEventArgs e)
       {
          SaveSourceOrResultDialog.Title = "Save result";

@@ -20,7 +20,6 @@ namespace grammlator {
       {
          InitializeComponent();
          Title = "grammlator - no file -";
-         MenuItemTranslateStandard.IsEnabled = false;
          MenuItemReloadAndTranslate.IsEnabled = false;
          FocusTextBox += HandleFocusTextBox;
          OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
@@ -65,9 +64,7 @@ namespace grammlator {
          errors = 0;
          firstErrorIndex = -1;
          aborted = false;
-      }      
-
-      
+      }
 
       private Boolean ClearResultsAndReadFileToSourceTextbox()
       {
@@ -104,7 +101,6 @@ namespace grammlator {
          MenuItemTranslateStandard.IsEnabled = true;
          MenuItemReloadAndTranslate.IsEnabled = true;
       }
-
 
       internal void SetCursorTo(Int32 tabIndex, TextBox box, Int32 position, Int32 length = 3)
       {
@@ -208,20 +204,20 @@ namespace grammlator {
          // Show source end select first one if there is a box with error message,  else show log
          if (firstErrorIndex >= 0)
          {
-            lb.SelectedIndex = 0;
-            lb.SelectedIndex = firstErrorIndex;
-            lb.ScrollIntoView(lb.SelectedItem);
+            GrammlatorListBox.SelectedIndex = 0;
+            GrammlatorListBox.SelectedIndex = firstErrorIndex;
+            GrammlatorListBox.ScrollIntoView(GrammlatorListBox.SelectedItem);
             GrammlatorTabControl.SelectedIndex = 0; // Source
          }
          else
             GrammlatorTabControl.SelectedIndex = 1; // Log
       }
-            
+
       private readonly List<Int32> ErrorPositions = new List<Int32>();
 
       private void RemoveErrorBoxes()
       {
-         ItemCollection ic = lb.Items;
+         ItemCollection ic = GrammlatorListBox.Items;
          ic.Clear();
          ErrorPositions.Clear();
       }
@@ -232,9 +228,9 @@ namespace grammlator {
          ErrorPositions.Add(position);
 
          var tb = new TextBox {
-            Name = 'E' + lb.Items.Count.ToString(),
+            Name = 'E' + GrammlatorListBox.Items.Count.ToString(),
             Text = text,
-            Width = lb.ActualWidth - ListboxDistanceAtRight,
+            Width = GrammlatorListBox.ActualWidth - ListboxDistanceAtRight,
             IsReadOnly = true,
             IsEnabled = true,
             AcceptsReturn = true,
@@ -250,14 +246,20 @@ namespace grammlator {
             HorizontalContentAlignment = HorizontalAlignment.Left,
             VerticalContentAlignment = VerticalAlignment.Top
          };
-         tb.GotFocus += TextBox_GotFocus;
+         tb.GotFocus += ErrorBox_GotFocus;
+         tb.MouseDoubleClick += ErrorBox_DoubleClick;
 
-         lb.ClipToBounds = true;
-         lb.Items.Add(tb);
+         GrammlatorListBox.ClipToBounds = true;
+         GrammlatorListBox.Items.Add(tb);
 
       }
 
-      private void TextBox_GotFocus(Object sender, RoutedEventArgs e)
+      private void ErrorBox_DoubleClick(Object sender, RoutedEventArgs e)
+      {
+         OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
+      }
+
+      private void ErrorBox_GotFocus(Object sender, RoutedEventArgs e)
       {
          if (sender is TextBox tb)
          {
@@ -275,12 +277,11 @@ namespace grammlator {
          else
             SetCursorTo(0, SourceTextBox, 0);
       }
-           
-      
+
+
       const Int32 ListboxDistanceAtRight = 35; // used to avoid horizontal scrollbar in Listbox
 
-#pragma warning disable IDE1006 // Benennungsstile
-      private void lb_SizeChanged(Object sender, SizeChangedEventArgs _)
+      private void ListBox_SizeChanged(Object sender, SizeChangedEventArgs _)
       { // Adjust Width of contained TextBox (may be contained in a ListBoxItem)
          if (!(sender is ListBox lb))
             return;
@@ -294,12 +295,10 @@ namespace grammlator {
                containedTb.Width = li.ActualWidth - ListboxDistanceAtRight;
             }
       }
-#pragma warning restore IDE1006 // Benennungsstile
-
 
       private static void AppendLine(StringBuilder sb, String s1, String s2)
          => sb.Append(s1).AppendLine(s2);
-            
+
       /// <summary>
       /// returns shortened message with reference to not yet created next messagebox
       /// </summary>

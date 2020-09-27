@@ -31,7 +31,7 @@ namespace Grammlator {
       WhiteSpace,     //  or CommentLines, used as delimiter, skipped by lexer
       Slash,          // delimiter of comments
       OtherCharacter, // allowed only in comments
-      Apostrophe,     // delimits strings constants used as names
+      Quotationmark,     // delimits strings constants used as names
       Letter, Digit   // as part of names and numbers
       };
 
@@ -310,7 +310,7 @@ namespace Grammlator {
             ClassifierResult.Asterisk, // *
             ClassifierResult.Minus, // -
 
-            ClassifierResult.Apostrophe, // "
+            ClassifierResult.Quotationmark, // "
             ClassifierResult.Slash, // /
 
             // The following characters are interpreted as letters in additon to all characters of the class char.IsLetter(c)
