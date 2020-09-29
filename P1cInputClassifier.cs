@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Windows.Xps;
 
-namespace Grammlator {
+namespace grammlator {
    /// <summary>
    /// This enum defines the characters and character groups recognized by InputClassifier and used by Lexer.
    /// </summary>

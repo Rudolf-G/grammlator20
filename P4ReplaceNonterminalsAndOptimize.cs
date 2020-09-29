@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Grammlator {
+namespace grammlator {
    internal class P4ReplaceNonterminalsAndOptimize {
       /* Phase 4 checks all states and handles alls actions which would cause "apply definition" 
        *    (execute semantic method and go back to a state in the state stack, input 
@@ -1130,7 +1130,7 @@ namespace Grammlator {
                // Compute Terminalcount and SumOfWeights of the action
                if (State.Actions[ActionIndex] is ConditionalAction c)
                {
-                  c.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);
+                  c.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbols);
                   MaximumActionComplexity = max(MaximumActionComplexity, c.Complexity);
                   ActionComplexitySum += c.Complexity;
                }

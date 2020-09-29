@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Grammlator {
+namespace grammlator {
    /// <summary>
    /// Defines .TrimEnd (params Char[] TrimChars)
    /// </summary>

@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-using static Grammlator.GlobalVariables;
+using static grammlator.GlobalVariables;
 
-namespace Grammlator {
+namespace grammlator {
    internal static class Phases1to5 {
       /// <summary>
       /// Translates the source using <paramref name="Resultbuilder"/> to output the result, 
@@ -163,7 +163,9 @@ namespace Grammlator {
 
          // ----- Do phase 5 with a specific code generator
          outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 5: generate result");
-         P5GenerateCode.MakeInstanceAndExecute(new P5CodegenCS(Resultbuilder));
+
+         GlobalVariables.Codegen = new P5CodegenCS(Resultbuilder);
+         P5GenerateCode.MakeInstanceAndExecute(GlobalVariables.Codegen);
 
          // ----- Copy trailing lines of source to result
          outputMessage(MessageTypeOrDestinationEnum.Information,

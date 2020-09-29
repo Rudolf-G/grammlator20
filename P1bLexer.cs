@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace Grammlator {
+namespace grammlator {
 #pragma warning disable CS1591 // Fehlender XML-Kommentar für öffentlich sichtbaren Typ oder Element
    [Flags]
    public enum LexerResult { // Defines the output of the lexer, which is assigned to Symbol to be used by the parser
@@ -170,7 +170,7 @@ namespace Grammlator {
              , LexerTextPos
              ); // throws an exception
 
-         _a.Free(_a.Count - aCountBeforeAccept);  // discard the attributes of the discarded terminal symbol
+         _a.Remove(_a.Count - aCountBeforeAccept);  // discard the attributes of the discarded terminal symbol
          return true; // continue parsing
          ;
       }
@@ -474,7 +474,7 @@ namespace Grammlator {
 
       //| String(Int32 stringIndex) =
       //|    Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex) ??-111??
-      private void GetStringIndex(Int32 startIndex, Int32 endIndex, out Int32 stringIndex)
+      private void GetStringIndex(out Int32 stringIndex)
       {
          stringIndex = 
             GlobalVariables.GetIndexOfString(StringCharacterSequence.Append("\"").ToString());
@@ -488,7 +488,7 @@ namespace Grammlator {
          StringCharacterSequence.Clear().Append("\"");
          ;
       }
-      StringBuilder StringCharacterSequence = new StringBuilder(128);
+      readonly StringBuilder StringCharacterSequence = new StringBuilder(128);
 
       //|    | StringCharacterSequence, anyCharacterExceptQuotationmark(Int32 index)
       private void StringAppendCharacter(Int32 index)
@@ -517,7 +517,7 @@ namespace Grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated Sun, 27 Sep 2020 09:00:57 GMT (grammlator, File version 2020.09.25.0 26.09.2020 18:49:54)
+#region grammlator generated 28 Sep 2020 (grammlator file version/date 2020.09.28.0/28 Sep 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fCSharpStart = 2L << (Int32)ClassifierResult.CSharpStart;
   const Int64 _fCSharpEnd = 2L << (Int32)ClassifierResult.CSharpEnd;
@@ -557,7 +557,7 @@ State2:
 
      AssignCSharpStartToSymbol();
 
-     _a.Free();
+     _a.Remove();
      goto EndOfGeneratedCode;
      }
   case ClassifierResult.CSharpEnd:
@@ -569,7 +569,7 @@ State2:
 
      AssignCSharpEndToSymbol();
 
-     _a.Free();
+     _a.Remove();
      goto EndOfGeneratedCode;
      }
   case ClassifierResult.Questionmark:
@@ -589,7 +589,7 @@ State2:
 
      AssignDoubleQuestionmarkToSymbol();
 
-     _a.Free(2);
+     _a.Remove(2);
      goto EndOfGeneratedCode;
      }
   case ClassifierResult.Asterisk:
@@ -609,7 +609,7 @@ State2:
 
      AssignStarEqual();
 
-     _a.Free(2);
+     _a.Remove(2);
      goto EndOfGeneratedCode;
      }
   case ClassifierResult.Minus:
@@ -629,7 +629,7 @@ State2:
 
      AssignMinusEqual();
 
-     _a.Free(2);
+     _a.Remove(2);
      goto EndOfGeneratedCode;
      }
   case ClassifierResult.WhiteSpace:
@@ -638,7 +638,7 @@ State2:
      // Reduce5:
      /* aAdjust: -1
       * GapString= Gap, WhiteSpace(Int32 i);◄ */
-     _a.Free();
+     _a.Remove();
      goto Reduce1;
      }
   case ClassifierResult.Slash:
@@ -673,7 +673,7 @@ State2:
         index: _a.PeekRef(0)._Int32
         );
 
-     _a.Free();
+     _a.Remove();
      goto State3;
      }
   // >= ClassifierResult.Digit: goto AcceptReduce7 // see end of switch
@@ -720,7 +720,7 @@ State4:
      index: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
   goto State4;
 
 AcceptReduce27:
@@ -730,7 +730,7 @@ AcceptReduce27:
    * CommentcharacterSequenceNotEndingWithAsterisk= "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i);◄
    * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i);◄
    * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, anyCharacterExceptAsteriskAndSlash(Int32 i);◄ */
-  _a.Free();
+  _a.Remove();
 State10:
   const String StateDescription10 =
        "CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, ►\"*\"(Int32 i);\r\n"
@@ -754,7 +754,7 @@ AcceptReduce28:
    * CommentcharacterSequenceEndingWithAsterisk= "*"(Int32 i);◄
    * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "*"(Int32 i);◄
    * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, "*"(Int32 i);◄ */
-  _a.Free();
+  _a.Remove();
 State11:
   const String StateDescription11 =
        "Comment= \"/\"(Int32 i1), \"*\"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, ►\"/\"(Int32 iEnd);\r\n"
@@ -767,7 +767,7 @@ State11:
      // Reduce29:
      /* aAdjust: -3
       * Comment= "/"(Int32 i1), "*"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, "/"(Int32 iEnd);◄ */
-     _a.Free(3);
+     _a.Remove(3);
      goto Reduce1;
      }
   if (LexerInput == ClassifierResult.Asterisk)
@@ -813,7 +813,7 @@ State3:
      index: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
   goto State3;
 
 State6:
@@ -836,12 +836,10 @@ State6:
          * String(Int32 stringIndex)= Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex);◄ */
 
         GetStringIndex(
-           startIndex: _a.PeekRef(-1)._Int32,
-           endIndex: _a.PeekRef(0)._Int32,
            stringIndex: out _a.PeekRef(-1)._Int32
            );
 
-        _a.Free();
+        _a.Remove();
         // Reduce17:
         /* StartsymbolString(Int32 stringIndex)= String(Int32 stringIndex);◄
          * then: *Startsymbol= Gap, StartsymbolNumber(Int32 value);◄
@@ -859,7 +857,7 @@ State6:
 
      StringAppendQuotationmark();
 
-     _a.Free(2);
+     _a.Remove(2);
      goto State6;
      }
   if (LexerInput == ClassifierResult.CSharpStart || LexerInput == ClassifierResult.CSharpEnd)
@@ -878,7 +876,7 @@ State6:
      index: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
   goto State6;
 
 State8:
@@ -895,7 +893,7 @@ State8:
 
      SlashSlashComment();
 
-     _a.Free(2);
+     _a.Remove(2);
      goto Reduce1;
      }
   if (LexerInput != ClassifierResult.Asterisk)
@@ -929,7 +927,7 @@ Reduce2:
      index: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
   goto EndOfGeneratedCode;
 
 ApplyStartsymbolDefinition2:
@@ -939,12 +937,12 @@ AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
 
 EndWithError:
   // This point is reached after an input error has been found
-  _a.Free(_a.Count - _AttributeStackInitialCount);
+  _a.Remove(_a.Count - _AttributeStackInitialCount);
 
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Sun, 27 Sep 2020 09:00:57 GMT (grammlator, File version 2020.09.25.0 26.09.2020 18:49:54)
+#endregion grammlator generated 28 Sep 2020 (grammlator file version/date 2020.09.28.0/28 Sep 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

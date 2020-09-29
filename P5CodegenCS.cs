@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Text;
 
-namespace Grammlator
+namespace grammlator
 {
    
    /// <summary>
@@ -51,8 +51,7 @@ namespace Grammlator
 
       public void GenerateStartOfCodeAndCopyCodeToResultBuilder(
           Boolean GenerateStateStackInitialCountVariable,
-          Boolean GenerateAttributeStackInitialCountVariable,
-          Boolean[] IsUsedInIsIn)
+          Boolean GenerateAttributeStackInitialCountVariable)
       {
 
          StringBuilder ResultPart2 = CodeBuilder;
@@ -86,13 +85,13 @@ namespace Grammlator
          }
 
          Boolean AtLeastOne = false;
-         for (Int32 i = 0; i < IsUsedInIsIn.Length; i++)
+         foreach(TerminalSymbol t in GlobalVariables.TerminalSymbols)
          {
-            if (IsUsedInIsIn[i])
+            if (t.IsUsedInIsIn)
             {
                AtLeastOne = true;
                // generate e.g. "const Int64 _CSharpEnd = 2L << (Int32)LexerResult.CSharpEnd;"
-               String Identifier = GlobalVariables.TerminalSymbolByIndex[i].Identifier;
+               String Identifier = t.Identifier;
                IndentExactly()
                   .Append("const Int64 ")
                   .Append(GlobalVariables.FlagsPrefix.Value)
@@ -600,12 +599,12 @@ namespace Grammlator
          else if (AttributkellerKorrektur == -1)
          {
             IndentAndAppend(AttributeAccessPrefix);
-            Append("Free(); ");
+            Append("Remove(); ");
          }
          else
          {
             IndentAndAppend(AttributeAccessPrefix);
-            Append("Free(", -AttributkellerKorrektur, "); ");
+            Append("Remove(", -AttributkellerKorrektur, "); ");
          }
       }
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Collections;
 
-namespace Grammlator {
+namespace grammlator {
    /// <summary>
    /// Grammlator Parser (uses Lexer which uses InputClassifier)
    /// </summary>
@@ -872,7 +872,7 @@ namespace Grammlator {
             if (symbol == LexerResult.CSharpStart)
                Lexer.AcceptSymbol();
          }
-         _a.Free(_a.Count - aCountBeforeAccept);  // discard the attributes of the discarded terminal symbol
+         _a.Remove(_a.Count - aCountBeforeAccept);  // discard the attributes of the discarded terminal symbol
          return true; // true: continue analysis (goto state ...), else "goto EndWithError..."
                       // TODO Errorhandling: design and implement a concept to insert a missing character (e.g. if state accepts only a single terminal symbol)
       }
@@ -882,7 +882,7 @@ namespace Grammlator {
          // Declare local variables used by grammlator generated code
          LexerResult ParserInput;
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated Fri, 25 Sep 2020 22:19:51 GMT (grammlator, File version 2020.09.23.0 25.09.2020 22:17:24)
+#region grammlator generated 28 Sep 2020 (grammlator file version/date 2020.09.28.0/28 Sep 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fDefiningSymbol = 2L << (Int32)LexerResult.DefiningSymbol;
@@ -1003,7 +1003,7 @@ Reduce78:
      SymbolAtLeftSide: _a.PeekRef(-1)._Symbol
      );
 
-  _a.Free(2);
+  _a.Remove(2);
 State79:
   const String StateDescription79 =
        "GrammlatorGrammar= OptionalGrammlatorSettings, OptionalDeclarationOfTerminalSymbols, GrammarRuleList, ►TerminatorAtEndOfGrammar;\r\n"
@@ -1100,7 +1100,7 @@ Reduce24:
      NumberOfAttributes: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
 State25:
   const String StateDescription25 =
        "Element= RepeatedElement(Symbol Symbol)●;\r\n"
@@ -1149,7 +1149,7 @@ State25:
      Symbol: _a.PeekRef(0)._Symbol
      );
 
-  _a.Free();
+  _a.Remove();
 Branch3:
   switch (_s.Peek())
   {
@@ -1283,7 +1283,7 @@ Reduce26:
      method: _a.PeekRef(0)._VoidMethodClass
      );
 
-  _a.Free();
+  _a.Remove();
 State31:
   const String StateDescription31 =
        "outerDefinitions= EndOfDefinitionWithSemantics, ►\";\"?;\r\n"
@@ -1344,7 +1344,7 @@ Branch9:
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
-     _a.Free();
+     _a.Remove();
      goto State35;
      }
   case 2:
@@ -1363,7 +1363,7 @@ Branch9:
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
-     _a.Free();
+     _a.Remove();
      goto Branch14;
      }
   case 6:
@@ -1376,7 +1376,7 @@ Branch9:
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
-     _a.Free();
+     _a.Remove();
      goto State64;
      }
   case 9:
@@ -1389,7 +1389,7 @@ Branch9:
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
-     _a.Free();
+     _a.Remove();
      goto State71;
      }
   /*case 0:
@@ -1406,7 +1406,7 @@ Branch9:
      method: _a.PeekRef(0)._VoidMethodClass
      );
 
-  _a.Free(3);
+  _a.Remove(3);
 Branch5:
   switch (_s.Peek())
   {
@@ -1528,7 +1528,7 @@ State28:
      dynPriority: _a.PeekRef(0)._IntMethodClass
      );
 
-  _a.Free(2);
+  _a.Remove(2);
   goto Branch5;
 
 Reduce58:
@@ -1613,7 +1613,7 @@ Reduce60:
      SavedNumberOfSymbolAttributes: _a.PeekRef(-2)._Int32
      );
 
-  _a.Free(6);
+  _a.Remove(6);
   // Branch12:
   switch (_s.Peek())
   {
@@ -1649,7 +1649,7 @@ Reduce63:
      Symbol: _a.PeekRef(0)._Symbol
      );
 
-  _a.Free();
+  _a.Remove();
 State68:
   const String StateDescription68 =
        "Definition= SequenceOfElements, ►EndOfDefinition;\r\n"
@@ -1776,7 +1776,7 @@ Reduce4:
      Weight: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(3);
+  _a.Remove(3);
   // Branch1:
   if (_s.Peek() == 0)
      goto State5;
@@ -1947,7 +1947,7 @@ State13:
      enumElementStringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
 State15:
   const String StateDescription15 =
        "CSEnumMembers= \"{\", CSEnumMemberList, ►\"}\";\r\n"
@@ -1992,7 +1992,7 @@ State14:
      enumNumber: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(2);
+  _a.Remove(2);
   goto State15;
 
 State16:
@@ -2027,7 +2027,7 @@ State17:
   // Reduce14:
   /* aAdjust: -1
    * optionalBaseType= ":", Name(Int32 Ignored);◄ */
-  _a.Free();
+  _a.Remove();
   goto State10;
 
 State19:
@@ -2073,7 +2073,7 @@ State20:
      nameStringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(2);
+  _a.Remove(2);
   goto State9;
 
 State21:
@@ -2093,7 +2093,7 @@ State21:
         nameStringIndex: _a.PeekRef(0)._Int32
         );
 
-     _a.Free(4);
+     _a.Remove(4);
      goto State9;
      }
   if (ParserInput != LexerResult.Colon
@@ -2114,7 +2114,7 @@ State21:
      nameStringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(3);
+  _a.Remove(3);
   goto State9;
 
 State26:
@@ -2165,7 +2165,7 @@ Branch4:
         Symbol: _a.PeekRef(0)._Symbol
         );
 
-     _a.Free();
+     _a.Remove();
      goto Branch3;
      }
   case 6:
@@ -2184,7 +2184,7 @@ Branch4:
      Symbol: _a.PeekRef(0)._Symbol
      );
 
-  _a.Free();
+  _a.Remove();
   goto State32;
 
 State27:
@@ -2441,7 +2441,7 @@ State46:
      nameStringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(2);
+  _a.Remove(2);
 Branch10:
   switch (_s.Peek())
   {
@@ -2493,7 +2493,7 @@ State44:
         nameStringIndex: _a.PeekRef(0)._Int32
         );
 
-     _a.Free(3);
+     _a.Remove(3);
      goto Branch10;
      }
   if (ParserInput == LexerResult.Questionmark)
@@ -2519,7 +2519,7 @@ State44:
      nameStringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(2);
+  _a.Remove(2);
   goto Branch10;
 
 State45:
@@ -2544,7 +2544,7 @@ State45:
      nameStringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(3);
+  _a.Remove(3);
   goto Branch10;
 
 State48:
@@ -2589,7 +2589,7 @@ State49:
      methodNameStringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
 Branch11:
   if (_s.Peek() == 0)
      goto State38;
@@ -2647,7 +2647,7 @@ State50:
         methodNameStringIndex: _a.PeekRef(0)._Int32
         );
 
-     _a.Free(3);
+     _a.Remove(3);
      goto Branch11;
      }
   if (ParserInput != LexerResult.GroupStart)
@@ -2668,7 +2668,7 @@ State50:
      methodNameStringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(2);
+  _a.Remove(2);
   goto Branch11;
 
 AcceptState51:
@@ -3113,7 +3113,7 @@ State81:
      stringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
 State82:
   const String StateDescription82 =
        "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), \"-=\", ListOfExcludedTerminalSymbols, ►\";\";\r\n"
@@ -3159,7 +3159,7 @@ State83:
      nameIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
   goto State82;
 
 State86:
@@ -3254,14 +3254,14 @@ Branch17:
         smallestNumberOfRightGroup: _a.PeekRef(0)._Int32
         );
 
-     _a.Free();
+     _a.Remove();
      goto Branch17;
      }
   // Reduce86:
   /* sAdjust: -1, aAdjust: -1
    * "(Attributes)"(Int32 numberOfAttributes)= "(", "Attributes)"(Int32 numberOfAttributes, Int32 smallestNumber);◄ */
   _s.Pop();
-  _a.Free();
+  _a.Remove();
   goto Branch16;
 
 State88:
@@ -3302,7 +3302,7 @@ State89:
      nameStringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free();
+  _a.Remove();
   goto State87;
 
 State90:
@@ -3397,7 +3397,7 @@ Reduce94:
      value: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(2);
+  _a.Remove(2);
   goto State2;
 
 State92:
@@ -3427,7 +3427,7 @@ Reduce92:
      stringIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(2);
+  _a.Remove(2);
   goto State2;
 
 State93:
@@ -3457,7 +3457,7 @@ Reduce93:
      valueIndex: _a.PeekRef(0)._Int32
      );
 
-  _a.Free(2);
+  _a.Remove(2);
   goto State2;
 
 Reduce36:
@@ -3503,13 +3503,13 @@ HandleError32:
 EndWithError:
   // This point is reached after an input error has been found
   _s.Discard(_s.Count - _StateStackInitialCount);
-  _a.Free(_a.Count - _AttributeStackInitialCount);
+  _a.Remove(_a.Count - _AttributeStackInitialCount);
 
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Fri, 25 Sep 2020 22:19:51 GMT (grammlator, File version 2020.09.23.0 25.09.2020 22:17:24)
-         /* ************************ code written by programmer ******************** */
+#endregion grammlator generated 28 Sep 2020 (grammlator file version/date 2020.09.28.0/28 Sep 2020)
+
       }
    }
 }

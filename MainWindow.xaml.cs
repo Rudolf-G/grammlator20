@@ -1,4 +1,4 @@
-﻿using Grammlator;
+﻿using grammlator;
 
 using Microsoft.Win32;
 

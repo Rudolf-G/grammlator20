@@ -5,11 +5,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Grammlator {
+namespace grammlator {
    /// <summary>
    /// IdNumbers of <see cref="ParserState"/>s are assigned at start of phase 2 and reset at end of phase 2
    /// </summary>
-   internal sealed class ParserState : ParserAction, IELementOfPartition {
+   internal sealed partial class ParserState : ParserAction, IELementOfPartition {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isParserState;
 
       internal ItemList CoreItems = new ItemList();
@@ -386,7 +386,7 @@ namespace Grammlator {
          sb.AppendLine().Append("caused by == ");
          subsetOfConflictSymbols.BitsToStringbuilder(
              sb,
-             GlobalVariables.TerminalSymbolByIndex,
+             GlobalVariables.TerminalSymbols,
              " | ",
              "all terminal symbols",
              "no terminal symbols")
@@ -579,7 +579,7 @@ namespace Grammlator {
 
          Actions.Add(e);
          e.CountUsage(false);
-         e.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbolByIndex);
+         e.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbols);
          ContainsErrorHandlerCall = ErrorHandlerIsDefined;
          return e;
       }
@@ -668,12 +668,6 @@ namespace Grammlator {
          }
 
          return this;
-      }
-
-      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
-      {
-         base.Generate(codegen, out accept); // throw not implemented exception
-         return null;
       }
    } // ParserState
 

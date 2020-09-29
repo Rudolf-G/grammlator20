@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Grammlator {
+namespace grammlator {
    /// <summary>
    /// <see cref="GrammlatorMemoryReader"/> is a StringReader which counts the read lines and makes the actual <see cref="LineNumber"/> available
    /// </summary>

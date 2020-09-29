@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace Grammlator {
+namespace grammlator {
    /// <summary>
    /// <see cref="ParserActionEnum"/> is used to sort the actions of a state and to output the name of the type of actions.
    /// The order of the enum elements corresponds to the order of the elements
@@ -62,7 +62,7 @@ namespace Grammlator {
       }
    }
 
-   internal abstract class ParserAction :
+   internal abstract partial class ParserAction :
       EqualityComparer<ParserAction>, // implements: public Boolean Equals(ParserAction? a1, ParserAction? a2)
                                       // IComparable<ParserAction>, // implements: Int32 CompareTo([AllowNull] T other);
       IUniqueIndex  // implements: Int32 IdNumber {get;}
@@ -176,16 +176,6 @@ namespace Grammlator {
          }
          Calls++;
       }
-
-      /// <summary>
-      /// Generate the code implementing this action. 
-      /// Return the next action to generate or null.
-      /// </summary>
-      /// <param name="codegen">The class that implements the generation of the code</param>
-      /// <param name="accept"></param>
-      /// <returns>the next action to generate or null</returns>
-      internal virtual ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
-         => throw new NotImplementedException($"Codegeneration is not implemented for {ParserActionType}");
 
       internal virtual StringBuilder AppendToSB(StringBuilder sb)
          => sb.Append("Action ")
@@ -607,7 +597,7 @@ namespace Grammlator {
       public void RemoveFromEnd(Int32 n) => this.RemoveRange(this.Count - n, n);
    }
 
-   internal sealed class BranchAction : ParserAction {
+   internal sealed partial class BranchAction : ParserAction {
       internal BranchAction(BranchcasesList ListOfCases, Int32 IdNumber)
       {
          this.ListOfCases = ListOfCases;
@@ -798,7 +788,7 @@ namespace Grammlator {
    /// In phase4 definitions and nonterminal transitions are replaced by reduce actions with appropriate next actions
    /// (ParserState, BranchAction ...)
    /// </summary>
-   internal sealed class ReduceAction : ParserActionWithNextAction {
+   internal sealed partial class ReduceAction : ParserActionWithNextAction {
 
       internal ReduceAction(ParserAction nextAction) : base(nextAction) { }
 
@@ -905,80 +895,6 @@ namespace Grammlator {
 
          return foundReduceAction; // is a preceding listed reduce action or the given reduce action
       }
-
-      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
-      {
-         // Generate description
-         codegen.IndentExactly();
-         codegen.Append("/* ");
-         if (StateStackAdjustment != 0)
-         {
-            codegen.Append("sAdjust: ");
-            codegen.Append(-StateStackAdjustment);
-            if (AttributeStackAdjustment != 0)
-               codegen.Append(", ");
-         }
-         if (AttributeStackAdjustment != 0)
-         {
-            codegen.Append("aAdjust: ");
-            codegen.Append(AttributeStackAdjustment);
-         }
-         if (StateStackAdjustment != 0 || AttributeStackAdjustment != 0)
-            codegen.IndentExactly().Append(" * ");
-
-         codegen.IndentAndAppendLines(Description, " * ");
-         codegen.AppendLine(" */");
-
-         // Generate instructions to handle the state stack
-         if (this.StateStackAdjustment != 0)
-         {
-            if (this.StateStackAdjustment == 1)
-            {
-               codegen.IndentAndAppend(GlobalVariables.StateStack.Value)
-                  .AppendLine(".Pop(); ");
-            }
-            else
-            {
-               codegen.IndentAndAppend(GlobalVariables.StateStack.Value)
-                  .Append(".Discard(")
-                  .Append(this.StateStackAdjustment)
-                  .Append("); ");
-            }
-         }
-
-         // Generate instructions to handle the attribute stack and to call the method
-
-         if (this.AttributeStackAdjustment != 0 && this.FirstAdjustAttributeStackThenCallMethod)
-            codegen.GenerateAttributeStackAdjustment(this.AttributeStackAdjustment);
-
-         if (this.SemanticMethod != null)
-         {
-            codegen.IndentExactly()
-               .AppendLine() // empty line preceding method call
-               .GenerateSemanticMethodCall(this.SemanticMethod)
-               .AppendLine(";")
-               .AppendLine(); // empty line following method call
-         }
-
-         if (this.AttributeStackAdjustment != 0 && !this.FirstAdjustAttributeStackThenCallMethod)
-         {
-            codegen.Indent();
-            codegen.GenerateAttributeStackAdjustment(this.AttributeStackAdjustment);
-         }
-
-         // Gegebenenfalls die Zeile beenden
-         if (codegen.LineLength > 0)
-            codegen.AppendLine();
-
-         // return next action
-         accept = false;
-         Debug.Assert(
-            this.NextAction != null,
-            $"Error in Phase 5: {nameof(this.NextAction)} == null"
-            );
-
-         return this.NextAction;
-      }
    }
 
    internal abstract class ConditionalAction : ParserActionWithNextAction {
@@ -1041,7 +957,7 @@ namespace Grammlator {
       {
          sb.Append("if Symbol == ");
          TerminalSymbols.BitsToStringbuilder(
-            sb, GlobalVariables.TerminalSymbolByIndex, " | ", "all terminal symbols", "no terminal symbols")
+            sb, GlobalVariables.TerminalSymbols, " | ", "all terminal symbols", "no terminal symbols")
             .AppendLine("; ");
          return sb;
       }
@@ -1335,7 +1251,7 @@ namespace Grammlator {
 
    }
 
-   internal sealed class PriorityBranchAction : ParserAction {
+   internal sealed partial class PriorityBranchAction : ParserAction {
       internal PriorityBranchAction(
             ConditionalAction? constantPriorityAction,
             ListOfParserActions dynamicPriorityActions
@@ -1412,7 +1328,7 @@ namespace Grammlator {
             ((LookaheadAction)a).NextAction.CountUsage(false);
       }
    }
-   internal sealed class PrioritySelectAction : ConditionalAction {
+   internal sealed partial class PrioritySelectAction : ConditionalAction {
 
       /// <summary>
       /// Constructor
@@ -1435,7 +1351,7 @@ namespace Grammlator {
       {
          sb.Append("if Symbol == ");
          TerminalSymbols.BitsToStringbuilder(
-            sb, GlobalVariables.TerminalSymbolByIndex, " | ", "all terminal symbols", "no terminal symbols")
+            sb, GlobalVariables.TerminalSymbols, " | ", "all terminal symbols", "no terminal symbols")
             .AppendLine("; ");
 
          sb.Append("    then: ");
@@ -1462,7 +1378,7 @@ namespace Grammlator {
    /// <summary>
    /// <see cref="ErrorhandlingAction"/>s are added to the states in Phase 4 and used for code generation in phase5
    /// </summary>
-   internal sealed class ErrorhandlingAction : ConditionalAction {
+   internal sealed partial class ErrorhandlingAction : ConditionalAction {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isErrorhandlingAction;
 
       ///<summary>
@@ -1497,67 +1413,9 @@ namespace Grammlator {
            .Append("    then: call error handler from state ")
            .Append(State.IdNumber + 1);
       }
-
-      /// <summary>
-      /// Generates the assignment to StateNumber and the call of ErrorHandler dependent on the global variables or
-      /// if there is no error handling method defined, returns only the next action (error halt)
-      /// </summary>
-      /// <param name="accept"></param>
-      /// <returns>next action: <see cref="ErrorHaltAction>"/> </returns>
-      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
-      {
-         if (!String.IsNullOrEmpty(GlobalVariables.ErrorHandlerMethod.Value))
-         {
-            // generate ErrorHandlerCall   ErrorHandler(ErrorStateNumber, StateDescription, ParserInput);
-            codegen
-               .Indent()
-               .Append("if (")
-               .Append(GlobalVariables.ErrorHandlerMethod.Value)
-               .Append('(')
-               .Append(this.IdNumber + 1)
-               .Append(", ");
-            if (String.IsNullOrEmpty(GlobalVariables.StateDescriptionPrefix.Value))
-               codegen.Append("\"\""); // empty error description
-            else
-            {
-               codegen
-               .Append(GlobalVariables.StateDescriptionPrefix.Value)
-               .Append(this.State.IdNumber + 1);
-            }
-            codegen
-               .Append(", ")
-               .Append(GlobalVariables.SymbolNameOrFunctionCall.Value)
-               .AppendLine("))");
-
-            if (this.State.StateStackNumber >= 0)
-            { // generate {_s.POP(..); goto state...;}
-               codegen
-                  .IncrementIndentationLevel()
-                  .Indent()
-                  .AppendLine("{")
-                  .IndentAndAppend(GlobalVariables.StateStack.Value)
-                  .AppendLine(".Pop(); ")
-                  .GenerateGoto(this.State, accept: false)
-                  .IndentAndAppendLine("};")
-                  .DecrementIndentationLevel();
-            }
-            else
-            { // generate goto state...;
-               codegen
-                  .IncrementIndentationLevel()
-                  .Indent()
-                  .GenerateGoto(this.State, accept: false)
-                  .DecrementIndentationLevel();
-            }
-
-         }
-
-         accept = false;
-         return this.NextAction; // errorhandlingAction.NextAction == ErrorHalt  
-      }
    }
 
-   internal sealed class HaltAction : ParserActionWithNextAction {
+   internal sealed partial class HaltAction : ParserActionWithNextAction {
       /// <summary>
       /// Construct halt action with unique number>=1 and number of attributes to store
       /// </summary>
@@ -1587,32 +1445,6 @@ namespace Grammlator {
 
       internal override StringBuilder AppendShortToSB(StringBuilder sb)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
-
-      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
-      {
-         codegen.IndentExactly();
-         Int32 numberOfAttributesToStore = this.AttributestackAdjustment;
-         Debug.Assert(numberOfAttributesToStore >= 0);
-
-         codegen.IndentAndAppendLine("// Halt: a definition of the startsymbol with " + numberOfAttributesToStore.ToString() + " attributes has been recognized.");
-
-         if (GlobalVariables.ListOfAllStates[0].StateStackNumber >= 0)
-            codegen.IndentExactly()
-               .Append(GlobalVariables.StateStack.Value)
-               .Append(".Pop();");
-
-         if (numberOfAttributesToStore != 0)
-         {
-            codegen.Append("AttributesOfSymbol.CopyAndRemoveFrom(")
-               .Append(GlobalVariables.AttributeStack.Value)
-               .Append(", ")
-               .Append(numberOfAttributesToStore)
-               .AppendLine(");");
-         }
-
-         accept = false;
-         return this.NextAction;
-      }
    }
 
    /// <summary>
@@ -1620,7 +1452,7 @@ namespace Grammlator {
    /// which is referenced by <see cref="ErrorhandlingAction"/>s.
    /// This action typically calls a user method, resets the stack pointers and jumps to the end of gnerated code
    /// </summary>
-   internal sealed class ErrorHaltAction : ParserActionWithNextAction {
+   internal sealed partial class ErrorHaltAction : ParserActionWithNextAction {
       internal ErrorHaltAction() : base(GlobalVariables.TheEndOfGeneratedCodeAction) { }
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isErrorhaltAction;
 
@@ -1633,40 +1465,6 @@ namespace Grammlator {
 
       internal override StringBuilder AppendShortToSB(StringBuilder sb)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
-
-      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
-      {
-         codegen.IndentAndAppendLine(
-           "// This point is reached after an input error has been found");
-
-         // generate _s.Pop(x)
-         if (GlobalVariables.CountOfStatesWithStateStackNumber > 0)
-            codegen.IndentExactly()
-               .Append(GlobalVariables.StateStack.Value)
-               .Append(".Discard(")
-               .Append(GlobalVariables.StateStack.Value)
-               .Append(".Count - ")
-               .Append(GlobalVariables.StateStackInitialCountVariable.Value)
-               .AppendLine(");");
-         // codegen.IndentAndAppendLine("_s.Discard(_s.Count - StateStackInitialCount);");  // TODO als Ressource definieren
-
-         // generate _a.Free(x)
-         if (GlobalVariables.reductionsModifyAttributStack)
-            codegen.IndentExactly()
-               .Append(GlobalVariables.AttributeStack.Value)
-               .Append(".Free(")
-               .Append(GlobalVariables.AttributeStack.Value)
-               .Append(".Count - ")
-               .Append(GlobalVariables.AttributeStackInitialCountVariable.Value)
-               .AppendLine(");");
-
-         // generate additional instruction
-         if (!String.IsNullOrEmpty(GlobalVariables.ErrorHaltInstruction.Value))
-            codegen.IndentAndAppendLine(GlobalVariables.ErrorHaltInstruction.Value);
-
-         accept = false;
-         return GlobalVariables.TheOnlyOneErrorHaltAction.NextAction;
-      }
    }
 
    internal sealed class DeletedParserAction : ParserAction {
@@ -1694,14 +1492,8 @@ namespace Grammlator {
    /// which is referenced by <see cref="ErrorhandlingAction"/>s.
    /// This action typically calls a user method, resets the stack pointers and jumps to the end of gnerated code
    /// </summary>
-   internal sealed class EndOfGeneratedCodeAction : ParserAction {
+   internal sealed partial class EndOfGeneratedCodeAction : ParserAction {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isEndOfGeneratedCode;
-
-      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
-      {
-         accept = false;
-         return codegen.GenerateEndOfCodeAction();
-      }
 
       internal override StringBuilder AppendToSB(StringBuilder sb)
       {
@@ -1714,7 +1506,7 @@ namespace Grammlator {
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
    }
 
-   internal class PushStateAction : ParserActionWithNextAction {
+   internal sealed partial class PushStateAction : ParserActionWithNextAction {
 
       internal PushStateAction(Int32 idNumber, Int32 stateStackNumber, ParserAction nextAction)
          : base(nextAction)
@@ -1727,12 +1519,6 @@ namespace Grammlator {
          get {
             return ParserActionEnum.isPushStateAction;
          }
-      }
-      internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
-      {
-         accept = false;
-         codegen.GenerateStateStackPushWithOptionalLinebreak(this.StateStackNumber);
-         return this.NextAction;
       }
 
       internal override StringBuilder AppendToSB(StringBuilder sb)

@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using Microsoft.Extensions.ObjectPool;
 
-namespace Grammlator {
+namespace grammlator {
 
    public abstract class Setting {
       public enum SettingType {
@@ -109,7 +110,7 @@ namespace Grammlator {
             attributetypeStringIndexList: Array.Empty<Int32>(),
             attributenameStringIndexList: Array.Empty<Int32>()
             );
-         TerminalSymbolByIndex = Array.Empty<TerminalSymbol>();
+         TerminalSymbols = Array.Empty<TerminalSymbol>();
          OutputMessage = OutputToNirwana;
          OutputMessageAndPosition = OutputToNirwana;
          Startaction = new DeletedParserAction();
@@ -122,48 +123,20 @@ namespace Grammlator {
             String AssemblyFullPath = ThisAssembly.Location;
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(AssemblyFullPath);
             String FileVersion = fvi.FileVersion;
-            String FileWrittenDate = System.IO.File.GetLastWriteTime(AssemblyFullPath).ToString();
+            String FileWrittenDate = 
+               System.IO.File.GetLastWriteTime(AssemblyFullPath)
+               .ToString("d MMM yyyy");
 
-            /* FileVersion is used instead of Version because Version generally should  be changed only to reflect major changes.
-             */
+            /* Concept:
+             * FileVersion is incremented using year / month / day
+             * Version is incremented only to year / version to reflect major changes. */
 
-            /*
-           DateTimeOffset dto = (new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Local));
-           dto = (dto.AddDays(AVersion.Build).AddSeconds(AVersion.Revision * 2));
-           String buildTime = dto.ToUniversalTime().ToString("r");
-           // ToUniversalTime().ToString();
-
-           // https://msdn.microsoft.com/de-de/library/system.reflection.assemblyversionattribute%28v=vs.110%29.aspx
-
-           // File version: Die Fileversion wird in Visual Studio (an gleicher Stelle) gesondert festgelegt
-
-           // In Visual Studio kann unter Projekt / ... Eigenschaften // Veröffentlichen 
-           // die Produktversion eingestellt werden, optional so, dass die Revision bei jeder Veröffentlichung erhöht wird
-           // Info dazu bietet die Hilfeseite zur Eingabe in "Veröffentlichen"
-           // if (ApplicationDeployment.IsNetworkDeployed) {
-           //    string Version_Label = "Version " + ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString() +
-           //        " (Click-Once-Installation)" + buildTime;
-           //    }
-
-           String VersionInfo = new StringBuilder(100)
-              .Append(" by ")
-              .Append(AssemblyName.Name)
-              .Append(" version ")
-              .Append(AVersion.Major.ToString())
-              .Append(':')
-              .Append(AVersion.Minor.ToString())
-              .Append(" (build ")
-              .Append(buildTime)
-              .Append(')')
-              .ToString();
-           return VersionInfo;
-           */
             return new StringBuilder(100)
                .Append(" (")
                .Append(AssemblyName.Name)
-               .Append(", File version ")
+               .Append(" file version/date ")
                .Append(FileVersion)
-               .Append(" ")
+               .Append("/")
                .Append(FileWrittenDate)
                .Append(")")
                .ToString();
@@ -171,7 +144,8 @@ namespace Grammlator {
       }
 
       private static readonly String VersionInfo = GetVersioninfo;
-      internal static String TranslationInfo => DateTime.Now.ToString("r") + VersionInfo;
+      internal static String TranslationInfo => DateTime.Now.ToString("d MMM yyyy") + VersionInfo;
+
       internal const Int32 InitialCapacityOfListOfAllStates = 1000;
       internal const Int32 InitialCapacityOfListOfAllReductions = 400;
       internal const Int32 InitialCapacityOfListOfAllBranchActions = 200;
@@ -253,7 +227,7 @@ namespace Grammlator {
          ListOfAllHaltActions.Capacity = InitialCapacityOfListOfAllHaltActions;
          ListOfAllHaltActions.Add(new HaltAction(IdNumber: 0, AttributestackAdjustement: 0));
 
-         TerminalSymbolByIndex = Array.Empty<TerminalSymbol>();
+         TerminalSymbols = Array.Empty<TerminalSymbol>();
          AllTerminalSymbols = EmptyBitarray;
 
          ListOfAllStates.Clear();
@@ -582,7 +556,7 @@ A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlato
       /// <summary>
       /// Used to get terminal symbols by its indexes
       /// </summary>
-      internal static TerminalSymbol[] TerminalSymbolByIndex;
+      internal static TerminalSymbol[] TerminalSymbols;
 
       /// <summary>
       /// Called once after phase1 is finished.
@@ -592,11 +566,11 @@ A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlato
       /// <param name="symbolDictionary"></param>
       internal static void DefineArrayTerminalSymbolByIndex(Dictionary<Int32, Symbol> symbolDictionary)
       {
-         TerminalSymbolByIndex = new TerminalSymbol[NumberOfTerminalSymbols];
+         TerminalSymbols = new TerminalSymbol[NumberOfTerminalSymbols];
          foreach (KeyValuePair<Int32, Symbol> pair in symbolDictionary)
          {
             if (pair.Value is TerminalSymbol terminal)
-               TerminalSymbolByIndex[terminal.SymbolNumber] = terminal;
+               TerminalSymbols[terminal.SymbolNumber] = terminal;
          }
       }
 
@@ -605,7 +579,7 @@ A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlato
       /// </summary>
       /// <param name="index">Index of the terminal symbol(Symbol.Nummer-1)</param>
       /// <returns>instance of the terminal symbol</returns>
-      internal static TerminalSymbol GetTerminalSymbolByIndex(Int32 index) => TerminalSymbolByIndex[index];
+      internal static TerminalSymbol GetTerminalSymbolByIndex(Int32 index) => TerminalSymbols[index];
 
       /// <summary>
       /// List of all parser states, each one defined by its core items 
@@ -690,5 +664,10 @@ A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlato
       /// used in <see cref="P5GenerateCode"/> and <see cref="HaltAction.Generate(P5CodegenCS, out Boolean)"/>
       /// </summary>
       internal static Boolean reductionsModifyAttributStack;
+
+      internal static P5CodegenCS Codegen = new P5CodegenCS(new StringBuilder(1)); // dummy assignment to avoid null value;
+
+      static readonly DefaultObjectPoolProvider objectPoolProvider = new DefaultObjectPoolProvider();
+      internal static ObjectPool<StringBuilder> stringBuilderPool = objectPoolProvider.CreateStringBuilderPool();
    } // class GlobalVariables
 }

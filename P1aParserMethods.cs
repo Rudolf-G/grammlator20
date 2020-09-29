@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections;
 
-namespace Grammlator {
+namespace grammlator {
    internal partial class P1aParser {
       /* In phase 1 the grammar is read and all information is stored
        * in SymbolDictionary,  g.NumberOfTerminalSymbols,  g.NumberOfNonterminalSymbols ...

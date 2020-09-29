@@ -6,7 +6,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-using Grammlator;
+using grammlator;
 
 using Microsoft.Win32;
 
@@ -157,12 +157,8 @@ namespace grammlator {
 
       private void DisplayExample_Click(Object sender, RoutedEventArgs e)
       {
-         // String s= Environment.GetFolderPath(Environment.SpecialFolder.Resources);
-         Assembly ThisAssembly = typeof(GlobalVariables).Assembly;
-         String AssemblyFullPath = ThisAssembly.Location;
-         String AssemblyDirectory = AssemblyFullPath.Substring(0, AssemblyFullPath.LastIndexOf('\\') + 1);
-         String FileFullPath = AssemblyDirectory + "GrammlatorConsoleExample.txt";
-         bool exists=File.Exists(FileFullPath);
+         String FileFullPath = AppContext.BaseDirectory + "GrammlatorConsoleExample.txt";
+         bool exists = File.Exists(FileFullPath);
          if (exists)
          {
             using var reader = new StreamReader(FileFullPath);

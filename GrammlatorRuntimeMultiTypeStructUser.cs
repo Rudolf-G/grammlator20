@@ -1,4 +1,4 @@
-﻿using Grammlator;
+﻿using grammlator;
 using System;
 using System.Runtime.InteropServices;
 

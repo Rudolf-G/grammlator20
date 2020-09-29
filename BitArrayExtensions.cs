@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Grammlator {
+namespace grammlator {
    /// <summary>
    /// Adds the following extensions to BitArray: Assign, Subtract, Empty, All, IsEqualTo, BitsToStringBuilder, IndexOfFirstTrueElement,
    /// IndexOfLastTrueElement, IndexOfFirstAndLastTrueELement, FindTrue, FindFalse, PopulationCount

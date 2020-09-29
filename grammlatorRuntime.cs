@@ -5,7 +5,7 @@ using System.Diagnostics.Contracts;
 using System.Runtime.InteropServices; // to overlay fields of the elements of the attribute array
 using System.Text;
 
-using Grammlator;
+using grammlator;
 
 namespace GrammlatorRuntime {
    /// <summary>
@@ -491,10 +491,10 @@ namespace GrammlatorRuntime {
       /// Remove <paramref name="count"/> elements from the stack: clear the elements and then decrement <see cref="TopIndex"/>
       /// </summary>
       /// <param name="count">the number of elements to remove </param>
-      public void Free(Int32 count)
+      public void Remove(Int32 count)
       {
-         Debug.Assert(count >= 0, $"Argument of {nameof(Free)} has to be >=0 !");
-         Debug.Assert(count <= Count, $"Argument of {nameof(Free)} has to be <= Count !");
+         Debug.Assert(count >= 0, $"Argument of {nameof(Remove)} has to be >=0 !");
+         Debug.Assert(count <= Count, $"Argument of {nameof(Remove)} has to be <= Count !");
 
          // Clear discarded elements to avoid orphan references
          for (Int32 i = TopIndex; i >= TopIndex + 1 - count; i--)
@@ -508,7 +508,7 @@ namespace GrammlatorRuntime {
       /// <summary>
       /// remove one element from the stack: clear the element and decrement <see cref="TopIndex"/>
       /// </summary>
-      public void Free() => Free(1);
+      public void Remove() => Remove(1);
 
       /// <summary>
       /// Copy <paramref name="count"/> elements from <paramref name="sourceStack"/> and remove them from the source
@@ -524,7 +524,7 @@ namespace GrammlatorRuntime {
          {
             a[TopIndex - i] = sourceStack.a[sourceStack.TopIndex - i];
          }
-         sourceStack.Free(count);
+         sourceStack.Remove(count);
       }
 
       /// <summary>

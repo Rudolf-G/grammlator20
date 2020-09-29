@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Grammlator {
+namespace grammlator {
    /// <summary>
    /// see <see cref="MakeInstanceAndExecute"/>
    /// </summary>

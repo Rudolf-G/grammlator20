@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 
-namespace Grammlator {
+namespace grammlator {
    /*  A partition of a set M is a set P. The elements of P are (nonempty) subsets (classes) of M,
     *  where each element of M is contained exactly in one class.
     *   

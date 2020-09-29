@@ -7,7 +7,7 @@ using System.Text;
 
 using GrammlatorRuntime;
 
-namespace Grammlator {
+namespace grammlator {
    internal class P3ComputeLALR1 {
       /* Phase 3 computes LALR(1) Look-Ahead-Sets (see References: DeRemer and Penello) */
 
