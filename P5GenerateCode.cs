@@ -135,18 +135,20 @@ namespace grammlator {
       /// 
       /// <returns>true, if goto has been generated</returns>
       private static Boolean GenerateOptionalLabelOptionalAcceptOrGoto(
+         P5CodegenCS codegen,
          Boolean forceLabel, // because goto has been generated on IndentationLevel==0
          Boolean generateAccept,
          ParserAction parserAction,
          ref Boolean beginOfBlockHasBeenGenerated)
       {
-         Boolean InsideBlock = GlobalVariables.Codegen.IndentationLevel > 0;
+         Boolean InsideBlock = codegen.IndentationLevel > 0;
 
          if (generateAccept)
          {
             // generate accept part of action
             if (GenerateLabelOrGotoOrNothing
-                  (forceLabel,
+                  (codegen,
+                   forceLabel,
                    commentIfNoLabel: !(generateAccept || parserAction is ErrorhandlingAction || parserAction is ErrorHaltAction),
                    P5CodegenCS.GotoLabel(parserAction, accept: true),
                    parserAction.AcceptCalls,
@@ -157,27 +159,28 @@ namespace grammlator {
             // now generate begin of cascaded block if inside of a new block
             if (InsideBlock && !beginOfBlockHasBeenGenerated)
             {
-               GlobalVariables.Codegen.GenerateBeginOfBlock();
+               codegen.GenerateBeginOfBlock();
                beginOfBlockHasBeenGenerated = true;
             }
 
             // generate accept instruction
-            GlobalVariables.Codegen.IndentExactly();
-            GlobalVariables.Codegen.GenerateAcceptInstruction();
+            codegen.IndentExactly();
+            codegen.GenerateAcceptInstruction();
             parserAction.AcceptCalls = 0; // mark that the accept part of the action has been generated
             forceLabel = false; // forceLabel has already been evaluated
          }
 
          //generate action part of action
          if (GenerateLabelOrGotoOrNothing
-               (forceLabel,
+               (codegen,
+                forceLabel,
                 commentIfNoLabel:
                 !(parserAction is ErrorhandlingAction
                   || parserAction is ErrorHaltAction
                   || parserAction is HaltAction),
                 P5CodegenCS.GotoLabel(parserAction, accept: false),
                 parserAction.Calls,
-                insideBlock: GlobalVariables.Codegen.IndentationLevel > 0))
+                insideBlock: codegen.IndentationLevel > 0))
             return true; // generated goto
 
          parserAction.Calls = 0;  // mark that the begin of the action part of the parser code has been generated
@@ -186,6 +189,7 @@ namespace grammlator {
       } // GenerateOptionalLabelOptionalAcceptOrGoto
 
       private static Boolean GenerateLabelOrGotoOrNothing(
+         P5CodegenCS codegen,
          Boolean forceLabel, // because goto has been generated on IndentationLevel==0
          Boolean commentIfNoLabel,
          String label, // codegen.GenerateLabel(parserAction, generateAccept)
@@ -198,7 +202,7 @@ namespace grammlator {
          Boolean GenerateGoto =
             calls <= 0 // code has been already generated or must not be generated
             || (calls > 1 && insideBlock)  // code with more than 1 reference needs label but label not allowed in block
-            || GlobalVariables.Codegen.IndentationLevel >= GlobalVariables.NestingLevelLimit.Value; // code would be indented to much
+            || codegen.IndentationLevel >= GlobalVariables.NestingLevelLimit.Value; // code would be indented to much
 
          Boolean GenerateLabel =
             !GenerateGoto &&
@@ -206,296 +210,21 @@ namespace grammlator {
 
          if (GenerateGoto)
          {
-            GlobalVariables.Codegen.GenerateGoto(label);
+            codegen.GenerateGoto(label);
             return true; // goto has been generated
          }
 
          if (GenerateLabel)
          {
-            GlobalVariables.Codegen.GenerateLabel(label);
+            codegen.GenerateLabel(label);
          }
          else if (commentIfNoLabel)
-            GlobalVariables.Codegen.IndentExactly().Append("// ").Append(label).AppendLine(":");
+            codegen.IndentExactly().Append("// ").Append(label).AppendLine(":");
 
          return false;
 
       } // GenerateLabelOrGotoOrNothing (...)
 
-      //public struct ActionAndCounter {
-      //   public Int32 Counter;
-      //   public Int32 MaxCondition, MinCondition;
-      //   public ParserAction Action;
-
-      //   public ActionAndCounter(Int32 counter, ParserAction action, Int32 minMaxCondition)
-      //   {
-      //      this.Counter = counter;
-      //      this.Action = action;
-      //      this.MinCondition = minMaxCondition;
-      //      this.MaxCondition = minMaxCondition;
-      //   }
-      //}
-
-      ///// <summary>
-      ///// In der BranchToGenerate.ListOfCases kann als Folge der Optimierungen die gleiche Aktion mit verschiedenen Kennungen vorkommen.
-      ///// In der ActionCounterList kommt jede Aktion daraus genau einmal vor. Der Zähler gibt an, wie oft sie in der ListOfCases vorkommt.
-      ///// </summary>
-      //public class ActionCounterList : List<ActionAndCounter> {
-      //   private ActionCounterList(Int32 capacity) : base(capacity) { }
-
-      //   private ActionCounterList()
-      //   {
-      //   }
-
-      //   /// <summary>
-      //   /// Constructs an ActionCounterList with the same length as the ListOfCases of the BranchToGenerate,
-      //   /// adds all different branchcases counting duplicates, finally trims the list
-      //   /// </summary>
-      //   /// <param name="BranchToGenerate"></param>
-      //   public ActionCounterList(BranchAction BranchToGenerate) : this(BranchToGenerate.ListOfCases.Count)
-      //   {
-      //      foreach (BranchcaseStruct branchcase in BranchToGenerate.ListOfCases)
-      //      {
-      //         // Die Aktion in der Liste suchen:
-      //         Int32 FoundIndex = FindIndex(x => x.Action == branchcase.BranchcaseAction);
-
-      //         if (FoundIndex == -1)
-      //         { // not found
-      //            Add(
-      //               new ActionAndCounter(counter: 1, action: branchcase.BranchcaseAction,
-      //               minMaxCondition: branchcase.BranchcaseCondition)
-      //               );
-      //         }
-      //         else
-      //         { // found:  increment counter and update MaxCondition
-      //            ActionAndCounter actionAndCounter = this[FoundIndex];
-      //            actionAndCounter.Counter++;
-      //            if (actionAndCounter.MinCondition > branchcase.BranchcaseCondition)
-      //               actionAndCounter.MinCondition = branchcase.BranchcaseCondition;
-      //            if (actionAndCounter.MaxCondition < branchcase.BranchcaseCondition)
-      //               actionAndCounter.MaxCondition = branchcase.BranchcaseCondition;
-      //            this[FoundIndex] = actionAndCounter;
-      //         }
-      //      }
-      //      TrimExcess();
-      //   }
-      //}
-
-      //private ParserAction GenerateCondionalActionsOfBranch(BranchAction BranchToGenerate, out Boolean Accept)
-      //{
-      //   // Create a CounterList which is ready to use preset with one entry and counter for each different action in BranchtoGenerate  
-      //   var CounterList = new ActionCounterList(BranchToGenerate);
-
-      //   // if there is only one action: return it to be generated without condition
-      //   if (CounterList.Count == 1)
-      //   {
-      //      Accept = false;
-      //      return CounterList[0].Action;
-      //   }
-
-      //   // Select a default action
-      //   // There are different criteria to select the default action:
-      //   //   select the most frequent action to reduce the conditions;
-      //   //   avoid goto actions to move them into the conditional part;
-      //   //   avoid other simple actions to put them in the conditional part
-
-      //   Int32 MinIndex = 0, PriorityIndex = 0, MaxIndex = 0;
-
-      //   Int32 MinCondition = Int32.MaxValue;
-      //   Int32 MaxCondition = Int32.MinValue;
-
-      //   Int32 MinPriority = Int32.MinValue;
-      //   Int32 Priority = Int32.MinValue;
-
-      //   for (Int32 i = 0; i < CounterList.Count; i++)
-      //   {
-      //      var actionAndCounter = CounterList[i];
-      //      // Select a default action to be generated as last:
-      //      // select the most frequent action and if equal frequency
-      //      // prefer actions with larger branch condition (to reduce the span of values to be tested in the generated switch)
-
-      //      Int32 thisPriority = actionAndCounter.Counter * 1000 + actionAndCounter.MaxCondition;
-
-      //      // but reduce the priority of actions which will be generated as goto
-      //      if (GeneratesGoto(generateAccept: false, actionAndCounter.Action, codegen.IndentationLevel)
-      //          // or of actions which will loop back 
-      //          || (actionAndCounter.Action as ReduceAction)?.NextAction == BranchToGenerate
-      //          // or of indirect or direct HaltActions
-      //          || (actionAndCounter.Action as ReduceAction)?.NextAction is HaltAction
-      //          || actionAndCounter.Action is HaltAction
-      //          )
-      //      {
-      //         thisPriority -= (Int32.MaxValue >> 1);
-      //      }
-
-      //      if (actionAndCounter.MinCondition < MinCondition)
-      //      {
-      //         MinCondition = actionAndCounter.MinCondition;
-      //         MinIndex = i;
-      //         MinPriority = thisPriority;
-      //      }
-      //      if (actionAndCounter.MaxCondition > MaxCondition)
-      //      {
-      //         MaxCondition = actionAndCounter.MaxCondition;
-      //         MaxIndex = i;
-      //      }
-
-      //      if (thisPriority > Priority)
-      //      {
-      //         PriorityIndex = i;
-      //         Priority = thisPriority;
-      //      }
-      //   }
-
-      //   // If the action with the MaxIndex didn't get priority 
-      //   // then check if the action with the MinIndex is qualified as default action
-      //   if (PriorityIndex != MaxIndex && MinPriority > 0)
-      //      PriorityIndex = MinIndex;
-
-      //   var defaultAction = CounterList[PriorityIndex].Action;
-
-      //   // If there are only 2 different actions one of which has only one condition (Counter==1) to check for
-      //   // then it is possible to generate an IF condition with one test for equality (or unequality)
-      //   if (CounterList.Count == 2 && (CounterList[0].Counter == 1 || CounterList[1].Counter == 1))
-      //   {
-      //      GenerateBranchAsIFInstruction(BranchToGenerate, CounterList, defaultAction);
-      //      Accept = false;
-      //      return defaultAction;
-      //   }
-
-      //   return GenerateBranchAsSwitch(BranchToGenerate, out Accept, CounterList, defaultAction);
-      //}
-
-      //private ParserAction GenerateBranchAsSwitch(
-      //    BranchAction branchToGenerate, out Boolean accept, ActionCounterList counterList, ParserAction defaultAction)
-      //{
-      //   // Generate a switch statement
-      //   // Für jede Aktion ungleich Defaultaktion in der Zählliste alle gleichen Aktionen in der Falliste der Verzweigung suchen
-      //   // und eine oder mehrere Case-Anweisungen erzeugen sowie einmal die Codefolge für die Aktion
-
-      //   codegen.IndentExactly()
-      //      .Append("switch (")
-      //      .Append(GlobalVariables.StateStack.Value)
-      //      .Append(".Peek())")
-      //      .IndentExactly()
-      //      .Append("{");
-
-      //   foreach (ActionAndCounter ElementOFCounterList in counterList)
-      //   {
-      //      if (ElementOFCounterList.Action != defaultAction)
-      //      {
-      //         // Alle gleichen Aktionen suchen
-      //         foreach (BranchcaseStruct f in branchToGenerate.ListOfCases)
-      //         {
-      //            if (f.BranchcaseAction == ElementOFCounterList.Action)
-      //               codegen.IndentExactly()
-      //                  .Append("case ")
-      //                  .Append(f.BranchcaseCondition.ToString())
-      //                  .Append(": ");
-
-      //            // codegen.AppendInstruction("case ", f.BranchcaseCondition.ToString(), ": ");
-      //         }
-
-      //         // Die zugehörige Codefolge erzeugen
-      //         codegen.IncrementIndentationLevel();
-      //         GenerateCodeSequence(ElementOFCounterList.Action, false, false);
-      //         codegen.DecrementIndentationLevel();
-      //         // Die Codefolge endet immer mit einem GOTO - auch bei Halt !
-      //      }
-      //   }
-
-      //   // Für die Defaultaktion analog
-
-      //   // Alle gleichen Aktionen suchen und die case-Anweisungen als Kommentar erzeugen
-      //   // Falls mehrere Fälle zusammengefast werden, ist die Zahl der Aufrufe der default-Aktion entsprechend zu verringern
-      //   codegen.Indent().Append("/*");
-      //   Int32 countOfDefaultCases = 0;
-      //   foreach (BranchcaseStruct f in branchToGenerate.ListOfCases)
-      //   {
-      //      if (f.BranchcaseAction == defaultAction)
-      //      {
-      //         countOfDefaultCases++;
-      //         codegen.AppendWithOptionalLinebreak("case ", f.BranchcaseCondition.ToString(), ": ");
-      //      }
-      //   }
-
-      //   if (countOfDefaultCases > 1)
-      //      defaultAction.Calls -= countOfDefaultCases - 1;
-      //   // Die auskommentierte Default-Codefolge  und das Kommentarende erzeugen
-      //   codegen.IndentAndAppendLine("default: break; */")
-      //   .IndentExactly()
-      //   .AppendLine("}");
-      //   accept = false;
-      //   return defaultAction;
-      //}
-
-      ///// <summary>
-      ///// generate an if instruction so that not the default action will be executed conditionally 
-      ///// and the default action will remain to be generated in the codesequence
-      ///// </summary>
-      ///// <param name="branchToGenerate"></param>
-      ///// <param name="counterList"></param>
-      ///// <param name="defaultAction"></param>
-      ///// 
-      //private void GenerateBranchAsIFInstruction(BranchAction branchToGenerate, ActionCounterList counterList, ParserAction defaultAction)
-      //{
-      //   // The simple condition case is the case whose BranchcaseCondition occurs only once in the branchToGenerate.ListOfCases
-      //   // Its BranchcaseCondition (int value) will be used as condition in the generated if instruction.
-      //   Int32 simpleConditionCaseIndex = 0, complexConditionCaseIndex = 1; // initial assignment
-
-      //   if (counterList[simpleConditionCaseIndex].Counter != 1
-      //      // if each of both action occurs only once use the default-Action as complexCase
-      //      || (counterList[complexConditionCaseIndex].Counter == 1 && counterList[simpleConditionCaseIndex].Action == defaultAction))
-      //   {
-      //      // change the initial assignment
-      //      simpleConditionCaseIndex = 1;
-      //      complexConditionCaseIndex = 0;
-      //   }
-
-      //   ParserAction simpleConditionCase = counterList[simpleConditionCaseIndex].Action;
-      //   ParserAction complexConditionCase = counterList[complexConditionCaseIndex].Action;
-      //   Int32 complexCaseCounter = counterList[complexConditionCaseIndex].Counter;
-
-      //   // simpleCaseCounter == 1   !
-
-      //   // Find simpleCase in the ListOfCases - where it occurs only once - to get its condition
-      //   Int32 simpleCaseCondition = branchToGenerate.ListOfCases.Find(x => x.BranchcaseAction == simpleConditionCase).BranchcaseCondition;
-
-      //   if (complexConditionCase == defaultAction)
-      //   {
-      //      codegen.GenerateIfSPeek(false, simpleCaseCondition);
-      //      // generate simpleCase
-      //      codegen.IncrementIndentationLevel();
-      //      GenerateCodeSequence(simpleConditionCase, false, false);
-      //      codegen.DecrementIndentationLevel();
-      //      // Adjust the number of calls because some actions are handled together 
-      //      if (complexConditionCase.Calls > 0)
-      //         complexConditionCase.Calls -= complexCaseCounter - 1;
-      //   }
-      //   else
-      //   {  // simpleCase == defaultAction
-      //      // generate the complement of the condition of simpleCase-condition 
-      //      codegen.GenerateIfSPeek(true, simpleCaseCondition);
-      //      // generate complexCase
-      //      // Adjust the number of calls because some actions are handled together
-      //      if (complexConditionCase.Calls > 0)
-      //         complexConditionCase.Calls -= complexCaseCounter - 1;
-      //      codegen.IncrementIndentationLevel();
-      //      GenerateCodeSequence(complexConditionCase, false, false);
-      //      codegen.DecrementIndentationLevel();
-      //   }
-      //}
-
-      /// <summary>
-      /// Compare a and b such that the sort will will result in a-b:
-      /// <para>- if a is a <see cref="ConditionalAction>"/> and b is not</para>
-      /// <para>- if a has lower <see cref="ConditionalAction.Complexity"/></para>
-      /// <para>- if a has higher <see cref="ConditionalAction.SumOfWeights"/> (set to 0 for <see cref="ErrorhandlingAction"/>)</para>
-      /// <para>- if a has <see cref="ParserAction.Calls"/>&lt;= 1 and b not</para> 
-      /// <para> - if a has smaller <see cref="ParserAction.IdNumber"/></para>
-      /// </summary>
-      /// <param name="ActionA"></param>
-      /// <param name="b"></param>
-      /// <returns></returns>
       static internal Int32 CompareWeightandConditionComplexity(ParserAction? a, ParserAction? b)
       {
          // result < 0  sort order will be a then b
@@ -520,7 +249,9 @@ namespace grammlator {
       private static Single Position(ConditionalAction action)
       {
          Single PositionA = action.Complexity * 100_000
-            + (action is ErrorhandlingAction
+            + ((action is ErrorhandlingAction
+               || (action is LookaheadAction la && la.NextAction is ErrorHaltAction)
+               )
               ? -0
               : -10 * action.SumOfWeights);
 
@@ -596,12 +327,12 @@ namespace grammlator {
 
          while (ActionToGenerate != null)
          {
-            GotoHasBeenGenerated =
-                GenerateOptionalLabelOptionalAcceptOrGoto(
-                   forceLabel: GotoHasBeenGenerated,
-                   generateAccept: Accept,
-                   parserAction: ActionToGenerate,
-                   beginOfBlockHasBeenGenerated: ref BeginOfBlockHasBeenGenerated);
+            GotoHasBeenGenerated = GenerateOptionalLabelOptionalAcceptOrGoto(
+               codegen,
+               forceLabel: GotoHasBeenGenerated,
+               generateAccept: Accept,
+               parserAction: ActionToGenerate,
+               beginOfBlockHasBeenGenerated: ref BeginOfBlockHasBeenGenerated);
 
             if (GotoHasBeenGenerated)
                break;
@@ -746,7 +477,3 @@ namespace grammlator {
       } // void FehlendenCodeErzeugen
    } // class Phase5
 } // namespace ...
-
-
-
-

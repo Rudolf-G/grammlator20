@@ -517,7 +517,7 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated 28 Sep 2020 (grammlator file version/date 2020.09.28.0/28 Sep 2020)
+#region grammlator generated 29 Sep 2020 (grammlator file version/date 2020.09.28.0/29 Sep 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fCSharpStart = 2L << (Int32)ClassifierResult.CSharpStart;
   const Int64 _fCSharpEnd = 2L << (Int32)ClassifierResult.CSharpEnd;
@@ -744,7 +744,7 @@ State10:
         goto State10;
      goto EndWithError;
      }
-  Debug.Assert(!_IsIn(_fCSharpStart + _fCSharpEnd + _fAsterisk));
+  Debug.Assert(!_IsIn(_fCSharpStart | _fCSharpEnd | _fAsterisk));
   goto AcceptReduce27;
 
 AcceptReduce28:
@@ -778,7 +778,7 @@ State11:
         goto State11;
      goto EndWithError;
      }
-  Debug.Assert(!_IsIn(_fCSharpStart + _fCSharpEnd + _fAsterisk + _fSlash));
+  Debug.Assert(!_IsIn(_fCSharpStart | _fCSharpEnd | _fAsterisk | _fSlash));
   goto AcceptReduce27;
 
 State3:
@@ -866,7 +866,7 @@ State6:
         goto State6;
      goto EndWithError;
      }
-  Debug.Assert(!_IsIn(_fCSharpStart + _fCSharpEnd + _fQuotationmark));
+  Debug.Assert(!_IsIn(_fCSharpStart | _fCSharpEnd | _fQuotationmark));
   inputClassifier.AcceptSymbol();
   // Reduce23:
   /* aAdjust: -1
@@ -916,7 +916,7 @@ State9:
         goto State9;
      goto EndWithError;
      }
-  Debug.Assert(!_IsIn(_fCSharpStart + _fCSharpEnd + _fAsterisk));
+  Debug.Assert(!_IsIn(_fCSharpStart | _fCSharpEnd | _fAsterisk));
   goto AcceptReduce27;
 
 Reduce2:
@@ -942,7 +942,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 28 Sep 2020 (grammlator file version/date 2020.09.28.0/28 Sep 2020)
+#endregion grammlator generated 29 Sep 2020 (grammlator file version/date 2020.09.28.0/29 Sep 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

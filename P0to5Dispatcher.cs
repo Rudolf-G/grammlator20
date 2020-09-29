@@ -164,8 +164,8 @@ namespace grammlator {
          // ----- Do phase 5 with a specific code generator
          outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 5: generate result");
 
-         GlobalVariables.Codegen = new P5CodegenCS(Resultbuilder);
-         P5GenerateCode.MakeInstanceAndExecute(GlobalVariables.Codegen);
+         // Construct codegen and generate code
+         P5GenerateCode.MakeInstanceAndExecute(new P5CodegenCS(Resultbuilder));
 
          // ----- Copy trailing lines of source to result
          outputMessage(MessageTypeOrDestinationEnum.Information,

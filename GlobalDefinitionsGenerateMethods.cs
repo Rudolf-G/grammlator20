@@ -765,13 +765,14 @@ namespace grammlator {
 
          // Sort the actions dependent on their terminal inp.
          // Sort criteria and order see CompareWeightandConditionComplexity
-
          if (GlobalVariables.NumberOfTerminalSymbols > 0)
             Actions.Sort(P5GenerateCode.CompareWeightandConditionComplexity);
 
          // Exchange an ErrorhandlingAction at the end with the preceding action,
          // because an ErrorhandlingAction has no NextAction which can be generated next without goto
-         if (Actions.Count > 1 && Actions[^1] is ErrorhandlingAction)
+         if (Actions.Count > 1 && 
+            (Actions[^1] is ErrorhandlingAction
+            || (Actions[^1] is LookaheadAction la && la.NextAction is ErrorHaltAction)))
          {
             ParserAction temp = Actions[^2];
             Actions[^2] = Actions[^1];
@@ -1123,11 +1124,11 @@ namespace grammlator {
          }
          else if (test1sRecommended)
          {
-            GenerateTest1s(blockList);
+            GenerateTest1s(codegen, blockList);
          }
          else
          {
-            GenerateTest0s(blockList);
+            GenerateTest0s(codegen, blockList);
          }
 
          blockList.Clear(); // keep capacity for reuse
@@ -1357,8 +1358,8 @@ namespace grammlator {
       /// <summary>
       /// Code is generated for all blocks with BlockType == false
       /// </summary>
-      /// <param name="BlockList"></param>
-      private static void GenerateTest0s(List<BlockOfEqualBits> BlockList)
+      /// <param name="blockList"></param>
+      private static void GenerateTest0s(P5CodegenCS codegen, List<BlockOfEqualBits> blockList)
       {
          /* Code is generated for all blocks  of type == false, typically  "(symbol < 'StartIndexOfBlock' || symbol > EndIndexOfBlock) && ..."  
           * Code for different blocks is concatenated by " && "
@@ -1372,27 +1373,25 @@ namespace grammlator {
           *  some more special cases see below
           */
 
-         var Codegen = GlobalVariables.Codegen;
-
-         if (BlockList.Count == 0)
+         if (blockList.Count == 0)
          {
             // no relevant symbol
-            Codegen.AppendWithOptionalLinebreak("true"); // "false" would also be ok
+            codegen.AppendWithOptionalLinebreak("true"); // "false" would also be ok
             return;
          }
 
-         Int32 first = BlockList[0].blockStart;
-         Int32 last = BlockList[^1].blockEnd;
+         Int32 first = blockList[0].blockStart;
+         Int32 last = blockList[^1].blockEnd;
 
          BlockOfEqualBits block;
 
          // default: start the loop below with the first block of type==false
-         Int32 blockIndex = BlockList[0].blockType ? 1 : 0;
+         Int32 blockIndex = blockList[0].blockType ? 1 : 0;
          // Enclose condition in parentheses if there is one more block of the same type
-         Boolean useParentheses = BlockList.Count > blockIndex + 2; // example: Count==3, blockIndex=1 => no parentheses
+         Boolean useParentheses = blockList.Count > blockIndex + 2; // example: Count==3, blockIndex=1 => no parentheses
 
          // 1st block may need special handling
-         block = BlockList[0];
+         block = blockList[0];
 
          if (blockIndex == 0) // && block.blockLength >= 2 && blockList.Count > 1)
          {
@@ -1404,24 +1403,24 @@ namespace grammlator {
                // special case: all elements are false, condition returns false
                // This should not happen if conflicts are solved properly.
                // This will have the effect that parts of the generated code can never be reached
-               Codegen.AppendWithOptionalLinebreak("false");
+               codegen.AppendWithOptionalLinebreak("false");
 
                return;
             }
 
             // special case: at beginning of relevant symbols test of start may be ommitted
             TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockEnd);
-            Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " > ");
-            Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+            codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " > ");
+            codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
 
             blockIndex += 2; // special case has been handled here, start the loop below with next block of same type 
          }
 
          // handle all (remaining) blocks with type==true
-         for (; blockIndex < BlockList.Count; blockIndex += 2)
+         for (; blockIndex < blockList.Count; blockIndex += 2)
          {
             // by increment 2 all blocks of blockType==false are skipped
-            block = BlockList[blockIndex];
+            block = blockList[blockIndex];
             Debug.Assert(!block.blockType);
 
             TerminalSymbol startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockStart);
@@ -1430,8 +1429,8 @@ namespace grammlator {
             if (blockIndex >= 2)
             {
                // concatenate code for not the first block etc. with " && " 
-               Codegen.AppendLineAndIndent();
-               Codegen.Append("&& ");
+               codegen.AppendLineAndIndent();
+               codegen.Append("&& ");
             }
 
             switch (block.blockLength)
@@ -1440,8 +1439,8 @@ namespace grammlator {
             {
                if (block.blockEnd == last)
                   goto default;
-               Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " != ");
-               Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " != ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                break;
             }
             case 2: // generate: check of two allowed symbols or special case
@@ -1450,11 +1449,11 @@ namespace grammlator {
                   goto default;
                // compare two symbols: same complexity as test of interval but better readability
                // no parantheses necessary
-               Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " != ");
-               Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
-               Codegen.Append(" && ");
-               Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " != ");
-               Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " != ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+               codegen.Append(" && ");
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " != ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
                break;
             }
             default:// generate: check a sequence of three or more allowed symbols
@@ -1463,20 +1462,20 @@ namespace grammlator {
                {
                   // special case: at end the of relevant symbols test of end must be ommitted
                   // because the last terminal symbol represents al fllowing symbols
-                  Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " < ");
-                  Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " < ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                }
                else
                { // generate: test closed interval of three or more symbols
                   if (useParentheses)
-                     Codegen.Append('(');
-                  Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " < ");
-                  Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
-                  Codegen.Append(" || ");
-                  Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " > ");
-                  Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+                     codegen.Append('(');
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " < ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+                  codegen.Append(" || ");
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " > ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
                   if (useParentheses)
-                     Codegen.Append(')');
+                     codegen.Append(')');
                }
                break;
             }
@@ -1487,8 +1486,8 @@ namespace grammlator {
       /// <summary>
       /// Code is generated for all blocks with BlockType == true
       /// </summary>
-      /// <param name="BlockList"></param>
-      private static void GenerateTest1s(List<BlockOfEqualBits> BlockList)
+      /// <param name="blockList"></param>
+      private static void GenerateTest1s(P5CodegenCS codegen, List<BlockOfEqualBits> blockList)
       {
          /* Code is generated for all blocks of type == true, typically  "(symbol >= 'StartOfBlock' && symbol <= 'EndOfBlock") || ..." 
           * Code for different blocks is concatenated by " || "
@@ -1500,28 +1499,27 @@ namespace grammlator {
           *    blocklength >2: "(Symbol >= StartOfBlock && Symbol <= EndOfBlock)" with paranthesis
           *  some more special cases see below
           */
-         var Codegen = GlobalVariables.Codegen;
 
-         if (BlockList.Count == 0)
+         if (blockList.Count == 0)
          {
             // no relevant symbol, should not occur
-            Codegen.AppendWithOptionalLinebreak("true"); // "false" would also be ok
+            codegen.AppendWithOptionalLinebreak("true"); // "false" would also be ok
             return;
          }
 
-         Int32 first = BlockList[0].blockStart;
-         Int32 last = BlockList[^1].blockEnd;
+         Int32 first = blockList[0].blockStart;
+         Int32 last = blockList[^1].blockEnd;
 
          /// blockType==0 if the block contains 0s else 1
          BlockOfEqualBits block;
 
          // default: start the loop below with the first block of type==true
-         Int32 blockIndex = BlockList[0].blockType ? 0 : 1;
+         Int32 blockIndex = blockList[0].blockType ? 0 : 1;
          // Enclose condition in parentheses if there is one more block of the same type
-         Boolean useParentheses = BlockList.Count > blockIndex + 2; // example: Count==3, blockIndex=1 => no parentheses
+         Boolean useParentheses = blockList.Count > blockIndex + 2; // example: Count==3, blockIndex=1 => no parentheses
 
          // 1st block may need special handling
-         block = BlockList[0];
+         block = blockList[0];
          if (blockIndex == 0) //  && block.blockLength >= 2 && blockList.Count > 1)
          {
             // special handlings of first block if its type is true and contains more than 1 element
@@ -1531,24 +1529,24 @@ namespace grammlator {
             {
                // Must not occur here, because blockList.Count<=1 has been excluded in If(...
                // so that conditions generated as comment are not only the text "true"
-               Codegen.AppendWithOptionalLinebreak("true");
+               codegen.AppendWithOptionalLinebreak("true");
                return;
             }
 
             // special case: at beginning of relevant symbols test of start may be ommitted;
             // resp. must be omitted if the first terminal is intended to include all lower values
             TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockEnd);
-            Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " <= ");
-            Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+            codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " <= ");
+            codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
 
             blockIndex += 2; // special case has been handled here, start the loop below with next block of same type 
          }
 
          // handle all (remaining) blocks with type==true
-         for (; blockIndex < BlockList.Count; blockIndex += 2)
+         for (; blockIndex < blockList.Count; blockIndex += 2)
          {
             // by increment 2 all blocks of blockType==false are skipped
-            block = BlockList[blockIndex];
+            block = blockList[blockIndex];
             Debug.Assert(block.blockType);
 
             TerminalSymbol startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockStart);
@@ -1557,8 +1555,8 @@ namespace grammlator {
             if (blockIndex >= 2)
             {
                // concatenate code for not the first block etc. with " || " 
-               Codegen.AppendLineAndIndent();
-               Codegen.Append("|| ");
+               codegen.AppendLineAndIndent();
+               codegen.Append("|| ");
             }
 
             switch (block.blockLength)
@@ -1567,8 +1565,8 @@ namespace grammlator {
             {
                if (block.blockEnd == last)
                   goto default;
-               Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " == ");
-               Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " == ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                break;
             }
             case 2: // generate: check of two allowed symbols or special case
@@ -1577,11 +1575,11 @@ namespace grammlator {
                   goto default;
                // compare two symbols: same complexity as test of interval but better readability
                // no parantheses necessary
-               Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " == ");
-               Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
-               Codegen.Append(" || ");
-               Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " == ");
-               Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " == ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+               codegen.Append(" || ");
+               codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " == ");
+               codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
                break;
             }
 
@@ -1590,20 +1588,20 @@ namespace grammlator {
                if (block.blockEnd == last)
                {
                   // special case: at end the of relevant symbols test of end may be ommitted
-                  Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " >= ");
-                  Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " >= ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                }
                else
                { // generate: test closed interval of three or more symbols
                   if (useParentheses)
-                     Codegen.Append('(');
-                  Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " >= ");
-                  Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
-                  Codegen.Append(" && ");
-                  Codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " <= ");
-                  Codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+                     codegen.Append('(');
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " >= ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+                  codegen.Append(" && ");
+                  codegen.AppendWithOptionalLinebreak(GlobalVariables.SymbolNameOrFunctionCall.Value, " <= ");
+                  codegen.AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
                   if (useParentheses)
-                     Codegen.Append(')');
+                     codegen.Append(')');
                }
                break;
             }
@@ -1620,19 +1618,19 @@ namespace grammlator {
             codegen
                .Append(GlobalVariables.IsInMethod.Value)
                .Append('(');
-            GenerateIsInArguments(Condition);
+            GenerateIsInArguments(codegen, Condition);
          }
          else
          {
             codegen.Append('!')
                .Append(GlobalVariables.IsInMethod.Value)
                .Append('(');
-            GenerateIsInArguments(InverseCondition);
+            GenerateIsInArguments(codegen, InverseCondition);
          }
          codegen.DecrementIndentationLevel().Append(')');
       }
 
-      private static void GenerateIsInArguments(BitArray Condition)
+      private static void GenerateIsInArguments(P5CodegenCS codegen, BitArray Condition)
       {
          Boolean Is1st = true;
          // foreach terminal symbol:
@@ -1640,19 +1638,19 @@ namespace grammlator {
          {
             TerminalSymbol t = GlobalVariables.GetTerminalSymbolByIndex(i);
             if (!Is1st)
-               GlobalVariables.Codegen.AppendWithOptionalLinebreak(" + ");
+               codegen.AppendWithOptionalLinebreak(" | ");
             Is1st = false;
 
             t.IsUsedInIsIn = true; // the int constant "_(identifier of terminal symbol)" has to be declared
 
-            GlobalVariables.Codegen
+            codegen
                .AppendWithOptionalLinebreak(GlobalVariables.FlagsPrefix.Value)
                .Append(t.Identifier);
          }
 
          if (Is1st)
          { // no argument (all false) - usually will not happen
-            GlobalVariables.Codegen.Append('0');
+            codegen.Append('0');
          }
       }
 

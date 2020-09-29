@@ -665,8 +665,6 @@ A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlato
       /// </summary>
       internal static Boolean reductionsModifyAttributStack;
 
-      internal static P5CodegenCS Codegen = new P5CodegenCS(new StringBuilder(1)); // dummy assignment to avoid null value;
-
       static readonly DefaultObjectPoolProvider objectPoolProvider = new DefaultObjectPoolProvider();
       internal static ObjectPool<StringBuilder> stringBuilderPool = objectPoolProvider.CreateStringBuilderPool();
    } // class GlobalVariables

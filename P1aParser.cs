@@ -882,7 +882,7 @@ namespace grammlator {
          // Declare local variables used by grammlator generated code
          LexerResult ParserInput;
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated 28 Sep 2020 (grammlator file version/date 2020.09.28.0/28 Sep 2020)
+#region grammlator generated 29 Sep 2020 (grammlator file version/date 2020.09.28.0/29 Sep 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fDefiningSymbol = 2L << (Int32)LexerResult.DefiningSymbol;
@@ -1048,7 +1048,7 @@ State85:
      _s.Push(0);
      goto State86;
      }
-  if (_IsIn(_fColon + _fCSharpEnd + _fError + _fMinus + _fNumber + _fStarEqual + _fNumberSign))
+  if (_IsIn(_fColon | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fNumberSign))
      {
      if (ErrorHandler(85, StateDescription85, ParserInput))
         goto State85;
@@ -1056,7 +1056,7 @@ State85:
      _s.Push(0);
      goto EndWithError;
      }
-  Debug.Assert(!_IsIn(_fColon + _fCSharpEnd + _fError + _fMinus + _fNumber + _fStarEqual + _fNumberSign + _fGroupStart));
+  Debug.Assert(!_IsIn(_fColon | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fNumberSign | _fGroupStart));
   // Reduce83:
   /* aAdjust: 1
    * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ */
@@ -1300,7 +1300,7 @@ State31:
         goto State31;
      goto EndWithError;
      }
-  Debug.Assert(_IsIn(_fNumberSign + _fName + _fLexerString));
+  Debug.Assert(_IsIn(_fNumberSign | _fName | _fLexerString));
   goto Branch6;
 
 AcceptReduce44:
@@ -1438,7 +1438,7 @@ State35:
         goto State35;
      goto EndWithError;
      }
-  Debug.Assert(_IsIn(_fNumberSign + _fName + _fLexerString));
+  Debug.Assert(_IsIn(_fNumberSign | _fName | _fLexerString));
   goto Reduce39;
 
 AcceptReduce54:
@@ -2968,14 +2968,14 @@ State73:
 
      goto State70;
      }
-  if (_IsIn(_fColon + _fPercent + _fCSharpEnd + _fError + _fMinus + _fNumber + _fStarEqual + _fMinusEqual + _fNumberSign + _fTerminatorSymbol))
+  if (_IsIn(_fColon | _fPercent | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fMinusEqual | _fNumberSign | _fTerminatorSymbol))
      {
      if (ErrorHandler(73, StateDescription73, ParserInput))
         goto State73;
      goto EndWithError;
      }
-  Debug.Assert(!_IsIn(_fDefiningSymbol + _fColon + _fPercent + _fCSharpEnd + _fError + _fMinus + _fNumber + _fStarEqual + _fMinusEqual + _fNumberSign
-         + _fTerminatorSymbol));
+  Debug.Assert(!_IsIn(_fDefiningSymbol | _fColon | _fPercent | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fMinusEqual | _fNumberSign
+         | _fTerminatorSymbol));
   goto Reduce24;
 
 State74:
@@ -3324,7 +3324,7 @@ State90:
      Lexer.AcceptSymbol();
      goto State86;
      }
-  if (!_IsIn(_fPercent + _fCSharpStart + _fDefinitionSeparatorSymbol + _fTerminatorSymbol))
+  if (!_IsIn(_fPercent | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol))
      {
      if (ErrorHandler(90, StateDescription90, ParserInput))
         {
@@ -3333,7 +3333,7 @@ State90:
         };
      goto EndWithError;
      }
-  Debug.Assert(_IsIn(_fPercent + _fCSharpStart + _fDefinitionSeparatorSymbol + _fTerminatorSymbol));
+  Debug.Assert(_IsIn(_fPercent | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol));
   // Reduce90:
   /* sAdjust: -1, aAdjust: 1
    * "Name(Attributes)"(Int32 stringIndex, Int32 NumberOfAttributes)= ExtendedName(Int32 stringIndex);◄ */
@@ -3379,13 +3379,13 @@ State94:
      Lexer.AcceptSymbol();
      goto Reduce94;
      }
-  if (!_IsIn(_fStarEqual + _fName + _fLexerString))
+  if (!_IsIn(_fStarEqual | _fName | _fLexerString))
      {
      if (ErrorHandler(94, StateDescription94, ParserInput))
         goto State94;
      goto EndWithError;
      }
-  Debug.Assert(_IsIn(_fStarEqual + _fName + _fLexerString));
+  Debug.Assert(_IsIn(_fStarEqual | _fName | _fLexerString));
 Reduce94:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(Int32 nameIndex), ":", Number(Int32 value), ";"?;◄
@@ -3409,13 +3409,13 @@ State92:
      Lexer.AcceptSymbol();
      goto Reduce92;
      }
-  if (!_IsIn(_fStarEqual + _fName + _fLexerString))
+  if (!_IsIn(_fStarEqual | _fName | _fLexerString))
      {
      if (ErrorHandler(92, StateDescription92, ParserInput))
         goto State92;
      goto EndWithError;
      }
-  Debug.Assert(_IsIn(_fStarEqual + _fName + _fLexerString));
+  Debug.Assert(_IsIn(_fStarEqual | _fName | _fLexerString));
 Reduce92:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(Int32 nameIndex), ":", LexerString(Int32 stringIndex), ";"?;◄
@@ -3439,13 +3439,13 @@ State93:
      Lexer.AcceptSymbol();
      goto Reduce93;
      }
-  if (!_IsIn(_fStarEqual + _fName + _fLexerString))
+  if (!_IsIn(_fStarEqual | _fName | _fLexerString))
      {
      if (ErrorHandler(93, StateDescription93, ParserInput))
         goto State93;
      goto EndWithError;
      }
-  Debug.Assert(_IsIn(_fStarEqual + _fName + _fLexerString));
+  Debug.Assert(_IsIn(_fStarEqual | _fName | _fLexerString));
 Reduce93:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(Int32 nameIndex), ":", Name(Int32 valueIndex), ";"?;◄
@@ -3508,7 +3508,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 28 Sep 2020 (grammlator file version/date 2020.09.28.0/28 Sep 2020)
+#endregion grammlator generated 29 Sep 2020 (grammlator file version/date 2020.09.28.0/29 Sep 2020)
 
       }
    }
