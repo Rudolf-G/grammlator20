@@ -143,6 +143,10 @@ namespace grammlator {
                   $"More than {GlobalVariables.ErrorLimit.Value} messages");
             goto case MessageTypeOrDestinationEnum.Status;
 
+         case MessageTypeOrDestinationEnum.Warning:
+            warnings++;
+            goto case MessageTypeOrDestinationEnum.Status;
+
          case MessageTypeOrDestinationEnum.Status:
             // display shortened message in log and complete message in ErrorList
             AppendLine(Log, messageHeader(), ReferenceToBox(MessageIncludingPosition));
@@ -158,9 +162,6 @@ namespace grammlator {
             // The exception handler will display the message
             throw new ErrorInSourcedataException(pos, MessageIncludingPosition);
 
-         case MessageTypeOrDestinationEnum.Warning:
-            warnings++;
-            goto default;
          // Information, noMessageTyp (noMessageTyp should not be used)
          default:
             // show complete message in log but not in ErrorList
@@ -242,7 +243,7 @@ namespace grammlator {
       /// <param name="m"></param>
       /// <returns></returns>
       private String ReferenceToBox(String m)
-       => m.AsSpan(0, m.Length > 35 ? 35 : m.Length).ToString()
+       => m.AsSpan(0, m.Length > 55 ? 55 : m.Length).ToString()
           + $"...   see message box {ErrorPositions.Count + 1}";
 
       private void ClearAllResults()

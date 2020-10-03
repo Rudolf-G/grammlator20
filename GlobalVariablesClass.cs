@@ -348,8 +348,9 @@ namespace grammlator {
          = new StringSetting("TerminalSymbolEnum", "", VisibleSettings,
 @"Typically this is the name of the C# enum which defines the terminal symbols.
 This name will be used in the generated code in combination with the names of the terminal symbols.
-Only in very special applications there is no explicit enum and TerminalSymbolEnum is """" 
-Example: """" in very simple applications else ""MyEnum""");
+Only in very special applications there is no explicit enum and TerminalSymbolEnum is """".
+If an explicit enum is giben and this setting is """", then the name of the explicit enum is used.
+Example: """" in very simple applications or if an explicit enum is give else ""MyEnum""");
 
       /// <summary>
       /// <see cref="SymbolNameOrFunctionCall"/> is used as variable name or method call in generated code
@@ -421,6 +422,11 @@ A typical value is ""_a"", which is defined in grammlatorRuntime.cs.");
          = new Int32Setting("TerminalDefaultWeight", 20, VisibleSettings,
 @"The default weight assigned to a terminal symbol. Terminals with a high weight
 tend to be checked earlier in generated conditions.");
+
+      internal static StringSetting TerminalDefaultAttributes
+         = new StringSetting("TerminalDefaultAttributes", "", InternalSettings,
+@"These attributes are provided for terminal declarations with no specification of attributes.
+They are specified in an explict terminal declaration by using a ':'. Example: ""a(char c):""");
 
       internal static BooleanSetting OptimizeStateStackNumbers
         = new BooleanSetting("OptimizeStateStackNumbers", true, VisibleSettings,
