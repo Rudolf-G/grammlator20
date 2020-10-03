@@ -75,48 +75,7 @@ namespace grammlator {
             result++;
          return result;
       }
-
-
-      /// <summary>
-      /// increments <paramref name="Position"/> while <paramref name="ThisString"/>[<paramref name="Position"/>] IsWhiteSpace 
-      /// (including space, line and paragraph separators and also line feed ...)
-      /// </summary>
-      /// <param name="ThisString">the String to check</param>
-      /// <param name="Position">returns new Position less or equal <paramref name="ThisString"/>.Length</param>
-      /// <returns>The String to allow catenation of operations</returns>
-      internal static String SkipWhiteSpace(this String ThisString, ref Int32 Position)
-      {
-         if (Position < 0)
-            Position = 0;
-         while (Position < ThisString.Length && Char.IsWhiteSpace(ThisString[Position]))
-            Position++;
-         return ThisString;
-      }
-
-      /// <summary>
-      /// Increments <paramref name="StringPosition"/> and <paramref name="OtherPosition"/> while 
-      /// <paramref name="ThisString"/>[<paramref name="StringPosition"/>] == <paramref name="OtherString"/>[<paramref name="OtherPosition"/>]
-      /// </summary>
-      /// <param name="ThisString">the 1st String</param>
-      /// <param name="StringPosition">the position in the 1st String</param>
-      /// <param name="OtherString">the 2nd String</param>
-      /// <param name="OtherPosition">the position in the second String</param>
-      /// <returns>The String to allow catenation of operations</returns>
-      internal static String SkipEqualParts(this String ThisString, ref Int32 StringPosition, String OtherString, ref Int32 OtherPosition)
-      {
-         if (OtherString != null && StringPosition >= 0 && OtherPosition >= 0)
-         {
-            while (StringPosition < ThisString.Length
-                           && OtherPosition < OtherString.Length
-                           && ThisString[StringPosition] == OtherString[OtherPosition])
-            {
-               StringPosition++;
-               OtherPosition++;
-            }
-         }
-         return ThisString;
-      }
-
+ 
       /// <summary>
       /// Checks whether <paramref name="ThisString"/> contains the <paramref name="Pattern"/> at the <paramref name="Position"/>
       /// and updates <paramref name="Position"/> to point to the first character after the 
@@ -143,34 +102,7 @@ namespace grammlator {
          Position = sPosition;
          return true;
       }
-
-      /// <summary>
-      /// Checks whether <paramref name="ThisString"/> contains the <paramref name="Pattern"/> at the <paramref name="Position"/>
-      /// and updates <paramref name="Position"/> to point to the first character after the 
-      /// <paramref name="Pattern"/> - else lets <paramref name="Position"/> unchanged
-      /// </summary>
-      /// <param name="ThisString">the String to check</param>
-      /// <param name="Position">the Position to start the comparision</param>
-      /// <param name="Pattern">the string to test for</param>
-      /// <returns>returns true and Position after pattern if pattern found start of string, else false and Position unchanged</returns>
-      internal static Memory<Char> StartsWithAndSkip(this Memory<Char> ThisString, ref Boolean success, String Pattern)
-      {
-         success = false;
-         if (ThisString.IsEmpty || Pattern.Length > ThisString.Length)
-            return ThisString;
-         success = ThisString.Span.StartsWith(Pattern);
-         return ThisString.Slice(Pattern.Length);
-      }
-
-      /// <summary>
-      /// Checks whether <paramref name="Position"/> is &gt;= <paramref name="ThisString"/>.Length
-      /// </summary>
-      /// <param name="ThisString">a String</param>
-      /// <param name="Position">the position within or at the end of the String</param>
-      /// <returns>true if <paramref name="Position"/> is &gt;= <paramref name="ThisString"/>.Length</returns>
-      internal static Boolean IsEmpty(this String ThisString, Int32 Position)
-            => ThisString == null || Position >= ThisString.Length;
-
+            
       /// <summary>
       /// Checks whether the string starts with a sequence of strings ignoring white space in front of each marker.
       /// Does not allocate temporary string variables in the .NET heap.

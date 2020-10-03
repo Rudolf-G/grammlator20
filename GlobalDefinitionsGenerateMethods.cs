@@ -1110,7 +1110,7 @@ namespace grammlator {
 
          Boolean test1sRecommended = AnalyseBlockList(blockList, out Int32 Complexity);
 
-         if (Complexity > GlobalVariables.CompareToFlagTestBorder.Value * 100 + 50
+         if (Complexity > GlobalVariables.CompareToFlagTestBorder.Value * 100 - 50
             // 350 allows e.g. 2 comparisions and 1 logical operator
             && GlobalVariables.IsInMethod.Value != ""
             && GlobalVariables.NumberOfTerminalSymbols <= 63

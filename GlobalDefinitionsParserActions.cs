@@ -858,10 +858,10 @@ namespace grammlator {
              * Replace all references by a reference to the first one
              */
 
-         if (NextAction is LookaheadOrNonterminalTransition LaOrNt)
+         while (NextAction is LookaheadOrNonterminalTransition LaOrNt)
          {
             if (!(LaOrNt.NextAction is Definition))
-               NextAction = LaOrNt.NextAction;
+               NextAction = LaOrNt.NextAction; // may be again a nonterminal transition
          }
 
          Debug.Assert(!(NextAction is NonterminalTransition));

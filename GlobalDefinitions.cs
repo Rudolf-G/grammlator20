@@ -733,7 +733,8 @@ namespace grammlator {
       internal abstract EmptyComputationResultEnum ContainsAnEmptyDefinition();
 
       /// <summary>
-      /// The terminal symbols are numbered starting with 1, the nonterminal symbols are also numbered starting with 1
+      /// The terminal symbols are numbered starting with 0, the nonterminal symbols are also numbered starting with 0.
+      /// The display in logs and comments is <see cref="SymbolNumber"/>+1.
       /// </summary>
       internal Int32 SymbolNumber;
       internal Int32[] AttributetypeStringIndexList;
@@ -812,6 +813,7 @@ namespace grammlator {
       internal TerminalSymbol(String s, Int32 Position) : base(s, Position)
           => _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;  // Terminal symbols are never empty
 
+      internal Int64 EnumValue;
       internal Int32 Weight;
       internal Boolean IsUsedInIsIn = false;
 
@@ -827,8 +829,8 @@ namespace grammlator {
              .Append((SymbolNumber + 1).ToString("D2"))
              .Append(": ");
 
-         if (!String.IsNullOrEmpty(GlobalVariables.TerminalSymbolEnum.Value))
-            sb.Append(GlobalVariables.TerminalSymbolEnum.Value).Append('.');
+         //if (!String.IsNullOrEmpty(GlobalVariables.TerminalSymbolEnum.Value))
+         //   sb.Append(GlobalVariables.TerminalSymbolEnum.Value).Append('.');
 
          IdentifierAndAttributesToSB(sb);
 

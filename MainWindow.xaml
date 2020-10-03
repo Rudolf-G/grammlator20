@@ -97,22 +97,19 @@
 
         <Menu x:Name="GrammlatorMenu">
             <MenuItem Header="_File" UseLayoutRounding="True">
-                <MenuItem x:Name="MenuItemLoadSourceFile" Header="_Load source file ..." Click="MenuItemLoadSourceFile_Click">
-                </MenuItem>
-                <MenuItem x:Name="MenuItemSaveResult" Header="_Save result ..." Click="MenuItemSaveResult_Click"/>
+                <MenuItem x:Name="MenuItemLoadSourceFile" Header="_Load source file ..." Click="MenuItemLoadSourceFile_Click"/>
                 <Separator/>
-                <MenuItem x:Name="MenuItemSaveSource" Header="Save source file ..." Click="MenuItemSaveSource_Click">
-                </MenuItem>
+                <MenuItem x:Name="MenuItemSaveSource" Header="Save source ..." Click="MenuItemSaveSource_Click"/>
+                <MenuItem x:Name="MenuItemSaveResult" Header="_Save result ..." Click="MenuItemSaveResult_Click"/>
+                <MenuItem x:Name="MenuItemSaveResultToSource" Header="_Save result to source ..." Click="MenuItemSaveResultToSource_Click"/>
             </MenuItem>
             <MenuItem Header="_Translate">
-                <MenuItem x:Name="MenuItemTranslateStandard" Header="with _standard options ..." Click="MenuItemTranslateStandard_Click">
-                </MenuItem>
+                <MenuItem x:Name="MenuItemTranslateStandard" Header="with _standard options ..." Click="MenuItemTranslateStandard_Click"/>
                 <Separator/>
-                <MenuItem x:Name="MenuItemReloadAndTranslate" Header="_reload source and translate ..." Click="MenuItemReloadAndTranslate_Click">
-                </MenuItem>
+                <MenuItem x:Name="MenuItemReloadAndTranslate" Header="_reload source and translate ..." Click="MenuItemReloadAndTranslate_Click"/>
             </MenuItem>
-            <MenuItem Header="_Compare">
-                <MenuItem x:Name="CompareIgnoringSeparators" Header=".. ignoring leading separators" Click="CompareIgnoringSeparators_Click"/>
+            <MenuItem Header="_Compare" x:Name="MenuItemCompare">
+                <MenuItem x:Name="MenuItemCompareIgnoringSeparators" Header=".. ignoring leading separators" Click="CompareIgnoringSeparators_Click"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem x:Name="MenuItemDisplayExample" Header="Display example" Click="DisplayExample_Click"/>

@@ -36,13 +36,25 @@ namespace grammlator {
       }
 
       /// <summary>
+      /// Stores the StringIndexes and the enum values of all elements of the last C# enum.
+      /// Is the empty list, if the last optional enum has been omitted
+      /// or an enum with no elements has been recognized. 
+      /// </summary>
+      //////////private readonly Dictionary<Int32, Int64> EnumNames =new Dictionary<Int32, Int64>(100);
+      
+      /// <summary>
       /// Stores the StringIndexes of all elements of the last C# enum.
       /// Is null if the last optional enum has been omitted.
       /// Is the empty list, if an enum with no elements has been recognized. 
       /// </summary>
-      private readonly List<Int32> Enumlist = new List<Int32>();
+      private readonly List<Int32> EnumNames = new List<Int32>();
       Int64 EnumLastValue = -1;
       Int64 EnumMaxValue = Int64.MinValue;
+
+      /// <summary>
+      /// <see cref="EnumValues"/>[i] is the value of <see cref="EnumNames"/>[i]
+      /// </summary>
+      private readonly List<Int64> EnumValues = new List<Int64>();
 
       /// <summary>
       /// The StringIndex of the name of the last enum the parser found in the source.
@@ -83,6 +95,7 @@ namespace grammlator {
          {
             SymbolDictionary[nameIndex] =
                new TerminalSymbol(Name, Lexer.LexerTextPos) {
+                  EnumValue = 0,
                   Weight = weight,
                   SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
@@ -380,18 +393,16 @@ namespace grammlator {
 
       private Symbol MakeGrammarRule(Symbol existingSymbol, TypeOfGrammarRule type)
       {
-         // TODO check if and how different variants are implemented in the grammar: optional, repeat0lr, ... repeat1rr
-
          /* Repeat is implemented by left recursion "lr" or right recursion "rr"
-          *   type "optional":
+          *   type "optional":  // "?"
           *      newSymbol =  existingSymbol || ;
-          *   type "repeat0lr":
+          *   type "repeat0lr": // "*"
           *      newSymbol =  || newSymbol, existingSymbol;
-          *   type "repeat1lr":
+          *   type "repeat1lr": // "+"
           *      newSymbol =  existingSymbol || newSymbol, existingSymbol;
-          *   type "repeat0rr":
+          *   type "repeat0rr": // "**"
           *      newSymbol =  || existingSymbol, newSymbol;
-          *   type "repeat1rr":
+          *   type "repeat1rr": // "++"
           *      newSymbol =  existingSymbol || existingSymbol, newSymbol;
           */
 
@@ -930,6 +941,8 @@ namespace grammlator {
                );
          }
 
+         Boolean AllSymbolsAreUsed = true;
+         Int32 NotUsedPosition = 0;
          foreach (KeyValuePair<Int32, Symbol> KeyValue in SymbolDictionary)
          {
             Symbol Symbol = KeyValue.Value;
@@ -960,13 +973,21 @@ namespace grammlator {
 
                if ((Symbol is TerminalSymbol t) && !t.isUsed)
                {
-                  OutputMessage(MessageTypeOrDestinationEnum.Information,
-                     $"The terminal symbol {GetNameOfSymbol()} is not used in any definition (may be used in look ahead)",
-                     t.FirstPosition
-                     );
+                  AllSymbolsAreUsed = false;
+                  NotUsedPosition = t.FirstPosition;
+                  //OutputMessage(MessageTypeOrDestinationEnum.Information,
+                  //   $"The terminal symbol {GetNameOfSymbol()} is not used in any definition (may be used in look ahead)",
+                  //   t.FirstPosition
+                  //   );
                }
             }
          }
+         if (!AllSymbolsAreUsed)
+            OutputMessage(MessageTypeOrDestinationEnum.Information,
+               $"Not all terminal symbols are used in a definition (see list of symbols)",
+               NotUsedPosition
+               );
+
          return maxMessageType;
       }
 

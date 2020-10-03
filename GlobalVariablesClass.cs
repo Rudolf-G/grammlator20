@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+
 using Microsoft.Extensions.ObjectPool;
 
 namespace grammlator {
@@ -123,7 +124,7 @@ namespace grammlator {
             String AssemblyFullPath = ThisAssembly.Location;
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(AssemblyFullPath);
             String FileVersion = fvi.FileVersion;
-            String FileWrittenDate = 
+            String FileWrittenDate =
                System.IO.File.GetLastWriteTime(AssemblyFullPath)
                .ToString("d MMM yyyy");
 
@@ -272,65 +273,57 @@ namespace grammlator {
       /// e.g. "//|"
       /// </summary>
       internal static readonly StringSetting GrammarLineMarker
-         = new StringSetting("GrammarLineMarker", "//|",
-         settingList: InternalSettings,
-         description: "This string is used to mark grammar lines: \"//|\"");
+         = new StringSetting("GrammarLineMarker", "//|", InternalSettings,
+            @"This string is used to mark grammar lines: ""//|""");
 
       /// <summary>
       /// e.g. "//"
       /// </summary>
       internal static readonly StringSetting CSharpCommentlineMarker
-         = new StringSetting("CSharpCommentlineMarker", "//",
-         settingList: InternalSettings,
-         description: "This string is used to mark comments in the grammar: \"//\"");
+         = new StringSetting("CSharpCommentlineMarker", "//", InternalSettings,
+            @"This string is used to mark comments in the grammar: ""//""");
 
       /// <summary>
       /// e.g. "#pragma"
       /// </summary>
       internal static readonly StringSetting CSharpPragmaMarker
-         = new StringSetting("CSharpPragmaMarker", "#pragma",
-         settingList: InternalSettings,
-         description: "This string is used to mark pragmas in C#: \"#pragma\"");
+         = new StringSetting("CSharpPragmaMarker", "#pragma", InternalSettings,
+            @"This string is used to mark pragmas in C#: ""#pragma""");
 
       /// <summary>
       /// e.g. "#region" (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting RegionString
-         = new StringSetting("RegionString", "#region",
-         settingList: InternalSettings,
-         description: "The string starting a region: typically \"#region\"");
+         = new StringSetting("RegionString", "#region", InternalSettings,
+            @"The string starting a region: typically ""#region""");
 
       /// <summary>
       /// e.g. "#endregion"  (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting EndregionString
-         = new StringSetting("EndregionString", "#endregion",
-         settingList: InternalSettings,
-         description: "The string ending a region: typically \"#endregion\"");
+         = new StringSetting("EndregionString", "#endregion", InternalSettings,
+            @"The string ending a region: typically ""#endregion""");
 
       /// <summary>
       /// e.g. "grammar"  (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting GrammarString
-         = new StringSetting("GrammarString", "grammar",
-         settingList: InternalSettings,
-         description: "The name of the region which contains the grammar, typically \"grammar\"");
+         = new StringSetting("GrammarString", "grammar", InternalSettings,
+            @"The name of the region which contains the grammar, typically ""grammar""");
 
       /// <summary>
       /// e.g. "grammlator"  (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting GrammlatorString
-         = new StringSetting("GrammlatorString", "grammlator",
-         settingList: InternalSettings,
-         description: "The 1st part of the name of the region which contains the grammlator generated code, typically \"grammlator\"");
+         = new StringSetting("GrammlatorString", "grammlator", InternalSettings,
+            @"The 1st part of the name of the region which contains the grammlator generated code, typically ""grammlator""");
 
       /// <summary>
       /// e.g. "generated"  (not including the apostrophes)
       /// </summary>
       internal static readonly StringSetting GeneratedString
-         = new StringSetting("GeneratedString", "generated",
-         settingList: InternalSettings,
-         description: "The second part of the name of the region which contains the grammlator generated code, typically \"generated\"");
+         = new StringSetting("GeneratedString", "generated", InternalSettings,
+            @"The second part of the name of the region which contains the grammlator generated code, typically ""generated""");
 
       /// <summary>
       /// <see cref="NewLineWithEscapes"/> is defined by <see cref="Settings.NewLineConstant"/>
@@ -338,11 +331,14 @@ namespace grammlator {
       /// (unlike <see cref="System.Environment.NewLine"/> typically "\r\n").
       /// </summary>
       internal static readonly StringSetting NewLineWithEscapes
-         = new StringSetting("NewLineWithEscapes", "\\r\\n",
-settingList: InternalSettings,
-         description: @"The string representing NewLine in printable form, typically ""\\r\\n""");
+         = new StringSetting("NewLineWithEscapes", "\\r\\n", InternalSettings,
+            @"The string representing NewLine in printable form, typically ""\\r\\n""");
 
-      /*************************************/
+      internal static readonly Int32Setting ErrorLimit
+         = new Int32Setting("ErrorLimit", 6, InternalSettings,
+            @"Grammlator will abort translation if ErrorLimit errormessages are found.");
+
+      /*** Settings which can be modified by the user ***/
 
       /// <summary>
       /// <see cref="TerminalSymbolEnum.Value"/> (e.g. "LexerResult") is used to generated code
@@ -420,6 +416,11 @@ A typical value is ""_s"", which is defined in grammlatorRuntime.cs.");
          = new StringSetting("AttributeStack", "_a", VisibleSettings,
 @"This name is used in the generated code as the name of the attribute stack.
 A typical value is ""_a"", which is defined in grammlatorRuntime.cs.");
+
+      internal static Int32Setting TerminalDefaultWeight
+         = new Int32Setting("TerminalDefaultWeight", 20, VisibleSettings,
+@"The default weight assigned to a terminal symbol. Terminals with a high weight
+tend to be checked earlier in generated conditions.");
 
       internal static BooleanSetting OptimizeStateStackNumbers
         = new BooleanSetting("OptimizeStateStackNumbers", true, VisibleSettings,

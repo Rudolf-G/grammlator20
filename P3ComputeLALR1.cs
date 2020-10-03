@@ -36,7 +36,7 @@ namespace grammlator {
          if (statesWithConflicts > 0)
             GlobalVariables.OutputMessage(
                MessageTypeOrDestinationEnum.Warning,
-               $"{' ',18}Found and resolved conflicts in {statesWithConflicts} states."
+               $"Found and resolved conflicts in {statesWithConflicts} states."
                );
 
       }
