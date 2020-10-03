@@ -112,6 +112,83 @@ namespace grammlator {
          return;
       }
 
+      private void AddMissingTerminalsFromEnum()
+      {
+         Int32 addedTerminalsCount = 0;
+         Int32 explicitelyDefinedTerminalsCount = SymbolDictionary.Count;
+         for (Int32 enumIndex = 0; enumIndex < EnumValues.Count; enumIndex++)
+         {
+            Int32 Name = EnumNames[enumIndex];
+            if (!SymbolDictionary.TryGetValue(Name, out Symbol _))
+            {
+               // There is no terminal with the same name as the enum element
+               // Declare a corresponding terminal
+               Int32 NumberOfAttributes = 0;
+               SymbolDictionary[Name] =
+                  new TerminalSymbol(GlobalVariables.GetStringOfIndex(Name), Lexer.LexerTextPos) {
+                     EnumValue = EnumValues[enumIndex],
+                     Weight = GlobalVariables.TerminalDefaultWeight.Value,
+                     SymbolNumber = SymbolDictionary.Count,
+                     AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes),
+                     AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributes)
+                  };
+               addedTerminalsCount++;
+            }
+         }
+         if (addedTerminalsCount > 0 && explicitelyDefinedTerminalsCount > 0)
+            // Warning only if at least one terminal symbol is declared explcitely
+            P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Warning,
+@$"The enum contains {addedTerminalsCount} elements that are not defined as terminal.
+These elements are used as additional terminal declarations.");
+
+      }
+
+      private void SortTerminalsByEnumValue()
+      {
+         var Keys = new Int32[SymbolDictionary.Count];
+         var Values = new Symbol[SymbolDictionary.Count];
+         SymbolDictionary.Keys.CopyTo(Keys, 0);
+         SymbolDictionary.Values.CopyTo(Values, 0);
+         Array.Sort<Symbol, Int32>(Values, Keys, new EnumComparer());
+         SymbolDictionary.Clear();
+         for (int i = 0; i < Values.Length; i++)
+         {
+            SymbolDictionary.Add(Keys[i], Values[i]);
+            (Values[i] as TerminalSymbol)!.SymbolNumber = i;
+         }
+         P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Status,
+             $"The order of the terminal definitions differs from the order in the enum. The terminals have been sorted according to the enum.");
+      }
+
+      private void ErrorIfMissingEnumElements(out Boolean error, out Boolean ascending)
+      {
+         error = false;
+         ascending = true;
+
+         Int64 LastEnumValue = Int64.MinValue;
+         foreach (var terminal in SymbolDictionary)
+         {
+            var TerminalStringIndex = terminal.Key;
+            Int32 IndexOfEnumElement = EnumNames.FindIndex
+               (enumStringIndex => enumStringIndex == TerminalStringIndex);
+            if (IndexOfEnumElement < 0)
+            {
+               error = true;
+               String name = GlobalVariables.GetStringOfIndex(TerminalStringIndex);
+               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                  @$"The name ""{name}"" in the terminal definition does not occur in the enum.");
+            }
+            else
+            {
+               Int64 EnumValue = EnumValues[IndexOfEnumElement];
+               (terminal.Value as TerminalSymbol)!.EnumValue = EnumValue;
+               if (EnumValue < LastEnumValue)
+                  ascending = false; // have to resort the terminal symbols (if no error)
+               LastEnumValue = EnumValue;
+            }
+         }
+      }
+
       /// <summary>
       /// Add the nonterminal symbol to the <see cref="SymbolDictionary"/> or, if already contained test for compatibility, 
       /// update (LeftSide=true, OverlayType=... out) and assign the attributes, set <see cref="NumberOfLastAttributeOfLeftSide"/>

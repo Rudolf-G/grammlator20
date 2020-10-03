@@ -322,6 +322,7 @@ namespace grammlator {
       //| ErrorHandlerMethod: "ErrorHandler"
       //| StateDescriptionPrefix: "StateDescription"
       //| IfToSwitchBorder: "4";
+      //| CompareToFlagTestBorder: 4;
       //|
       //| // Declaration of the lexers terminal symbols (the output of the classifier):
       //|      DefiningSymbol(Int32 i)%7 | Comma(Int32 i)%7 | DefinitionSeparatorSymbol(Int32 i)%7 
@@ -517,7 +518,7 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated 29 Sep 2020 (grammlator file version/date 2020.09.28.0/29 Sep 2020)
+#region grammlator generated 3 Okt 2020 (grammlator file version/date 2020.10.03.0/3 Okt 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fCSharpStart = 2L << (Int32)ClassifierResult.CSharpStart;
   const Int64 _fCSharpEnd = 2L << (Int32)ClassifierResult.CSharpEnd;
@@ -942,7 +943,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 29 Sep 2020 (grammlator file version/date 2020.09.28.0/29 Sep 2020)
+#endregion grammlator generated 3 Okt 2020 (grammlator file version/date 2020.10.03.0/3 Okt 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }
