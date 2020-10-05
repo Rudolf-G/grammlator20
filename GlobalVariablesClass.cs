@@ -466,17 +466,19 @@ is greater than the CompareToFlagTestBorder then a test of flags will be generat
 A typical value is ""3""");
 
       /// <summary>
-      /// e.g. "_1In(#)". Will be set to "" if an enum is found and the maximum value of an element is &gt;63
+      /// e.g. "_Is(#)". Will be set to "" if an enum is found and the maximum value of an element is &gt;63
       /// </summary>
-      internal static StringSetting IsInMethod
-         = new StringSetting("IsInMethod", "_IsIn", settingList: VisibleSettings,
-@"The name of the Boolean IsIn-Method which grammlator will generate.
-If this name is """" then grammlator will not generate this method
-and the flag constants representing terminal symbols.
-Typically it is ""_IsIn"". It should be set to """", if any of the terminals
-represents a value > 63;
-Grammlator will set this pattern to """" if it recognizes that at least
-one of the terminal symbols has a value > 63.");
+      internal static StringSetting FlagTestMethodName
+         = new StringSetting("IsMethod", "", settingList: VisibleSettings,
+@"The name of the boolean method which implements the flag test.
+If this name is """" then grammlator will not generate and use
+this method and the flag constants representing terminal symbols.
+This name is preset to """". It should be set to a string value, e.g. ""_is"", only if
+the values of the terminal symbols are flags (1, 2, 4, ...) or are <=63 and
+if the input can be only values explicitely defined in the terminal enum
+but no additional values of the enum base type.
+Grammlator will reset this pattern to """" if it recognizes that the above condition
+is broken.");
 
       /// <summary>
       /// e.g. "_f"
@@ -561,7 +563,7 @@ A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlato
       }
 
       /// <summary>
-      /// Used to get terminal symbols by its indexes
+      /// Used to get terminal symbols by its SymbolNumber
       /// </summary>
       internal static TerminalSymbol[] TerminalSymbols;
 
@@ -574,11 +576,18 @@ A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlato
       internal static void DefineArrayTerminalSymbolByIndex(Dictionary<Int32, Symbol> symbolDictionary)
       {
          TerminalSymbols = new TerminalSymbol[NumberOfTerminalSymbols];
+         Debug.Assert(symbolDictionary.Count == NumberOfTerminalSymbols);
          foreach (KeyValuePair<Int32, Symbol> pair in symbolDictionary)
          {
             if (pair.Value is TerminalSymbol terminal)
                TerminalSymbols[terminal.SymbolNumber] = terminal;
          }
+#if DEBUG
+         for (int i=1; i<TerminalSymbols.Length; i++)
+         {
+            Debug.Assert(TerminalSymbols[i].EnumValue > TerminalSymbols[i - 1].EnumValue);
+         }
+#endif
       }
 
       /// <summary>

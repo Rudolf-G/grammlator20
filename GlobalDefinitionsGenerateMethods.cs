@@ -1112,7 +1112,7 @@ namespace grammlator {
 
          if (Complexity > GlobalVariables.CompareToFlagTestBorder.Value * 100 - 50
             // 350 allows e.g. 2 comparisions and 1 logical operator
-            && GlobalVariables.IsInMethod.Value != ""
+            && GlobalVariables.FlagTestMethodName.Value != ""
             && GlobalVariables.NumberOfTerminalSymbols <= 63
             // TODO correct condition: the value of each enum element must be >= 0  and  <=63
             )
@@ -1616,14 +1616,14 @@ namespace grammlator {
          if (Condition.PopulationCount() < InverseCondition.PopulationCount())
          {
             codegen
-               .Append(GlobalVariables.IsInMethod.Value)
+               .Append(GlobalVariables.FlagTestMethodName.Value)
                .Append('(');
             GenerateIsInArguments(codegen, Condition);
          }
          else
          {
             codegen.Append('!')
-               .Append(GlobalVariables.IsInMethod.Value)
+               .Append(GlobalVariables.FlagTestMethodName.Value)
                .Append('(');
             GenerateIsInArguments(codegen, InverseCondition);
          }

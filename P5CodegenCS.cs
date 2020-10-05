@@ -3,14 +3,12 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Text;
 
-namespace grammlator
-{
-   
+namespace grammlator {
+
    /// <summary>
    /// Low level methods for code generation (C#) to be used by phase 5
    /// </summary>
-   internal class P5CodegenCS
-   {
+   internal class P5CodegenCS {
       public P5CodegenCS(StringBuilder resultbuilder)
       {
          ResultBuilder = resultbuilder;
@@ -50,8 +48,9 @@ namespace grammlator
       }
 
       public void GenerateStartOfCodeAndCopyCodeToResultBuilder(
-          Boolean GenerateStateStackInitialCountVariable,
-          Boolean GenerateAttributeStackInitialCountVariable)
+         Boolean useTerminalValuesAsFlags,
+         Boolean GenerateStateStackInitialCountVariable,
+         Boolean GenerateAttributeStackInitialCountVariable)
       {
 
          StringBuilder ResultPart2 = CodeBuilder;
@@ -84,36 +83,82 @@ namespace grammlator
                .AppendLine(".Count; ");
          }
 
-         Boolean AtLeastOne = false;
-         foreach(TerminalSymbol t in GlobalVariables.TerminalSymbols)
-         {
-            if (t.IsUsedInIsIn)
-            {
-               AtLeastOne = true;
-               // generate e.g. "const Int64 _CSharpEnd = 2L << (Int32)LexerResult.CSharpEnd;"
-               String Identifier = t.Identifier;
-               IndentExactly()
-                  .Append("const Int64 ")
-                  .Append(GlobalVariables.FlagsPrefix.Value)
-                  .Append(Identifier)
-                  .Append(" = 2L << (Int32)")
-                  .AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, Identifier)
-                  .AppendLine(';');
-            }
-         }
+         // Define constants and method for Flag-Tests
 
-         if (AtLeastOne)
+         Int64 MinValue = GlobalVariables.TerminalSymbols[0].EnumValue;
+         Int64 MaxValue = GlobalVariables.TerminalSymbols[^1].EnumValue;
+
+         if (MaxValue - MinValue > 63)
+            Debug.Assert(GlobalVariables.FlagTestMethodName.Value == "");
+         else
          {
-            /* generate e.g.
-             *    Boolean IsIn(Int64 flags)
-             *       => ((2L << (Int32)ParserInput) & flags) != 0;
-             */
-            IndentExactly().
-               Append("Boolean ")
-               .Append(GlobalVariables.IsInMethod.Value)
-               .Append("(Int64 flags) => ((2L << (Int32)")
-               .Append(GlobalVariables.SymbolNameOrFunctionCall.Value)
-               .AppendLine(") & flags) != 0;");
+            Int64 Offset = MaxValue <= 63 ? 0 : MinValue;
+            Boolean IsInFunctionHastoBeGenerated = false;
+
+            foreach (TerminalSymbol t in GlobalVariables.TerminalSymbols)
+            {
+               if (t.IsUsedInIsIn)
+               {
+                  IsInFunctionHastoBeGenerated = true; // 
+                  String Identifier = t.Identifier;
+                  IndentExactly();
+                  if (useTerminalValuesAsFlags)
+                  {
+                     // generate shorter aliases
+                     // generate e.g. "const ThreeLetters _fb = ThreeLetters.b;"
+                     Append("const ")
+                        .Append(GlobalVariables.TerminalSymbolEnum.Value) // "ThreeLetters"
+                        .Append(' ') // ' '
+                        .Append(GlobalVariables.FlagsPrefix.Value) // "_f"
+                        .Append(Identifier) // "b"
+                        .Append(" = ") // " = "
+                        .AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, Identifier); // "ThreeLetters.b"
+                     AppendLine(';'); // ';'
+                  }
+                  else
+                  {
+                     // generate e.g. "const Int64 _fb = 1L << (Int32)(LexerResult.CSharpEnd-12);"
+                     Append("const Int64 ")
+                        .Append(GlobalVariables.FlagsPrefix.Value) //  "_f"
+                        .Append(Identifier) // "b"
+                        .Append(" = 1L << (Int32)(")
+                        .AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, Identifier); // LexerResult.CSharpEnd
+                     if (Offset != 0)
+                        Append('-')
+                        .Append(Offset.ToString());
+                     AppendLine(");"); // ");"
+                  }
+               }
+            }
+
+            if (IsInFunctionHastoBeGenerated)
+            {
+               // generate e.g. "Boolean _IsIn"
+               IndentExactly().
+               Append("Boolean ");
+               Append(GlobalVariables.FlagTestMethodName.Value);
+
+               if (useTerminalValuesAsFlags)
+               {
+                  // generate e.g. "(ThreeLetters flags) => ((PeekSymbol()) & flags) != 0;"
+                  Append("(")
+                     .Append(GlobalVariables.TerminalSymbolEnum.Value)
+                     .Append(" flags) => ((")
+                     .Append(GlobalVariables.SymbolNameOrFunctionCall.Value) // "PeekSymbol()"
+                     .AppendLine(") & flags) != 0;");
+               }
+               else
+               {
+                  // generate e.g. "(Int64 flags) => (1L << (Int32)((PeekSymbol()) - 0) & flags) != 0;
+                  Append("(Int64 flags) => (1L << (Int32)((")
+                  .Append(GlobalVariables.SymbolNameOrFunctionCall.Value) // "PeekSymbol()"
+                  .Append(')');
+                  if (Offset != 0)
+                     Append('-')
+                     .Append(Offset.ToString());
+                  AppendLine(") & flags) != 0;");
+               }
+            }
          }
 
          AppendLine(); // write codeline to StringBuilder!
@@ -136,7 +181,7 @@ namespace grammlator
       public ParserAction? GenerateEndOfCodeAction()
       {
          // The label (if needed) has already been generated
-        Indent().AppendLine(';');
+         Indent().AppendLine(';');
          return null;
       }
 
@@ -364,7 +409,7 @@ namespace grammlator
             Append(s);
          }
          return this;
-      }  
+      }
 
       /// <summary>
       /// Indent to position given by the indentation level, if actual position is smaller,
@@ -413,7 +458,7 @@ namespace grammlator
       }
 
       public void GenerateBeginOfBlock()
-         {
+      {
          IndentExactly();
          AppendLine('{');
          // IncrementIndentationLevel();
@@ -447,8 +492,8 @@ namespace grammlator
       public static String GotoLabel(ParserAction action, Boolean accept)
       {
          String LabelPrefix = ParserEnumExtension.LabelPrefix(action.ParserActionType);
-         if (action.ParserActionType==ParserActionEnum.isErrorhaltAction ||
-            action.ParserActionType==ParserActionEnum.isEndOfGeneratedCode) 
+         if (action.ParserActionType == ParserActionEnum.isErrorhaltAction ||
+            action.ParserActionType == ParserActionEnum.isEndOfGeneratedCode)
             // There is only one ErrorHaltAction, one end of generated code
             return (accept ? "Accept" : "") + LabelPrefix;
          return (accept ? "Accept" : "") + LabelPrefix + (action.IdNumber + 1).ToString();
@@ -523,52 +568,52 @@ namespace grammlator
          Int32 count = 0;
          foreach (MethodParameterStruct Parameter in semanticMethod.MethodParameters)
          {
-            String ParameterTypeString =GlobalVariables.GetStringOfIndex(Parameter.TypeStringIndex);
+            String ParameterTypeString = GlobalVariables.GetStringOfIndex(Parameter.TypeStringIndex);
 
             AppendLine();
             IndentAndAppend(GlobalVariables.GetStringOfIndex(Parameter.NameStringIndex));
             Append(": ");
             switch (Parameter.Implementation)
             {
-               case ParameterImplementation.OutCall:
-               {
-                  Append("out ");
-                  AppendAttributePeekRef(Parameter.Offset, ParameterTypeString);
-                  break;
-               }
+            case ParameterImplementation.OutCall:
+            {
+               Append("out ");
+               AppendAttributePeekRef(Parameter.Offset, ParameterTypeString);
+               break;
+            }
 
-               case ParameterImplementation.RefCall:
-               {
-                  Append("ref ");
-                  AppendAttributePeekRef(Parameter.Offset, ParameterTypeString);
-                  break;
-               }
+            case ParameterImplementation.RefCall:
+            {
+               Append("ref ");
+               AppendAttributePeekRef(Parameter.Offset, ParameterTypeString);
+               break;
+            }
 
-               case ParameterImplementation.ValueOrInCall:
-               {
-                  AppendAttributePeekRef(Parameter.Offset, ParameterTypeString);
-                  break;
-               }
+            case ParameterImplementation.ValueOrInCall:
+            {
+               AppendAttributePeekRef(Parameter.Offset, ParameterTypeString);
+               break;
+            }
 
-               case ParameterImplementation.OutClearCall:
-               {
-                  Append("out ");
-                  AppendAttributePeekRefClear(Parameter.Offset, ParameterTypeString);
-                  break;
-               }
+            case ParameterImplementation.OutClearCall:
+            {
+               Append("out ");
+               AppendAttributePeekRefClear(Parameter.Offset, ParameterTypeString);
+               break;
+            }
 
-               case ParameterImplementation.ValueOrInClearCall:
-               {
-                  AppendAttributePeekClear(Parameter.Offset, ParameterTypeString);
-                  break;
-               }
+            case ParameterImplementation.ValueOrInClearCall:
+            {
+               AppendAttributePeekClear(Parameter.Offset, ParameterTypeString);
+               break;
+            }
 
-               case ParameterImplementation.NotAssigned:
-               {
-                  Debug.Fail("Programm error in PSCodeGen: ParameterImplementation.NotAssigned");
-                  throw new ErrorInGrammlatorProgramException
-                      ("Programm error in PSCodeGen: ParameterImplementation.NotAssigned");
-               }
+            case ParameterImplementation.NotAssigned:
+            {
+               Debug.Fail("Programm error in PSCodeGen: ParameterImplementation.NotAssigned");
+               throw new ErrorInGrammlatorProgramException
+                   ("Programm error in PSCodeGen: ParameterImplementation.NotAssigned");
+            }
             }
             count++;
             if (count < semanticMethod.MethodParameters.Length)

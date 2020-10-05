@@ -42,7 +42,11 @@ namespace grammlator {
          Action<MessageTypeOrDestinationEnum, String> outputMessage,
          Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPos)
       {
+#if DEBUG
+         const Boolean LogStartOfPhases = true;
+#else
          const Boolean LogStartOfPhases = false;
+#endif
 
          // ----- Set initial values
          ResetGlobalVariables(outputMessage, outputMessageAndPos);

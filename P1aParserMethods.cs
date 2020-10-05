@@ -34,13 +34,6 @@ namespace grammlator {
 
          public void RemoveFromEnd(Int32 n) => this.RemoveRange(this.Count - n, n);
       }
-
-      /// <summary>
-      /// Stores the StringIndexes and the enum values of all elements of the last C# enum.
-      /// Is the empty list, if the last optional enum has been omitted
-      /// or an enum with no elements has been recognized. 
-      /// </summary>
-      //////////private readonly Dictionary<Int32, Int64> EnumNames =new Dictionary<Int32, Int64>(100);
       
       /// <summary>
       /// Stores the StringIndexes of all elements of the last C# enum.
@@ -48,8 +41,6 @@ namespace grammlator {
       /// Is the empty list, if an enum with no elements has been recognized. 
       /// </summary>
       private readonly List<Int32> EnumNames = new List<Int32>();
-      Int64 EnumLastValue = -1;
-      Int64 EnumMaxValue = Int64.MinValue;
 
       /// <summary>
       /// <see cref="EnumValues"/>[i] is the value of <see cref="EnumNames"/>[i]
