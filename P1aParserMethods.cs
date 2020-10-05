@@ -37,7 +37,6 @@ namespace grammlator {
       
       /// <summary>
       /// Stores the StringIndexes of all elements of the last C# enum.
-      /// Is null if the last optional enum has been omitted.
       /// Is the empty list, if an enum with no elements has been recognized. 
       /// </summary>
       private readonly List<Int32> EnumNames = new List<Int32>();
@@ -51,7 +50,7 @@ namespace grammlator {
       /// The StringIndex of the name of the last enum the parser found in the source.
       /// Is -1 if an optional enum has been empty.
       /// </summary>
-      public Int32 EnumNameStringIndex;
+      public Int32 EnumNameStringIndex=-1;
 
       // TODO test all error messages
       private void CreateParserErrorMessage(String message)
@@ -86,7 +85,7 @@ namespace grammlator {
          {
             SymbolDictionary[nameIndex] =
                new TerminalSymbol(Name, Lexer.LexerTextPos) {
-                  EnumValue = 0,
+                  EnumValue = SymbolDictionary.Count,
                   Weight = weight,
                   SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
@@ -155,6 +154,8 @@ These elements are used as additional terminal declarations.");
       {
          error = false;
          ascending = true;
+         if (EnumNameStringIndex < 0)
+            return; // no enum
 
          Int64 LastEnumValue = Int64.MinValue;
          foreach (var terminal in SymbolDictionary)

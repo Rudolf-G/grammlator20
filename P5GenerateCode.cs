@@ -69,7 +69,7 @@ namespace grammlator {
          UseTerminalValuesAsFlags = true;
          foreach (TerminalSymbol terminal in GlobalVariables.TerminalSymbols)
          {
-            if (terminal.EnumValue==0 || (terminal.EnumValue & Flags) != 0)
+            if (terminal.EnumValue == 0 || (terminal.EnumValue & Flags) != 0)
             {
                // the terminal value is 0 or has at least one bit in common with one preceding terminal
                UseTerminalValuesAsFlags = false;
@@ -78,7 +78,7 @@ namespace grammlator {
             Flags = terminal.EnumValue | Flags;
          }
 
-                  if (!UseTerminalValuesAsFlags)
+         if (!UseTerminalValuesAsFlags)
          {
             // Clear Check if Flag-Tests can be used in generated code
             Int64 MinValue = GlobalVariables.TerminalSymbols[0].EnumValue;

@@ -384,10 +384,10 @@ namespace grammlator {
             CurrentColumn = inputLine.Length - SourceReader.EoLLength; // is >=0 
             return ' ';
             }
-         else if (inputLine.Span.IndexBehindMarkers(CurrentColumn, GlobalVariables.EndregionString.Value) > -1)
+         else if (inputLine.Span.IndexBehindMarkers(CurrentColumn, GlobalVariables.EndregionString.Value, GlobalVariables.GrammarString.Value) > -1)
             {
             // found "#endregion"
-            // handle all lines (in the grammar region) starting with "endregion" as grammar lines so that the parser can
+            // handle all lines (in the grammar region) starting with "endregion...grammar" as grammar lines so that the parser can
             // recognize the # as TerminatorAtEndOfGrammar
             TypeOfInputline = TypeOfInputlineEnum.Grammar;
             // start interpreting at the first character of endregion, which is at position CurrentColumn

@@ -88,11 +88,11 @@ namespace grammlator {
          Int64 MinValue = GlobalVariables.TerminalSymbols[0].EnumValue;
          Int64 MaxValue = GlobalVariables.TerminalSymbols[^1].EnumValue;
 
-         if (MaxValue - MinValue > 63)
-            Debug.Assert(GlobalVariables.FlagTestMethodName.Value == "");
-         else
+         if (GlobalVariables.FlagTestMethodName.Value != "")
          {
-            Int64 Offset = MaxValue <= 63 ? 0 : MinValue;
+            Int64 Offset = useTerminalValuesAsFlags 
+               ? 0  // not used
+               : MaxValue <= 63 ? 0 : MinValue;
             Boolean IsInFunctionHastoBeGenerated = false;
 
             foreach (TerminalSymbol t in GlobalVariables.TerminalSymbols)
