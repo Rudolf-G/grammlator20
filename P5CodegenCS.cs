@@ -26,7 +26,7 @@ namespace grammlator {
       /// </summary>
       private readonly StringBuilder CodeLine = new StringBuilder();
 
-      private readonly Int32 LineLengthLimit = GlobalVariables.LineLengthLimit.Value;
+      private readonly Int32 LineLengthLimit = (Int32)GlobalVariables.LineLengthLimit.Value;
       // TOCHECK can more generated lines be shortened to LineLengthLimit?
 
       /// <summary>
@@ -329,7 +329,7 @@ namespace grammlator {
          return this;
       }
 
-      public P5CodegenCS Append(Int32 i)
+      public P5CodegenCS Append(Int64 i)
       {
          CodeLine.Append(i);
          return this;

@@ -481,7 +481,7 @@ namespace grammlator {
          var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count);
 
          Int32 indexOfActionWithPriority = -1;
-         Int32 highestPriority = Int32.MinValue;
+         Int64 highestPriority = Int32.MinValue;
 
          // For each action in the parser state (ignoring actions with dynamic priority)
          // determine action symbols and priority and determine the action with the highest priority
@@ -505,7 +505,7 @@ namespace grammlator {
             subsetOfConflictSymbols.Assign(thisActionsConflictSymbols);
 
 
-            Int32 priority = 0; // priority of terminal transitions is always 0
+            Int64 priority = 0; // priority of terminal transitions is always 0
             if (action is LookaheadAction laAction)
             {
                priority = laAction.ConstantPriority; // use assigned priority if no dynamic priority

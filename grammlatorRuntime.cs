@@ -361,6 +361,28 @@ namespace GrammlatorRuntime {
 
       [FieldOffset(8)]
       public UInt16 _ushort;
+
+      [FieldOffset(8)]
+      public Char _Char;
+
+      [FieldOffset(8)]
+      public Int32 _Int32;
+
+      [FieldOffset(8)]
+      public UInt32 _Uint32;
+
+      [FieldOffset(8)]
+      public Int64 _Int64;
+
+      [FieldOffset(8)]
+      public UInt64 _UInt64;
+
+      [FieldOffset(8)]
+      public Int16 _Int16;
+
+      [FieldOffset(8)]
+      public UInt16 _UInt16;
+
 #pragma warning restore CS1591 // Fehledes XML-Kommentar für öffentlich sichtbaren Typ oder Element
 #pragma warning restore CA1051 // Do not declare visible instance fields
    }

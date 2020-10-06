@@ -814,7 +814,7 @@ namespace grammlator {
           => _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;  // Terminal symbols are never empty
 
       internal Int64 EnumValue;
-      internal Int32 Weight;
+      internal Int64 Weight;
       internal Boolean IsUsedInIsIn = false;
 
       internal override String SymboltypeString => "terminal symbol";

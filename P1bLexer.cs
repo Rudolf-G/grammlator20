@@ -17,7 +17,7 @@ namespace grammlator {
       CSharpEnd,      // represents the change from CSharp lines to grammlator lines
       Error,          // Error is the result if some input could not be assigned to any other LexerResult
       Minus,          // Part of "-="
-      Number/* (Int32 i) */,
+      Number/* (Int64 i) */,
       StarEqual,      // "*=", added by the lexer
       MinusEqual,     // "-=", addeed by the lexer
       Questionmark,   // part of "??"
@@ -369,7 +369,7 @@ namespace grammlator {
       //|     Gap, CharacterToPassOn
       //|   | Gap, Name(Int32 stringIndex) 
       private void AssignNameToSymbol() => Symbol = LexerResult.Name;
-      //|   | Gap, StartsymbolNumber (Int32 value)
+      //|   | Gap, StartsymbolNumber (Int64 value)
       //|   | Gap, StartsymbolString(Int32 stringIndex)
       //|   | Gap, StartsymbolDoubleQuestionmark
       //|   | Gap, StartsymbolStarEqual
@@ -377,8 +377,8 @@ namespace grammlator {
       //|   | Gap, StartsymbolCSharpStart
       //|   | Gap, StartsymbolCSharpEnd
 
-      //| StartsymbolNumber(Int32 value)=
-      //|    Number(Int32 value) ?? -1 ?? /* low priority makes this definition greedy */
+      //| StartsymbolNumber(Int64 value)=
+      //|    Number(Int64 value) ?? -1 ?? /* low priority makes this definition greedy */
       private void AssignNumberToSymbol() => Symbol = LexerResult.Number;
 
       //| StartsymbolString(Int32 stringIndex)=
@@ -503,12 +503,12 @@ namespace grammlator {
          StringCharacterSequence.Append("\"");
       }
 
-      //| Number(Int32 number)=
+      //| Number(Int64 number)=
       //|    Digit(Int32 index)
-      private void DigitNew(out Int32 number, Int32 index)
+      private void Digit(out Int64 number, Int32 index)
           => number = Source.Span[index] - '0';
-      //|    | Number(Int32 number), Digit(Int32 index)
-      private void DigitNumberNew(ref Int32 number, Int32 index)
+      //|    | Number(Int64 number), Digit(Int32 index)
+      private void DigitNumberNew(ref Int64 number, Int32 index)
           => number = (number * 10) + (Source.Span[index] - '0');
       #endregion grammar
 
@@ -519,7 +519,7 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated 5 Okt 2020 (grammlator file version/date 2020.10.04.0/5 Okt 2020)
+#region grammlator generated 6 Okt 2020 (grammlator file version/date 2020.10.05.0/6 Okt 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fCSharpStart = 1L << (Int32)(ClassifierResult.CSharpStart);
   const Int64 _fCSharpEnd = 1L << (Int32)(ClassifierResult.CSharpEnd);
@@ -537,7 +537,7 @@ State2:
   const String StateDescription2 =
        "*Startsymbol= Gap, ►CharacterToPassOn;\r\n"
      + "*Startsymbol= Gap, ►Name(Int32 stringIndex);\r\n"
-     + "*Startsymbol= Gap, ►StartsymbolNumber(Int32 value);\r\n"
+     + "*Startsymbol= Gap, ►StartsymbolNumber(Int64 value);\r\n"
      + "*Startsymbol= Gap, ►StartsymbolString(Int32 stringIndex);\r\n"
      + "*Startsymbol= Gap, ►StartsymbolDoubleQuestionmark;\r\n"
      + "*Startsymbol= Gap, ►StartsymbolStarEqual;\r\n"
@@ -689,22 +689,22 @@ State2:
 
   inputClassifier.AcceptSymbol();
   // Reduce7:
-  /* Number(Int32 number)= Digit(Int32 index);◄ */
+  /* Number(Int64 number)= Digit(Int32 index);◄ */
 
-  DigitNew(
-     number: out _a.PeekRef(0)._Int32,
-     index: _a.PeekRef(0)._Int32
+  Digit(
+     number: out _a.PeekRef(0)._Int64,
+     index: _a.PeekClear(0)._Int32
      );
 
 State4:
-  /* StartsymbolNumber(Int32 value)= Number(Int32 value)●;
-   * Number(Int32 number)= Number(Int32 number), ►Digit(Int32 index); */
+  /* StartsymbolNumber(Int64 value)= Number(Int64 value)●;
+   * Number(Int64 number)= Number(Int64 number), ►Digit(Int32 index); */
   LexerInput = inputClassifier.PeekSymbol();
   if (LexerInput < ClassifierResult.Digit)
      // Reduce20:
      {
-     /* StartsymbolNumber(Int32 value)= Number(Int32 value);◄
-      * then: *Startsymbol= Gap, StartsymbolNumber(Int32 value);◄
+     /* StartsymbolNumber(Int64 value)= Number(Int64 value);◄
+      * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
       * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ */
 
      AssignNumberToSymbol();
@@ -715,10 +715,10 @@ State4:
   inputClassifier.AcceptSymbol();
   // Reduce21:
   /* aAdjust: -1
-   * Number(Int32 number)= Number(Int32 number), Digit(Int32 index);◄ */
+   * Number(Int64 number)= Number(Int64 number), Digit(Int32 index);◄ */
 
   DigitNumberNew(
-     number: ref _a.PeekRef(-1)._Int32,
+     number: ref _a.PeekRef(-1)._Int64,
      index: _a.PeekRef(0)._Int32
      );
 
@@ -844,7 +844,7 @@ State6:
         _a.Remove();
         // Reduce17:
         /* StartsymbolString(Int32 stringIndex)= String(Int32 stringIndex);◄
-         * then: *Startsymbol= Gap, StartsymbolNumber(Int32 value);◄
+         * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
          * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ */
 
         AssignStringToStartsymbol();
@@ -944,7 +944,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 5 Okt 2020 (grammlator file version/date 2020.10.04.0/5 Okt 2020)
+#endregion grammlator generated 6 Okt 2020 (grammlator file version/date 2020.10.05.0/6 Okt 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

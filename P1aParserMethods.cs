@@ -70,7 +70,7 @@ namespace grammlator {
       /// <param name="Name">Name of the terminal symbol</param>
       /// <param name="numberOfAttributes">Number of attributes</param>
       /// <param name="weight">the terminal symbols weight, which influences the order of generated if clauses</param>
-      private void TerminalSymbolDeclaration(Int32 nameIndex, Int32 numberOfAttributes, Int32 weight)
+      private void TerminalSymbolDeclaration(Int32 nameIndex, Int32 numberOfAttributes, Int64 weight)
       {
          String Name = GlobalVariables.GetStringOfIndex(nameIndex);  // TODO use nameIndex as Key in SymbolDictionary
          Debug.Assert(!String.IsNullOrEmpty(Name), $"{nameof(Name)} is 0 or empty");
@@ -1072,7 +1072,7 @@ These elements are used as additional terminal declarations.");
       /// <param name="priorityFunction">null or C# Int32 method</param>
       /// <param name="semanticMethod">null or C# void method</param>
       /// <param name="optimizeTrivialDefinitions">if false there will be no special handling of trivial definitions</param>
-      private void EvaluateDefinition(Int32 constantPriority, IntMethodClass? priorityFunction, VoidMethodClass? semanticMethod, Boolean optimizeTrivialDefinitions)
+      private void EvaluateDefinition(Int64 constantPriority, IntMethodClass? priorityFunction, VoidMethodClass? semanticMethod, Boolean optimizeTrivialDefinitions)
       {
          // ActualAttributeNumber is the number of the last attribute of the right side
          Int32 AttributestackAdjustment = NumberOfLastAttributeOfLeftSide - AttributeCounter;

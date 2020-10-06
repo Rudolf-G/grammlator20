@@ -320,7 +320,7 @@ namespace grammlator {
          get; set;
       }
 
-      internal Int32 ConstantPriority;
+      internal Int64 ConstantPriority;
 
       /// <summary>
       /// A Int32 method
@@ -914,7 +914,7 @@ namespace grammlator {
       /// <summary>
       /// Returns Int32.MaxValue if action has dynamic priority, assigned priority of lookadead action, 0 else
       /// </summary>
-      public Int32 Priority {
+      public Int64 Priority {
          get {
             if (this is LookaheadAction laAction)
             {
@@ -971,7 +971,7 @@ namespace grammlator {
       /// <summary>
       /// The sum of the weights of all terminal symbols in <see cref="TerminalSymbols"/>, never 0 (replaced by 1)
       /// </summary>
-      public Int32 SumOfWeights {
+      public Int64 SumOfWeights {
          get; private set;
       }
 
@@ -1199,7 +1199,7 @@ namespace grammlator {
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isLookaheadAction;
 
-      internal readonly Int32 ConstantPriority = 0;
+      internal readonly Int64 ConstantPriority = 0;
       internal readonly IntMethodClass? PriorityFunction = null;
 
       /// <summary>
@@ -1273,7 +1273,7 @@ namespace grammlator {
 
       internal ParserActionWithNextAction? ConstantPriorityAction;
       // ConstantPriority is copied from ConstantPriorityAction because ConstantPriorityAction may be modified later
-      internal readonly Int32 ConstantPriority;
+      internal readonly Int64 ConstantPriority;
       internal readonly ListOfParserActions DynamicPriorityActions; // the elements of the list may be modified later !
                                                                     // The PriorityFunctions are copied from PriorityActions because those may be modified later
       internal readonly IntMethodClass[] PriorityFunctions;

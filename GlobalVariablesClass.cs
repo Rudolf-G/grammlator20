@@ -11,7 +11,7 @@ namespace grammlator {
 
    public abstract class Setting {
       public enum SettingType {
-         StringType, BooleanType, Int32Type
+         StringType, BooleanType, Int64Type
       }
 
       public String Name { get; }
@@ -38,14 +38,14 @@ namespace grammlator {
       public virtual void Reset() { }
    }
 
-   public class Int32Setting : Setting {
+   public class Int64Setting : Setting {
 
-      public Int32 InitialValue { get; }
-      public Int32 Value { get; set; }
+      public Int64 InitialValue { get; }
+      public Int64 Value { get; set; }
       public override String ValueAsString { get { return Value.ToString(); } }
 
-      public Int32Setting(String name, Int32 initialValue, List<Setting> settingList, String description)
-         : base(name, SettingType.Int32Type, initialValue.ToString(), settingList, description)
+      public Int64Setting(String name, Int64 initialValue, List<Setting> settingList, String description)
+         : base(name, SettingType.Int64Type, initialValue.ToString(), settingList, description)
       {
          InitialValue = initialValue;
          Value = initialValue;
@@ -334,8 +334,8 @@ namespace grammlator {
          = new StringSetting("NewLineWithEscapes", "\\r\\n", InternalSettings,
             @"The string representing NewLine in printable form, typically ""\\r\\n""");
 
-      internal static readonly Int32Setting ErrorLimit
-         = new Int32Setting("ErrorLimit", 6, InternalSettings,
+      internal static readonly Int64Setting ErrorLimit
+         = new Int64Setting("ErrorLimit", 6, InternalSettings,
             @"Grammlator will abort translation if ErrorLimit errormessages are found.");
 
       /*** Settings which can be modified by the user ***/
@@ -418,8 +418,8 @@ A typical value is ""_s"", which is defined in grammlatorRuntime.cs.");
 @"This name is used in the generated code as the name of the attribute stack.
 A typical value is ""_a"", which is defined in grammlatorRuntime.cs.");
 
-      internal static Int32Setting TerminalDefaultWeight
-         = new Int32Setting("TerminalDefaultWeight", 20, VisibleSettings,
+      internal static Int64Setting TerminalDefaultWeight
+         = new Int64Setting("TerminalDefaultWeight", 20, VisibleSettings,
 @"The default weight assigned to a terminal symbol. Terminals with a high weight
 tend to be checked earlier in generated conditions.");
 
@@ -434,22 +434,22 @@ They are specified in an explict terminal declaration by using a ':'. Example: "
 readability of the generated code but may cause less performing switch statements.
 It may effect other optimizations performed by grammlator.");
 
-      internal static Int32Setting NestingLevelLimit
-        = new Int32Setting("NestingLevelLimit", 5, VisibleSettings,
+      internal static Int64Setting NestingLevelLimit
+        = new Int64Setting("NestingLevelLimit", 5, VisibleSettings,
 @"This limits the nesting in the generated code.
 If this limit is reached a goto is generated instead of an inlined sequence of code.
 A typical value is ""5""");
 
-      internal static Int32Setting LineLengthLimit
-         = new Int32Setting("LineLengthLimit", 120, VisibleSettings,
+      internal static Int64Setting LineLengthLimit
+         = new Int64Setting("LineLengthLimit", 120, VisibleSettings,
  @"This limits the length of lines in the generated code.
 A typical value is ""120""");
 
       /// <summary>
       /// <see cref="ConditionalAction"/>s with complexity &lt;= <see cref="IfToSwitchBorder"/> are generated as if instruction sequence, others as switch statement
       /// </summary>
-      internal static Int32Setting IfToSwitchBorder
-         = new Int32Setting("IfToSwitchBorder", 5, settingList: VisibleSettings,
+      internal static Int64Setting IfToSwitchBorder
+         = new Int64Setting("IfToSwitchBorder", 5, settingList: VisibleSettings,
 @"A sequence of conditional actions is generated as a sequence of if-statements, 
 if its complexity (estimated number of logical operations) is less or equal
 than this number (typically 5), else a switch statement will be generated.");
@@ -457,8 +457,8 @@ than this number (typically 5), else a switch statement will be generated.");
       /// <summary>
       /// <see cref="ConditionalAction"/>s with complexity &lt;= <see cref="IfToSwitchBorder"/> are generated as if instruction sequence, others as switch statement
       /// </summary>
-      internal static Int32Setting CompareToFlagTestBorder
-         = new Int32Setting("CompareToFlagTestBorder", 3, settingList: VisibleSettings,
+      internal static Int64Setting CompareToFlagTestBorder
+         = new Int64Setting("CompareToFlagTestBorder", 3, settingList: VisibleSettings,
 @"The condition in If-statements can be generated as a sequence of < or > or = comparisions
 connected by && and ||. Or it can be generated as a test of flags (if no terminal
 symbol has a value >63). If the estmated complexity of the sequence of comparisions

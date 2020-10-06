@@ -37,11 +37,6 @@ namespace GrammlatorRuntime {
 
       // Value types with FieldOffset 8 (64 bit)
       // because fields of value type must not overlap fields of type object
-      [FieldOffset(8)]
-      internal Int32 _Int32;
-
-      [FieldOffset(8)]
-      internal Char _Char;
 
       }
    }
