@@ -25,6 +25,7 @@ namespace grammlator {
       Questionmark, // part of "??"
       Asterisk, // Part of "*="
       Minus, // Part of "-="
+      At, // @
              //
              // The following characters are evaluated by the lexer and not passed on to the parser
 
@@ -278,7 +279,7 @@ namespace grammlator {
                 ';', '+', ':', '%',
                 '(', '[', '{',
                ')', ']', '}', '#',
-                '?','*','-',
+                '?','*','-','@',
                 '\"', '/',
                '\\', '_', '.'
           };
@@ -309,6 +310,7 @@ namespace grammlator {
             ClassifierResult.Questionmark, // ?
             ClassifierResult.Asterisk, // *
             ClassifierResult.Minus, // -
+            ClassifierResult.At, // @
 
             ClassifierResult.Quotationmark, // "
             ClassifierResult.Slash, // /

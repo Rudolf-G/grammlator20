@@ -49,7 +49,8 @@ namespace grammlator {
       /// <param name="thisSpan"></param>
       /// <param name="predicate"></param>
       /// <returns>the number of elements of the span for which the <paramref name="predicate"/> is true</returns>
-      public static int Count(this ReadOnlySpan<char> thisSpan, Func<char, bool> predicate) {
+      public static int Count(this ReadOnlySpan<char> thisSpan, Func<char, bool> predicate)
+      {
          int Counter = 0;
          foreach (char c in thisSpan)
             if (predicate(c))
@@ -176,19 +177,46 @@ namespace grammlator {
          return;
       }
 
+      internal static Boolean IsCharacter(this ReadOnlySpan<Char> thisSpan, ref int position, char c)
+      {
+         if (position >= thisSpan.Length || thisSpan[position] != c)
+            return false;
+
+         position++;
+         return true;
+      }
+
       internal static Boolean IsIdentifier(this ReadOnlySpan<Char> thisSpan, ref int position, out ReadOnlySpan<Char> identifier)
       {
+         Int32 Position = position;
          identifier = "";
-         int StartPosition = position;
-         if (position >= thisSpan.Length || !char.IsLetter(thisSpan[position]))
+         int StartPosition = Position;
+
+         while (Position < thisSpan.Length &&
+               (char.IsLetter(thisSpan[Position]) || char.IsDigit(thisSpan[Position])))
+            Position++;
+
+         if (Position == StartPosition)
             return false;
-         position++;
-         while (position < thisSpan.Length &&
-                (char.IsLetter(thisSpan[position]) || char.IsDigit(thisSpan[position]))
-                )
-            position++;
-         identifier = thisSpan[StartPosition..position];
+
+         identifier = thisSpan[StartPosition..Position];
+         position = Position;
          return true;
+      }
+
+      internal static Boolean IsInt64(this ReadOnlySpan<Char> thisSpan, ref int position, out Int64 number)
+      {
+         Int32 Position = position;
+         int StartPosition = Position;
+         number = 0;
+
+         while (Position < thisSpan.Length && thisSpan[Position] >= '0' && thisSpan[Position] <= '9')
+            Position++;
+
+         if (Position == StartPosition)
+            return false; // no digit
+
+         return Int64.TryParse(thisSpan[StartPosition..Position], out number); // Check overflow
       }
 
    }

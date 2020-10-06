@@ -34,7 +34,7 @@ namespace grammlator {
 
          public void RemoveFromEnd(Int32 n) => this.RemoveRange(this.Count - n, n);
       }
-      
+
       /// <summary>
       /// Stores the StringIndexes of all elements of the last C# enum.
       /// Is the empty list, if an enum with no elements has been recognized. 
@@ -50,7 +50,7 @@ namespace grammlator {
       /// The StringIndex of the name of the last enum the parser found in the source.
       /// Is -1 if an optional enum has been empty.
       /// </summary>
-      public Int32 EnumNameStringIndex=-1;
+      public Int32 EnumNameStringIndex = -1;
 
       // TODO test all error messages
       private void CreateParserErrorMessage(String message)
@@ -147,8 +147,18 @@ namespace grammlator {
                ArgumentTypes.Add(ArgumentType.ToString());
                ArgumentNames.Add(ArgumentName.ToString());
 
-
                Description.SkipWhiteSpace(ref Position);
+            }
+
+            Position++; // Skip ')'
+            Description.SkipWhiteSpace(ref Position);
+
+            // Optional weight
+            Int64 Weight = GlobalVariables.TerminalDefaultWeight.Value;
+            if (Description.IsCharacter(ref Position, '%'))
+            {
+               Description.SkipWhiteSpace(ref Position);
+               Description.IsInt64(ref Position, out Weight);
             }
 
             // *************************
@@ -177,7 +187,7 @@ namespace grammlator {
                SymbolDictionary[nameIndex] =
                   new TerminalSymbol(Name, Lexer.LexerTextPos) {
                      EnumValue = SymbolDictionary.Count,
-                     Weight = GlobalVariables.TerminalDefaultWeight.Value,
+                     Weight = Weight,
                      SymbolNumber = SymbolDictionary.Count,
                      AttributetypeStringIndexList = TypeStringIndexes,
                      AttributenameStringIndexList = NameStringIndexes
@@ -1570,11 +1580,11 @@ These elements are used as additional terminal declarations.");
             {
                // no attribute with the same name as the formal parameter
                // no attribute with the same name as the formal parameter
-              GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-                  $"Error in semantic priority \"{semanticPriority!.MethodName }\" formal parameter \"{methodParameterName}\": "
-                  + "missing attribute with the same name.",
-                  semanticPriority!.Position
-                  );
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
+                   $"Error in semantic priority \"{semanticPriority!.MethodName }\" formal parameter \"{methodParameterName}\": "
+                   + "missing attribute with the same name.",
+                   semanticPriority!.Position
+                   );
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
@@ -1624,7 +1634,7 @@ These elements are used as additional terminal declarations.");
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;
                continue;
             }
- 
+
             // Compare types:
             if (Attribute.TypeStringIndex != MethodParameter.TypeStringIndex)
             {
