@@ -65,7 +65,7 @@ namespace grammlator {
                return false;
 
             inputLine = line;
-            if (inputLine.StartsWith(markers))
+            if (inputLine.AsSpan().StartsWith(markers))
                {
                if (copyFoundLine)
                   OutputLine(inputLine);

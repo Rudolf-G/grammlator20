@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+
 namespace grammlator {
    public partial class MainWindow {
 
@@ -339,9 +340,9 @@ namespace grammlator {
 
          // Display statistics
          BufferMessage(MessageTypeOrDestinationEnum.Information,
-             $"Input  contains {SourceTextBox.Text.Length,7} characters, {SourceTextBox.Text.CountLines(),7} lines");
+             $"Input  contains {SourceTextBox.Text.Length,7} characters, {SourceTextBox.Text.AsSpan().CountLines(),7} lines");
          BufferMessage(MessageTypeOrDestinationEnum.Information,
-             $"Result contains {ResultText.Length,7} characters, {ResultText.CountLines(),7} lines");
+             $"Result contains {ResultText.Length,7} characters, {ResultText.AsSpan().CountLines(),7} lines");
 
          // If there is an error move the cursor in SourceTextBox to the position of the error
          if (firstErrorIndex >= 0 && firstErrorIndex < ErrorPositions.Count)

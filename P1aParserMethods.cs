@@ -102,6 +102,100 @@ namespace grammlator {
          return;
       }
 
+      private void EvaluateEnumElement(String description, Int32 enumElementStringIndex, Int64 enumNumber)
+      {
+         ReadOnlySpan<char> Description = description.AsSpan();
+         List<String> ArgumentTypes = new List<string>(20);
+         List<String> ArgumentNames = new List<string>(20);
+         if (Description != "")
+         {
+            // expect "EnumElementIdentifier" "(" typeIdentifier  argumentidentifier , ...")"
+            String EnumElementIdentifier = GlobalVariables.GetStringOfIndex(enumElementStringIndex);
+            Int32 Position = 0;
+
+            if (!(Description[Position++] == '"'))
+               goto DescriptionError;
+            if (Description.Length < 2 || !(Description[^1] == '"')) // "" is used as end marker => do not need to check Position>=description.length
+               goto DescriptionError;
+            Description.SkipWhiteSpace(ref Position);
+            if (!Description.StartsWithAndSkip(ref Position, EnumElementIdentifier))
+               goto DescriptionError;
+
+            Description.SkipWhiteSpace(ref Position);
+            if (!(Description[Position++] == '('))
+               goto DescriptionError;
+
+            Boolean Is1st = true;
+            Description.SkipWhiteSpace(ref Position);
+
+            while (Description[Position] != ')')
+            {
+               if (!Is1st)
+               {
+                  if (Description[Position++] != ',')
+                     goto DescriptionError;
+                  Description.SkipWhiteSpace(ref Position);
+               }
+               Is1st = false;
+               if (!Description.IsIdentifier(ref Position, out ReadOnlySpan<char> ArgumentType))
+                  goto DescriptionError;
+               Description.SkipWhiteSpace(ref Position);
+
+               if (!Description.IsIdentifier(ref Position, out ReadOnlySpan<char> ArgumentName))
+                  goto DescriptionError;
+
+               ArgumentTypes.Add(ArgumentType.ToString());
+               ArgumentNames.Add(ArgumentName.ToString());
+
+
+               Description.SkipWhiteSpace(ref Position);
+            }
+
+            // *************************
+            Int32 nameIndex = enumElementStringIndex;
+            String Name = GlobalVariables.GetStringOfIndex(nameIndex);
+            if (SymbolDictionary.TryGetValue(nameIndex, out Symbol? s))
+            {
+               TerminalSymbol t = (s as TerminalSymbol)!;
+               for (int i = 0; i < ArgumentTypes.Count; i++)
+                  if (t.AttributetypeStringIndexList[i] != GlobalVariables.GetIndexOfString(ArgumentTypes[i]))
+                  {
+                     String TypeIofT = GlobalVariables.GetStringOfIndex(t.AttributetypeStringIndexList[i]);
+                     P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+ @$"Error in enum: the terminal symbol {Name} has already been defined with a different argumenttype {TypeIofT} / {ArgumentTypes[i]} ");
+                  }
+            }
+            else
+            {
+               var TypeStringIndexes = new int[ArgumentTypes.Count];
+               var NameStringIndexes = new int[ArgumentNames.Count];
+               for (int i = 0; i < ArgumentTypes.Count; i++)
+               {
+                  TypeStringIndexes[i] = GlobalVariables.GetIndexOfString(ArgumentTypes[i]);
+                  NameStringIndexes[i] = GlobalVariables.GetIndexOfString(ArgumentNames[i]);
+               }
+               SymbolDictionary[nameIndex] =
+                  new TerminalSymbol(Name, Lexer.LexerTextPos) {
+                     EnumValue = SymbolDictionary.Count,
+                     Weight = GlobalVariables.TerminalDefaultWeight.Value,
+                     SymbolNumber = SymbolDictionary.Count,
+                     AttributetypeStringIndexList = TypeStringIndexes,
+                     AttributenameStringIndexList = NameStringIndexes
+                  };
+            }
+            goto AddEnum;
+
+         DescriptionError:
+            P1OutputMessageAndLexerPosition(
+               MessageTypeOrDestinationEnum.Warning,
+               "Error in description attribute of enum value");
+         }
+
+      AddEnum:
+         EnumNames.Add(enumElementStringIndex);
+         EnumValues.Add(enumNumber);
+      }
+
       private void AddMissingTerminalsFromEnum()
       {
          Int32 addedTerminalsCount = 0;
