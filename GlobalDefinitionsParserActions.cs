@@ -338,8 +338,12 @@ namespace grammlator {
       /// </summary>
       internal Int32 AttributestackAdjustment;
       internal Symbol[] Elements;
+      /// <summary>
+      /// Is used to display the attribute identifiers which are used in the definition.
+      /// In definitions added by grammlator this array may be null or empty.
+      /// Then the attribute names of the symbols declarations are used.
+      /// </summary>
       internal Int32[] AttributeIdentifierStringIndexArray;
-      //   function ist_geordnet (v: t_Aktion): boolean; override;
 
       /// <summary>
       /// Returns true, if no SemanticMethod, no AttributeStackCorrection. 

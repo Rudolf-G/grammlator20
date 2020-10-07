@@ -1,5 +1,7 @@
 using GrammlatorRuntime;
+
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Windows.Xps;
@@ -10,35 +12,74 @@ namespace grammlator {
    /// </summary>
    public enum ClassifierResult {
       // The following characters will be passed on by the lexer to the parser
-      // Parsing of line comments uses a call of inputClassifier.IgnoreAllCharactersUntilEndOfLine(); and does not need explicit EndOfLine
-      DefiningSymbol, Comma, DefinitionSeparatorSymbol, // these are the characters = , |
-      TerminatorSymbol, Plus, Colon, Percent,           // these are the characters ; - + : * %
-      GroupStart, OptionStart, RepeatStart,             // these are the characters ( [ { 
-      GroupEnd, OptionEnd, RepeatEnd, NumberSign,       // these are the characters ) ] } #
-      //
+      [Description(@"DefiningSymbol(Int32 i) %7 ""="" ")]
+      DefiningSymbol,
+      [Description(@"Comma(Int32 i) %7 "","" ")]
+      Comma,
+      [Description(@"DefinitionSeparatorSymbol(Int32 i) %7 ""|"" ")]
+      DefinitionSeparatorSymbol,
+
+      [Description(@"TerminatorSymbol(Int32 i) %5 "";"" ")]
+      TerminatorSymbol,
+      [Description(@"Plus(Int32 i) %3 ""+"" ")]
+      Plus,
+      [Description(@"Colon(Int32 i) %3 "":"" ")]
+      Colon,
+      [Description(@"Percent(Int32 i) %3 ""%"" ")]
+      Percent,
+
+      [Description(@"GroupStart(Int32 i) 3x ""("" ")]
+      GroupStart,
+      [Description(@"OptionStart(Int32 i) 1x ""["" ")]
+      OptionStart,
+      [Description(@"RepeatStart(Int32 i) 1x ""{"" ")]
+      RepeatStart,
+
+      [Description(@"GroupEnd(Int32 i) %3 "")"" ")]
+      GroupEnd,
+      [Description(@"OptionEnd(Int32 i) %1 ""]"" ")]
+      OptionEnd,
+      [Description(@"RepeatEnd(Int32 i) %1 ""}"" ")]
+      RepeatEnd,
+      [Description(@"NumberSign(Int32 i) %1 ""#"" ")]
+      NumberSign,
+
       // The following "virtual" symbols represent the change from grammlator lines to CSharp lines and vice versa
       // They will also be passed on by the lexer to the parser
-      CSharpStart, CSharpEnd,
-      //
+      [Description(@"CSharpStart(Int32 i) %8 ""C#"" ")]
+      CSharpStart,
+      [Description(@"CSharpEnd(Int32 i) %1 ""//|"" ")]
+      CSharpEnd,
+      // The following characters are evaluated by the lexer and not passed on to the parser
+
       // The following symbols may be part of a combined symbol and are handled individually by the generated code "?" may be part of "??"
       // Nevertheless they can be copied
+      [Description(@"Questionmark(Int32 i) %5 ""?"" ")]
       Questionmark, // part of "??"
+      [Description(@"Asterisk(Int32 i) %1 ""*"" ")]
       Asterisk, // Part of "*="
+      [Description(@"Minus(Int32 i) %1 ""-"" ")]
       Minus, // Part of "-="
+      [Description(@"At(Int32 i) %1 ""@"" ")]
       At, // @
-             //
-             // The following characters are evaluated by the lexer and not passed on to the parser
 
-      WhiteSpace,     //  or CommentLines, used as delimiter, skipped by lexer
+      [Description(@"WhiteSpace(Int32 i) %20 "" "" ")]
+      WhiteSpace,     // used as delimiter, skipped by lexer
+      [Description(@"Slash(Int32 i) %9 ""/"" ")]
       Slash,          // delimiter of comments
+      [Description(@"OtherCharacter(Int32 i) %1 ")]
       OtherCharacter, // allowed only in comments
-      Quotationmark,     // delimits strings constants used as names
-      Letter, Digit   // as part of names and numbers
-      };
+      [Description(@"Quotationmark(Int32 i) %5 ""''"" ")]
+      Quotationmark,     // delimits string constants used as names
+      [Description(@"Letter(Int32 i) %10 ""letter"" ")]
+      Letter,
+      [Description(@"Digit(Int32 i) %5 ""digit"" ")]
+      Digit   // as part of names and numbers
+   };
 
    public static class ClassifierResultExtensions {
       public static String MyToString(this ClassifierResult cr)
-         {
+      {
          const String MyDisplay = "=,|;-+:%*([{)]}#xx?x/x\"xx";
 
          if ((Int32)cr >= MyDisplay.Length)
@@ -49,14 +90,14 @@ namespace grammlator {
             return result.ToString();
          else
             return cr.ToString();
-         }
       }
+   }
 #pragma warning restore CS1591 // Fehledes XML-Kommentar für öffentlich sichtbaren Typ oder Element
 
    /// <summary>
    /// Grammlator syntaxchecker Level 0: input for lexical analysis Lex1
    /// </summary>
-   internal class P1cInputClassifier: IGrammlatorInput<ClassifierResult> { //GrammlatorInput<ClassifierResult> {
+   internal class P1cInputClassifier : IGrammlatorInput<ClassifierResult> { //GrammlatorInput<ClassifierResult> {
 
       // TODO use the Rune struct https://docs.microsoft.com/en-gb/dotnet/api/system.text.rune?view=netcore-3.1
       // and the EnumerateRunes Method
@@ -73,7 +114,7 @@ namespace grammlator {
       public P1cInputClassifier(
             SpanReaderWithCharacterAndLineCounter SourceReader,
             StackOfMultiTypeElements attributeStack)
-         {
+      {
          this.SourceReader = SourceReader;
          this._a = attributeStack;
          Accepted = true;
@@ -84,7 +125,7 @@ namespace grammlator {
          GrammarlineMarker = GlobalVariables.GrammarLineMarker.Value; // = "//|"
          CSharpCommentlineMarker = GlobalVariables.CSharpCommentlineMarker.Value; // = "//"
          CSharpPragma = GlobalVariables.CSharpPragmaMarker.Value; // = "#pragma"
-         }
+      }
 
       /// <summary>
       /// <para>When <see cref="Accepted"/> is false, then calls to <see cref="PeekSymbol"/> do nothing and </para>
@@ -94,7 +135,7 @@ namespace grammlator {
       public Boolean Accepted {
          get; // may be evaluated in semantic methods before accessing context
          protected set;
-         }
+      }
 
 
       ///<summary>
@@ -107,7 +148,7 @@ namespace grammlator {
 #pragma warning disable IDE1006 // Benennungsstile
       private StackOfMultiTypeElements _a {
          get; set;
-         }
+      }
 #pragma warning restore IDE1006 // Benennungsstile
 
       /// <summary>
@@ -116,7 +157,7 @@ namespace grammlator {
       /// </summary>
       public ClassifierResult Symbol {
          get; protected set;
-         }
+      }
 
       Int32 PositionOfSymbol;
 
@@ -144,17 +185,17 @@ namespace grammlator {
       /// AcceptSymbol has no effect, if Symbol is already accepted.
       /// </summary>
       public void AcceptSymbol()
-         {
+      {
          //if (Accepted)
          //   return;
          Accepted = true;
 
-        // Push position to the stack of attributes
+         // Push position to the stack of attributes
          _a.Push(new MultiTypeStruct() { _Int32 = PositionOfSymbol });
          // advance input to next character if Symbol was from inputline
          if (!(Symbol == ClassifierResult.CSharpStart || Symbol == ClassifierResult.CSharpEnd))
             CurrentColumn++;
-         }
+      }
 
       /// <summary>
       /// Position of <see cref="Symbol"/> in the actual line. Is always &gt;=0. May be == inputLine.Length SourceReader.EoLLength, if end of line is reached. 
@@ -163,14 +204,14 @@ namespace grammlator {
       /// </summary>
       public Int32 CurrentColumn {
          get; private set;
-         } // Initialized by constructor
+      } // Initialized by constructor
 
       /// <summary>
       /// The position in SourceReader of the last peeked Symbol. Accepting the symbol by AcceptSymbol will increment the value by 1.
       /// </summary>
       public Int32 CurrentPosition {
          get { return SourceReader.Position - inputLine.Length + CurrentColumn; } // TOCHECK replace CurrentPosition by a local variable
-         }
+      }
 
       /// <summary>
       /// Returns CurrentPosition
@@ -192,7 +233,7 @@ namespace grammlator {
       /// At the end of each input line a EndOfLine is added.
       /// </summary>
       public ClassifierResult PeekSymbol()
-         {
+      {
          if (!Accepted)
             return Symbol;
 
@@ -203,31 +244,31 @@ namespace grammlator {
          Accepted = false;
 
          if (CurrentColumn < inputLine.Length - SourceReader.EoLLength)
-            {
+         {
             c = inputLine.Span[CurrentColumn];
-            }
+         }
          else if (CurrentColumn == inputLine.Length - SourceReader.EoLLength)
-            {
+         {
             c = EndOfLineCharacter;
-            }
+         }
          else
-            {
+         {
             c = ReadAndPreprocessLineFromInput();
 
             if (wasGrammarLine != (TypeOfInputline == TypeOfInputlineEnum.Grammar))
-               {
+            {
                // Changing from grammlator line(s) to CSharp line(s) or vice versa
                if (TypeOfInputline == TypeOfInputlineEnum.Grammar)
-                  {
+               {
                   // first grammar line after CSharp line(s), comment line(s) and grammar line marker skipped
                   Debug.Assert(CurrentColumn <= inputLine.Length - SourceReader.EoLLength);
                   Symbol = ClassifierResult.CSharpEnd;
-                  }
+               }
                else
-                  { // First CSharp line after grammar lines, comment line(s) and white space skipped
-                    // Debug.Assert(CurrentColumn == 0);
+               { // First CSharp line after grammar lines, comment line(s) and white space skipped
+                 // Debug.Assert(CurrentColumn == 0);
                   Symbol = ClassifierResult.CSharpStart;
-                  }
+               }
 
                // c = EndOfLineCharacter;
                wasGrammarLine = (TypeOfInputline == TypeOfInputlineEnum.Grammar);
@@ -236,8 +277,8 @@ namespace grammlator {
                // return Symbol == CharacterEnum.CSharpStart or == CharacterEnum.CSharpEnd with attribute EndOfLineCharacter
                PositionOfSymbol = CurrentPosition;
                return Symbol;
-               }
             }
+         }
 
          PositionOfSymbol = CurrentPosition;
 
@@ -254,7 +295,7 @@ namespace grammlator {
 
          PositionOfSymbol = CurrentPosition;
          return Symbol;
-         }
+      }
 
       // local constants
       private const Char EndOfLineCharacter = '\r';
@@ -333,21 +374,21 @@ namespace grammlator {
       /// </summary>
       /// <returns>the 1st character of t</returns>
       private Char ReadAndPreprocessLineFromInput()
-         {
+      {
 
 
          // Get next line 
          inputLine = SourceReader.ReadLine();
 
          if (inputLine.IsEmpty)
-            {
+         {
             // end of source: Output message and throw exception
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
                 "The end of file has been reached prematurely by the lexical analyzer",
                  SourceReader.Position);
 
             Debug.Fail("This Debug line should be never executed, because ...Message(..Abort..) has been called");
-            }
+         }
 
          Debug.Assert(inputLine.Length >= 1);
 
@@ -359,7 +400,7 @@ namespace grammlator {
          Int32 newPosition;
 
          if ((newPosition = inputLine.Span.IndexBehindMarkers(CurrentColumn, GrammarlineMarker)) > -1)
-            {
+         {
             // found grammar line, start evaluation 
             TypeOfInputline = TypeOfInputlineEnum.Grammar;
 
@@ -369,46 +410,46 @@ namespace grammlator {
             if (CurrentColumn >= inputLine.Length - SourceReader.EoLLength)
                return ' '; // do not ignore line so that switching between CSharp and Grammar lines can be handled 
             return inputLine.Span[CurrentColumn];
-            }
+         }
          else if (CurrentColumn >= inputLine.Length - SourceReader.EoLLength)
-            {
+         {
             // found empty line (only CR or LF or CR LF) or line consisting only of separators: 
             TypeOfInputline = TypeOfInputlineEnum.CSharp; // white space is interpreted as CSharp
             CurrentColumn = inputLine.Length - SourceReader.EoLLength; // is >=0 
             return ' ';
-            }
+         }
          else if (inputLine.Span.IndexBehindMarkers(CurrentColumn, CSharpCommentlineMarker) > -1
                   || inputLine.Span.IndexBehindMarkers(CurrentColumn, CSharpPragma) > -1)
-            {
+         {
             // C# comment lines and C# Pragmas
             // handle as CSharp line consisting of only one ' '
             TypeOfInputline = TypeOfInputlineEnum.CSharp;
             CurrentColumn = inputLine.Length - SourceReader.EoLLength; // is >=0 
             return ' ';
-            }
+         }
          else if (inputLine.Span.IndexBehindMarkers(CurrentColumn, GlobalVariables.EndregionString.Value, GlobalVariables.GrammarString.Value) > -1)
-            {
+         {
             // found "#endregion"
             // handle all lines (in the grammar region) starting with "endregion...grammar" as grammar lines so that the parser can
             // recognize the # as TerminatorAtEndOfGrammar
             TypeOfInputline = TypeOfInputlineEnum.Grammar;
             // start interpreting at the first character of endregion, which is at position CurrentColumn
             return inputLine.Span[CurrentColumn];
-            }
+         }
          else
-            {
+         {
             TypeOfInputline = TypeOfInputlineEnum.CSharp;
             return inputLine.Span[CurrentColumn];
-            }
+         }
 
-         } // ReadLineFromInput()
+      } // ReadLineFromInput()
 
       /// <summary>
       /// Skips all input lines which are not grammar lines
       /// and sets the next noty yet accepted symbol to <see cref="ClassifierResult.CSharpEnd"/>
       /// </summary>
       public void SkipToEndOfCSLines()
-         {
+      {
          Debug.Assert(TypeOfInputline != TypeOfInputlineEnum.Grammar);
          while (TypeOfInputline != TypeOfInputlineEnum.Grammar)
             _ = ReadAndPreprocessLineFromInput();
@@ -418,12 +459,12 @@ namespace grammlator {
 
          wasGrammarLine = true;
          Accepted = false;
-         }
+      }
 
       public void IgnoreAllCharactersUntilEndOfLine()
-         {
+      {
          Accepted = true;
          CurrentColumn = inputLine.Length + 1;
-         }
-      } // class Lex0
-   }
+      }
+   } // class Lex0
+}

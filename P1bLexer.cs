@@ -341,43 +341,71 @@ namespace grammlator {
       //| IsMethod: "_is";
       //|
       //| // Declaration of the lexers terminal symbols (the output of the classifier):
-      //|      DefiningSymbol(Int32 i)%7 | Comma(Int32 i)%7 | DefinitionSeparatorSymbol(Int32 i)%7 
-      //|    | TerminatorSymbol(Int32 i)%5 | Plus(Int32 i)%3 | Colon(Int32 i)%3 | Percent(Int32 i)%3
-      //|    | GroupStart(Int32 i)%3 | OptionStart(Int32 i)%1 | RepeatStart(Int32 i)%1
-      //|    | GroupEnd(Int32 i)%3 | OptionEnd(Int32 i)%1 | RepeatEnd(Int32 i)%1 | NumberSign(Int32 i)%1
-      //|    | CSharpStart(Int32 i)%8 | CSharpEnd(Int32 i)%1 
-      //|    | Questionmark(Int32 i)%5 | Asterisk(Int32 i)%1 | Minus(Int32 i)%1 | At(Int32 i)
-      //|    | WhiteSpace(Int32 i)%20  | Slash(Int32 i)%9
-      //|    | OtherCharacter(Int32 i)%1| Quotationmark(Int32 i)%5
-      //|    | Letter(Int32 i)%10 | Digit(Int32 i)%5  
-
       public enum CopyOfClassifierResult {
          // The following characters will be passed on by the lexer to the parser
-         DefiningSymbol, Comma, DefinitionSeparatorSymbol, // these are the characters = , |
+         [Description(@"DefiningSymbol(Int32 i) %7 ""="" ")]
+         DefiningSymbol,
+         [Description(@"Comma(Int32 i) %7 "","" ")]
+         Comma,
+         [Description(@"DefinitionSeparatorSymbol(Int32 i) %7 ""|"" ")]
+         DefinitionSeparatorSymbol,
 
-         TerminatorSymbol, Plus, Colon, Percent,           // these are the characters ; - + : * %
+         [Description(@"TerminatorSymbol(Int32 i) %5 "";"" ")]
+         TerminatorSymbol,
+         [Description(@"Plus(Int32 i) %3 ""+"" ")]
+         Plus,
+         [Description(@"Colon(Int32 i) %3 "":"" ")]
+         Colon,
+         [Description(@"Percent(Int32 i) %3 ""%"" ")]
+         Percent,
 
-         GroupStart, OptionStart, RepeatStart,             // these are the characters ( [ { 
+         [Description(@"GroupStart(Int32 i) 3x ""("" ")]
+         GroupStart,
+         [Description(@"OptionStart(Int32 i) 1x ""["" ")]
+         OptionStart,
+         [Description(@"RepeatStart(Int32 i) 1x ""{"" ")]
+         RepeatStart,
 
-         GroupEnd, OptionEnd, RepeatEnd, NumberSign,       // these are the characters ) ] } #
+         [Description(@"GroupEnd(Int32 i) %3 "")"" ")]
+         GroupEnd,
+         [Description(@"OptionEnd(Int32 i) %1 ""]"" ")]
+         OptionEnd,
+         [Description(@"RepeatEnd(Int32 i) %1 ""}"" ")]
+         RepeatEnd,
+         [Description(@"NumberSign(Int32 i) %1 ""#"" ")]
+         NumberSign,
 
          // The following "virtual" symbols represent the change from grammlator lines to CSharp lines and vice versa
          // They will also be passed on by the lexer to the parser
-         CSharpStart, CSharpEnd,
+         [Description(@"CSharpStart(Int32 i) %8 ""C#"" ")]
+         CSharpStart,
+         [Description(@"CSharpEnd(Int32 i) %1 ""//|"" ")]
+         CSharpEnd,
          // The following characters are evaluated by the lexer and not passed on to the parser
 
          // The following symbols may be part of a combined symbol and are handled individually by the generated code "?" may be part of "??"
          // Nevertheless they can be copied
+         [Description(@"Questionmark(Int32 i) %5 ""?"" ")]
          Questionmark, // part of "??"
+         [Description(@"Asterisk(Int32 i) %1 ""*"" ")]
          Asterisk, // Part of "*="
+         [Description(@"Minus(Int32 i) %1 ""-"" ")]
          Minus, // Part of "-="
+         [Description(@"At(Int32 i) %1 ""@"" ")]
          At, // @
 
+         [Description(@"WhiteSpace(Int32 i) %20 "" "" ")]
          WhiteSpace,     // used as delimiter, skipped by lexer
+         [Description(@"Slash(Int32 i) %9 ""/"" ")]
          Slash,          // delimiter of comments
+         [Description(@"OtherCharacter(Int32 i) %1 ")]
          OtherCharacter, // allowed only in comments
+         [Description(@"Quotationmark(Int32 i) %5 ""''"" ")]
          Quotationmark,     // delimits string constants used as names
-         Letter, Digit   // as part of names and numbers
+         [Description(@"Letter(Int32 i) %10 ""letter"" ")]
+         Letter,
+         [Description(@"Digit(Int32 i) %5 ""digit"" ")]
+         Digit   // as part of names and numbers
       };
 
       //| // Declaration of the startsymbol: the attributes of the definitions are used as attributes of the generated symbols
@@ -491,7 +519,7 @@ namespace grammlator {
       //|       Letter(Int32 i) | Digit(Int32 i)
 
       //| String(Int32 stringIndex) =
-      //|    OptionalAt, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex) ??-111??
+      //|    At(Int32 i)?, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex) ??-111??
       private void GetStringIndex(out Int32 stringIndex)
       {
          stringIndex =
@@ -499,8 +527,8 @@ namespace grammlator {
          StringCharacterSequence.Clear();
       }
 
-      //| OptionalAt= /* empty */ | At(Int32 i) // will be ignored and not consiedered part of the string
-
+      //| // OptionalAt= /* empty */ | At(Int32 i) // will be ignored and not consiedered part of the string
+      //|
       //| StringCharacterSequence=
       //|      /* empty */
       private void StringStart()
@@ -537,450 +565,450 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-         #region grammlator generated 6 Okt 2020 (grammlator file version/date 2020.10.06.0/6 Okt 2020)
-         Int32 _AttributeStackInitialCount = _a.Count;
-         const Int64 _fCSharpStart = 1L << (Int32)(ClassifierResult.CSharpStart);
-         const Int64 _fCSharpEnd = 1L << (Int32)(ClassifierResult.CSharpEnd);
-         const Int64 _fAsterisk = 1L << (Int32)(ClassifierResult.Asterisk);
-         const Int64 _fSlash = 1L << (Int32)(ClassifierResult.Slash);
-         const Int64 _fQuotationmark = 1L << (Int32)(ClassifierResult.Quotationmark);
-         Boolean _is(Int64 flags) => (1L << (Int32)((LexerInput)) & flags) != 0;
+#region grammlator generated 7 Okt 2020 (grammlator file version/date 2020.10.06.0/7 Okt 2020)
+  Int32 _AttributeStackInitialCount = _a.Count;
+  const Int64 _fCSharpStart = 1L << (Int32)(ClassifierResult.CSharpStart);
+  const Int64 _fCSharpEnd = 1L << (Int32)(ClassifierResult.CSharpEnd);
+  const Int64 _fAsterisk = 1L << (Int32)(ClassifierResult.Asterisk);
+  const Int64 _fSlash = 1L << (Int32)(ClassifierResult.Slash);
+  const Int64 _fQuotationmark = 1L << (Int32)(ClassifierResult.Quotationmark);
+  Boolean _is(Int64 flags) => (1L << (Int32)((LexerInput)) & flags) != 0;
 
-      Reduce1:
-         /* Gap= GapString;◄ */
+Reduce1:
+  /* Gap= GapString;◄ */
 
-         AdvanceTextPos();
+  AdvanceTextPos();
 
-      State2:
-         const String StateDescription2 =
-              "*Startsymbol= Gap, ►CharacterToPassOn;\r\n"
-            + "*Startsymbol= Gap, ►Name(Int32 stringIndex);\r\n"
-            + "*Startsymbol= Gap, ►StartsymbolNumber(Int64 value);\r\n"
-            + "*Startsymbol= Gap, ►StartsymbolString(Int32 stringIndex);\r\n"
-            + "*Startsymbol= Gap, ►StartsymbolDoubleQuestionmark;\r\n"
-            + "*Startsymbol= Gap, ►StartsymbolStarEqual;\r\n"
-            + "*Startsymbol= Gap, ►StartsymbolMinusEqual;\r\n"
-            + "*Startsymbol= Gap, ►StartsymbolCSharpStart;\r\n"
-            + "*Startsymbol= Gap, ►StartsymbolCSharpEnd;\r\n"
-            + "GapString= Gap, ►WhiteSpace(Int32 i);\r\n"
-            + "GapString= Gap, ►Comment;";
-         LexerInput = inputClassifier.PeekSymbol();
-         switch (LexerInput)
-         {
-         // <= ClassifierResult.NumberSign: goto AcceptReduce2 // see end of switch
-         case ClassifierResult.CSharpStart:
-         {
-            inputClassifier.AcceptSymbol();
-            // Reduce3:
-            /* aAdjust: -1
-             * StartsymbolCSharpStart= CSharpStart(Int32 i);◄ */
+State2:
+  const String StateDescription2 =
+       "*Startsymbol= Gap, ►CharacterToPassOn;\r\n"
+     + "*Startsymbol= Gap, ►Name(Int32 stringIndex);\r\n"
+     + "*Startsymbol= Gap, ►StartsymbolNumber(Int64 value);\r\n"
+     + "*Startsymbol= Gap, ►StartsymbolString(Int32 stringIndex);\r\n"
+     + "*Startsymbol= Gap, ►StartsymbolDoubleQuestionmark;\r\n"
+     + "*Startsymbol= Gap, ►StartsymbolStarEqual;\r\n"
+     + "*Startsymbol= Gap, ►StartsymbolMinusEqual;\r\n"
+     + "*Startsymbol= Gap, ►StartsymbolCSharpStart;\r\n"
+     + "*Startsymbol= Gap, ►StartsymbolCSharpEnd;\r\n"
+     + "GapString= Gap, ►WhiteSpace(Int32 i);\r\n"
+     + "GapString= Gap, ►Comment;";
+  LexerInput = inputClassifier.PeekSymbol();
+  switch (LexerInput)
+  {
+  // <= ClassifierResult.NumberSign: goto AcceptReduce2 // see end of switch
+  case ClassifierResult.CSharpStart:
+     {
+     inputClassifier.AcceptSymbol();
+     // Reduce3:
+     /* aAdjust: -1
+      * StartsymbolCSharpStart= CSharpStart(Int32 i);◄ */
 
-            AssignCSharpStartToSymbol();
+     AssignCSharpStartToSymbol();
 
-            _a.Remove();
-            goto EndOfGeneratedCode;
-         }
-         case ClassifierResult.CSharpEnd:
-         {
-            inputClassifier.AcceptSymbol();
-            // Reduce4:
-            /* aAdjust: -1
-             * StartsymbolCSharpEnd= CSharpEnd(Int32 i);◄ */
+     _a.Remove();
+     goto EndOfGeneratedCode;
+     }
+  case ClassifierResult.CSharpEnd:
+     {
+     inputClassifier.AcceptSymbol();
+     // Reduce4:
+     /* aAdjust: -1
+      * StartsymbolCSharpEnd= CSharpEnd(Int32 i);◄ */
 
-            AssignCSharpEndToSymbol();
+     AssignCSharpEndToSymbol();
 
-            _a.Remove();
-            goto EndOfGeneratedCode;
-         }
-         case ClassifierResult.Questionmark:
-         {
-            inputClassifier.AcceptSymbol();
-            // State15:
-            /* StartsymbolDoubleQuestionmark= Questionmark(Int32 i1), ►Questionmark(Int32 i2);
-             * OneCharacterToPassOn(Int32 i)= Questionmark(Int32 i)●; */
-            LexerInput = inputClassifier.PeekSymbol();
-            if (LexerInput != ClassifierResult.Questionmark)
-               goto Reduce2;
-            Debug.Assert(LexerInput == ClassifierResult.Questionmark);
-            inputClassifier.AcceptSymbol();
-            // Reduce33:
-            /* aAdjust: -2
-             * StartsymbolDoubleQuestionmark= Questionmark(Int32 i1), Questionmark(Int32 i2);◄ */
+     _a.Remove();
+     goto EndOfGeneratedCode;
+     }
+  case ClassifierResult.Questionmark:
+     {
+     inputClassifier.AcceptSymbol();
+     // State15:
+     /* StartsymbolDoubleQuestionmark= Questionmark(Int32 i1), ►Questionmark(Int32 i2);
+      * OneCharacterToPassOn(Int32 i)= Questionmark(Int32 i)●; */
+     LexerInput = inputClassifier.PeekSymbol();
+     if (LexerInput != ClassifierResult.Questionmark)
+        goto Reduce2;
+     Debug.Assert(LexerInput == ClassifierResult.Questionmark);
+     inputClassifier.AcceptSymbol();
+     // Reduce33:
+     /* aAdjust: -2
+      * StartsymbolDoubleQuestionmark= Questionmark(Int32 i1), Questionmark(Int32 i2);◄ */
 
-            AssignDoubleQuestionmarkToSymbol();
+     AssignDoubleQuestionmarkToSymbol();
 
-            _a.Remove(2);
-            goto EndOfGeneratedCode;
-         }
-         case ClassifierResult.Asterisk:
-         {
-            inputClassifier.AcceptSymbol();
-            // State14:
-            /* StartsymbolStarEqual= Asterisk(Int32 i1), ►DefiningSymbol(Int32 i2);
-             * OneCharacterToPassOn(Int32 i)= Asterisk(Int32 i)●; */
-            LexerInput = inputClassifier.PeekSymbol();
-            if (LexerInput > ClassifierResult.DefiningSymbol)
-               goto Reduce2;
-            Debug.Assert(LexerInput <= ClassifierResult.DefiningSymbol);
-            inputClassifier.AcceptSymbol();
-            // Reduce32:
-            /* aAdjust: -2
-             * StartsymbolStarEqual= Asterisk(Int32 i1), DefiningSymbol(Int32 i2);◄ */
+     _a.Remove(2);
+     goto EndOfGeneratedCode;
+     }
+  case ClassifierResult.Asterisk:
+     {
+     inputClassifier.AcceptSymbol();
+     // State14:
+     /* StartsymbolStarEqual= Asterisk(Int32 i1), ►DefiningSymbol(Int32 i2);
+      * OneCharacterToPassOn(Int32 i)= Asterisk(Int32 i)●; */
+     LexerInput = inputClassifier.PeekSymbol();
+     if (LexerInput > ClassifierResult.DefiningSymbol)
+        goto Reduce2;
+     Debug.Assert(LexerInput <= ClassifierResult.DefiningSymbol);
+     inputClassifier.AcceptSymbol();
+     // Reduce32:
+     /* aAdjust: -2
+      * StartsymbolStarEqual= Asterisk(Int32 i1), DefiningSymbol(Int32 i2);◄ */
 
-            AssignStarEqual();
+     AssignStarEqual();
 
-            _a.Remove(2);
-            goto EndOfGeneratedCode;
-         }
-         case ClassifierResult.Minus:
-         {
-            inputClassifier.AcceptSymbol();
-            // State13:
-            /* StartsymbolMinusEqual= Minus(Int32 i1), ►DefiningSymbol(Int32 i2);
-             * OneCharacterToPassOn(Int32 i)= Minus(Int32 i)●; */
-            LexerInput = inputClassifier.PeekSymbol();
-            if (LexerInput > ClassifierResult.DefiningSymbol)
-               goto Reduce2;
-            Debug.Assert(LexerInput <= ClassifierResult.DefiningSymbol);
-            inputClassifier.AcceptSymbol();
-            // Reduce31:
-            /* aAdjust: -2
-             * StartsymbolMinusEqual= Minus(Int32 i1), DefiningSymbol(Int32 i2);◄ */
+     _a.Remove(2);
+     goto EndOfGeneratedCode;
+     }
+  case ClassifierResult.Minus:
+     {
+     inputClassifier.AcceptSymbol();
+     // State13:
+     /* StartsymbolMinusEqual= Minus(Int32 i1), ►DefiningSymbol(Int32 i2);
+      * OneCharacterToPassOn(Int32 i)= Minus(Int32 i)●; */
+     LexerInput = inputClassifier.PeekSymbol();
+     if (LexerInput > ClassifierResult.DefiningSymbol)
+        goto Reduce2;
+     Debug.Assert(LexerInput <= ClassifierResult.DefiningSymbol);
+     inputClassifier.AcceptSymbol();
+     // Reduce31:
+     /* aAdjust: -2
+      * StartsymbolMinusEqual= Minus(Int32 i1), DefiningSymbol(Int32 i2);◄ */
 
-            AssignMinusEqual();
+     AssignMinusEqual();
 
-            _a.Remove(2);
-            goto EndOfGeneratedCode;
-         }
-         case ClassifierResult.At:
-         {
-            inputClassifier.AcceptSymbol();
-            // Reduce5:
-            /* aAdjust: -1
-             * OptionalAt= At(Int32 i);◄ */
-            _a.Remove();
-            goto State3;
-         }
-         case ClassifierResult.WhiteSpace:
-         {
-            inputClassifier.AcceptSymbol();
-            // Reduce6:
-            /* aAdjust: -1
-             * GapString= Gap, WhiteSpace(Int32 i);◄ */
-            _a.Remove();
-            goto Reduce1;
-         }
-         case ClassifierResult.Slash:
-         {
-            inputClassifier.AcceptSymbol();
-            goto State9;
-         }
-         case ClassifierResult.OtherCharacter:
-         {
-            if (ErrorHandler(2, StateDescription2, LexerInput))
-               goto State2;
-            goto EndWithError;
-         }
-         case ClassifierResult.Quotationmark:
-            goto State3;
-         case ClassifierResult.Letter:
-         {
-            inputClassifier.AcceptSymbol();
-            // Reduce7:
-            /* aAdjust: -1
-             * SequenceOfLettersOrDigits= Letter(Int32 index);◄ */
+     _a.Remove(2);
+     goto EndOfGeneratedCode;
+     }
+  case ClassifierResult.At:
+     {
+     inputClassifier.AcceptSymbol();
+     // Reduce5:
+     /* aAdjust: -1
+      * At?= At(Int32 i);◄ */
+     _a.Remove();
+     goto State3;
+     }
+  case ClassifierResult.WhiteSpace:
+     {
+     inputClassifier.AcceptSymbol();
+     // Reduce6:
+     /* aAdjust: -1
+      * GapString= Gap, WhiteSpace(Int32 i);◄ */
+     _a.Remove();
+     goto Reduce1;
+     }
+  case ClassifierResult.Slash:
+     {
+     inputClassifier.AcceptSymbol();
+     goto State9;
+     }
+  case ClassifierResult.OtherCharacter:
+     {
+     if (ErrorHandler(2, StateDescription2, LexerInput))
+        goto State2;
+     goto EndWithError;
+     }
+  case ClassifierResult.Quotationmark:
+     goto State3;
+  case ClassifierResult.Letter:
+     {
+     inputClassifier.AcceptSymbol();
+     // Reduce7:
+     /* aAdjust: -1
+      * SequenceOfLettersOrDigits= Letter(Int32 index);◄ */
 
-            Found1stLetterOfName(
-               index: _a.PeekRef(0)._Int32
-               );
+     Found1stLetterOfName(
+        index: _a.PeekRef(0)._Int32
+        );
 
-            _a.Remove();
-            goto State7;
-         }
-         // >= ClassifierResult.Digit: goto AcceptReduce8 // see end of switch
-         } // end of switch
-         if (LexerInput <= ClassifierResult.NumberSign)
-         {
-            inputClassifier.AcceptSymbol();
-            goto Reduce2;
-         }
-         Debug.Assert(LexerInput >= ClassifierResult.Digit);
+     _a.Remove();
+     goto State7;
+     }
+  // >= ClassifierResult.Digit: goto AcceptReduce8 // see end of switch
+  } // end of switch
+  if (LexerInput <= ClassifierResult.NumberSign)
+     {
+     inputClassifier.AcceptSymbol();
+     goto Reduce2;
+     }
+  Debug.Assert(LexerInput >= ClassifierResult.Digit);
 
-         inputClassifier.AcceptSymbol();
-         // Reduce8:
-         /* Number(Int64 number)= Digit(Int32 index);◄ */
+  inputClassifier.AcceptSymbol();
+  // Reduce8:
+  /* Number(Int64 number)= Digit(Int32 index);◄ */
 
-         Digit(
-            number: out _a.PeekRef(0)._Int64,
-            index: _a.PeekClear(0)._Int32
-            );
+  Digit(
+     number: out _a.PeekRef(0)._Int64,
+     index: _a.PeekClear(0)._Int32
+     );
 
-      State8:
-         /* StartsymbolNumber(Int64 value)= Number(Int64 value)●;
-          * Number(Int64 number)= Number(Int64 number), ►Digit(Int32 index); */
-         LexerInput = inputClassifier.PeekSymbol();
-         if (LexerInput < ClassifierResult.Digit)
-         // Reduce25:
-         {
-            /* StartsymbolNumber(Int64 value)= Number(Int64 value);◄
-             * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
-             * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ */
+State8:
+  /* StartsymbolNumber(Int64 value)= Number(Int64 value)●;
+   * Number(Int64 number)= Number(Int64 number), ►Digit(Int32 index); */
+  LexerInput = inputClassifier.PeekSymbol();
+  if (LexerInput < ClassifierResult.Digit)
+     // Reduce25:
+     {
+     /* StartsymbolNumber(Int64 value)= Number(Int64 value);◄
+      * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
+      * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ */
 
-            AssignNumberToSymbol();
+     AssignNumberToSymbol();
 
-            goto ApplyStartsymbolDefinition2;
-         }
-         Debug.Assert(LexerInput >= ClassifierResult.Digit);
-         inputClassifier.AcceptSymbol();
-         // Reduce26:
-         /* aAdjust: -1
-          * Number(Int64 number)= Number(Int64 number), Digit(Int32 index);◄ */
+     goto ApplyStartsymbolDefinition2;
+     }
+  Debug.Assert(LexerInput >= ClassifierResult.Digit);
+  inputClassifier.AcceptSymbol();
+  // Reduce26:
+  /* aAdjust: -1
+   * Number(Int64 number)= Number(Int64 number), Digit(Int32 index);◄ */
 
-         DigitNumberNew(
-            number: ref _a.PeekRef(-1)._Int64,
-            index: _a.PeekRef(0)._Int32
-            );
+  DigitNumberNew(
+     number: ref _a.PeekRef(-1)._Int64,
+     index: _a.PeekRef(0)._Int32
+     );
 
-         _a.Remove();
-         goto State8;
+  _a.Remove();
+  goto State8;
 
-      AcceptReduce28:
-         inputClassifier.AcceptSymbol();
-         // Reduce28:
-         /* aAdjust: -1
-          * CommentcharacterSequenceNotEndingWithAsterisk= "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i);◄
-          * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i);◄
-          * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, anyCharacterExceptAsteriskAndSlash(Int32 i);◄ */
-         _a.Remove();
-      State11:
-         const String StateDescription11 =
-              "CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, ►\"*\"(Int32 i);\r\n"
-            + "CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, ►\"anyCharacter-*-CSharpStart-CSharpEnd\"(Int32 i);";
-         LexerInput = inputClassifier.PeekSymbol();
-         if (LexerInput == ClassifierResult.Asterisk)
-            goto AcceptReduce29;
-         if (LexerInput == ClassifierResult.CSharpStart || LexerInput == ClassifierResult.CSharpEnd)
-         {
-            if (ErrorHandler(11, StateDescription11, LexerInput))
-               goto State11;
-            goto EndWithError;
-         }
-         Debug.Assert(!_is(_fCSharpStart | _fCSharpEnd | _fAsterisk));
-         goto AcceptReduce28;
+AcceptReduce28:
+  inputClassifier.AcceptSymbol();
+  // Reduce28:
+  /* aAdjust: -1
+   * CommentcharacterSequenceNotEndingWithAsterisk= "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i);◄
+   * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i);◄
+   * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, anyCharacterExceptAsteriskAndSlash(Int32 i);◄ */
+  _a.Remove();
+State11:
+  const String StateDescription11 =
+       "CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, ►\"*\"(Int32 i);\r\n"
+     + "CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, ►\"anyCharacter-*-CSharpStart-CSharpEnd\"(Int32 i);";
+  LexerInput = inputClassifier.PeekSymbol();
+  if (LexerInput == ClassifierResult.Asterisk)
+     goto AcceptReduce29;
+  if (LexerInput == ClassifierResult.CSharpStart || LexerInput == ClassifierResult.CSharpEnd)
+     {
+     if (ErrorHandler(11, StateDescription11, LexerInput))
+        goto State11;
+     goto EndWithError;
+     }
+  Debug.Assert(!_is(_fCSharpStart | _fCSharpEnd | _fAsterisk));
+  goto AcceptReduce28;
 
-      AcceptReduce29:
-         inputClassifier.AcceptSymbol();
-         // Reduce29:
-         /* aAdjust: -1
-          * CommentcharacterSequenceEndingWithAsterisk= "*"(Int32 i);◄
-          * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "*"(Int32 i);◄
-          * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, "*"(Int32 i);◄ */
-         _a.Remove();
-      State12:
-         const String StateDescription12 =
-              "Comment= \"/\"(Int32 i1), \"*\"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, ►\"/\"(Int32 iEnd);\r\n"
-            + "CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, ►\"*\"(Int32 i);\r\n"
-            + "CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, ►anyCharacterExceptAsteriskAndSlash(Int32 i);";
-         LexerInput = inputClassifier.PeekSymbol();
-         if (LexerInput == ClassifierResult.Slash)
-         {
-            inputClassifier.AcceptSymbol();
-            // Reduce30:
-            /* aAdjust: -3
-             * Comment= "/"(Int32 i1), "*"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, "/"(Int32 iEnd);◄ */
-            _a.Remove(3);
-            goto Reduce1;
-         }
-         if (LexerInput == ClassifierResult.Asterisk)
-            goto AcceptReduce29;
-         if (LexerInput == ClassifierResult.CSharpStart || LexerInput == ClassifierResult.CSharpEnd)
-         {
-            if (ErrorHandler(12, StateDescription12, LexerInput))
-               goto State12;
-            goto EndWithError;
-         }
-         Debug.Assert(!_is(_fCSharpStart | _fCSharpEnd | _fAsterisk | _fSlash));
-         goto AcceptReduce28;
+AcceptReduce29:
+  inputClassifier.AcceptSymbol();
+  // Reduce29:
+  /* aAdjust: -1
+   * CommentcharacterSequenceEndingWithAsterisk= "*"(Int32 i);◄
+   * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "*"(Int32 i);◄
+   * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, "*"(Int32 i);◄ */
+  _a.Remove();
+State12:
+  const String StateDescription12 =
+       "Comment= \"/\"(Int32 i1), \"*\"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, ►\"/\"(Int32 iEnd);\r\n"
+     + "CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, ►\"*\"(Int32 i);\r\n"
+     + "CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, ►anyCharacterExceptAsteriskAndSlash(Int32 i);";
+  LexerInput = inputClassifier.PeekSymbol();
+  if (LexerInput == ClassifierResult.Slash)
+     {
+     inputClassifier.AcceptSymbol();
+     // Reduce30:
+     /* aAdjust: -3
+      * Comment= "/"(Int32 i1), "*"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, "/"(Int32 iEnd);◄ */
+     _a.Remove(3);
+     goto Reduce1;
+     }
+  if (LexerInput == ClassifierResult.Asterisk)
+     goto AcceptReduce29;
+  if (LexerInput == ClassifierResult.CSharpStart || LexerInput == ClassifierResult.CSharpEnd)
+     {
+     if (ErrorHandler(12, StateDescription12, LexerInput))
+        goto State12;
+     goto EndWithError;
+     }
+  Debug.Assert(!_is(_fCSharpStart | _fCSharpEnd | _fAsterisk | _fSlash));
+  goto AcceptReduce28;
 
-      State3:
-         const String StateDescription3 =
-              "String(Int32 stringIndex)= OptionalAt, ►Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex);";
-         LexerInput = inputClassifier.PeekSymbol();
-         if (LexerInput != ClassifierResult.Quotationmark)
-         {
-            if (ErrorHandler(3, StateDescription3, LexerInput))
-               goto State3;
-            goto EndWithError;
-         }
-         Debug.Assert(LexerInput == ClassifierResult.Quotationmark);
-         inputClassifier.AcceptSymbol();
-         // Reduce19:
-         /* StringCharacterSequence= ;◄ */
+State3:
+  const String StateDescription3 =
+       "String(Int32 stringIndex)= At?, ►Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex);";
+  LexerInput = inputClassifier.PeekSymbol();
+  if (LexerInput != ClassifierResult.Quotationmark)
+     {
+     if (ErrorHandler(3, StateDescription3, LexerInput))
+        goto State3;
+     goto EndWithError;
+     }
+  Debug.Assert(LexerInput == ClassifierResult.Quotationmark);
+  inputClassifier.AcceptSymbol();
+  // Reduce19:
+  /* StringCharacterSequence= ;◄ */
 
-         StringStart();
+  StringStart();
 
-      State5:
-         const String StateDescription5 =
-              "String(Int32 stringIndex)= OptionalAt, Quotationmark(Int32 startIndex), StringCharacterSequence, ►Quotationmark(Int32 endIndex);\r\n"
-            + "StringCharacterSequence= StringCharacterSequence, ►anyCharacterExceptQuotationmark(Int32 index);\r\n"
-            + "StringCharacterSequence= StringCharacterSequence, ►Quotationmark(Int32 i1), Quotationmark(Int32 i2);";
-         LexerInput = inputClassifier.PeekSymbol();
-         if (LexerInput == ClassifierResult.Quotationmark)
-         {
-            inputClassifier.AcceptSymbol();
-            // State6:
-            /* String(Int32 stringIndex)= OptionalAt, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex)●;
-             * StringCharacterSequence= StringCharacterSequence, Quotationmark(Int32 i1), ►Quotationmark(Int32 i2); */
-            LexerInput = inputClassifier.PeekSymbol();
-            if (LexerInput != ClassifierResult.Quotationmark)
-            // Reduce21:
-            {
-               /* aAdjust: -1
-                * String(Int32 stringIndex)= OptionalAt, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex);◄ */
+State5:
+  const String StateDescription5 =
+       "String(Int32 stringIndex)= At?, Quotationmark(Int32 startIndex), StringCharacterSequence, ►Quotationmark(Int32 endIndex);\r\n"
+     + "StringCharacterSequence= StringCharacterSequence, ►anyCharacterExceptQuotationmark(Int32 index);\r\n"
+     + "StringCharacterSequence= StringCharacterSequence, ►Quotationmark(Int32 i1), Quotationmark(Int32 i2);";
+  LexerInput = inputClassifier.PeekSymbol();
+  if (LexerInput == ClassifierResult.Quotationmark)
+     {
+     inputClassifier.AcceptSymbol();
+     // State6:
+     /* String(Int32 stringIndex)= At?, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex)●;
+      * StringCharacterSequence= StringCharacterSequence, Quotationmark(Int32 i1), ►Quotationmark(Int32 i2); */
+     LexerInput = inputClassifier.PeekSymbol();
+     if (LexerInput != ClassifierResult.Quotationmark)
+        // Reduce21:
+        {
+        /* aAdjust: -1
+         * String(Int32 stringIndex)= At?, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex);◄ */
 
-               GetStringIndex(
-                  stringIndex: out _a.PeekRef(-1)._Int32
-                  );
+        GetStringIndex(
+           stringIndex: out _a.PeekRef(-1)._Int32
+           );
 
-               _a.Remove();
-               // Reduce18:
-               /* StartsymbolString(Int32 stringIndex)= String(Int32 stringIndex);◄
-                * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
-                * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ */
+        _a.Remove();
+        // Reduce18:
+        /* StartsymbolString(Int32 stringIndex)= String(Int32 stringIndex);◄
+         * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
+         * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ */
 
-               AssignStringToStartsymbol();
+        AssignStringToStartsymbol();
 
-               goto ApplyStartsymbolDefinition2;
-            }
-            Debug.Assert(LexerInput == ClassifierResult.Quotationmark);
-            inputClassifier.AcceptSymbol();
-            // Reduce22:
-            /* aAdjust: -2
-             * StringCharacterSequence= StringCharacterSequence, Quotationmark(Int32 i1), Quotationmark(Int32 i2);◄ */
+        goto ApplyStartsymbolDefinition2;
+        }
+     Debug.Assert(LexerInput == ClassifierResult.Quotationmark);
+     inputClassifier.AcceptSymbol();
+     // Reduce22:
+     /* aAdjust: -2
+      * StringCharacterSequence= StringCharacterSequence, Quotationmark(Int32 i1), Quotationmark(Int32 i2);◄ */
 
-            StringAppendQuotationmark();
+     StringAppendQuotationmark();
 
-            _a.Remove(2);
-            goto State5;
-         }
-         if (LexerInput == ClassifierResult.CSharpStart || LexerInput == ClassifierResult.CSharpEnd)
-         {
-            if (ErrorHandler(5, StateDescription5, LexerInput))
-               goto State5;
-            goto EndWithError;
-         }
-         Debug.Assert(!_is(_fCSharpStart | _fCSharpEnd | _fQuotationmark));
-         inputClassifier.AcceptSymbol();
-         // Reduce20:
-         /* aAdjust: -1
-          * StringCharacterSequence= StringCharacterSequence, anyCharacterExceptQuotationmark(Int32 index);◄ */
+     _a.Remove(2);
+     goto State5;
+     }
+  if (LexerInput == ClassifierResult.CSharpStart || LexerInput == ClassifierResult.CSharpEnd)
+     {
+     if (ErrorHandler(5, StateDescription5, LexerInput))
+        goto State5;
+     goto EndWithError;
+     }
+  Debug.Assert(!_is(_fCSharpStart | _fCSharpEnd | _fQuotationmark));
+  inputClassifier.AcceptSymbol();
+  // Reduce20:
+  /* aAdjust: -1
+   * StringCharacterSequence= StringCharacterSequence, anyCharacterExceptQuotationmark(Int32 index);◄ */
 
-         StringAppendCharacter(
-            index: _a.PeekRef(0)._Int32
-            );
+  StringAppendCharacter(
+     index: _a.PeekRef(0)._Int32
+     );
 
-         _a.Remove();
-         goto State5;
+  _a.Remove();
+  goto State5;
 
-      State7:
-         /* Name(Int32 stringIndex)= SequenceOfLettersOrDigits●;
-          * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, ►LetterOrDigit(Int32 index); */
-         LexerInput = inputClassifier.PeekSymbol();
-         if (LexerInput <= ClassifierResult.Quotationmark)
-         // Reduce23:
-         {
-            /* aAdjust: 1
-             * Name(Int32 stringIndex)= SequenceOfLettersOrDigits;◄ */
-            _a.Allocate();
+State7:
+  /* Name(Int32 stringIndex)= SequenceOfLettersOrDigits●;
+   * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, ►LetterOrDigit(Int32 index); */
+  LexerInput = inputClassifier.PeekSymbol();
+  if (LexerInput <= ClassifierResult.Quotationmark)
+     // Reduce23:
+     {
+     /* aAdjust: 1
+      * Name(Int32 stringIndex)= SequenceOfLettersOrDigits;◄ */
+     _a.Allocate();
 
-            GetNameFromSource(
-               stringIndex: out _a.PeekRef(0)._Int32
-               );
+     GetNameFromSource(
+        stringIndex: out _a.PeekRef(0)._Int32
+        );
 
-            // Reduce10:
-            /* *Startsymbol= Gap, Name(Int32 stringIndex);◄ */
+     // Reduce10:
+     /* *Startsymbol= Gap, Name(Int32 stringIndex);◄ */
 
-            AssignNameToSymbol();
+     AssignNameToSymbol();
 
-            goto ApplyStartsymbolDefinition2;
-         }
-         Debug.Assert(LexerInput >= ClassifierResult.Letter);
-         inputClassifier.AcceptSymbol();
-         // Reduce24:
-         /* aAdjust: -1
-          * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, LetterOrDigit(Int32 index);◄ */
+     goto ApplyStartsymbolDefinition2;
+     }
+  Debug.Assert(LexerInput >= ClassifierResult.Letter);
+  inputClassifier.AcceptSymbol();
+  // Reduce24:
+  /* aAdjust: -1
+   * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, LetterOrDigit(Int32 index);◄ */
 
-         AddCharToName(
-            index: _a.PeekRef(0)._Int32
-            );
+  AddCharToName(
+     index: _a.PeekRef(0)._Int32
+     );
 
-         _a.Remove();
-         goto State7;
+  _a.Remove();
+  goto State7;
 
-      State9:
-         const String StateDescription9 =
-              "Comment= \"/\"(Int32 i1), ►\"*\"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, \"/\"(Int32 iEnd);\r\n"
-            + "Comment= \"/\"(Int32 i1), ►\"/\"(Int32 i2);";
-         LexerInput = inputClassifier.PeekSymbol();
-         if (LexerInput == ClassifierResult.Slash)
-         {
-            inputClassifier.AcceptSymbol();
-            // Reduce27:
-            /* aAdjust: -2
-             * Comment= "/"(Int32 i1), "/"(Int32 i2);◄ */
+State9:
+  const String StateDescription9 =
+       "Comment= \"/\"(Int32 i1), ►\"*\"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, \"/\"(Int32 iEnd);\r\n"
+     + "Comment= \"/\"(Int32 i1), ►\"/\"(Int32 i2);";
+  LexerInput = inputClassifier.PeekSymbol();
+  if (LexerInput == ClassifierResult.Slash)
+     {
+     inputClassifier.AcceptSymbol();
+     // Reduce27:
+     /* aAdjust: -2
+      * Comment= "/"(Int32 i1), "/"(Int32 i2);◄ */
 
-            SlashSlashComment();
+     SlashSlashComment();
 
-            _a.Remove(2);
-            goto Reduce1;
-         }
-         if (LexerInput != ClassifierResult.Asterisk)
-         {
-            if (ErrorHandler(9, StateDescription9, LexerInput))
-               goto State9;
-            goto EndWithError;
-         }
-         Debug.Assert(LexerInput == ClassifierResult.Asterisk);
-         inputClassifier.AcceptSymbol();
-      State10:
-         const String StateDescription10 =
-              "Comment= \"/\"(Int32 i1), \"*\"(Int32 i2), ►CommentcharacterSequenceEndingWithAsterisk, \"/\"(Int32 iEnd);";
-         LexerInput = inputClassifier.PeekSymbol();
-         if (LexerInput == ClassifierResult.Asterisk)
-            goto AcceptReduce29;
-         if (LexerInput == ClassifierResult.CSharpStart || LexerInput == ClassifierResult.CSharpEnd)
-         {
-            if (ErrorHandler(10, StateDescription10, LexerInput))
-               goto State10;
-            goto EndWithError;
-         }
-         Debug.Assert(!_is(_fCSharpStart | _fCSharpEnd | _fAsterisk));
-         goto AcceptReduce28;
+     _a.Remove(2);
+     goto Reduce1;
+     }
+  if (LexerInput != ClassifierResult.Asterisk)
+     {
+     if (ErrorHandler(9, StateDescription9, LexerInput))
+        goto State9;
+     goto EndWithError;
+     }
+  Debug.Assert(LexerInput == ClassifierResult.Asterisk);
+  inputClassifier.AcceptSymbol();
+State10:
+  const String StateDescription10 =
+       "Comment= \"/\"(Int32 i1), \"*\"(Int32 i2), ►CommentcharacterSequenceEndingWithAsterisk, \"/\"(Int32 iEnd);";
+  LexerInput = inputClassifier.PeekSymbol();
+  if (LexerInput == ClassifierResult.Asterisk)
+     goto AcceptReduce29;
+  if (LexerInput == ClassifierResult.CSharpStart || LexerInput == ClassifierResult.CSharpEnd)
+     {
+     if (ErrorHandler(10, StateDescription10, LexerInput))
+        goto State10;
+     goto EndWithError;
+     }
+  Debug.Assert(!_is(_fCSharpStart | _fCSharpEnd | _fAsterisk));
+  goto AcceptReduce28;
 
-      Reduce2:
-         /* aAdjust: -1
-          * CharacterToPassOn= OneCharacterToPassOn(Int32 index);◄ */
+Reduce2:
+  /* aAdjust: -1
+   * CharacterToPassOn= OneCharacterToPassOn(Int32 index);◄ */
 
-         TranslateCharToLexerResult(
-            index: _a.PeekRef(0)._Int32
-            );
+  TranslateCharToLexerResult(
+     index: _a.PeekRef(0)._Int32
+     );
 
-         _a.Remove();
-         goto EndOfGeneratedCode;
+  _a.Remove();
+  goto EndOfGeneratedCode;
 
-      ApplyStartsymbolDefinition2:
-         // Halt: a definition of the startsymbol with 1 attributes has been recognized.
-         AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
-         goto EndOfGeneratedCode;
+ApplyStartsymbolDefinition2:
+  // Halt: a definition of the startsymbol with 1 attributes has been recognized.
+AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
+  goto EndOfGeneratedCode;
 
-      EndWithError:
-         // This point is reached after an input error has been found
-         _a.Remove(_a.Count - _AttributeStackInitialCount);
+EndWithError:
+  // This point is reached after an input error has been found
+  _a.Remove(_a.Count - _AttributeStackInitialCount);
 
-      EndOfGeneratedCode:
-         ;
+EndOfGeneratedCode:
+  ;
 
-         #endregion grammlator generated 6 Okt 2020 (grammlator file version/date 2020.10.06.0/6 Okt 2020)
+#endregion grammlator generated 7 Okt 2020 (grammlator file version/date 2020.10.06.0/7 Okt 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

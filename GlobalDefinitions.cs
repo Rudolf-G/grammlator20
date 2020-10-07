@@ -582,7 +582,7 @@ namespace grammlator {
          foreach (Symbol s in SymbolArray)
          {
             Int32[]? NameStringIndexes = AttributnameStringIndexes;
-            if (NameStringIndexes == null)
+            if (NameStringIndexes == null || NameStringIndexes.Length==0)
             {
                NameStringIndexes = s.AttributenameStringIndexList;
 

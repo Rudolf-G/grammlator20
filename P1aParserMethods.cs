@@ -1245,7 +1245,8 @@ These elements are used as additional terminal declarations.");
                    ConstantPriority = constantPriority,
                    PriorityFunction = priorityFunction,
                    SemanticMethod = semanticMethod,
-                   AttributeIdentifierStringIndexArray = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributesOfNewDefinition)
+                   AttributeIdentifierStringIndexArray
+                   = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributesOfNewDefinition)
                 };
 
             ActualListOfNontrivialDefinitions.Add(NewDefinition);
