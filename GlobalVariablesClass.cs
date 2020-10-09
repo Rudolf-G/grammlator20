@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -108,8 +109,8 @@ namespace grammlator {
          Startsymbol = new NonterminalSymbol("*Startsymbol",
             position: 0,
             symbolNumber: 0,
-            attributetypeStringIndexList: Array.Empty<Int32>(),
-            attributenameStringIndexList: Array.Empty<Int32>()
+            attributetypeStringList: Array.Empty<UnifiedString>(),
+            attributenameStringList: Array.Empty<UnifiedString>()
             );
          TerminalSymbols = Array.Empty<TerminalSymbol>();
          OutputMessage = OutputToNirwana;
@@ -156,46 +157,6 @@ namespace grammlator {
       internal const Int32 InitialCapacityOfListOfAllPriorityBranchActions
          = InitialCapacityOfListOfAllPrioritySelectActions;
 
-      static readonly Dictionary<ReadOnlyMemory<Char>, Int32> MemoryToIndexDictionary
-         = new Dictionary<ReadOnlyMemory<Char>, Int32>(1000, new MemoryComparer());
-
-      static readonly List<String> IndexToString = new List<String>(1000);
-
-      static public Int32 GetIndexOfString(ReadOnlyMemory<Char> MemorySpan)
-      {
-         if (MemoryToIndexDictionary.TryGetValue(MemorySpan, out Int32 result))
-            return result;
-
-         String s = MemorySpan.ToString(); // allocation of string which usually will be used for output later
-         ReadOnlyMemory<Char> newSpan = s.AsMemory(); // keep bytes referenced from dictionary together:  (don't use reference to source)
-
-         // Discussion: This solution allocates all strings as soon as they are known and avoids multiple instances of those strings.
-         // An alternate method would be, to access the MemorySpans (scattered around the source) and to generate strings not before they are used.
-         // A third method would be to allocate copies of the Spans in a large array to keep them together
-         //   so that dictionary searches would have good local access behaviour.
-         IndexToString.Add(s); // allocation of string which usually will be used later for output
-         MemoryToIndexDictionary.Add(newSpan, IndexToString.Count - 1);
-         return IndexToString.Count - 1;
-      }
-
-      static public Int32 GetIndexOfString(String s)
-      {
-         ReadOnlyMemory<Char> m = s.AsMemory();
-         if (MemoryToIndexDictionary.TryGetValue(m, out Int32 result))
-            return result;
-
-         IndexToString.Add(s); // string is alrady available
-         MemoryToIndexDictionary.Add(m, IndexToString.Count - 1);
-         return IndexToString.Count - 1;
-      }
-
-      static public Int32 GetIndexOfEmptyString()
-      {
-         return GetIndexOfString(ReadOnlyMemory<Char>.Empty);
-      }
-
-      static public String GetStringOfIndex(Int32 i) => IndexToString[i];
-
       public static void ResetGlobalVariables(
                 Action<MessageTypeOrDestinationEnum, String> OutputMessage,
                 Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPosition)
@@ -215,14 +176,13 @@ namespace grammlator {
          Startsymbol = new NonterminalSymbol("*Startsymbol",
             position: 0,
             symbolNumber: 0,
-            attributetypeStringIndexList: Array.Empty<Int32>(),
-            attributenameStringIndexList: Array.Empty<Int32>()
+            attributetypeStringList: Array.Empty<UnifiedString>(),
+            attributenameStringList: Array.Empty<UnifiedString>()
             // trivalDefinitionsArray: Array.Empty<Symbol>(), // the startsymbol will not have any trival definitions: default
             // nontrivalDefinitionsList: ... // will be set after the startsymbol: default (empty list)
             );
 
-         MemoryToIndexDictionary.Clear();
-         IndexToString.Clear();
+         UnifiedString.Reset();
 
          ListOfAllHaltActions.Clear();
          ListOfAllHaltActions.Capacity = InitialCapacityOfListOfAllHaltActions;
@@ -469,12 +429,13 @@ A typical value is ""3""");
       /// e.g. "_Is(#)". Will be set to "" if an enum is found and the maximum value of an element is &gt;63
       /// </summary>
       internal static StringSetting FlagTestMethodName
-         = new StringSetting("IsMethod", "", settingList: VisibleSettings,
+         = new StringSetting("IsMethod", "_is", settingList: VisibleSettings,
 @"The name of the boolean method which implements the flag test.
 If this name is """" then grammlator will not generate and use
 this method and the flag constants representing terminal symbols.
-This name is preset to """". It should be set to a string value, e.g. ""_is"", only if
-the values of the terminal symbols are flags (1, 2, 4, ...) or are <=63 and
+It should only be a string value, e.g. the preset value ""_is"", if
+the values of the terminal symbols are flags (1, 2, 4, ...) or the
+diffence between the largest and the smallest value of a terminal symbol is <=63 and
 if the input can be only values explicitely defined in the terminal enum
 but no additional values of the enum base type.
 Grammlator will reset this pattern to """" if it recognizes that the above condition

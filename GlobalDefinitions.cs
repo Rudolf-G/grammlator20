@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 
 namespace grammlator {
    /// <summary>
@@ -234,8 +236,8 @@ namespace grammlator {
       /// <summary>
       /// The type of the attribute e.g."Int32"
       /// </summary>
-      internal Int32 TypeStringIndex;
-      internal Int32 NameStringIndex;
+      internal UnifiedString TypeString;
+      internal UnifiedString NameString;
 
       /// <summary>
       /// true if the attribute occurs as attribute of the defined nonterminal (in the left side of a definition), default is false
@@ -307,9 +309,9 @@ namespace grammlator {
       internal ParameterImplementation Implementation;
 
       internal void Append(StringBuilder sb)
-          => sb.Append(GlobalVariables.GetStringOfIndex(TypeStringIndex))
+          => sb.Append(TypeString.ToString())
                .Append(' ')
-               .Append(GlobalVariables.GetStringOfIndex(NameStringIndex));
+               .Append(NameString.ToString());
 
       /// <summary>
       /// returns an attribute struct with <see cref="LeftSide"/> == false,
@@ -320,10 +322,10 @@ namespace grammlator {
       /// <param name="name">The name / identifier  of the attribute</param>
       /// <param name="level">the level of parenthesis (lowest level is level 0)</param>
       /// <param name="positionInProduction">first attribute of left side has position 1, 1st attribute of right side equally has position 1</param>
-      internal AttributeStruct(Int32 typeStringIndex, Int32 nameStringIndex, Int32 level, Int32 positionInProduction)
+      internal AttributeStruct(UnifiedString typeString, UnifiedString nameString, Int32 level, Int32 positionInProduction)
       {
-         TypeStringIndex = typeStringIndex;
-         NameStringIndex = nameStringIndex;
+         TypeString = typeString;
+         NameString = nameString;
          LeftSide = false; // has to be added later (as soon as the left side is recognized)
          Level = level;
          PositionInProduction = positionInProduction;
@@ -344,12 +346,12 @@ namespace grammlator {
       /// <param name="level">the level of parenthesis (lowest level is level 0)</param>
       /// <param name="positionInProduction">first attribute of left side has position 1, 1st attribute of right side equally has position 1</param>
 
-      internal Int32 Add(Int32 typeStringIndex, Int32 nameStringIndex, Int32 level, Int32 positionInProduction)
+      internal Int32 Add(UnifiedString typeString, UnifiedString nameString, Int32 level, Int32 positionInProduction)
       {
          Debug.Assert(Count == 0 || level >= this[Count - 1].Level, "Level nicht aufsteigend.");
          // if (!(this.Count == 0 || level >= this[this.Count - 1].Level)) throw new Exception("Leveltest: Fehler");
 
-         Add(new AttributeStruct(typeStringIndex, nameStringIndex, level, positionInProduction));
+         Add(new AttributeStruct(typeString, nameString, level, positionInProduction));
          return Count;
       }
 
@@ -380,14 +382,14 @@ namespace grammlator {
       /// </summary>
       /// <param name="count">The number of attributes to copy from the end of the ListOfAttributes, may be 0</param>
       /// <returns>array of the type identifiers</returns>
-      internal Int32[] GetAttributeIdentifierStringIndexes(Int32 count)
+      internal UnifiedString[] GetAttributeIdentifierStringIndexes(Int32 count)
       {
          if (count == 0)
-            return Array.Empty<Int32>();
+            return Array.Empty<UnifiedString>();
 
-         var AttributeIdentifierStringIndexes = new Int32[count];
+         var AttributeIdentifierStringIndexes = new UnifiedString[count];
          for (Int32 i = 0; i < count; i++)
-            AttributeIdentifierStringIndexes[i] = this[Count - count + i].NameStringIndex;
+            AttributeIdentifierStringIndexes[i] = this[Count - count + i].NameString;
 
          return AttributeIdentifierStringIndexes;
       }
@@ -397,16 +399,16 @@ namespace grammlator {
       /// </summary>
       /// <param name="count">The number of attributes to copy from the end of the ListOfAttributes, may be 0</param>
       /// <returns>array of the type identifiers</returns>
-      internal Int32[] GetAttributeTypeStringIndexes(Int32 count)
+      internal UnifiedString[] GetAttributeTypeStringIndexes(Int32 count)
       {
          if (count == 0)
-            return Array.Empty<Int32>();
+            return Array.Empty<UnifiedString>();
 
-         var AttributeTypesStringIndex = new Int32[count];
+         var AttributeTypesString = new UnifiedString[count];
          for (Int32 i = 0; i < count; i++)
-            AttributeTypesStringIndex[i] = this[Count - count + i].TypeStringIndex;
+            AttributeTypesString[i] = this[Count - count + i].TypeString;
 
-         return AttributeTypesStringIndex;
+         return AttributeTypesString;
       }
    }
 
@@ -461,8 +463,8 @@ namespace grammlator {
    /// Describes the characteristics of a formal method parameter assiciated to a grammlator attribute
    /// </summary>
    internal struct MethodParameterStruct {
-      internal Int32 NameStringIndex;
-      internal Int32 TypeStringIndex;
+      internal UnifiedString NameString;
+      internal UnifiedString TypeString;
 
       /// <summary>
       /// The negative distance from the top of the attribute stack
@@ -573,7 +575,7 @@ namespace grammlator {
             this Symbol[] SymbolArray,
             StringBuilder sb,
             Int32 Markierung,
-            Int32[]? AttributnameStringIndexes,
+            UnifiedString[]? AttributnameStringIndexes,
             String separator = ", ")
       {
          Int32 Elementzähler = 0;
@@ -581,10 +583,10 @@ namespace grammlator {
 
          foreach (Symbol s in SymbolArray)
          {
-            Int32[]? NameStringIndexes = AttributnameStringIndexes;
-            if (NameStringIndexes == null || NameStringIndexes.Length==0)
+            UnifiedString[]? NameStrings = AttributnameStringIndexes;
+            if (NameStrings == null || NameStrings.Length == 0)
             {
-               NameStringIndexes = s.AttributenameStringIndexList;
+               NameStrings = s.AttributenameStrings;
 
                NumberOfParameter = 0; // Zählen pro Symbol statt ab Listenanfang
             }
@@ -602,10 +604,9 @@ namespace grammlator {
                sb.Append('(')
                  //.Append(Parameternummer + 1);
                  //.Append(':');
-                 .Append(GlobalVariables.GetStringOfIndex(s.AttributetypeStringIndexList[0]))
+                 .Append(s.AttributetypeStrings[0].ToString())
                  .Append(' ')
-                 .Append(
-                  GlobalVariables.GetStringOfIndex(NameStringIndexes[NumberOfParameter++])
+                 .Append(NameStrings[NumberOfParameter++].ToString()
                  );
 
                for (Int32 i = 1; i < s.NumberOfAttributes; i++)
@@ -613,10 +614,9 @@ namespace grammlator {
                   sb.Append(", ")
                     //.Append(Parameternummer + 1);
                     //.Append(':');
-                    .Append(GlobalVariables.GetStringOfIndex(s.AttributetypeStringIndexList[i]))
+                    .Append(s.AttributetypeStrings[i].ToString())
                     .Append(' ')
-                    .Append(
-                     GlobalVariables.GetStringOfIndex(NameStringIndexes[NumberOfParameter++])
+                    .Append(NameStrings[NumberOfParameter++].ToString()
                      );
                }
 
@@ -641,36 +641,36 @@ namespace grammlator {
       {
          this.Identifier = identifier;
          this.FirstPosition = position;
-         this.AttributetypeStringIndexList = Array.Empty<Int32>();
-         this.AttributenameStringIndexList = Array.Empty<Int32>();
+         this.AttributetypeStrings = Array.Empty<UnifiedString>();
+         this.AttributenameStrings = Array.Empty<UnifiedString>();
       }
 
       internal Symbol(
             String identifier,
             Int32 position,
             Int32 symbolNumber,
-            Int32[] attributetypeStringIndexList)
+            UnifiedString[] attributetypeStringList)
       {
          this.Identifier = identifier;
          this.FirstPosition = position;
          this.SymbolNumber = symbolNumber;
-         this.AttributetypeStringIndexList = attributetypeStringIndexList;
-         this.AttributenameStringIndexList = Array.Empty<Int32>();
+         this.AttributetypeStrings = attributetypeStringList;
+         this.AttributenameStrings = Array.Empty<UnifiedString>();
       }
 
       internal Symbol(
             String identifier,
             Int32 position,
             Int32 symbolNumber,
-            Int32[] attributetypeStringIndexList,
-            Int32[] attributenameStringIndexList
+            UnifiedString[] attributetypeStringIndexList,
+            UnifiedString[] attributenameStringIndexList
          )
       {
          this.Identifier = identifier;
          this.FirstPosition = position;
          this.SymbolNumber = symbolNumber;
-         this.AttributetypeStringIndexList = attributetypeStringIndexList;
-         this.AttributenameStringIndexList = attributenameStringIndexList;
+         this.AttributetypeStrings = attributetypeStringIndexList;
+         this.AttributenameStrings = attributenameStringIndexList;
       }
 
       internal readonly String Identifier;
@@ -737,10 +737,10 @@ namespace grammlator {
       /// The display in logs and comments is <see cref="SymbolNumber"/>+1.
       /// </summary>
       internal Int32 SymbolNumber;
-      internal Int32[] AttributetypeStringIndexList;
-      internal Int32[] AttributenameStringIndexList;
+      internal UnifiedString[] AttributetypeStrings;
+      internal UnifiedString[] AttributenameStrings;
 
-      internal Int32 NumberOfAttributes => AttributetypeStringIndexList.Length;
+      internal Int32 NumberOfAttributes => AttributetypeStrings.Length;
 
       internal Boolean isUsed = false;
 
@@ -778,15 +778,15 @@ namespace grammlator {
          }
 
          sb.Append('(')
-           .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[0]))
+           .Append(AttributetypeStrings[0].ToString())
            .Append(' ')
-           .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[0]));
+           .Append(AttributenameStrings[0].ToString());
          for (Int32 i = 2; i <= NumberOfAttributes; i++)
          {
             sb.Append(", ")
-              .Append(GlobalVariables.GetStringOfIndex(AttributetypeStringIndexList[i - 1]))
+              .Append(AttributetypeStrings[i - 1].ToString())
               .Append(' ')
-              .Append(GlobalVariables.GetStringOfIndex(AttributenameStringIndexList[i - 1]));
+              .Append(AttributenameStrings[i - 1].ToString());
          }
          sb.Append(')');
          return sb;
@@ -845,9 +845,9 @@ namespace grammlator {
             String identifier,
             Int32 position,
             Int32 symbolNumber,
-            Int32[] attributetypeStringIndexList
+            UnifiedString[] attributetypeStringList
          )
-         : base(identifier, position, symbolNumber, attributetypeStringIndexList)
+         : base(identifier, position, symbolNumber, attributetypeStringList)
       {
          {
             NontrivialDefinitionsList = EmptyDefinitionsList;
@@ -859,10 +859,10 @@ namespace grammlator {
             String identifier,
             Int32 position,
             Int32 symbolNumber,
-            Int32[] attributetypeStringIndexList,
-            Int32[] attributenameStringIndexList
+            UnifiedString[] attributetypeStringList,
+            UnifiedString[] attributenameStringList
          )
-         : base(identifier, position, symbolNumber, attributetypeStringIndexList, attributenameStringIndexList)
+         : base(identifier, position, symbolNumber, attributetypeStringList, attributenameStringList)
       {
          NontrivialDefinitionsList = EmptyDefinitionsList;
          TrivalDefinitionsArray = Array.Empty<Symbol>();
@@ -872,12 +872,12 @@ namespace grammlator {
       String identifier,
       Int32 position,
       Int32 symbolNumber,
-      Int32[] attributetypeStringIndexList,
-      Int32[] attributenameStringIndexList,
+      UnifiedString[] attributetypeStringList,
+      UnifiedString[] attributenameStringList,
       ListOfDefinitions nontrivalDefinitionsList,
       Symbol[] trivalDefinitionsArray
    )
-   : base(identifier, position, symbolNumber, attributetypeStringIndexList, attributenameStringIndexList)
+   : base(identifier, position, symbolNumber, attributetypeStringList, attributenameStringList)
       {
          NontrivialDefinitionsList = nontrivalDefinitionsList;
          TrivalDefinitionsArray = trivalDefinitionsArray;
@@ -1035,6 +1035,66 @@ namespace grammlator {
 
          return _EmptyComputationResult;
       }
+   }
+
+   internal struct UnifiedString {
+      /// <summary>
+      /// All <see cref="UnifiedString"/>s which represent the same string have the same <see cref="Index"/>.
+      /// The <see cref="Index"/> of "" is 0;
+      /// </summary>
+      internal readonly Int32 Index;
+
+      private static readonly List<String> UnifiedStrings = new List<String>(1000) { "" };
+      private static readonly Dictionary<ReadOnlyMemory<Char>, Int32> MemoryToIndexDictionary
+         = new Dictionary<ReadOnlyMemory<Char>, Int32>(1000, new MemoryComparer()) { { "".AsMemory(), 0 } };
+      internal static void Reset()
+      {
+         MemoryToIndexDictionary.Clear();
+         UnifiedStrings.Clear();
+
+         // The default index 0 always is the index of the empty string ""
+         MemoryToIndexDictionary["".AsMemory()] = 0;
+         UnifiedStrings.Add("");
+      }
+
+      internal UnifiedString(ReadOnlyMemory<char> memorySpan)
+      {
+         if (MemoryToIndexDictionary.TryGetValue(memorySpan, out Int32 I))
+         {
+            Index = I;
+            return;
+         }
+
+         String unifiedString = memorySpan.ToString();
+         Index = UnifiedStrings.Count;
+         MemoryToIndexDictionary.Add(unifiedString.AsMemory(), Index);
+         UnifiedStrings.Add(unifiedString);
+      }
+
+      internal UnifiedString(Int32 index)
+      {
+         Index = index;
+      }
+
+      internal UnifiedString(String s) : this(s.AsMemory()) { }
+
+      public override String ToString() => UnifiedStrings[Index];
+
+      public override bool Equals(object? obj)
+         => obj != null && (obj is UnifiedString objAsUnified) && (objAsUnified.Index == Index);
+
+      public override int GetHashCode() => Index.GetHashCode();
+
+      public static bool operator == (UnifiedString x, UnifiedString y)
+      {
+         return x.Index == y.Index;
+      }
+
+      public static bool operator != (UnifiedString x, UnifiedString y)
+      {
+         return x.Index != y.Index;
+      }
+
    }
 }
 

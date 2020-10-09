@@ -48,9 +48,9 @@ namespace grammlator {
 
       /// <summary>
       /// The StringIndex of the name of the last enum the parser found in the source.
-      /// Is -1 if an optional enum has been empty.
+      /// <see cref="EnumName"/>.Index is 0 if an optional enum has been empty.
       /// </summary>
-      public Int32 EnumNameStringIndex = -1;
+      public UnifiedString EnumName = new UnifiedString();
 
       // TODO test all error messages
       private void CreateParserErrorMessage(String message)
@@ -70,12 +70,12 @@ namespace grammlator {
       /// <param name="Name">Name of the terminal symbol</param>
       /// <param name="numberOfAttributes">Number of attributes</param>
       /// <param name="weight">the terminal symbols weight, which influences the order of generated if clauses</param>
-      private void TerminalSymbolDeclaration(Int32 nameIndex, Int32 numberOfAttributes, Int64 weight)
+      private void TerminalSymbolDeclaration(UnifiedString Name, Int32 numberOfAttributes, Int64 weight)
       {
-         String Name = GlobalVariables.GetStringOfIndex(nameIndex);  // TODO use nameIndex as Key in SymbolDictionary
-         Debug.Assert(!String.IsNullOrEmpty(Name), $"{nameof(Name)} is 0 or empty");
+         //UnifiedString Name = GlobalVariables.GetStringOfIndex(Name);  // TODO use nameIndex as Key in SymbolDictionary
+         Debug.Assert(!String.IsNullOrEmpty(Name.ToString()), $"{nameof(Name)} is 0 or empty");
 
-         if (SymbolDictionary.ContainsKey(nameIndex))
+         if (SymbolDictionary.ContainsKey(Name.Index))
          {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                 $"The terminal symbol {Name} has already been defined");
@@ -83,13 +83,13 @@ namespace grammlator {
          }
          else
          {
-            SymbolDictionary[nameIndex] =
-               new TerminalSymbol(Name, Lexer.LexerTextPos) {
+            SymbolDictionary[Name.Index] =
+               new TerminalSymbol(Name.ToString(), Lexer.LexerTextPos) {
                   EnumValue = SymbolDictionary.Count,
                   Weight = weight,
                   SymbolNumber = SymbolDictionary.Count,
-                  AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
-                  AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
+                  AttributetypeStrings = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
+                  AttributenameStrings = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
                };
          }
 
@@ -102,141 +102,40 @@ namespace grammlator {
          return;
       }
 
-      private void EvaluateEnumElement(String description, Int32 enumElementStringIndex, Int64 enumNumber)
+      private void EvaluateEnumElement(String description, UnifiedString enumElementName, Int64 enumElementValue)
       {
          ReadOnlySpan<char> Description = description.AsSpan();
          List<String> ArgumentTypes = new List<string>(20);
          List<String> ArgumentNames = new List<string>(20);
          if (Description != "")
          {
-            // expect "EnumElementIdentifier" "(" typeIdentifier  argumentidentifier , ...")"
-            String EnumElementIdentifier = GlobalVariables.GetStringOfIndex(enumElementStringIndex);
-            Int32 Position = 0;
+            if (!EvalDescription(enumElementName, Description, ArgumentTypes, ArgumentNames))
+               P1OutputMessageAndLexerPosition(
+                  MessageTypeOrDestinationEnum.Warning,
+                  @$"Error in [Description(""..."") of enum element {enumElementName}");
 
-            if (!(Description[Position++] == '"'))
-               goto DescriptionError;
-            if (Description.Length < 2 || !(Description[^1] == '"')) // "" is used as end marker => do not need to check Position>=description.length
-               goto DescriptionError;
-            Description.SkipWhiteSpace(ref Position);
-            if (!Description.StartsWithAndSkip(ref Position, EnumElementIdentifier))
-               goto DescriptionError;
-
-            Description.SkipWhiteSpace(ref Position);
-            if (!(Description[Position++] == '('))
-               goto DescriptionError;
-
-            Boolean Is1st = true;
-            Description.SkipWhiteSpace(ref Position);
-
-            while (Description[Position] != ')')
-            {
-               if (!Is1st)
-               {
-                  if (Description[Position++] != ',')
-                     goto DescriptionError;
-                  Description.SkipWhiteSpace(ref Position);
-               }
-               Is1st = false;
-               if (!Description.IsIdentifier(ref Position, out ReadOnlySpan<char> ArgumentType))
-                  goto DescriptionError;
-               Description.SkipWhiteSpace(ref Position);
-
-               if (!Description.IsIdentifier(ref Position, out ReadOnlySpan<char> ArgumentName))
-                  goto DescriptionError;
-
-               ArgumentTypes.Add(ArgumentType.ToString());
-               ArgumentNames.Add(ArgumentName.ToString());
-
-               Description.SkipWhiteSpace(ref Position);
-            }
-
-            Position++; // Skip ')'
-            Description.SkipWhiteSpace(ref Position);
-
-            // Optional weight
-            Int64 Weight = GlobalVariables.TerminalDefaultWeight.Value;
-            if (Description.IsCharacter(ref Position, '%'))
-            {
-               Description.SkipWhiteSpace(ref Position);
-               Description.IsInt64(ref Position, out Weight);
-            }
-
-            // *************************
-            Int32 nameIndex = enumElementStringIndex;
-            String Name = GlobalVariables.GetStringOfIndex(nameIndex);
-            if (SymbolDictionary.TryGetValue(nameIndex, out Symbol? s))
-            {
-               TerminalSymbol t = (s as TerminalSymbol)!;
-               for (int i = 0; i < ArgumentTypes.Count; i++)
-                  if (t.AttributetypeStringIndexList[i] != GlobalVariables.GetIndexOfString(ArgumentTypes[i]))
-                  {
-                     String TypeIofT = GlobalVariables.GetStringOfIndex(t.AttributetypeStringIndexList[i]);
-                     P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
- @$"Error in enum: the terminal symbol {Name} has already been defined with a different argumenttype {TypeIofT} / {ArgumentTypes[i]} ");
-                  }
-            }
-            else
-            {
-               var TypeStringIndexes = new int[ArgumentTypes.Count];
-               var NameStringIndexes = new int[ArgumentNames.Count];
-               for (int i = 0; i < ArgumentTypes.Count; i++)
-               {
-                  TypeStringIndexes[i] = GlobalVariables.GetIndexOfString(ArgumentTypes[i]);
-                  NameStringIndexes[i] = GlobalVariables.GetIndexOfString(ArgumentNames[i]);
-               }
-               SymbolDictionary[nameIndex] =
-                  new TerminalSymbol(Name, Lexer.LexerTextPos) {
-                     EnumValue = SymbolDictionary.Count,
-                     Weight = Weight,
-                     SymbolNumber = SymbolDictionary.Count,
-                     AttributetypeStringIndexList = TypeStringIndexes,
-                     AttributenameStringIndexList = NameStringIndexes
-                  };
-            }
-            goto AddEnum;
-
-         DescriptionError:
-            P1OutputMessageAndLexerPosition(
-               MessageTypeOrDestinationEnum.Warning,
-               "Error in description attribute of enum value");
          }
 
-      AddEnum:
-         EnumNames.Add(enumElementStringIndex);
-         EnumValues.Add(enumNumber);
-      }
-
-      private void AddMissingTerminalsFromEnum()
-      {
-         Int32 addedTerminalsCount = 0;
-         Int32 explicitelyDefinedTerminalsCount = SymbolDictionary.Count;
-         for (Int32 enumIndex = 0; enumIndex < EnumValues.Count; enumIndex++)
+         if (!SymbolDictionary.TryGetValue(enumElementName.Index, out Symbol _))
          {
-            Int32 Name = EnumNames[enumIndex];
-            if (!SymbolDictionary.TryGetValue(Name, out Symbol _))
-            {
-               // There is no terminal with the same name as the enum element
-               // Declare a corresponding terminal
-               Int32 NumberOfAttributes = 0;
-               SymbolDictionary[Name] =
-                  new TerminalSymbol(GlobalVariables.GetStringOfIndex(Name), Lexer.LexerTextPos) {
-                     EnumValue = EnumValues[enumIndex],
-                     Weight = GlobalVariables.TerminalDefaultWeight.Value,
-                     SymbolNumber = SymbolDictionary.Count,
-                     AttributetypeStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes),
-                     AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributes)
-                  };
-               addedTerminalsCount++;
-            }
+            // There is no terminal with the same name as the enum element
+            // Declare a corresponding terminal
+            Int32 NumberOfAttributes = 0;
+            SymbolDictionary[enumElementName.Index] =
+               new TerminalSymbol(enumElementName.ToString(), Lexer.LexerTextPos) {
+                  EnumValue = enumElementValue,
+                  Weight = GlobalVariables.TerminalDefaultWeight.Value,
+                  SymbolNumber = SymbolDictionary.Count,
+                  AttributetypeStrings = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes),
+                  AttributenameStrings = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributes)
+               };
          }
-         if (addedTerminalsCount > 0 && explicitelyDefinedTerminalsCount > 0)
-            // Warning only if at least one terminal symbol is declared explcitely
-            P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Warning,
-@$"The enum contains {addedTerminalsCount} elements that are not defined as terminal.
-These elements are used as additional terminal declarations.");
 
+         EnumNames.Add(enumElementName.Index);
+         EnumValues.Add(enumElementValue);
       }
 
+      
       private void SortTerminalsByEnumValue()
       {
          var Keys = new Int32[SymbolDictionary.Count];
@@ -250,15 +149,13 @@ These elements are used as additional terminal declarations.");
             SymbolDictionary.Add(Keys[i], Values[i]);
             (Values[i] as TerminalSymbol)!.SymbolNumber = i;
          }
-         P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Status,
-             $"The order of the terminal definitions differs from the order in the enum. The terminals have been sorted according to the enum.");
       }
 
       private void ErrorIfMissingEnumElements(out Boolean error, out Boolean ascending)
       {
          error = false;
          ascending = true;
-         if (EnumNameStringIndex < 0)
+         if (EnumName.Index == 0)
             return; // no enum
 
          Int64 LastEnumValue = Int64.MinValue;
@@ -270,7 +167,7 @@ These elements are used as additional terminal declarations.");
             if (IndexOfEnumElement < 0)
             {
                error = true;
-               String name = GlobalVariables.GetStringOfIndex(TerminalStringIndex);
+               String name = new UnifiedString(TerminalStringIndex).ToString();
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                   @$"The name ""{name}"" in the terminal definition does not occur in the enum.");
             }
@@ -293,17 +190,15 @@ These elements are used as additional terminal declarations.");
       /// <param name="symbolName"></param>
       /// <param name="numberOfAttributes"></param>
       /// <returns>The <see cref="NonterminalSymbol"/></returns>
-      private NonterminalSymbol NonterminalSymbolDefinition(Int32 symbolNameIndex, Int32 numberOfAttributes)
+      private NonterminalSymbol NonterminalSymbolDefinition(UnifiedString symbolName, Int32 numberOfAttributes)
       {
          // The parser recognized the left side of a rule and has not yet evaluated any definition of this symbol
 
-         String symbolName = GlobalVariables.GetStringOfIndex(symbolNameIndex);
-
-         Debug.Assert(!String.IsNullOrEmpty(symbolName), "Identifier IsNullOrEmpty");
+         Debug.Assert(symbolName.Index > 0, "Identifier IsNullOrEmpty");
 
          NonterminalSymbol ns;
 
-         if (SymbolDictionary.TryGetValue(symbolNameIndex, out Symbol? Symbol))
+         if (SymbolDictionary.TryGetValue(symbolName.Index, out Symbol? Symbol))
          {
             // The nonterminal symbol has been used already als element of a definition. The types of its attributes are known.
             if (Symbol is NonterminalSymbol symbolAsNonterminal)
@@ -346,8 +241,8 @@ These elements are used as additional terminal declarations.");
             // The names of the attributes are copied now from the ListOfAttributesOfSyntaxRule.
             // They are not removed from ListOfAttributesOfSyntaxRule, because it may be a definition inside another definition.
             // They will be removed when the end of a syntax rule in the syntax rule list or the end of the enclosing definition is recognized.
-            Debug.Assert(ns!.AttributenameStringIndexList == null || ns.AttributenameStringIndexList.Length == 0);
-            ns.AttributenameStringIndexList = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes);
+            Debug.Assert(ns!.AttributenameStrings == null || ns.AttributenameStrings.Length == 0);
+            ns.AttributenameStrings = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes);
          }
          else // Symbol == null
          {
@@ -355,13 +250,13 @@ These elements are used as additional terminal declarations.");
             // The nonterminal symbol has not yet been used (Symbol == null)
             // or there has been an error and we proceed as if it has been a new nonterminal symbol
             // TOCHECK proceed with a modified  symbolname ???
-            ns = new NonterminalSymbol(symbolName,
+            ns = new NonterminalSymbol(symbolName.ToString(),
                Lexer.LexerTextPos,
                symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
-               attributetypeStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
-               attributenameStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
+               attributetypeStringList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
+               attributenameStringList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
                );
-            SymbolDictionary[symbolNameIndex] = ns;
+            SymbolDictionary[symbolName.Index] = ns;
          }
 
          // Mark the attributes of the left side in the ListOfAttributesOfProduction as LeftSide attributes
@@ -386,38 +281,36 @@ These elements are used as additional terminal declarations.");
       /// <param name="Name">the name of the nonterminal symbol</param>
       /// <param name="NumberOfAttributes">the number of attributes of the nonterminal symbol</param>
       /// <returns>The found or created <see cref="Symbol"/> instance</returns>
-      private Symbol EvaluateSymbolnameFoundInRightSide(Int32 nameIndex, Int32 NumberOfAttributes)
+      private Symbol EvaluateSymbolnameFoundInRightSide(UnifiedString name, Int32 NumberOfAttributes)
       {
-         String Name = GlobalVariables.GetStringOfIndex(nameIndex);
-
-         if (SymbolDictionary.TryGetValue(nameIndex, out Symbol? symbol) /*Symbol == null*/)
+         if (SymbolDictionary.TryGetValue(name.Index, out Symbol? symbol) /*Symbol == null*/)
          {
             if (symbol.NumberOfAttributes != NumberOfAttributes)
             {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                  $"The symbol {Name} has been used at its first occurence with a different number of attributes. "
+                  $"The symbol {name} has been used at its first occurence with a different number of attributes. "
                   );
             }
             else if (!AttributeTypesCoincide(symbol))
             {
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                  $"The symbol {Name} has been used at its first occurence with at least one attribute of a different type. "
+                  $"The symbol {name} has been used at its first occurence with at least one attribute of a different type. "
                   );
             }
          }
          else
          {
             // New symbol: create instance
-            symbol = new NonterminalSymbol(Name,
+            symbol = new NonterminalSymbol(name.ToString(),
                   Lexer.LexerTextPos,
                   symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
-                  attributetypeStringIndexList:
+                  attributetypeStringList:
                      NumberOfAttributes == 0
                      ? emptyListOfStringIndexes
                      : ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes)
                   );
 
-            SymbolDictionary[nameIndex] = symbol;
+            SymbolDictionary[name.Index] = symbol;
             // Assign AttributetypeList, let AttributenameList undefined until the symbol becomes defined in left side
          }
          return symbol;
@@ -533,8 +426,8 @@ These elements are used as additional terminal declarations.");
       ///</summary>
       /// <param name="prefix"></param>
       ///<returns>new name</returns>
-      private Int32 MakeNewNameStringIndex(String prefix)
-         => GlobalVariables.GetIndexOfString($"({prefix}{++CountOfGeneratedNames})");
+      private UnifiedString MakeNewNameStringIndex(String prefix)
+         => new UnifiedString($"({prefix}{++CountOfGeneratedNames})");
 
       ///<summary>
       /// Generates an internal name by adding a postfix to a symbols name
@@ -542,7 +435,7 @@ These elements are used as additional terminal declarations.");
       /// <param name="type">the type of the grammar rule determines the postfix</param>
       /// <param name="nameOfSymbol">name of the symbol to which the postfix has to be appended</param>
       ///<returns>new name</returns>
-      private static String MakeNewName(TypeOfGrammarRule type, String nameOfSymbol)
+      private static UnifiedString MakeNewName(TypeOfGrammarRule type, String nameOfSymbol)
       {
          String Postfix = type switch
          {
@@ -553,9 +446,8 @@ These elements are used as additional terminal declarations.");
             TypeOfGrammarRule.repeat1rr => "++",
             _ => "-??",
          };
-         String result = nameOfSymbol + Postfix;
 
-         return result;
+         return new UnifiedString(nameOfSymbol + Postfix);
       }
 
       //{-*****************************************************************************
@@ -580,14 +472,13 @@ These elements are used as additional terminal declarations.");
           */
 
          // Create (synthetic) name of new nonterminal symbol by adding postfix to existing name
-         String NewName = MakeNewName(type, existingSymbol.Identifier);
-         Int32 NewNameIndex = GlobalVariables.GetIndexOfString(NewName);
+         UnifiedString NewName = MakeNewName(type, existingSymbol.Identifier);
 
          // use existing (synthetic) symbol / definition if name already has been defined
-         if (!SymbolDictionary.TryGetValue(NewNameIndex, out Symbol? MadeSymbol))
+         if (!SymbolDictionary.TryGetValue(NewName.Index, out Symbol? MadeSymbol))
          {
             // else create, store in dictionary and define new symbol
-            MadeSymbol = DefineNewSymbol(existingSymbol, type, NewNameIndex, NewName);
+            MadeSymbol = DefineNewSymbol(existingSymbol, type, NewName);
          }
          ListOfAttributesOfGrammarRule.RemoveFromEnd(existingSymbol.NumberOfAttributes);
          AttributeCounter -= existingSymbol.NumberOfAttributes;
@@ -598,17 +489,16 @@ These elements are used as additional terminal declarations.");
       private NonterminalSymbol DefineNewSymbol(
             Symbol existingSymbol,
             TypeOfGrammarRule type,
-            Int32 newNameIndex,
-            String newName)
+            UnifiedString newNname)
       {
-         var newSymbol = new NonterminalSymbol(newName,
+         var newSymbol = new NonterminalSymbol(newNname.ToString(),
             Lexer.LexerTextPos,
             symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
-            attributetypeStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
-            attributenameStringIndexList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0)
+            attributetypeStringList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
+            attributenameStringList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0)
             );
 
-         SymbolDictionary[newNameIndex] = newSymbol;
+         SymbolDictionary[newNname.Index] = newSymbol;
          ListOfDefinitions nontrivialDefinitions;
          Symbol[] trivialDefinitions = Array.Empty<Symbol>(); // preset: no trival definition
 
@@ -820,11 +710,11 @@ These elements are used as additional terminal declarations.");
       /// <param name="NewType"></param>
       /// <param name="NewName"></param>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
-      private void PushAttributeToListOfAttributesOfGrammarRule(Int32 NewTypeStringIndex, Int32 NewNameStringIndex)
+      private void PushAttributeToListOfAttributesOfGrammarRule(UnifiedString newTypeString, UnifiedString newNameString)
       {
 
          var newAttribute = new AttributeStruct(
-           NewTypeStringIndex, NewNameStringIndex,
+           newTypeString, newNameString,
            // leftSide: false, // is considered false as default and may be reset when a left side is evaluated
            // Usage:  inAttribute, //is considered to be inAttribute as default 
            level: NestingLevel,
@@ -836,7 +726,7 @@ These elements are used as additional terminal declarations.");
          Int32 IndexOfOverlayedAttribute =
              ListOfAttributesOfGrammarRule.FindLastIndex(
                  (x) =>
-                 x.NameStringIndex == NewNameStringIndex
+                 x.NameString == newNameString
                  || x.PositionInProduction == AttributeCounter
                  );
 
@@ -901,19 +791,19 @@ These elements are used as additional terminal declarations.");
           *       peekRef
           * */
 
-         if (overlayedAttribute.NameStringIndex == NewNameStringIndex)
+         if (overlayedAttribute.NameString == newNameString)
          {
             //same name: must have same position and same type, usage is inOut
             if (overlayedAttribute.PositionInProduction != AttributeCounter)
             { // the overlaying attributes with same name don't have the same (overlaying) position
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The defined nonterminal or the definition already contains an attribute \"{GlobalVariables.GetStringOfIndex(NewNameStringIndex)}\", but with different position (does not overlay)."
+                   $"The defined nonterminal or the definition already contains an attribute \"{newNameString}\", but with different position (does not overlay)."
                    );
             }
-            else if (overlayedAttribute.TypeStringIndex != NewTypeStringIndex)
+            else if (overlayedAttribute.TypeString != newTypeString)
             {// the overlaying attributes with same name don't have the same type 
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                   $"The defined nonterminal or the definition already contains an overlaying attribute \"{GlobalVariables.GetStringOfIndex(NewNameStringIndex)}\", but with different type."
+                   $"The defined nonterminal or the definition already contains an overlaying attribute \"{newNameString}\", but with different type."
                    );
             }
             else
@@ -928,7 +818,7 @@ These elements are used as additional terminal declarations.");
          {
             // overlayedAttribute.Name != NewName and 
             // overlayedAttribute.PositionInProduction == ActualAttributeNumber
-            if (overlayedAttribute.TypeStringIndex != newAttribute.TypeStringIndex)
+            if (overlayedAttribute.TypeString != newAttribute.TypeString)
             {
                newAttribute.OverlayType = AttributeStruct.OverlayEnum.inClearAttribute;
                overlayedAttribute.OverlayType = AttributeStruct.OverlayEnum.outClearAttribute;
@@ -944,7 +834,7 @@ These elements are used as additional terminal declarations.");
          ListOfAttributesOfGrammarRule.Add(newAttribute);
       }
 
-      private readonly Int32[] emptyListOfStringIndexes = Array.Empty<Int32>();
+      private readonly UnifiedString[] emptyListOfStringIndexes = Array.Empty<UnifiedString>();
 
       /// <summary>
       /// returns true if the types of the attributes of symbol are equal to the types
@@ -957,8 +847,8 @@ These elements are used as additional terminal declarations.");
          Int32 NumberOfAttributes = symbol.NumberOfAttributes;
          for (Int32 i = 0; i < NumberOfAttributes; i++)
          {
-            if (symbol.AttributetypeStringIndexList[i]
-                != ListOfAttributesOfGrammarRule[ListOfAttributesOfGrammarRule.Count - NumberOfAttributes + i].TypeStringIndex)
+            if (symbol.AttributetypeStrings[i]
+                != ListOfAttributesOfGrammarRule[ListOfAttributesOfGrammarRule.Count - NumberOfAttributes + i].TypeString)
             {
                return false;
             }
@@ -992,27 +882,23 @@ These elements are used as additional terminal declarations.");
       /// <param name="methodModifier">"" or "new" or "public" or "protected" or ...</param>
       /// <param name="type">must bei "void" else NotImplementedException</param>
       /// <param name="name">Name of the method</param>
-      private void MethodProperties(out MethodClass method, Int32 methodModifierStringIndex, Int32 typeStringIndex, Int32 nameStringIndex)
+      private void MethodProperties(out MethodClass method, UnifiedString methodModifier, UnifiedString typeString, UnifiedString name)
       {
-         String methodModifier = GlobalVariables.GetStringOfIndex(methodModifierStringIndex);
-         String typeString = GlobalVariables.GetStringOfIndex(typeStringIndex);
-         String name = GlobalVariables.GetStringOfIndex(nameStringIndex);
-
-         if (!CSharpMethodProperties.Contains(methodModifier))
+         if (!CSharpMethodProperties.Contains(methodModifier.ToString()))
             CreateParserErrorMessage($"unknown method modifier \"{methodModifier}\"");
 
-         if (typeString == "int" || typeString == "Int32")
+         if (typeString.ToString() == "int" || typeString.ToString() == "Int32")
          {
-            method = new IntMethodClass(methodName: name, Lexer.LexerTextPos);
+            method = new IntMethodClass(methodName: name.ToString(), Lexer.LexerTextPos);
          }
-         else if (typeString == "void")
+         else if (typeString.ToString() == "void")
          {
-            method = new VoidMethodClass(methodName: name, Lexer.LexerTextPos);
+            method = new VoidMethodClass(methodName: name.ToString(), Lexer.LexerTextPos);
          }
          else
          {
             CreateParserErrorMessage($"expected \"int\" or \"Int32\" or \"void\", found \"{typeString}\" (will be interpreted as \"void\").");
-            method = new VoidMethodClass(methodName: name, Lexer.LexerTextPos);
+            method = new VoidMethodClass(methodName: name.ToString(), Lexer.LexerTextPos);
          }
       }
 
@@ -1024,14 +910,14 @@ These elements are used as additional terminal declarations.");
       /// <param name="methodModifier2">"" or "new" or "public" or "protected" or ...</param>
       /// <param name="type">must bei "void" else NotImplementedException</param>
       /// <param name="name">Name of the method</param>
-      private void MethodProperties(out MethodClass method, Int32 methodModifier1StringIndex,
-         Int32 methodModifier2StringIndex, Int32 typeStringIndex, Int32 nameStringIndex)
+      private void MethodProperties(out MethodClass method, UnifiedString methodModifier1,
+         UnifiedString methodModifier2, UnifiedString typeString, UnifiedString nameString)
       {
-         String methodModifier1 = GlobalVariables.GetStringOfIndex(methodModifier1StringIndex);
+         // String methodModifier1 = GlobalVariables.GetStringOfIndex(methodModifier1StringIndex);
 
-         if (!CSharpMethodProperties.Contains(methodModifier1))
+         if (!CSharpMethodProperties.Contains(methodModifier1.ToString()))
             CreateParserErrorMessage($"unknown method modifier \"{methodModifier1}\"");
-         MethodProperties(out method, methodModifier2StringIndex, typeStringIndex, nameStringIndex);
+         MethodProperties(out method, methodModifier2, typeString, nameString);
       }
 
       /// <summary>
@@ -1041,12 +927,10 @@ These elements are used as additional terminal declarations.");
       /// <param name="ParameterModifierOpt">A C# formal parameter modifier: "ref", "out" or ""</param>
       /// <param name="type">A C# or user defined type (e.g. "Int32" or "Object" or "MyType")</param>
       /// <param name="name">The name (identifier) of the formal parameter</param>
-      private void FormalParameter(Int32 parameterModifierOptStringIndex, Int32 typeStringIndex, Int32 nameStringIndex)
+      private void FormalParameter(UnifiedString parameterModifierOpt, UnifiedString typeString, UnifiedString nameString)
       {
-         String parameterModifierOpt = GlobalVariables.GetStringOfIndex(parameterModifierOptStringIndex);
-
          ParameterImplementation callType;
-         switch (parameterModifierOpt)
+         switch (parameterModifierOpt.ToString())
          { // 
          case "":
          case "in":
@@ -1080,8 +964,8 @@ These elements are used as additional terminal declarations.");
 
          LastFormalParameterList.Add(new MethodParameterStruct {
             Implementation = callType,
-            NameStringIndex = nameStringIndex,
-            TypeStringIndex = typeStringIndex
+            NameString = nameString,
+            TypeString = typeString
          }
          );
       }
@@ -1120,8 +1004,8 @@ These elements are used as additional terminal declarations.");
          {
             Symbol Symbol = KeyValue.Value;
 
-            String GetNameOfSymbol()
-               => GlobalVariables.GetStringOfIndex(KeyValue.Key);
+            String NameOfSymbol()
+               => new UnifiedString(KeyValue.Key).ToString();
 
             if (Symbol != null)
             {
@@ -1130,7 +1014,7 @@ These elements are used as additional terminal declarations.");
                   if (nt.NontrivialDefinitionsList.Count == 0 && nt.TrivalDefinitionsArray.Length == 0) // undefeined if no trivial or nontrivial definitions
                   {
                      OutputMessage(MessageTypeOrDestinationEnum.Abort,
-                        $"{GetNameOfSymbol()} is used as terminal or nonterminal symbol but not defined.",
+                        $"{NameOfSymbol()} is used as terminal or nonterminal symbol but not defined.",
                         nt.FirstPosition
                         );
                   }
@@ -1138,7 +1022,7 @@ These elements are used as additional terminal declarations.");
                   if (!nt.isUsed)
                   {
                      OutputMessage(MessageTypeOrDestinationEnum.Warning,
-                        $"The nonterminal symbol {GetNameOfSymbol()} is not used.",
+                        $"The nonterminal symbol {NameOfSymbol()} is not used.",
                         nt.FirstPosition
                         );
                   }
@@ -1245,7 +1129,7 @@ These elements are used as additional terminal declarations.");
                    ConstantPriority = constantPriority,
                    PriorityFunction = priorityFunction,
                    SemanticMethod = semanticMethod,
-                   AttributeIdentifierStringIndexArray
+                   AttributeIdentifiers
                    = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributesOfNewDefinition)
                 };
 
@@ -1273,10 +1157,13 @@ These elements are used as additional terminal declarations.");
             if (excludedTerminalSymbols[IndexOfTerminalSymbol])
                continue;
             Symbol s = GlobalVariables.GetTerminalSymbolByIndex(IndexOfTerminalSymbol);
-            for (Int32 IndexOfAttribute = 0; IndexOfAttribute < s.AttributenameStringIndexList.Length; IndexOfAttribute++)
+            for (Int32 IndexOfAttribute = 0; IndexOfAttribute < s.AttributenameStrings.Length; IndexOfAttribute++)
             {
                AttributeCounter++;
-               PushAttributeToListOfAttributesOfGrammarRule(s.AttributetypeStringIndexList[IndexOfAttribute], s.AttributenameStringIndexList[IndexOfAttribute]);
+               PushAttributeToListOfAttributesOfGrammarRule(
+                  s.AttributetypeStrings[IndexOfAttribute],
+                  s.AttributenameStrings[IndexOfAttribute]
+                  );
             }
             Debug.Assert(NumberOfElements == 0);
             ElementVariantRecognized(s);
@@ -1353,13 +1240,13 @@ These elements are used as additional terminal declarations.");
          {
             /*** check method parameter ***/
             ref MethodParameterStruct MethodParameter = ref MethodParameters[parameterIndex];
-            String methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
+            String methodParameterName = MethodParameter.NameString.ToString();
 
             /*** find last attribute in the list of attributes which has the same name ***/
             Int32 AttributeIndex =
                 ListOfAttributesOfGrammarRule.FindLastIndex
                 (
-                    (x) => x.NameStringIndex == MethodParameters[parameterIndex].NameStringIndex
+                    (x) => x.NameString == MethodParameters[parameterIndex].NameString
                 );
             if (AttributeIndex < 0)
             {
@@ -1396,7 +1283,7 @@ These elements are used as additional terminal declarations.");
                continue;
             }
 
-            Debug.Assert(MethodParameter.NameStringIndex == Attribute.NameStringIndex);
+            Debug.Assert(MethodParameter.NameString == Attribute.NameString);
 
             // Are attribute and parameter compatible?
             String errorDescription = AttributeParameterMatchError(Attribute, MethodParameter);
@@ -1414,13 +1301,13 @@ These elements are used as additional terminal declarations.");
             }
 
             // Compare types:
-            if (Attribute.TypeStringIndex != MethodParameter.TypeStringIndex)
+            if (Attribute.TypeString != MethodParameter.TypeString)
             {
                GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
                   $"Error in method \"{semanticMethod!.MethodName }\": the type of the formal parameter  "
-                  + $"\"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)} {methodParameterName}\""
-                  + $" is different from the type of the attribute \""
-                  + $"{GlobalVariables.GetStringOfIndex(Attribute.TypeStringIndex)} {GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)}\"",
+                  + $"\"{MethodParameter.TypeString} {methodParameterName}\""
+                  + $" is different from the type of the attribute "
+                  + $"\"{Attribute.TypeString} {Attribute.NameString}\"",
                   semanticMethod.Position
                    );
                error = true;
@@ -1444,7 +1331,7 @@ These elements are used as additional terminal declarations.");
                AttributeStruct OverlayedAttribute = ListOfAttributesOfGrammarRule[OverlayedAttributeIndex];
 
                Debug.Assert(OverlayedAttribute.LeftSide);
-               Debug.Assert(OverlayedAttribute.NameStringIndex == MethodParameter.NameStringIndex);
+               Debug.Assert(OverlayedAttribute.NameString == MethodParameter.NameString);
                Debug.Assert(OverlayedAttribute.PositionInProduction == Attribute.PositionInProduction);
 
                OverlayedAttribute.Implementation = MethodParameter.Implementation;
@@ -1466,7 +1353,7 @@ These elements are used as additional terminal declarations.");
                // Search that formal parameter
                for (Int32 SearchIndex = 0; SearchIndex < MethodParameters.Length; SearchIndex++)
                {
-                  if (MethodParameters[SearchIndex].NameStringIndex == OverlayedAttribute.NameStringIndex)
+                  if (MethodParameters[SearchIndex].NameString == OverlayedAttribute.NameString)
                   {
                      // Found: clearing will be done by OverlayedAttribute in access
                      //   and must not (!) be done by Attribute out access
@@ -1525,7 +1412,7 @@ These elements are used as additional terminal declarations.");
                   if (semanticMethod == null)
                   {
                      P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                        $"The attribute \"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\""
+                        $"The attribute \"{ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameString}\""
                         + " of the left side of the definition must be assigned a value by an overlaying attribute or a method."
                         );
                   }
@@ -1534,7 +1421,7 @@ These elements are used as additional terminal declarations.");
                      GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
                         $"The method \"{semanticMethod.MethodName}\" "
                         + "doesn't have a ref or out parameter with the name and type of the attribute "
-                        + $"\"{GlobalVariables.GetStringOfIndex(ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameStringIndex)}\""
+                        + $"\"{ListOfAttributesOfGrammarRule[indexOfLeftSideAttrib].NameString}\""
                         + " of the left side of the definition.",
                         semanticMethod.Position
                         );
@@ -1569,13 +1456,13 @@ These elements are used as additional terminal declarations.");
          for (Int32 parameterIndex = 0; parameterIndex < MethodParameters.Length; parameterIndex++)
          {
             ref MethodParameterStruct MethodParameter = ref MethodParameters[parameterIndex];
-            String methodParameterName = GlobalVariables.GetStringOfIndex(MethodParameter.NameStringIndex);
+            String methodParameterName = MethodParameter.NameString.ToString();
 
             // find last attribute in the list of attributes which has the same name
             Int32 AttributeIndex =
                 ListOfAttributesOfGrammarRule.FindLastIndex
                 (
-                    (x) => x.NameStringIndex == MethodParameters[parameterIndex].NameStringIndex
+                    (x) => x.NameString == MethodParameters[parameterIndex].NameString
                 );
             if (AttributeIndex < 0)
             {
@@ -1592,7 +1479,7 @@ These elements are used as additional terminal declarations.");
 
             AttributeStruct Attribute = ListOfAttributesOfGrammarRule[AttributeIndex];
 
-            Debug.Assert(MethodParameter.NameStringIndex == Attribute.NameStringIndex);
+            Debug.Assert(MethodParameter.NameString == Attribute.NameString);
 
             if (Attribute.Level < NestingLevel // access to context is not implemented
                 || Attribute.PositionInProduction > maximalAttributenumber // redundant, might be relevant if access to context would be allowed
@@ -1637,13 +1524,13 @@ These elements are used as additional terminal declarations.");
             }
 
             // Compare types:
-            if (Attribute.TypeStringIndex != MethodParameter.TypeStringIndex)
+            if (Attribute.TypeString != MethodParameter.TypeString)
             {
                GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
                   $"Error in priority method \"{semanticPriority!.MethodName }\": the type of the formal parameter "
-                  + $"\"{GlobalVariables.GetStringOfIndex(MethodParameter.TypeStringIndex)} {methodParameterName}\""
-                  + $" is different from the type of the attribute \""
-                  + $"{GlobalVariables.GetStringOfIndex(Attribute.TypeStringIndex)} {GlobalVariables.GetStringOfIndex(Attribute.NameStringIndex)}\"",
+                  + $"\"{MethodParameter.TypeString} {methodParameterName}\""
+                  + $" is different from the type of the attribute "
+                  + $"\"{Attribute.TypeString} {Attribute.NameString}\"",
                   semanticPriority.Position
                    );
                MethodParameter.Implementation = ParameterImplementation.NotAssigned;

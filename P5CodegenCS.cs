@@ -90,7 +90,7 @@ namespace grammlator {
 
          if (GlobalVariables.FlagTestMethodName.Value != "")
          {
-            Int64 Offset = useTerminalValuesAsFlags 
+            Int64 Offset = useTerminalValuesAsFlags
                ? 0  // not used
                : MaxValue <= 63 ? 0 : MinValue;
             Boolean IsInFunctionHastoBeGenerated = false;
@@ -100,24 +100,11 @@ namespace grammlator {
                if (t.IsUsedInIsIn)
                {
                   IsInFunctionHastoBeGenerated = true; // 
-                  String Identifier = t.Identifier;
-                  IndentExactly();
-                  if (useTerminalValuesAsFlags)
-                  {
-                     // generate shorter aliases
-                     // generate e.g. "const ThreeLetters _fb = ThreeLetters.b;"
-                     Append("const ")
-                        .Append(GlobalVariables.TerminalSymbolEnum.Value) // "ThreeLetters"
-                        .Append(' ') // ' '
-                        .Append(GlobalVariables.FlagsPrefix.Value) // "_f"
-                        .Append(Identifier) // "b"
-                        .Append(" = ") // " = "
-                        .AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, Identifier); // "ThreeLetters.b"
-                     AppendLine(';'); // ';'
-                  }
-                  else
+                  if (!useTerminalValuesAsFlags)
                   {
                      // generate e.g. "const Int64 _fb = 1L << (Int32)(LexerResult.CSharpEnd-12);"
+                     String Identifier = t.Identifier;
+                     IndentExactly();
                      Append("const Int64 ")
                         .Append(GlobalVariables.FlagsPrefix.Value) //  "_f"
                         .Append(Identifier) // "b"
@@ -568,10 +555,10 @@ namespace grammlator {
          Int32 count = 0;
          foreach (MethodParameterStruct Parameter in semanticMethod.MethodParameters)
          {
-            String ParameterTypeString = GlobalVariables.GetStringOfIndex(Parameter.TypeStringIndex);
+            String ParameterTypeString = Parameter.TypeString.ToString();
 
             AppendLine();
-            IndentAndAppend(GlobalVariables.GetStringOfIndex(Parameter.NameStringIndex));
+            IndentAndAppend(Parameter.NameString.ToString());
             Append(": ");
             switch (Parameter.Implementation)
             {

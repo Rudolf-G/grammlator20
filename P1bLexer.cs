@@ -44,9 +44,9 @@ namespace grammlator {
 
       GroupEnd, RepeatEnd, OptionEnd,  // these are the characters ) ] } #
 
-      [Description("Name(Int32 stringIndex) %45")]
+      [Description("Name(UnifiedString string) %45")]
       Name,
-      [Description("LexerString(Int32 stringIndex) %30")]
+      [Description("LexerString(UnifiedString string) %30")]
       LexerString,
 
       [Description(@"DefinitionSeparatorSymbol() %45 ""|"" ")]
@@ -329,7 +329,7 @@ namespace grammlator {
       #region grammar
       //| /* ---- Start of Lex1 grammar as control structure  ---- */
       //|
-      //| // Compiler settings
+      //| // Grammlator settings
       //| TerminalSymbolEnum: "ClassifierResult"
       //| SymbolNameOrFunctionCall: "LexerInput"
       //| SymbolAssignInstruction: "LexerInput = inputClassifier.PeekSymbol();"
@@ -411,10 +411,10 @@ namespace grammlator {
       //| // Declaration of the startsymbol: the attributes of the definitions are used as attributes of the generated symbols
       //| *= 
       //|     Gap, CharacterToPassOn
-      //|   | Gap, Name(Int32 stringIndex) 
+      //|   | Gap, Name(UnifiedString unifiedString) 
       private void AssignNameToSymbol() => Symbol = LexerResult.Name;
       //|   | Gap, StartsymbolNumber (Int64 value)
-      //|   | Gap, StartsymbolString(Int32 stringIndex)
+      //|   | Gap, StartsymbolString(UnifiedString lexerString)
       //|   | Gap, StartsymbolDoubleQuestionmark
       //|   | Gap, StartsymbolStarEqual
       //|   | Gap, StartsymbolMinusEqual
@@ -425,8 +425,8 @@ namespace grammlator {
       //|    Number(Int64 value) ?? -1 ?? /* low priority makes this definition greedy */
       private void AssignNumberToSymbol() => Symbol = LexerResult.Number;
 
-      //| StartsymbolString(Int32 stringIndex)=
-      //|    String(Int32 stringIndex)
+      //| StartsymbolString(UnifiedString lexerString)=
+      //|    String(UnifiedString lexerString)
       private void AssignStringToStartsymbol() => Symbol = LexerResult.LexerString;
 
       //| StartsymbolStarEqual=
@@ -496,10 +496,10 @@ namespace grammlator {
       //| anyCharacterExceptQuotationmark(Int32 i)-= /* and except CSharpStart and CSharpEnd */
       //|   Quotationmark | CSharpStart | CSharpEnd;
       //|
-      //| Name(Int32 stringIndex)=
+      //| Name(UnifiedString unifiedString)=
       //|    SequenceOfLettersOrDigits ??-11?? /* low priority makes this definition greedy */
-      private void GetNameFromSource(out Int32 stringIndex)
-         => stringIndex = GlobalVariables.GetIndexOfString(Source[Name1stIndex..(NameLastIndex + 1)]);
+      private void GetNameFromSource(out UnifiedString unifiedString)
+         => unifiedString = new UnifiedString(Source[Name1stIndex..(NameLastIndex + 1)]);
 
       //| SequenceOfLettersOrDigits=
       //|    Letter(Int32  index)
@@ -518,12 +518,11 @@ namespace grammlator {
       //| LetterOrDigit(Int32 i)=
       //|       Letter(Int32 i) | Digit(Int32 i)
 
-      //| String(Int32 stringIndex) =
+      //| String(UnifiedString lexerString) =
       //|    At(Int32 i)?, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex) ??-111??
-      private void GetStringIndex(out Int32 stringIndex)
+      private void GetStringIndex(out UnifiedString lexerString)
       {
-         stringIndex =
-            GlobalVariables.GetIndexOfString(StringCharacterSequence.Append("\"").ToString());
+         lexerString = new UnifiedString(StringCharacterSequence.Append("\"").ToString());
          StringCharacterSequence.Clear();
       }
 
@@ -565,7 +564,7 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated 7 Okt 2020 (grammlator file version/date 2020.10.06.0/7 Okt 2020)
+#region grammlator generated 9 Okt 2020 (grammlator file version/date 2020.10.06.0/8 Okt 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fCSharpStart = 1L << (Int32)(ClassifierResult.CSharpStart);
   const Int64 _fCSharpEnd = 1L << (Int32)(ClassifierResult.CSharpEnd);
@@ -582,9 +581,9 @@ Reduce1:
 State2:
   const String StateDescription2 =
        "*Startsymbol= Gap, ►CharacterToPassOn;\r\n"
-     + "*Startsymbol= Gap, ►Name(Int32 stringIndex);\r\n"
+     + "*Startsymbol= Gap, ►Name(UnifiedString unifiedString);\r\n"
      + "*Startsymbol= Gap, ►StartsymbolNumber(Int64 value);\r\n"
-     + "*Startsymbol= Gap, ►StartsymbolString(Int32 stringIndex);\r\n"
+     + "*Startsymbol= Gap, ►StartsymbolString(UnifiedString lexerString);\r\n"
      + "*Startsymbol= Gap, ►StartsymbolDoubleQuestionmark;\r\n"
      + "*Startsymbol= Gap, ►StartsymbolStarEqual;\r\n"
      + "*Startsymbol= Gap, ►StartsymbolMinusEqual;\r\n"
@@ -752,7 +751,7 @@ State8:
      {
      /* StartsymbolNumber(Int64 value)= Number(Int64 value);◄
       * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
-      * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ */
+      * or: *Startsymbol= Gap, StartsymbolString(UnifiedString lexerString);◄ */
 
      AssignNumberToSymbol();
 
@@ -832,7 +831,7 @@ State12:
 
 State3:
   const String StateDescription3 =
-       "String(Int32 stringIndex)= At?, ►Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex);";
+       "String(UnifiedString lexerString)= At?, ►Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex);";
   LexerInput = inputClassifier.PeekSymbol();
   if (LexerInput != ClassifierResult.Quotationmark)
      {
@@ -849,7 +848,7 @@ State3:
 
 State5:
   const String StateDescription5 =
-       "String(Int32 stringIndex)= At?, Quotationmark(Int32 startIndex), StringCharacterSequence, ►Quotationmark(Int32 endIndex);\r\n"
+       "String(UnifiedString lexerString)= At?, Quotationmark(Int32 startIndex), StringCharacterSequence, ►Quotationmark(Int32 endIndex);\r\n"
      + "StringCharacterSequence= StringCharacterSequence, ►anyCharacterExceptQuotationmark(Int32 index);\r\n"
      + "StringCharacterSequence= StringCharacterSequence, ►Quotationmark(Int32 i1), Quotationmark(Int32 i2);";
   LexerInput = inputClassifier.PeekSymbol();
@@ -857,24 +856,24 @@ State5:
      {
      inputClassifier.AcceptSymbol();
      // State6:
-     /* String(Int32 stringIndex)= At?, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex)●;
+     /* String(UnifiedString lexerString)= At?, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex)●;
       * StringCharacterSequence= StringCharacterSequence, Quotationmark(Int32 i1), ►Quotationmark(Int32 i2); */
      LexerInput = inputClassifier.PeekSymbol();
      if (LexerInput != ClassifierResult.Quotationmark)
         // Reduce21:
         {
         /* aAdjust: -1
-         * String(Int32 stringIndex)= At?, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex);◄ */
+         * String(UnifiedString lexerString)= At?, Quotationmark(Int32 startIndex), StringCharacterSequence, Quotationmark(Int32 endIndex);◄ */
 
         GetStringIndex(
-           stringIndex: out _a.PeekRef(-1)._Int32
+           lexerString: out _a.PeekRefClear(-1)._UnifiedString
            );
 
         _a.Remove();
         // Reduce18:
-        /* StartsymbolString(Int32 stringIndex)= String(Int32 stringIndex);◄
+        /* StartsymbolString(UnifiedString lexerString)= String(UnifiedString lexerString);◄
          * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
-         * or: *Startsymbol= Gap, StartsymbolString(Int32 stringIndex);◄ */
+         * or: *Startsymbol= Gap, StartsymbolString(UnifiedString lexerString);◄ */
 
         AssignStringToStartsymbol();
 
@@ -911,22 +910,22 @@ State5:
   goto State5;
 
 State7:
-  /* Name(Int32 stringIndex)= SequenceOfLettersOrDigits●;
+  /* Name(UnifiedString unifiedString)= SequenceOfLettersOrDigits●;
    * SequenceOfLettersOrDigits= SequenceOfLettersOrDigits, ►LetterOrDigit(Int32 index); */
   LexerInput = inputClassifier.PeekSymbol();
   if (LexerInput <= ClassifierResult.Quotationmark)
      // Reduce23:
      {
      /* aAdjust: 1
-      * Name(Int32 stringIndex)= SequenceOfLettersOrDigits;◄ */
+      * Name(UnifiedString unifiedString)= SequenceOfLettersOrDigits;◄ */
      _a.Allocate();
 
      GetNameFromSource(
-        stringIndex: out _a.PeekRef(0)._Int32
+        unifiedString: out _a.PeekRef(0)._UnifiedString
         );
 
      // Reduce10:
-     /* *Startsymbol= Gap, Name(Int32 stringIndex);◄ */
+     /* *Startsymbol= Gap, Name(UnifiedString unifiedString);◄ */
 
      AssignNameToSymbol();
 
@@ -1008,7 +1007,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 7 Okt 2020 (grammlator file version/date 2020.10.06.0/7 Okt 2020)
+#endregion grammlator generated 9 Okt 2020 (grammlator file version/date 2020.10.06.0/8 Okt 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

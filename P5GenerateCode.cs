@@ -86,6 +86,10 @@ namespace grammlator {
             if (MaxValue - MinValue > 63)
                GlobalVariables.FlagTestMethodName.Value = "";
          }
+         else
+         {
+            GlobalVariables.FlagsPrefix.Value = GlobalVariables.TerminalSymbolEnum.Value+'.';
+         }
 
          // Generate the code for the parsers first action and the sequence of actions reached from this action without goto
          GenerateCodeSequence(Codegen,

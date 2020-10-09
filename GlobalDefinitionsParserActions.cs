@@ -290,7 +290,7 @@ namespace grammlator {
          DefinedSymbol = definedSymbol;
          Elements = elements;
          AttributestackAdjustment = attributestackAdjustment;
-         AttributeIdentifierStringIndexArray = Array.Empty<Int32>();
+         AttributeIdentifiers = Array.Empty<UnifiedString>();
       }
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isDefinition;
 
@@ -343,7 +343,7 @@ namespace grammlator {
       /// In definitions added by grammlator this array may be null or empty.
       /// Then the attribute names of the symbols declarations are used.
       /// </summary>
-      internal Int32[] AttributeIdentifierStringIndexArray;
+      internal UnifiedString[] AttributeIdentifiers;
 
       /// <summary>
       /// Returns true, if no SemanticMethod, no AttributeStackCorrection. 
@@ -375,7 +375,7 @@ namespace grammlator {
       }
 
       internal void ElementsToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
-          => Elements.Append(sb, MarkiertesElement, this.AttributeIdentifierStringIndexArray);
+          => Elements.Append(sb, MarkiertesElement, this.AttributeIdentifiers);
 
       internal StringBuilder AppendToSB(StringBuilder sb, Int32 MarkiertesElement)
       {
