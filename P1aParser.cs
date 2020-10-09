@@ -20,7 +20,7 @@ namespace grammlator {
       /// <param name="symbolDictionary"></param>
       public static void MakeInstanceAndExecute(
           SpanReaderWithCharacterAndLineCounter SourceReader,
-          Dictionary<Int32, Symbol> symbolDictionary)
+          Dictionary<UnifiedString, Symbol> symbolDictionary)
           => new P1aParser(SourceReader, symbolDictionary).DoPhase1();
 
       /// <summary>
@@ -32,7 +32,7 @@ namespace grammlator {
       /// <param name="SymbolDictionary"></param>
       private P1aParser(
           SpanReaderWithCharacterAndLineCounter SourceReader,
-          Dictionary<Int32, Symbol> SymbolDictionary) : base(initialSizeOfAttributeStack: 100, initialSizeOfStateStack: 100)
+          Dictionary<UnifiedString, Symbol> SymbolDictionary) : base(initialSizeOfAttributeStack: 100, initialSizeOfStateStack: 100)
       {
          this.SymbolDictionary = SymbolDictionary;
          this.Source = SourceReader.Source;
@@ -82,7 +82,7 @@ namespace grammlator {
       /// <summary>
       /// Set by constructor, contains the terminal symbols followed by the nonterminal symbols
       /// </summary>
-      private readonly Dictionary<Int32, Symbol> SymbolDictionary;
+      private readonly Dictionary<UnifiedString, Symbol> SymbolDictionary;
 
       /// <summary>
       /// level of paranthesis, initialized with 0
@@ -423,7 +423,7 @@ namespace grammlator {
          OptimizeTrivialDefinitionsBackup = OptimizeTrivialDefinitions;
          OptimizeTrivialDefinitions = false; // must be disabled while evaluating the definitions of the startsymbol
          SymbolDictionary.Add(
-            new UnifiedString(GlobalVariables.Startsymbol.Identifier).Index,
+            new UnifiedString(GlobalVariables.Startsymbol.Identifier),
             GlobalVariables.Startsymbol);
       }
 
@@ -449,7 +449,7 @@ namespace grammlator {
       //|     | ListOfExcludedTerminalSymbols, "|", Name(UnifiedString name)
       private void OneMoreExcludedTerminalSymbol(UnifiedString name)
       {
-         if (!SymbolDictionary.TryGetValue(name.Index, out Symbol? Symbol))
+         if (!SymbolDictionary.TryGetValue(name, out Symbol? Symbol))
          {
             P1OutputMessageAndLexerPosition(
                 MessageTypeOrDestinationEnum.Error,

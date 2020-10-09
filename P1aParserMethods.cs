@@ -75,7 +75,7 @@ namespace grammlator {
          //UnifiedString Name = GlobalVariables.GetStringOfIndex(Name);  // TODO use nameIndex as Key in SymbolDictionary
          Debug.Assert(!String.IsNullOrEmpty(Name.ToString()), $"{nameof(Name)} is 0 or empty");
 
-         if (SymbolDictionary.ContainsKey(Name.Index))
+         if (SymbolDictionary.ContainsKey(Name))
          {
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
                 $"The terminal symbol {Name} has already been defined");
@@ -83,7 +83,7 @@ namespace grammlator {
          }
          else
          {
-            SymbolDictionary[Name.Index] =
+            SymbolDictionary[Name] =
                new TerminalSymbol(Name.ToString(), Lexer.LexerTextPos) {
                   EnumValue = SymbolDictionary.Count,
                   Weight = weight,
@@ -116,12 +116,12 @@ namespace grammlator {
 
          }
 
-         if (!SymbolDictionary.TryGetValue(enumElementName.Index, out Symbol _))
+         if (!SymbolDictionary.TryGetValue(enumElementName, out Symbol _))
          {
             // There is no terminal with the same name as the enum element
             // Declare a corresponding terminal
             Int32 NumberOfAttributes = 0;
-            SymbolDictionary[enumElementName.Index] =
+            SymbolDictionary[enumElementName] =
                new TerminalSymbol(enumElementName.ToString(), Lexer.LexerTextPos) {
                   EnumValue = enumElementValue,
                   Weight = GlobalVariables.TerminalDefaultWeight.Value,
@@ -138,11 +138,11 @@ namespace grammlator {
       
       private void SortTerminalsByEnumValue()
       {
-         var Keys = new Int32[SymbolDictionary.Count];
+         var Keys = new UnifiedString[SymbolDictionary.Count];
          var Values = new Symbol[SymbolDictionary.Count];
          SymbolDictionary.Keys.CopyTo(Keys, 0);
          SymbolDictionary.Values.CopyTo(Values, 0);
-         Array.Sort<Symbol, Int32>(Values, Keys, new EnumComparer());
+         Array.Sort<Symbol, UnifiedString>(Values, Keys, new EnumComparer());
          SymbolDictionary.Clear();
          for (int i = 0; i < Values.Length; i++)
          {
@@ -161,7 +161,7 @@ namespace grammlator {
          Int64 LastEnumValue = Int64.MinValue;
          foreach (var terminal in SymbolDictionary)
          {
-            var TerminalStringIndex = terminal.Key;
+            var TerminalStringIndex = terminal.Key.Index;
             Int32 IndexOfEnumElement = EnumNames.FindIndex
                (enumStringIndex => enumStringIndex == TerminalStringIndex);
             if (IndexOfEnumElement < 0)
@@ -198,7 +198,7 @@ namespace grammlator {
 
          NonterminalSymbol ns;
 
-         if (SymbolDictionary.TryGetValue(symbolName.Index, out Symbol? Symbol))
+         if (SymbolDictionary.TryGetValue(symbolName, out Symbol? Symbol))
          {
             // The nonterminal symbol has been used already als element of a definition. The types of its attributes are known.
             if (Symbol is NonterminalSymbol symbolAsNonterminal)
@@ -256,7 +256,7 @@ namespace grammlator {
                attributetypeStringList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
                attributenameStringList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
                );
-            SymbolDictionary[symbolName.Index] = ns;
+            SymbolDictionary[symbolName] = ns;
          }
 
          // Mark the attributes of the left side in the ListOfAttributesOfProduction as LeftSide attributes
@@ -283,7 +283,7 @@ namespace grammlator {
       /// <returns>The found or created <see cref="Symbol"/> instance</returns>
       private Symbol EvaluateSymbolnameFoundInRightSide(UnifiedString name, Int32 NumberOfAttributes)
       {
-         if (SymbolDictionary.TryGetValue(name.Index, out Symbol? symbol) /*Symbol == null*/)
+         if (SymbolDictionary.TryGetValue(name, out Symbol? symbol) /*Symbol == null*/)
          {
             if (symbol.NumberOfAttributes != NumberOfAttributes)
             {
@@ -310,7 +310,7 @@ namespace grammlator {
                      : ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes)
                   );
 
-            SymbolDictionary[name.Index] = symbol;
+            SymbolDictionary[name] = symbol;
             // Assign AttributetypeList, let AttributenameList undefined until the symbol becomes defined in left side
          }
          return symbol;
@@ -475,7 +475,7 @@ namespace grammlator {
          UnifiedString NewName = MakeNewName(type, existingSymbol.Identifier);
 
          // use existing (synthetic) symbol / definition if name already has been defined
-         if (!SymbolDictionary.TryGetValue(NewName.Index, out Symbol? MadeSymbol))
+         if (!SymbolDictionary.TryGetValue(NewName, out Symbol? MadeSymbol))
          {
             // else create, store in dictionary and define new symbol
             MadeSymbol = DefineNewSymbol(existingSymbol, type, NewName);
@@ -498,7 +498,7 @@ namespace grammlator {
             attributenameStringList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0)
             );
 
-         SymbolDictionary[newNname.Index] = newSymbol;
+         SymbolDictionary[newNname] = newSymbol;
          ListOfDefinitions nontrivialDefinitions;
          Symbol[] trivialDefinitions = Array.Empty<Symbol>(); // preset: no trival definition
 
@@ -1000,12 +1000,12 @@ namespace grammlator {
 
          Boolean AllSymbolsAreUsed = true;
          Int32 NotUsedPosition = 0;
-         foreach (KeyValuePair<Int32, Symbol> KeyValue in SymbolDictionary)
+         foreach (KeyValuePair<UnifiedString, Symbol> KeyValue in SymbolDictionary)
          {
             Symbol Symbol = KeyValue.Value;
 
             String NameOfSymbol()
-               => new UnifiedString(KeyValue.Key).ToString();
+               => (KeyValue.Key).ToString();
 
             if (Symbol != null)
             {

@@ -93,12 +93,12 @@ namespace grammlator {
             ReadOnlyMemory<char> TerminalIdentifierMemory = description[IdentifierFirstPos..(IdentifierLastPos + 1)];
             UnifiedString TerminalString = new UnifiedString(TerminalIdentifierMemory);
             string TerminalIdentifier = TerminalString.ToString();
-            TerminalHasBeenDefined = SymbolDictionary.TryGetValue(TerminalString.Index, out Symbol? s);
+            TerminalHasBeenDefined = SymbolDictionary.TryGetValue(TerminalString, out Symbol? s);
             if (TerminalHasBeenDefined)
                Terminal = (TerminalSymbol)s!;
             else
             {
-               SymbolDictionary[TerminalString.Index] =
+               SymbolDictionary[TerminalString] =
                   new TerminalSymbol(TerminalIdentifier, textPos) {
                      EnumValue = SymbolDictionary.Count,
                      Weight = Weight,
@@ -480,7 +480,7 @@ namespace grammlator {
 
          // *************************
          TerminalSymbol t;
-         if (SymbolDictionary.TryGetValue(enumElementUString.Index, out Symbol? s))
+         if (SymbolDictionary.TryGetValue(enumElementUString, out Symbol? s))
          {
             t = (s as TerminalSymbol)!;
             for (int i = 0; i < ArgumentTypes.Count; i++)
@@ -500,7 +500,7 @@ namespace grammlator {
                TypeStringIndexes[i] = new UnifiedString(ArgumentTypes[i]);
                NameStringIndexes[i] = new UnifiedString(ArgumentNames[i]);
             }
-            SymbolDictionary[enumElementUString.Index] =
+            SymbolDictionary[enumElementUString] =
                t = new TerminalSymbol(EnumElementIdentifier, Lexer.LexerTextPos) {
                   EnumValue = SymbolDictionary.Count,
                   Weight = GlobalVariables.TerminalDefaultWeight.Value,

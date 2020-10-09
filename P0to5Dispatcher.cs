@@ -50,7 +50,7 @@ namespace grammlator {
 
          // ----- Set initial values
          ResetGlobalVariables(outputMessage, outputMessageAndPos);
-         var SymbolDictionary = new Dictionary<Int32, Symbol>(1000);
+         var SymbolDictionary = new Dictionary<UnifiedString, Symbol>(1000);
 
          // ----- Copy input up to and including line starting with "#region" GrammarString
          Int32 StartOfMarkedLine =
@@ -191,16 +191,16 @@ namespace grammlator {
              "Done. Don't forget to check the messages and the protocol of the conflicts.");
       }
 
-      public static void ProtocolSymbols(StringBuilder sb, Dictionary<Int32, Symbol> symbolDictionary)
+      public static void ProtocolSymbols(StringBuilder sb, Dictionary<UnifiedString, Symbol> symbolDictionary)
       {
-         foreach (KeyValuePair<Int32, Symbol> p in symbolDictionary)
+         foreach (KeyValuePair<UnifiedString, Symbol> p in symbolDictionary)
          {
             Symbol Symbol = p.Value;
 
             if (Symbol != null)
                Symbol.Append(sb);
             else
-               sb.Append(p.Key).Append(" is not a symbol");
+               sb.Append(p.Key.ToString()).Append(" is not a symbol");
             sb.AppendLine();
 
             if (Symbol != null && Symbol.SymbolNumber == NumberOfTerminalSymbols - 1)

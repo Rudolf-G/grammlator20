@@ -534,11 +534,11 @@ A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlato
       /// which is used to get the instance of a terminal symbol by its index (SymbolNumber+1).
       /// </summary>
       /// <param name="symbolDictionary"></param>
-      internal static void DefineArrayTerminalSymbolByIndex(Dictionary<Int32, Symbol> symbolDictionary)
+      internal static void DefineArrayTerminalSymbolByIndex(Dictionary<UnifiedString, Symbol> symbolDictionary)
       {
          TerminalSymbols = new TerminalSymbol[NumberOfTerminalSymbols];
          Debug.Assert(symbolDictionary.Count == NumberOfTerminalSymbols);
-         foreach (KeyValuePair<Int32, Symbol> pair in symbolDictionary)
+         foreach (KeyValuePair<UnifiedString, Symbol> pair in symbolDictionary)
          {
             if (pair.Value is TerminalSymbol terminal)
                TerminalSymbols[terminal.SymbolNumber] = terminal;
