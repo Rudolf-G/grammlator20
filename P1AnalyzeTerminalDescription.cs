@@ -32,7 +32,7 @@ namespace grammlator {
          int NumberLastPos = 0;
          int IdentifierFirstPos = 0;
          int IdentifierLastPos = 0;
-         long Weight = GlobalVariables.TerminalDefaultWeight.Value;
+         long Weight = GlobalSettings.TerminalDefaultWeight.Value;
          TerminalSymbol? Terminal = null;
          Boolean TerminalHasBeenDefined = false;
          List<ReadOnlyMemory<char>> AttributeTypes = new List<ReadOnlyMemory<char>>(20);
@@ -503,7 +503,7 @@ namespace grammlator {
             SymbolDictionary[enumElementUString] =
                t = new TerminalSymbol(EnumElementIdentifier, Lexer.LexerTextPos) {
                   EnumValue = SymbolDictionary.Count,
-                  Weight = GlobalVariables.TerminalDefaultWeight.Value,
+                  Weight = GlobalSettings.TerminalDefaultWeight.Value,
                   SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStrings = TypeStringIndexes,
                   AttributenameStrings = NameStringIndexes
@@ -511,7 +511,7 @@ namespace grammlator {
          }
 
          // Optional weight
-         Int64 Weight = GlobalVariables.TerminalDefaultWeight.Value;
+         Int64 Weight = GlobalSettings.TerminalDefaultWeight.Value;
          if (Description.IsCharacter(ref Position, '%'))
          {
             Description.SkipWhiteSpace(ref Position);

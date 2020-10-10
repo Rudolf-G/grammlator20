@@ -84,11 +84,11 @@ namespace grammlator {
             Int64 MinValue = GlobalVariables.TerminalSymbols[0].EnumValue;
             Int64 MaxValue = GlobalVariables.TerminalSymbols[^1].EnumValue;
             if (MaxValue - MinValue > 63)
-               GlobalVariables.FlagTestMethodName.Value = "";
+               GlobalSettings.FlagTestMethodName.Value = "";
          }
          else
          {
-            GlobalVariables.FlagsPrefix.Value = GlobalVariables.TerminalSymbolEnum.Value+'.';
+            GlobalSettings.FlagsPrefix.Value = GlobalSettings.TerminalSymbolEnum.Value + '.';
          }
 
          // Generate the code for the parsers first action and the sequence of actions reached from this action without goto
@@ -148,7 +148,7 @@ namespace grammlator {
 
          return action.Calls <= 0
              || (action.Calls >= 2 && indentationLevel > 0)
-             || indentationLevel >= GlobalVariables.NestingLevelLimit.Value;
+             || indentationLevel >= GlobalSettings.NestingLevelLimit.Value;
       }
 
       /// <summary>
@@ -181,7 +181,7 @@ namespace grammlator {
             if (GenerateLabelOrGotoOrNothing
                   (codegen,
                    forceLabel,
-                   commentIfNoLabel: !(generateAccept || parserAction is ErrorhandlingAction || parserAction is ErrorHaltAction),
+                   commentIfNoLabel: false, // suppress accept comment
                    P5CodegenCS.GotoLabel(parserAction, accept: true),
                    parserAction.AcceptCalls,
                    InsideBlock))
@@ -207,9 +207,10 @@ namespace grammlator {
                (codegen,
                 forceLabel,
                 commentIfNoLabel:
-                !(parserAction is ErrorhandlingAction
-                  || parserAction is ErrorHaltAction
-                  || parserAction is HaltAction),
+                       !(parserAction is ErrorhandlingAction
+                        || parserAction is ErrorHaltAction
+                        || parserAction is HaltAction
+                        || !GlobalSettings.GenerateComments.Value),
                 P5CodegenCS.GotoLabel(parserAction, accept: false),
                 parserAction.Calls,
                 insideBlock: codegen.IndentationLevel > 0))
@@ -234,7 +235,7 @@ namespace grammlator {
          Boolean GenerateGoto =
             calls <= 0 // code has been already generated or must not be generated
             || (calls > 1 && insideBlock)  // code with more than 1 reference needs label but label not allowed in block
-            || codegen.IndentationLevel >= GlobalVariables.NestingLevelLimit.Value; // code would be indented to much
+            || codegen.IndentationLevel >= GlobalSettings.NestingLevelLimit.Value; // code would be indented to much
 
          Boolean GenerateLabel =
             !GenerateGoto &&

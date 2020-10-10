@@ -26,7 +26,7 @@ namespace grammlator {
       /// </summary>
       private readonly StringBuilder CodeLine = new StringBuilder();
 
-      private readonly Int32 LineLengthLimit = (Int32)GlobalVariables.LineLengthLimit.Value;
+      private readonly Int32 LineLengthLimit = (Int32)GlobalSettings.LineLengthLimit.Value;
       // TOCHECK can more generated lines be shortened to LineLengthLimit?
 
       /// <summary>
@@ -55,11 +55,11 @@ namespace grammlator {
 
          StringBuilder ResultPart2 = CodeBuilder;
          CodeBuilder = ResultBuilder;
-         Append(GlobalVariables.RegionString.Value).
+         Append(GlobalSettings.RegionString.Value).
             Append(' ').
-            Append(GlobalVariables.GrammlatorString.Value).
+            Append(GlobalSettings.GrammlatorString.Value).
             Append(' ').
-            Append(GlobalVariables.GeneratedString.Value).
+            Append(GlobalSettings.GeneratedString.Value).
             Append(' ').
             Append(GlobalVariables.TranslationInfo);
 
@@ -67,9 +67,9 @@ namespace grammlator {
          {
             IndentExactly()
                .Append("Int32 ")
-               .Append(GlobalVariables.StateStackInitialCountVariable.Value)
+               .Append(GlobalSettings.StateStackInitialCountVariable.Value)
                .Append(" = ")
-               .Append(GlobalVariables.StateStack.Value)
+               .Append(GlobalSettings.StateStack.Value)
                .AppendLine(".Count; ");
          }
 
@@ -77,9 +77,9 @@ namespace grammlator {
          {
             IndentExactly()
                .Append("Int32 ")
-               .Append(GlobalVariables.AttributeStackInitialCountVariable.Value)
+               .Append(GlobalSettings.AttributeStackInitialCountVariable.Value)
                .Append(" = ")
-               .Append(GlobalVariables.AttributeStack.Value)
+               .Append(GlobalSettings.AttributeStack.Value)
                .AppendLine(".Count; ");
          }
 
@@ -88,7 +88,7 @@ namespace grammlator {
          Int64 MinValue = GlobalVariables.TerminalSymbols[0].EnumValue;
          Int64 MaxValue = GlobalVariables.TerminalSymbols[^1].EnumValue;
 
-         if (GlobalVariables.FlagTestMethodName.Value != "")
+         if (GlobalSettings.FlagTestMethodName.Value != "")
          {
             Int64 Offset = useTerminalValuesAsFlags
                ? 0  // not used
@@ -106,10 +106,10 @@ namespace grammlator {
                      String Identifier = t.Identifier;
                      IndentExactly();
                      Append("const Int64 ")
-                        .Append(GlobalVariables.FlagsPrefix.Value) //  "_f"
+                        .Append(GlobalSettings.FlagsPrefix.Value) //  "_f"
                         .Append(Identifier) // "b"
                         .Append(" = 1L << (Int32)(")
-                        .AppendWithPrefix(GlobalVariables.TerminalSymbolEnum.Value, Identifier); // LexerResult.CSharpEnd
+                        .AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, Identifier); // LexerResult.CSharpEnd
                      if (Offset != 0)
                         Append('-')
                         .Append(Offset.ToString());
@@ -123,22 +123,22 @@ namespace grammlator {
                // generate e.g. "Boolean _IsIn"
                IndentExactly().
                Append("Boolean ");
-               Append(GlobalVariables.FlagTestMethodName.Value);
+               Append(GlobalSettings.FlagTestMethodName.Value);
 
                if (useTerminalValuesAsFlags)
                {
                   // generate e.g. "(ThreeLetters flags) => ((PeekSymbol()) & flags) != 0;"
                   Append("(")
-                     .Append(GlobalVariables.TerminalSymbolEnum.Value)
+                     .Append(GlobalSettings.TerminalSymbolEnum.Value)
                      .Append(" flags) => ((")
-                     .Append(GlobalVariables.SymbolNameOrFunctionCall.Value) // "PeekSymbol()"
+                     .Append(GlobalSettings.SymbolNameOrFunctionCall.Value) // "PeekSymbol()"
                      .AppendLine(") & flags) != 0;");
                }
                else
                {
                   // generate e.g. "(Int64 flags) => (1L << (Int32)((PeekSymbol()) - 0) & flags) != 0;
                   Append("(Int64 flags) => (1L << (Int32)((")
-                  .Append(GlobalVariables.SymbolNameOrFunctionCall.Value) // "PeekSymbol()"
+                  .Append(GlobalSettings.SymbolNameOrFunctionCall.Value) // "PeekSymbol()"
                   .Append(')');
                   if (Offset != 0)
                      Append('-')
@@ -156,11 +156,11 @@ namespace grammlator {
 
       public void GenerateEndOfRegion()
       {
-         Append(GlobalVariables.EndregionString.Value).
+         Append(GlobalSettings.EndregionString.Value).
             Append(' ').
-            Append(GlobalVariables.GrammlatorString.Value).
+            Append(GlobalSettings.GrammlatorString.Value).
             Append(' ').
-            Append(GlobalVariables.GeneratedString.Value).
+            Append(GlobalSettings.GeneratedString.Value).
             Append(' ').
             AppendLine(GlobalVariables.TranslationInfo);
       }
@@ -175,7 +175,7 @@ namespace grammlator {
       public void GenerateStateStackPushWithOptionalLinebreak(Int32 valueToPush)
       {
          IndentExactly();
-         Append(GlobalVariables.StateStack.Value);
+         Append(GlobalSettings.StateStack.Value);
          AppendWithOptionalLinebreak(".Push(");
          Append(valueToPush);
          Append("); ");
@@ -468,7 +468,7 @@ namespace grammlator {
       // keine neue Zeile anfangen
 
       public void GenerateAcceptInstruction()
-          => AppendWithOptionalLinebreak(GlobalVariables.SymbolAcceptInstruction.Value);
+          => AppendWithOptionalLinebreak(GlobalSettings.SymbolAcceptInstruction.Value);
 
       /// <summary>
       /// returns a label built from an action specific string and the actions IdNumber+1
@@ -532,12 +532,12 @@ namespace grammlator {
          IndentExactly();
          if (inverse)
             Append("if (")
-               .Append(GlobalVariables.StateStack.Value)
+               .Append(GlobalSettings.StateStack.Value)
                .Append(".Peek() != ");
          //            AppendWithOptionalLinebreak("if (_s.Peek() != ");
          else
             Append("if (")
-               .Append(GlobalVariables.StateStack.Value)
+               .Append(GlobalSettings.StateStack.Value)
                .Append(".Peek() == ");
          //   AppendWithOptionalLinebreak("if (_s.Peek() == ");
          AppendWithOptionalLinebreak(condition);
@@ -643,12 +643,12 @@ namespace grammlator {
       /// <summary>
       /// for example "_a."
       /// </summary>
-      public readonly String AttributeAccessPrefix = GlobalVariables.AttributeStack.Value + ".";
+      public readonly String AttributeAccessPrefix = GlobalSettings.AttributeStack.Value + ".";
 
       /// <summary>
       /// for example "_a.x-"
       /// </summary>
-      public readonly String AttributeIndexPrefix = GlobalVariables.AttributeStack.Value + ".x";
+      public readonly String AttributeIndexPrefix = GlobalSettings.AttributeStack.Value + ".x";
 
       /// <summary>
       /// for example "_", used to modify the type of the methods formal parameter
@@ -659,7 +659,7 @@ namespace grammlator {
       /// <summary>
       /// for example "_a.useup("
       /// </summary>
-      public readonly String AttributePeekClearPart1 = GlobalVariables.AttributeStack.Value + ".PeekClear(";
+      public readonly String AttributePeekClearPart1 = GlobalSettings.AttributeStack.Value + ".PeekClear(";
 
       /// <summary>
       /// for example ")."
@@ -669,12 +669,12 @@ namespace grammlator {
       /// <summary>
       /// for example "_a.useup("
       /// </summary>
-      public readonly String AttributePeekRefPart1 = GlobalVariables.AttributeStack.Value + ".PeekRef(";
+      public readonly String AttributePeekRefPart1 = GlobalSettings.AttributeStack.Value + ".PeekRef(";
 
       /// <summary>
       /// for example "_a.useup("
       /// </summary>
-      public readonly String AttributePeekRefClearPart1 = GlobalVariables.AttributeStack.Value + ".PeekRefClear(";
+      public readonly String AttributePeekRefClearPart1 = GlobalSettings.AttributeStack.Value + ".PeekRefClear(";
 
       /// <summary>
       /// for example ")."

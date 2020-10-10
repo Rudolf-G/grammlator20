@@ -535,7 +535,7 @@ namespace grammlator {
       /// and if this is the case add an error action.
       /// </summary>
       /// <returns>The added action or null if none added</returns>
-      public ConditionalAction? CheckAndAddErrorAction(Boolean ErrorHandlerIsDefined)
+      public ConditionalAction? CheckAndAddErrorAction()
       {
          BitArray allowedSymbols;
          if (PossibleInputTerminals == null)
@@ -559,7 +559,7 @@ namespace grammlator {
             return null; // in this state all terminal symbols are allowed
 
          ConditionalAction e;
-         if (GlobalVariables.ErrorHandlerIsDefined)
+         if (GlobalSettings.ErrorHandlerMethod.Value != "")
          {
             // Add ErrorhandlingAction
             e = new ErrorhandlingAction(
@@ -580,7 +580,7 @@ namespace grammlator {
          Actions.Add(e);
          e.CountUsage(false);
          e.ComputeTerminalcountSumOfWeightsComplexity(GlobalVariables.TerminalSymbols);
-         ContainsErrorHandlerCall = ErrorHandlerIsDefined;
+         ContainsErrorHandlerCall = GlobalSettings.ErrorHandlerMethod.Value != "";
          return e;
       }
 

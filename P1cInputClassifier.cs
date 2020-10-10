@@ -122,9 +122,9 @@ namespace grammlator {
          CurrentColumn = inputLine.Length + 1; // Alike end of line had been recognized and accepted
 
          // Grammlator parameterization
-         GrammarlineMarker = GlobalVariables.GrammarLineMarker.Value; // = "//|"
-         CSharpCommentlineMarker = GlobalVariables.CSharpCommentlineMarker.Value; // = "//"
-         CSharpPragma = GlobalVariables.CSharpPragmaMarker.Value; // = "#pragma"
+         GrammarlineMarker = GlobalSettings.GrammarLineMarker.Value; // = "//|"
+         CSharpCommentlineMarker = GlobalSettings.CSharpCommentlineMarker.Value; // = "//"
+         CSharpPragma = GlobalSettings.CSharpPragmaMarker.Value; // = "#pragma"
       }
 
       /// <summary>
@@ -427,7 +427,7 @@ namespace grammlator {
             CurrentColumn = inputLine.Length - SourceReader.EoLLength; // is >=0 
             return ' ';
          }
-         else if (inputLine.Span.IndexBehindMarkers(CurrentColumn, GlobalVariables.EndregionString.Value, GlobalVariables.GrammarString.Value) > -1)
+         else if (inputLine.Span.IndexBehindMarkers(CurrentColumn, GlobalSettings.EndregionString.Value, GlobalSettings.GrammarString.Value) > -1)
          {
             // found "#endregion"
             // handle all lines (in the grammar region) starting with "endregion...grammar" as grammar lines so that the parser can

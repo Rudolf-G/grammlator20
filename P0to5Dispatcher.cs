@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
+using static grammlator.GlobalSettings;
 using static grammlator.GlobalVariables;
 
 namespace grammlator {
@@ -42,12 +43,6 @@ namespace grammlator {
          Action<MessageTypeOrDestinationEnum, String> outputMessage,
          Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPos)
       {
-#if DEBUG
-         const Boolean LogStartOfPhases = true;
-#else
-         const Boolean LogStartOfPhases = false;
-#endif
-
          // ----- Set initial values
          ResetGlobalVariables(outputMessage, outputMessageAndPos);
          var SymbolDictionary = new Dictionary<UnifiedString, Symbol>(1000);
@@ -72,9 +67,9 @@ namespace grammlator {
          Int32 grammarPosition = SourceReader.Position;
 
          // ----- Do phase 1
-         if (LogStartOfPhases)
+#if DEBUG
             outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 1: analyse the source and check usage of symbols.");
-
+#endif
          SymbolDictionary.Clear();
          P1aParser.MakeInstanceAndExecute(SourceReader, SymbolDictionary);
 
@@ -116,22 +111,23 @@ namespace grammlator {
          }
 
          // ----- Do phase 2
-         if (LogStartOfPhases)
-            outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 2: compute the states");
+#if DEBUG
+         outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 2: compute the states");
+#endif
 
          // Prepare handling of terminal symbols             
          AllTerminalSymbols = new BitArray(NumberOfTerminalSymbols, true);
          P2ComputeLR0States.MakeInstanceAndExecute();
 
          // ----- Do phase 3
-         if (LogStartOfPhases)
-            outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 3: compute follow symbols, solve conflicts, write conflicts protocol");
+#if DEBUG
+         outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 3: compute follow symbols, solve conflicts, write conflicts protocol");
+#endif
          P3ComputeLALR1.MakeInstanceAndExecute();
-
          // ----- Write protocol of symbols and states before optimizations
-         if (LogStartOfPhases)
-            outputMessage(MessageTypeOrDestinationEnum.Information, "                  write protocol of symbols and states before optimizations");
-
+#if DEBUG
+         outputMessage(MessageTypeOrDestinationEnum.Information, "                  write protocol of symbols and states before optimizations");
+#endif
          var Protocol = new StringBuilder(5000);
          Protocol.AppendLine("List of all symbols:")
              .AppendLine();
@@ -151,14 +147,17 @@ namespace grammlator {
                );
 
          // ----- Do phase 4
-         if (LogStartOfPhases)
-            outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 4: optimizations");
+#if DEBUG
+
+         outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 4: optimizations");
+#endif
          P4ReplaceNonterminalsAndOptimize.MakeInstanceAndExecute();
 
          // ----- Write protocol of states after optimizations
-         if (LogStartOfPhases)
-            outputMessage(MessageTypeOrDestinationEnum.Information,
+#if DEBUG
+         outputMessage(MessageTypeOrDestinationEnum.Information,
             "                  write protocol of states after optimizations");
+#endif
          Protocol.AppendLine("List of all states after optimizations:")
            .AppendLine();
          DisplayStates(Protocol); // dazu evtl. die Items der Zustände erweitern ???
@@ -173,17 +172,18 @@ namespace grammlator {
          Protocol.Capacity = 0;
 
          // ----- Do phase 5 with a specific code generator
-         if (LogStartOfPhases)
-            outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 5: generate result");
+#if DEBUG
+         outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 5: generate result");
+#endif
 
          // Construct codegen and generate code
          P5GenerateCode.MakeInstanceAndExecute(new P5CodegenCS(Resultbuilder));
 
          // ----- Copy trailing lines of source to result
-         if (LogStartOfPhases)
-            outputMessage(MessageTypeOrDestinationEnum.Information,
+#if DEBUG
+         outputMessage(MessageTypeOrDestinationEnum.Information,
             "                  copy trailing lines of source to result");
-
+#endif
          SourceReader.ReadAndCopyToEnd(Resultbuilder);
 
          // ----- Translation finished

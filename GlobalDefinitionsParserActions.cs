@@ -1405,7 +1405,7 @@ namespace grammlator {
          base.CountUsage(Accept);
 
          // A goto to State will be generated if and only if ErrorHandlerIsDefined
-         if (GlobalVariables.ErrorHandlerIsDefined)
+         if (GlobalSettings.ErrorHandlerMethod.Value != "")
             State.CountUsage(false);
       }
 

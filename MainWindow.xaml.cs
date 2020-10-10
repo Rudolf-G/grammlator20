@@ -170,7 +170,7 @@ namespace grammlator {
 
          InfoBuilder.AppendLine("The grammlator settings are:").AppendLine();
 
-         foreach (Setting s in GlobalVariables.VisibleSettings)
+         foreach (Setting s in GlobalSettings.VisibleSettings)
          {
             if (s.HasType == Setting.SettingType.StringType)
                Delimiter = "\"";

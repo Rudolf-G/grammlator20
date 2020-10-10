@@ -124,7 +124,7 @@ namespace grammlator {
             SymbolDictionary[enumElementName] =
                new TerminalSymbol(enumElementName.ToString(), Lexer.LexerTextPos) {
                   EnumValue = enumElementValue,
-                  Weight = GlobalVariables.TerminalDefaultWeight.Value,
+                  Weight = GlobalSettings.TerminalDefaultWeight.Value,
                   SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStrings = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes),
                   AttributenameStrings = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributes)
