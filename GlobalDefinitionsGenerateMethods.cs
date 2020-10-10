@@ -565,7 +565,9 @@ namespace grammlator {
          Int32 numberOfAttributesToStore = this.AttributestackAdjustment;
          Debug.Assert(numberOfAttributesToStore >= 0);
 
-         codegen.IndentAndAppendLine("// Halt: a definition of the startsymbol with " + numberOfAttributesToStore.ToString() + " attributes has been recognized.");
+         if (GlobalSettings.GenerateComments.Value)
+            codegen.IndentAndAppendLine(
+               "// Halt: a definition of the startsymbol with " + numberOfAttributesToStore.ToString() + " attributes has been recognized.");
 
          if (GlobalVariables.ListOfAllStates[0].StateStackNumber >= 0)
             codegen.IndentExactly()
@@ -589,8 +591,9 @@ namespace grammlator {
    internal sealed partial class ErrorHaltAction : ParserActionWithNextAction {
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
-         codegen.IndentAndAppendLine(
-           "// This point is reached after an input error has been found");
+         if (GlobalSettings.GenerateComments.Value)
+            codegen.IndentAndAppendLine(
+              "// This point is reached after an input error has been found");
 
          // generate _s.Pop(x)
          if (GlobalVariables.CountOfStatesWithStateStackNumber > 0)
