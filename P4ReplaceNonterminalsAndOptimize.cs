@@ -109,7 +109,7 @@ namespace grammlator {
          EvaluatePrecedingStates(RelationtypeEnum.ComputeDistinguishableStatesRelation);
 
          // DetermineNotStackingStates using SamePredecessorLevelPartitionOfState and DistinguishableStatesRelation
-         GlobalVariables.CountOfStatesWithStateStackNumber =
+         GlobalVariables.NumberOfStatesWithStateStackNumber =
              GlobalVariables.ListOfAllStates.Count - DetermineNotStackingStates();
 
          // Optionally assign small StateStackNumbers

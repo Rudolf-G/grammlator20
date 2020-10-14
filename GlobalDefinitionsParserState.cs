@@ -218,7 +218,11 @@ namespace grammlator {
       /// <param name="sb">the log of conflicts will be written to <paramref name="sb"/></param>
       /// 
       /// <returns>1 if conflict have been found, else 0</returns>
-      public Int32 FindAndSolveConflictsOfState(BitArray allowedTerminalsUpToThisAction, StringBuilder sb)
+      public Int32 FindAndSolveConflictsOfState(
+         BitArray allowedTerminalsUpToThisAction,
+         out int numberOfConflictsNotSolvedByExplicitPriority,
+         StringBuilder sb
+         )
       {
          // The union of the TerminalSymbols of all the actions up to the action with IndexOfAction-1
          allowedTerminalsUpToThisAction.SetAll(false);
@@ -227,6 +231,7 @@ namespace grammlator {
          var conflictSymbols = new BitArray(allowedTerminalsUpToThisAction); // value doesn't matter
 
          Boolean writeStateHeader = true;  // false after the header "Conflicts in state ..." has been written
+         numberOfConflictsNotSolvedByExplicitPriority = 0;
 
 
          // Find all actions which have at least one terminal symbol in common
@@ -253,8 +258,9 @@ namespace grammlator {
             {
                // Solve the conflict between thisAction and one or more of the preceding actions 
                writeStateHeader =
-                  SolveConflictsOfAction(IndexOfAction, terminalsOfThisAction, conflictSymbols,
-                                         allowedTerminalsUpToThisAction, sb, writeStateHeader);
+                  SolveAndLogConflictsOfAction(IndexOfAction, terminalsOfThisAction, conflictSymbols,
+                                         allowedTerminalsUpToThisAction, sb,
+                                         writeStateHeader, out numberOfConflictsNotSolvedByExplicitPriority);
             }
 
             // allowedSymbolsUpToThisAction and terminalsOfThisAction might be modified by SolveConflicts
@@ -280,11 +286,12 @@ namespace grammlator {
       /// solution</param>
       /// <param name="sb">The description of the conflicts will be written to sb</param>
       /// <param name="writeHeadline">If true when there are conflicts a description of the state has to be be written to sb above the conflict description(s)</param>
-      private Boolean SolveConflictsOfAction(Int32 indexOfConflictAction, BitArray terminalsOfThisAction,
+      private Boolean SolveAndLogConflictsOfAction(Int32 indexOfConflictAction, BitArray terminalsOfThisAction,
             BitArray conflictSymbols, BitArray allowedTerminalsUpToConflictAction, StringBuilder sb,
-            Boolean writeHeadline)
+            Boolean writeHeadline, out int  numberOfConflictsNotSolvedByExplicitPriority)
       {
 
+         numberOfConflictsNotSolvedByExplicitPriority = 0;
          // find all groups of actions which conflict with the ConflictAction and solve the conflict for each group
          do
          {
@@ -293,7 +300,7 @@ namespace grammlator {
             // conflictSymbols is a subset of AllowedSymbolsUpToConflictAction and 
             // conflictSymbols is a subset of SymbolsOfThisAction
 
-            // protocol state
+            // log state if 1st conflict in this state
             if (writeHeadline)
             {
                writeHeadline = false;
@@ -308,7 +315,9 @@ namespace grammlator {
             SolveAndLogSubsetOfConflict(indexOfConflictAction,
                                          conflictSymbols,
                                          allowedTerminalsUpToConflictAction, // will be modified if the terminal symbols of one of the prededing actions is modified
+                                         out int numberOfActionsWithHighestPriority,
                                          sb);
+            numberOfConflictsNotSolvedByExplicitPriority += (numberOfActionsWithHighestPriority-1);
             // One conflict is solved, symbolsOfThisAction may be modified
             // There may be more conflicts between the action and the preceding actions
 
@@ -338,6 +347,7 @@ namespace grammlator {
             Int32 indexOfFirstConflictAction,
             BitArray subsetOfConflictSymbols,
             BitArray allowedSymbolsUpToFirstConflictAction,
+            out int numberOfActionsWithHighestPriority,
             StringBuilder sb)
       {
          var State = this; // makes method easier to understand
@@ -351,7 +361,8 @@ namespace grammlator {
             = new ListOfParserActions(10); // usually will be empty or very short
 
          Int32 indexOfActionWithPriority
-            = FindHighestPriorityActionOfConflictingActions(subsetOfConflictSymbols, dynamicPriorityActions);
+            = FindHighestPriorityActionOfConflictingActions(
+               subsetOfConflictSymbols, dynamicPriorityActions, out numberOfActionsWithHighestPriority);
 
          // The  indexOfActionWithPriority may be -1 if only actions with dynamic priority are in conflict
          // The subsetOfConflictSymbols causes the conflict.
@@ -360,8 +371,6 @@ namespace grammlator {
 
 
          // If there are conflicting actions with dynamic priority a new ConditionalAction has to be added
-         // Actions[indexOfActionWithPriority] is a ConditionalAction. As part of a ConditionalAction
-         // the condition is not needed and hence .NextAction is used. 
          if (dynamicPriorityActions.Count > 0)
          {
             var prioritySelectAction
@@ -473,11 +482,13 @@ namespace grammlator {
       /// <returns>Index of action with priority or -1 if only dynamic priorities</returns>
       private Int32 FindHighestPriorityActionOfConflictingActions(
             BitArray subsetOfConflictSymbols,
-            ListOfParserActions dynamicPriorityActions)
+            ListOfParserActions dynamicPriorityActions,
+            out int numberOfActionsWithHighestPriority)
       {
          // Test each action of the state if it causes a conflict with any preceding action 
 
          dynamicPriorityActions.Clear();
+         numberOfActionsWithHighestPriority = 1;
          var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Count);
 
          Int32 indexOfActionWithPriority = -1;
@@ -519,12 +530,19 @@ namespace grammlator {
 
             // Bookmark the action with the highest priority.
             // If two actions have the same priority, give TerminalTransition higher priority than LookAhead.
-            if (priority > highestPriority
-                || (priority == highestPriority
-                    && action is TerminalTransition))
+            if (priority >= highestPriority)
             {
-               highestPriority = priority;
-               indexOfActionWithPriority = IndexOfAction;
+               if (priority == highestPriority)
+                  numberOfActionsWithHighestPriority++;
+               else
+                  numberOfActionsWithHighestPriority = 1;
+               if (priority > highestPriority
+                   || (priority == highestPriority
+                       && action is TerminalTransition))
+               {
+                  highestPriority = priority;
+                  indexOfActionWithPriority = IndexOfAction;
+               }
             }
          }
          return indexOfActionWithPriority; // may be -1

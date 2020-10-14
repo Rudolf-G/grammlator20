@@ -330,12 +330,12 @@ namespace grammlator {
       //| /* ---- Start of Lex1 grammar as control structure  ---- */
       //|
       //| // Grammlator settings
-      //| TerminalSymbolEnum: "ClassifierResult"
-      //| SymbolNameOrFunctionCall: "LexerInput"
-      //| SymbolAssignInstruction: "LexerInput = inputClassifier.PeekSymbol();"
-      //| SymbolAcceptInstruction: "inputClassifier.AcceptSymbol();"
-      //| ErrorHandlerMethod: "ErrorHandler"
-      //| StateDescriptionPrefix: "StateDescription"
+      //| TerminalSymbolEnum: "ClassifierResult";
+      //| SymbolNameOrFunctionCall: "LexerInput";
+      //| SymbolAssignInstruction: "LexerInput = inputClassifier.PeekSymbol();";
+      //| SymbolAcceptInstruction: "inputClassifier.AcceptSymbol();";
+      //| ErrorHandlerMethod: "ErrorHandler";
+      //| StateDescriptionPrefix: "StateDescription";
       //| IfToSwitchBorder: "4";
       //| CompareToFlagTestBorder: 4;
       //| IsMethod: "_is";
@@ -564,7 +564,7 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated 10 Okt 2020 (grammlator file version/date 2020.10.10.0/10 Okt 2020)
+#region grammlator generated 11 Okt 2020 (grammlator file version/date 2020.10.10.0/11 Okt 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fCSharpStart = 1L << (Int32)(ClassifierResult.CSharpStart);
   const Int64 _fCSharpEnd = 1L << (Int32)(ClassifierResult.CSharpEnd);
@@ -1007,7 +1007,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 10 Okt 2020 (grammlator file version/date 2020.10.10.0/10 Okt 2020)
+#endregion grammlator generated 11 Okt 2020 (grammlator file version/date 2020.10.10.0/11 Okt 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

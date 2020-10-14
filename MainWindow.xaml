@@ -85,7 +85,7 @@
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
                          Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="ResultTextBox_MouseEnter"/>
             </TabItem>
-            <TabItem x:Name="TabItemInfo" Header="Info">
+            <TabItem x:Name="TabItemInfo" Header="Info" HorizontalAlignment="Stretch">
                 <TextBox x:Name="InfoTextBox" Text="No info"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"

@@ -21,8 +21,10 @@ namespace grammlator {
          StringBuilder Resultbuilder,
          SpanReaderWithCharacterAndLineCounter SourceReader,
          Action<MessageTypeOrDestinationEnum, String> outputMessage,
-         Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPosition)
-          => Go(Resultbuilder, SourceReader, outputMessage, outputMessageAndPosition);
+         Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPosition,
+         out Int32 sumOfConflictsNotSolvedByExplicitPriority)
+          => Go(Resultbuilder, SourceReader, outputMessage, outputMessageAndPosition,
+                out sumOfConflictsNotSolvedByExplicitPriority);
 
       /* TODO Grammlator:
        *
@@ -41,7 +43,9 @@ namespace grammlator {
          StringBuilder Resultbuilder,
          SpanReaderWithCharacterAndLineCounter SourceReader,
          Action<MessageTypeOrDestinationEnum, String> outputMessage,
-         Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPos)
+         Action<MessageTypeOrDestinationEnum, String, Int32> outputMessageAndPos,
+         out Int32 sumOfConflictsNotSolvedByExplicitPriority
+         )
       {
          // ----- Set initial values
          ResetGlobalVariables(outputMessage, outputMessageAndPos);
@@ -68,7 +72,7 @@ namespace grammlator {
 
          // ----- Do phase 1
 #if DEBUG
-            outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 1: analyse the source and check usage of symbols.");
+         outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 1: analyse the source and check usage of symbols.");
 #endif
          SymbolDictionary.Clear();
          P1aParser.MakeInstanceAndExecute(SourceReader, SymbolDictionary);
@@ -123,7 +127,8 @@ namespace grammlator {
 #if DEBUG
          outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 3: compute follow symbols, solve conflicts, write conflicts protocol");
 #endif
-         P3ComputeLALR1.MakeInstanceAndExecute();
+         P3ComputeLALR1.MakeInstanceAndExecute(out sumOfConflictsNotSolvedByExplicitPriority);
+
          // ----- Write protocol of symbols and states before optimizations
 #if DEBUG
          outputMessage(MessageTypeOrDestinationEnum.Information, "                  write protocol of symbols and states before optimizations");

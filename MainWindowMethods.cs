@@ -10,10 +10,10 @@ using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace grammlator {
+
    public partial class MainWindow {
 
       String SourceFilename = String.Empty;
-      Boolean TranslationSucceeded = false;
 
       private readonly StringBuilder
          Resultbuilder = new StringBuilder(100_000),
@@ -28,46 +28,63 @@ namespace grammlator {
 
       readonly Stopwatch Watch = new Stopwatch();
 
-      private void SetInitiaStatus()
-      {
-         SetStatusDependingOnSourceTextboxLineCount();
-         //if (MenuItemTranslateStandard != null)
-         MenuItemTranslateStandard.IsEnabled = false; // no source
-                                                      //if (MenuItemReloadAndTranslate != null)
-         MenuItemReloadAndTranslate.IsEnabled = false; // no source filename
-         SetStatusDependingOnResult(false);
+      [Flags]
+      internal enum StatusFlag {
+         NoSourceNoResult = 0,
+         SourceNotEmpty = 1, SourceHasFilename = 2, SourceTextChanged = 4, // SourceTextChanged is set but not yet used
+         ResultAvailable = 8
+      };
+
+      internal struct StatusStruct {
+         StatusFlag Status;
+         Action FlagChanged;
+
+         internal void SetAction(Action flagChanged)
+         {
+            FlagChanged = flagChanged;
+         }
+         internal StatusStruct(Action flagChanged)
+         {
+            FlagChanged = flagChanged;
+            Status = 0;
+            FlagChanged?.Invoke();
+         }
+         internal void SetFlags(StatusFlag flags, Boolean value)
+         {
+            StatusFlag Old = Status;
+            Status |= flags; // set flags using OR
+            if (!value)
+               Status ^= flags; // clear set flags using XOR
+            if (Old != Status)
+               FlagChanged?.Invoke();
+         }
+
+         internal Boolean TestFlags(StatusFlag flags)
+            => (Status & flags) != 0;
+
       }
 
-
-      private void SetStatusHavingSourceFilename(String fileName)
+      void StatusChanged() // this should be the only one place to enable or disable MenuItems
       {
-         SourceFilename = fileName;
-         SetStatusDependingOnSourceTextboxLineCount();
-         if (fileName == "")
-         {
-            Title = "no filename";
-            MenuItemReloadAndTranslate.IsEnabled = false;
-         }
+         Boolean SourceNotEmpty = ActualStatus.TestFlags(StatusFlag.SourceNotEmpty);
+         MenuItemSaveSource.IsEnabled = SourceNotEmpty;
+         MenuItemTranslateStandard.IsEnabled = SourceNotEmpty;
+
+         Boolean SourceHasFilename = ActualStatus.TestFlags(StatusFlag.SourceHasFilename);
+         MenuItemReloadAndTranslate.IsEnabled = SourceHasFilename;
+         if (SourceHasFilename)
+            Title = SourceFilename;
          else
-         {
-            Title = fileName;
-            MenuItemReloadAndTranslate.IsEnabled = true;
-         }
+            Title = "- no source filename -";
+
+         Boolean ResultAvailable = ActualStatus.TestFlags(StatusFlag.ResultAvailable);
+         MenuItemSaveResult.IsEnabled = ResultAvailable;
+         MenuItemSaveResultToSource.IsEnabled = ResultAvailable;
+         MenuItemCompare.IsEnabled = ResultAvailable;
+
       }
 
-      private void SetStatusDependingOnSourceTextboxLineCount()
-      {
-         MenuItemTranslateStandard.IsEnabled = SourceTextBox.LineCount > 10;
-      }
-
-      private void SetStatusDependingOnResult(Boolean haveResult)
-      {
-         TranslationSucceeded = haveResult;
-         MenuItemSaveResult.IsEnabled = haveResult;
-         MenuItemSaveResultToSource.IsEnabled = haveResult;
-         MenuItemCompare.IsEnabled = haveResult;
-      }
-
+      StatusStruct ActualStatus;
 
       /// <summary>
       ///Store messagetype, message (with text position 0) for later display in UI.
@@ -93,7 +110,7 @@ namespace grammlator {
 
          if (pos >= 0)
          {
-            GrammlatorTabControl.SelectedIndex = 0; // without correct selection of the TabControl with the SourceTextBox the program will crash
+            GrammlatorTabControl.SelectedIndex = 0; // without correct selection of the TabControl with the SourceTextBox the program might crash
             if (pos >= SourceTextBox.Text.Length)
                pos = SourceTextBox.Text.Length - 1;
             LineNumber = SourceTextBox.GetLineIndexFromCharacterIndex(pos);
@@ -191,6 +208,7 @@ namespace grammlator {
             UseLayoutRounding = true,
             Padding = new Thickness(5, 5, 5, 5),
             FontFamily = StandardFont,
+            FontSize = 10,
             TextWrapping = TextWrapping.Wrap,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
             VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
@@ -247,15 +265,17 @@ namespace grammlator {
        => m.AsSpan(0, m.Length > 55 ? 55 : m.Length).ToString()
           + $"...   see message box {ErrorPositions.Count + 1}";
 
-      private void ClearAllResults()
+      private void ClearAllResultsAndErrorBoxes()
       {
+         ActualStatus.SetFlags(StatusFlag.ResultAvailable, false);
+
          RemoveErrorBoxes();
          SymbolsTextBox.Clear();
          ConflictsTextBox.Clear();
+         TabItemConflicts.FontWeight = FontWeights.Normal;
          States1TextBox.Clear();
          States2TextBox.Clear();
-
-         TranslationSucceeded = false;
+         ResultTextBox.Clear();
 
          Resultbuilder.Clear();
          LogTextBox.Clear();
@@ -264,23 +284,28 @@ namespace grammlator {
          errors = 0;
          firstErrorIndex = -1;
          aborted = false;
+
       }
 
       private Boolean ClearResultsAndReadFileToSourceTextbox()
       {
-         ClearAllResults();
+         ClearAllResultsAndErrorBoxes();
 
          Boolean success = true;
          try
          {
             SourceTextBox.Text = File.ReadAllText(OpenSourceFileDialog.FileName);
+            SourceFilename = OpenSourceFileDialog.FileName;
+
+            ActualStatus.SetFlags(StatusFlag.SourceHasFilename, true);
+            ActualStatus.SetFlags(StatusFlag.SourceTextChanged, false);
+
 
             // show source file with cursor at first position
             SetCursorTo(0, SourceTextBox, 0, 0);
             GrammlatorTabControl.SelectedIndex = 0;
             OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
 
-            SetStatusHavingSourceFilename(OpenSourceFileDialog.FileName);
          }
          catch (Exception ex)
          {
@@ -293,9 +318,7 @@ namespace grammlator {
 
       private void Translate()
       {
-         ClearAllResults();
-
-         TranslationSucceeded = false;
+         ClearAllResultsAndErrorBoxes();
 
          try
          {
@@ -304,7 +327,17 @@ namespace grammlator {
             // Translate   ----- HERE WE GO -----
             Watch.Restart();
 
-            Phases1to5.Execute(Resultbuilder, SourceReader, BufferMessage, BufferPositionAndMessage);
+            Phases1to5.Execute(Resultbuilder, SourceReader, BufferMessage,
+               BufferPositionAndMessage, out Int32 sumOfConflictsNotSolvedByExplicitPriority);
+
+            if (sumOfConflictsNotSolvedByExplicitPriority > 0)
+            {
+               TabItemConflicts.FontWeight = FontWeights.Bold;
+            }
+            else
+            {
+               TabItemConflicts.FontWeight = FontWeights.Normal;
+            }
 
             if (errors > 0)
             {
@@ -312,7 +345,7 @@ namespace grammlator {
             }
             else
             {
-               SetStatusDependingOnResult(true);
+               ActualStatus.SetFlags(StatusFlag.ResultAvailable, true);
             }
          }
          catch (ErrorInSourcedataException e)
@@ -365,6 +398,11 @@ namespace grammlator {
             AppendLine(Log, "<<<< translation not completed (exception) ", "");
          else if (errors > 0)
             AppendLine(Log, "<<<< translation not completed (errors)  ", "");
+
+         if (!ActualStatus.TestFlags(StatusFlag.ResultAvailable))
+         {
+            ResultTextBox.Clear();
+         }
 
          // Show the buffered messages in the MessagesTextBox and clear the buffer
          LogTextBox.Text = Log.ToString();

@@ -34,12 +34,14 @@ namespace grammlator {
          OutputMessageAndPosition = OutputToNirwana;
          Startaction = new DeletedParserAction();
       }
+
+      static public String AssemblyFullPath { get; private set; } = "";
       private static String GetVersioninfo {
          get {
 
             Assembly ThisAssembly = typeof(GlobalVariables).Assembly;
             AssemblyName AssemblyName = ThisAssembly.GetName();
-            String AssemblyFullPath = ThisAssembly.Location;
+            AssemblyFullPath = ThisAssembly.Location;
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(AssemblyFullPath);
             String FileVersion = fvi.FileVersion;
             String FileWrittenDate =
@@ -157,6 +159,14 @@ namespace grammlator {
          get; set;
       }
 
+      // Number of all terminal and nonterminal transitions and lookahead actions generated in P2 and in P4
+      internal static Int32 NumberOfActions;
+
+      /// <summary>
+      /// Defined in Phase4, used in Phase5
+      /// </summary>
+      internal static Int32 NumberOfStatesWithStateStackNumber;
+
       /// <summary>
       /// The <see cref="Startsymbol"/> "*Startsymbol" with all its definitions and used symbols is the result of phase1.
       /// None of its definitions will be considered as trivial definition.
@@ -201,14 +211,12 @@ namespace grammlator {
       /// <returns>instance of the terminal symbol</returns>
       internal static TerminalSymbol GetTerminalSymbolByIndex(Int32 index) => TerminalSymbols[index];
 
-      /// <summary>
-      /// List of all parser states, each one defined by its core items 
-      /// (only the first state contains items with element number 0).
-      /// </summary>
-      internal static readonly List<ParserState> ListOfAllStates = new List<ParserState>(InitialCapacityOfListOfAllStates);
-
-      internal readonly static ParserAction DefaultAction = new HaltAction(IdNumber: 0, AttributestackAdjustement: 0);
       internal readonly static BitArray EmptyBitarray = new BitArray(0);
+
+      /// <summary>
+      /// A set of terminal symbols containing all terminal symbols
+      /// </summary>
+      internal static BitArray AllTerminalSymbols = EmptyBitarray; // assigned in Phases1to5Controller
 
       /// <summary>
       /// is defined after ListOfAllStates[0]; is assigned in 
@@ -232,12 +240,11 @@ namespace grammlator {
       internal static readonly EndOfGeneratedCodeAction TheEndOfGeneratedCodeAction = new EndOfGeneratedCodeAction();
 
       /// <summary>
-      /// A set of terminal symbols containing all terminal symbols
+      /// List of all parser states, each one defined by its core items 
+      /// (only the first state contains items with element number 0).
       /// </summary>
-      internal static BitArray AllTerminalSymbols = EmptyBitarray; // assigned in Phases1to5Controller
+      internal static readonly List<ParserState> ListOfAllStates = new List<ParserState>(InitialCapacityOfListOfAllStates);
 
-      // Number of all terminal and nonterminal transitions and lookahead actions generated in P2 and in P4
-      internal static Int32 NumberOfActions;
       /// <summary>
       /// Defined and used in phase 4, used in phase 5
       /// </summary>
@@ -274,11 +281,6 @@ namespace grammlator {
 
       internal static readonly List<PushStateAction> ListOfAllPushStateActions
          = new List<PushStateAction>(InitialCapacityOfListOfAllPushStateActions);
-
-      /// <summary>
-      /// Defined in Phase4, used in Phase5
-      /// </summary>
-      internal static Int32 CountOfStatesWithStateStackNumber;
 
       /// <summary>
       /// used in <see cref="P5GenerateCode"/> and <see cref="HaltAction.Generate(P5CodegenCS, out Boolean)"/>

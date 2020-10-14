@@ -125,7 +125,7 @@ namespace grammlator {
          // Now the declarations can be generated preceding the already generated instructions
          Codegen.GenerateStartOfCodeAndCopyCodeToResultBuilder(
             UseTerminalValuesAsFlags,
-            GenerateStateStackInitialCountVariable: GlobalVariables.CountOfStatesWithStateStackNumber > 0,
+            GenerateStateStackInitialCountVariable: GlobalVariables.NumberOfStatesWithStateStackNumber > 0,
             GenerateAttributeStackInitialCountVariable:
             GlobalVariables.reductionsModifyAttributStack && CodeContainsErrorHalt
             // The variable AttributeStackInitialCount is used by ErrorHaltActions, if the attributestack is used

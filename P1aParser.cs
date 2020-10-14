@@ -232,7 +232,7 @@ namespace grammlator {
       //|    | OptionalGrammlatorSettings, GrammlatorSetting
 
       //| GrammlatorSetting=
-      //|    Name(UnifiedString name), ":", LexerString(UnifiedString value), ";"?
+      //|    Name(UnifiedString name), ":", LexerString(UnifiedString value), ";"
       private void SetGrammlatorStringSetting(UnifiedString name, UnifiedString value)
       {
          String NewValue = value.ToString();
@@ -273,7 +273,7 @@ namespace grammlator {
       }
 
 
-      //|   | Name(UnifiedString name), ":", Number(Int64 value), ";"?
+      //|   | Name(UnifiedString name), ":", Number(Int64 value), ";"
       private void SetGrammlatorInt32Setting(UnifiedString name, Int64 value)
       {
          String NameToLower = name.ToString().ToLower(); // TODO avoid new string by better comparer
@@ -300,7 +300,7 @@ namespace grammlator {
          }
          return;
       }
-      //|   | Name(UnifiedString name), ":", Name(UnifiedString value), ";"?
+      //|   | Name(UnifiedString name), ":", Name(UnifiedString value), ";"
       private void SetGrammlatorNameSetting(UnifiedString name, UnifiedString value)
          => SetGrammlatorStringSetting(
             name,
@@ -400,10 +400,10 @@ namespace grammlator {
       }
 
       //| SemikolonOrEnum= // at end of terminal definitions
-      //|    ";"
-      //|    | optionalEnum
+      //|    | ";"
+      //|    | EnumOrEmptyCode
 
-      //| optionalEnum=
+      //| EnumOrEmptyCode=
       //|       CSharpStart,  CSEnumDeclaration, CSharpEnd
       //|    |  CSharpStart, CSharpEnd
 
@@ -902,10 +902,9 @@ namespace grammlator {
          // Declare local variables used by grammlator generated code
          LexerResult ParserInput;
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated 10 Okt 2020 (grammlator file version/date 2020.10.10.0/10 Okt 2020)
+#region grammlator generated 11 Okt 2020 (grammlator file version/date 2020.10.10.0/11 Okt 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Int32 _AttributeStackInitialCount = _a.Count;
-  const Int64 _fDefiningSymbol = 1L << (Int32)(LexerResult.DefiningSymbol);
   const Int64 _fColon = 1L << (Int32)(LexerResult.Colon);
   const Int64 _fPercent = 1L << (Int32)(LexerResult.Percent);
   const Int64 _fCSharpEnd = 1L << (Int32)(LexerResult.CSharpEnd);
@@ -920,7 +919,6 @@ namespace grammlator {
   const Int64 _fName = 1L << (Int32)(LexerResult.Name);
   const Int64 _fLexerString = 1L << (Int32)(LexerResult.LexerString);
   const Int64 _fDefinitionSeparatorSymbol = 1L << (Int32)(LexerResult.DefinitionSeparatorSymbol);
-  const Int64 _fTerminatorSymbol = 1L << (Int32)(LexerResult.TerminatorSymbol);
   Boolean _is(Int64 flags) => (1L << (Int32)((ParserInput)) & flags) != 0;
 
 State2:
@@ -941,6 +939,8 @@ State2:
      }
   if (ParserInput == LexerResult.LexerString)
      goto AcceptState69;
+  if (ParserInput == LexerResult.StarEqual)
+     goto Reduce2;
   if (ParserInput != LexerResult.CSharpStart)
      {
      if (ErrorHandler(2, StateDescription2, ParserInput))
@@ -955,8 +955,8 @@ AcceptState79:
   Lexer.AcceptSymbol();
 State79:
   const String StateDescription79 =
-       "optionalEnum= CSharpStart, ►CSEnumDeclaration, CSharpEnd;\r\n"
-     + "optionalEnum= CSharpStart, ►CSharpEnd;";
+       "EnumOrEmptyCode= CSharpStart, ►CSEnumDeclaration, CSharpEnd;\r\n"
+     + "EnumOrEmptyCode= CSharpStart, ►CSharpEnd;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
      {
@@ -1102,7 +1102,7 @@ State69:
      _s.Push(0);
      goto State70;
      }
-  if (_is(_fColon | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fNumberSign))
+  if (_is(_fColon | _fCSharpEnd | _fError | _fMinus | _fNumber | _fNumberSign))
      {
      if (ErrorHandler(69, StateDescription69, ParserInput))
         goto State69;
@@ -1110,7 +1110,7 @@ State69:
      _s.Push(0);
      goto EndWithError;
      }
-  Debug.Assert(!_is(_fColon | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fNumberSign | _fGroupStart));
+  Debug.Assert(!_is(_fColon | _fCSharpEnd | _fError | _fMinus | _fNumber | _fNumberSign | _fGroupStart));
   // Reduce68:
   /* aAdjust: 1
    * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name);◄ */
@@ -1767,7 +1767,7 @@ Reduce80:
 
 State95:
   const String StateDescription95 =
-       "optionalEnum= CSharpStart, CSEnumDeclaration, ►CSharpEnd;";
+       "EnumOrEmptyCode= CSharpStart, CSEnumDeclaration, ►CSharpEnd;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.CSharpEnd)
      {
@@ -1869,15 +1869,13 @@ State3:
      Lexer.AcceptSymbol();
      goto State4;
      }
-  if (ParserInput != LexerResult.CSharpStart
-     && ParserInput < LexerResult.DefinitionSeparatorSymbol)
+  if (  ParserInput < LexerResult.TerminatorSymbol && !_is(_fStarEqual | _fCSharpStart | _fDefinitionSeparatorSymbol))
      {
      if (ErrorHandler(3, StateDescription3, ParserInput))
         goto State3;
      goto EndWithError;
      }
-  Debug.Assert(ParserInput == LexerResult.CSharpStart
-     || ParserInput >= LexerResult.DefinitionSeparatorSymbol);
+  Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol || _is(_fStarEqual | _fCSharpStart | _fDefinitionSeparatorSymbol));
   // Reduce4:
   /* aAdjust: 1
    * OptionalWeight(Int64 weight)= ;◄ */
@@ -1921,6 +1919,8 @@ State5:
      Lexer.AcceptSymbol();
      goto Reduce6;
      }
+  if (ParserInput == LexerResult.StarEqual)
+     goto Reduce6;
   if (ParserInput != LexerResult.CSharpStart)
      {
      if (ErrorHandler(5, StateDescription5, ParserInput))
@@ -2815,14 +2815,15 @@ State57:
 
      goto State54;
      }
-  if (_is(_fColon | _fPercent | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fMinusEqual | _fNumberSign | _fTerminatorSymbol))
+  if (  ParserInput >= LexerResult.TerminatorSymbol || _is(_fColon | _fPercent | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fMinusEqual
+         | _fNumberSign))
      {
      if (ErrorHandler(57, StateDescription57, ParserInput))
         goto State57;
      goto EndWithError;
      }
-  Debug.Assert(!_is(_fDefiningSymbol | _fColon | _fPercent | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fMinusEqual | _fNumberSign
-         | _fTerminatorSymbol));
+  Debug.Assert(ParserInput > LexerResult.DefiningSymbol && ParserInput < LexerResult.TerminatorSymbol && !_is(_fColon | _fPercent | _fCSharpEnd | _fError
+         | _fMinus | _fNumber | _fStarEqual | _fMinusEqual | _fNumberSign));
   goto Reduce10;
 
 State58:
@@ -3154,34 +3155,56 @@ State73:
 
 State74:
   const String StateDescription74 =
-       "GrammlatorSetting= Name(UnifiedString name), ►\":\", LexerString(UnifiedString value), \";\"?;\r\n"
-     + "GrammlatorSetting= Name(UnifiedString name), ►\":\", Number(Int64 value), \";\"?;\r\n"
-     + "GrammlatorSetting= Name(UnifiedString name), ►\":\", Name(UnifiedString value), \";\"?;\r\n"
+       "GrammlatorSetting= Name(UnifiedString name), ►\":\", LexerString(UnifiedString value), \";\";\r\n"
+     + "GrammlatorSetting= Name(UnifiedString name), ►\":\", Number(Int64 value), \";\";\r\n"
+     + "GrammlatorSetting= Name(UnifiedString name), ►\":\", Name(UnifiedString value), \";\";\r\n"
      + "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), ►\"(Attributes)\"(Int32 NumberOfAttributes);\r\n"
      + "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name)●;";
   _s.Push(1);
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.Colon)
+  switch (ParserInput)
+  {
+  // <= LexerResult.DefiningSymbol: goto HandleError74 // see end of switch
+  case LexerResult.CSharpEnd:
+  case LexerResult.Error:
+  case LexerResult.Minus:
+  case LexerResult.Number:
+  case LexerResult.MinusEqual:
+  case LexerResult.Questionmark:
+  case LexerResult.Asterisk:
+  case LexerResult.Plus:
+  case LexerResult.Comma:
+  case LexerResult.NumberSign:
+  case LexerResult.OptionStart:
+  case LexerResult.RepeatStart:
+  case LexerResult.DoubleQuestionmark:
+  case LexerResult.GroupEnd:
+  case LexerResult.RepeatEnd:
+  case LexerResult.OptionEnd:
+  case LexerResult.Name:
+  case LexerResult.LexerString:
+     goto HandleError74;
+  case LexerResult.Colon:
      {
      Lexer.AcceptSymbol();
      goto State75;
      }
-  if (ParserInput == LexerResult.GroupStart)
+  // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce75 // see end of switch
+  case LexerResult.Percent:
+  case LexerResult.StarEqual:
+  case LexerResult.CSharpStart:
+     goto Reduce75;
+  case LexerResult.GroupStart:
      {
      Lexer.AcceptSymbol();
      goto State70;
      }
-  if (!_is(_fPercent | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol))
-     {
-     if (ErrorHandler(74, StateDescription74, ParserInput))
-        {
-        _s.Pop();
-        goto State74;
-        };
-     goto EndWithError;
-     }
-  Debug.Assert(_is(_fPercent | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol));
-  // Reduce75:
+  } // end of switch
+  if (ParserInput <= LexerResult.DefiningSymbol)
+     goto HandleError74;
+  Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
+
+Reduce75:
   /* sAdjust: -1, aAdjust: 1
    * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name);◄ */
   _s.Pop();
@@ -3195,9 +3218,9 @@ State74:
 
 State75:
   const String StateDescription75 =
-       "GrammlatorSetting= Name(UnifiedString name), \":\", ►LexerString(UnifiedString value), \";\"?;\r\n"
-     + "GrammlatorSetting= Name(UnifiedString name), \":\", ►Number(Int64 value), \";\"?;\r\n"
-     + "GrammlatorSetting= Name(UnifiedString name), \":\", ►Name(UnifiedString value), \";\"?;";
+       "GrammlatorSetting= Name(UnifiedString name), \":\", ►LexerString(UnifiedString value), \";\";\r\n"
+     + "GrammlatorSetting= Name(UnifiedString name), \":\", ►Number(Int64 value), \";\";\r\n"
+     + "GrammlatorSetting= Name(UnifiedString name), \":\", ►Name(UnifiedString value), \";\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
      {
@@ -3219,23 +3242,19 @@ State75:
   Lexer.AcceptSymbol();
 State78:
   const String StateDescription78 =
-       "GrammlatorSetting= Name(UnifiedString name), \":\", Number(Int64 value), ►\";\"?;";
+       "GrammlatorSetting= Name(UnifiedString name), \":\", Number(Int64 value), ►\";\";";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput >= LexerResult.TerminatorSymbol)
-     {
-     Lexer.AcceptSymbol();
-     goto Reduce79;
-     }
-  if (!_is(_fCSharpStart | _fName | _fLexerString))
+  if (ParserInput < LexerResult.TerminatorSymbol)
      {
      if (ErrorHandler(78, StateDescription78, ParserInput))
         goto State78;
      goto EndWithError;
      }
-  Debug.Assert(_is(_fCSharpStart | _fName | _fLexerString));
-Reduce79:
+  Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
+  Lexer.AcceptSymbol();
+  // Reduce79:
   /* sAdjust: -2, aAdjust: -2
-   * GrammlatorSetting= Name(UnifiedString name), ":", Number(Int64 value), ";"?;◄
+   * GrammlatorSetting= Name(UnifiedString name), ":", Number(Int64 value), ";";◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
   _s.Discard(2);
 
@@ -3249,23 +3268,19 @@ Reduce79:
 
 State76:
   const String StateDescription76 =
-       "GrammlatorSetting= Name(UnifiedString name), \":\", LexerString(UnifiedString value), ►\";\"?;";
+       "GrammlatorSetting= Name(UnifiedString name), \":\", LexerString(UnifiedString value), ►\";\";";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput >= LexerResult.TerminatorSymbol)
-     {
-     Lexer.AcceptSymbol();
-     goto Reduce77;
-     }
-  if (!_is(_fCSharpStart | _fName | _fLexerString))
+  if (ParserInput < LexerResult.TerminatorSymbol)
      {
      if (ErrorHandler(76, StateDescription76, ParserInput))
         goto State76;
      goto EndWithError;
      }
-  Debug.Assert(_is(_fCSharpStart | _fName | _fLexerString));
-Reduce77:
+  Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
+  Lexer.AcceptSymbol();
+  // Reduce77:
   /* sAdjust: -2, aAdjust: -2
-   * GrammlatorSetting= Name(UnifiedString name), ":", LexerString(UnifiedString value), ";"?;◄
+   * GrammlatorSetting= Name(UnifiedString name), ":", LexerString(UnifiedString value), ";";◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
   _s.Discard(2);
 
@@ -3279,23 +3294,19 @@ Reduce77:
 
 State77:
   const String StateDescription77 =
-       "GrammlatorSetting= Name(UnifiedString name), \":\", Name(UnifiedString value), ►\";\"?;";
+       "GrammlatorSetting= Name(UnifiedString name), \":\", Name(UnifiedString value), ►\";\";";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput >= LexerResult.TerminatorSymbol)
-     {
-     Lexer.AcceptSymbol();
-     goto Reduce78;
-     }
-  if (!_is(_fCSharpStart | _fName | _fLexerString))
+  if (ParserInput < LexerResult.TerminatorSymbol)
      {
      if (ErrorHandler(77, StateDescription77, ParserInput))
         goto State77;
      goto EndWithError;
      }
-  Debug.Assert(_is(_fCSharpStart | _fName | _fLexerString));
-Reduce78:
+  Debug.Assert(ParserInput >= LexerResult.TerminatorSymbol);
+  Lexer.AcceptSymbol();
+  // Reduce78:
   /* sAdjust: -2, aAdjust: -2
-   * GrammlatorSetting= Name(UnifiedString name), ":", Name(UnifiedString value), ";"?;◄
+   * GrammlatorSetting= Name(UnifiedString name), ":", Name(UnifiedString value), ";";◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
   _s.Discard(2);
 
@@ -3623,6 +3634,14 @@ HandleError16:
      };
   goto EndWithError;
 
+HandleError74:
+  if (ErrorHandler(74, StateDescription74, ParserInput))
+     {
+     _s.Pop();
+     goto State74;
+     };
+  goto EndWithError;
+
 EndWithError:
   // This point is reached after an input error has been found
   _s.Discard(_s.Count - _StateStackInitialCount);
@@ -3631,7 +3650,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 10 Okt 2020 (grammlator file version/date 2020.10.10.0/10 Okt 2020)
+#endregion grammlator generated 11 Okt 2020 (grammlator file version/date 2020.10.10.0/11 Okt 2020)
 
       }
    }

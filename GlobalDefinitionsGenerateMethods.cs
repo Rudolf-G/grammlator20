@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.Text;
 
@@ -596,7 +597,7 @@ namespace grammlator {
               "// This point is reached after an input error has been found");
 
          // generate _s.Pop(x)
-         if (GlobalVariables.CountOfStatesWithStateStackNumber > 0)
+         if (GlobalVariables.NumberOfStatesWithStateStackNumber > 0)
             codegen.IndentExactly()
                .Append(GlobalSettings.StateStack.Value)
                .Append(".Discard(")
@@ -1384,6 +1385,8 @@ namespace grammlator {
          /* Code is generated for all blocks  of type == false, typically  "(symbol < 'StartIndexOfBlock' || symbol > EndIndexOfBlock) && ..."  
           * Code for different blocks is concatenated by " && "
           * special cases:
+          *    blockstart==0: "Symbol > EndOfBlock"  because symbol represents all preceding values
+          *    blockend==last: "Symbol < StartOfBlock" because symbol represents all following value
           *    blockstart == blockend:  "Symbol != StartOfBlock"
           *    blockstart == 1st relevant elements index: "symbol > EndOfBlock"
           *    blockend   == last relevant elements index: "Symbol < StartOfBlock"
@@ -1413,9 +1416,9 @@ namespace grammlator {
          // 1st block may need special handling
          block = blockList[0];
 
-         if (blockIndex == 0) // && block.blockLength >= 2 && blockList.Count > 1)
+         if (blockIndex == 0)
          {
-            // special handlings of first block if its type is false and contains more than 1 element
+            // special handlings of first block , which has to handle all values preceding the 1st!
             Debug.Assert(blockIndex == 0 && block.blockStart == first);
 
             if (block.blockEnd == last)
@@ -1481,7 +1484,7 @@ namespace grammlator {
                if (block.blockEnd == last)
                {
                   // special case: at end the of relevant symbols test of end must be ommitted
-                  // because the last terminal symbol represents al fllowing symbols
+                  // because the last terminal symbol represents al following symbols
                   codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " < ");
                   codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
                }
@@ -1631,47 +1634,90 @@ namespace grammlator {
 
       private static void GenerateIsIn(P5CodegenCS codegen, BitArray Condition, BitArray Relevant)
       {
-         codegen.IncrementIndentationLevel();
          BitArray InverseCondition = new BitArray(Condition).Not().And(Relevant);
-         if (Condition.PopulationCount() < InverseCondition.PopulationCount())
-         {
-            codegen
-               .Append(GlobalSettings.FlagTestMethodName.Value)
-               .Append('(');
-            GenerateIsInArguments(codegen, Condition);
-         }
+         if (Condition.PopulationCount() < InverseCondition.PopulationCount()) // TOCHECK 1st and last condition?
+            GenerateIsInArguments(codegen, Condition, false);
          else
-         {
-            codegen.Append('!')
-               .Append(GlobalSettings.FlagTestMethodName.Value)
-               .Append('(');
-            GenerateIsInArguments(codegen, InverseCondition);
-         }
-         codegen.DecrementIndentationLevel().Append(')');
+            GenerateIsInArguments(codegen, InverseCondition, true);
       }
 
-      private static void GenerateIsInArguments(P5CodegenCS codegen, BitArray Condition)
+      private static void GenerateIsInArguments(P5CodegenCS codegen, BitArray Condition, Boolean inverse)
       {
+         codegen.IncrementIndentationLevel();
+
+         if (Condition.All())
+         {
+            codegen.AppendWithOptionalLinebreak("true")
+               .DecrementIndentationLevel();
+            return;
+         }
+         else if (Condition.Empty())
+         {
+            codegen.AppendWithOptionalLinebreak("false")
+               .DecrementIndentationLevel();
+            return;
+         }
+
+         Debug.Assert(Condition.Length >= 2);
          Boolean Is1st = true;
-         // foreach terminal symbol:
-         for (Int32 i = Condition.FindNextTrue(); i < Condition.Count; i = Condition.FindNextTrue(i))
+
+         if (Condition[0])
+         {
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value);
+            if (inverse)
+               codegen.AppendWithOptionalLinebreak(" > ");
+            else
+               codegen.AppendWithOptionalLinebreak(" <= ");
+            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, GlobalVariables.GetTerminalSymbolByIndex(0).Identifier);
+            Is1st = false;
+         }
+         int last = Condition.Length - 1;
+         if (Condition[last])
+         {
+            if (!Is1st)
+               codegen.AppendWithOptionalLinebreak(inverse?" && ":" || ");
+
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value);
+            if (inverse)
+               codegen.AppendWithOptionalLinebreak(" < ");
+            else
+               codegen.AppendWithOptionalLinebreak(" >= ");
+            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, GlobalVariables.GetTerminalSymbolByIndex(last).Identifier);
+            Is1st = false;
+         }
+
+         Boolean Is1stTrueFlag = true;
+         // foreach terminal symbol except 1st and last:
+         for (Int32 i = Condition.FindNextTrue(0); i < Condition.Count - 1; i = Condition.FindNextTrue(i))
          {
             TerminalSymbol t = GlobalVariables.GetTerminalSymbolByIndex(i);
-            if (!Is1st)
-               codegen.AppendWithOptionalLinebreak(" | ");
-            Is1st = false;
 
             t.IsUsedInIsIn = true; // the int constant "_(identifier of terminal symbol)" has to be declared
 
+            if (Is1stTrueFlag)
+            {
+               if (!Is1st)
+                  codegen.AppendWithOptionalLinebreak(inverse ? " && " : " || ");
+               Is1st = false;
+               if (inverse)
+                  codegen.Append("!");
+               codegen
+                  .Append(GlobalSettings.FlagTestMethodName.Value)
+                  .Append('(');
+            }
+            else if (!Is1stTrueFlag)
+               codegen.AppendWithOptionalLinebreak(" | ");
+            Is1stTrueFlag = false;
+
             codegen
                .AppendWithOptionalLinebreak(GlobalSettings.FlagsPrefix.Value)
-               .Append(t.Identifier);
+                  .Append(t.Identifier);
          }
 
-         if (Is1st)
-         { // no argument (all false) - usually will not happen
-            codegen.Append('0');
-         }
+         codegen.DecrementIndentationLevel();
+
+         if (!Is1stTrueFlag)
+            codegen.Append(')');
       }
 
    }

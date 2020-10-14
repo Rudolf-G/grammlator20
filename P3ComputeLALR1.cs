@@ -17,7 +17,7 @@ namespace grammlator {
       /// <see cref="LookaheadAction"/> and <see cref="NonterminalTransition"/>,</para>
       /// then solves conflicts by static priorities and removes no longer reachable states
       /// </summary>
-      public static void MakeInstanceAndExecute()
+      public static void MakeInstanceAndExecute(out Int32 sumOfConflictsNotSolvedByExplicitPriority)
       {
          var p3 = new P3ComputeLALR1();
 
@@ -30,14 +30,17 @@ namespace grammlator {
          var sb = new StringBuilder(1000);
          sb.AppendLine("Protocol of conflicts and conflict resolution")
            .AppendLine();
-         Int32 statesWithConflicts = P3c_FindAndResolveAllStaticConflicts(sb);
+         Int32 statesWithConflicts = P3c_FindAndResolveAllStaticConflicts(sb, out sumOfConflictsNotSolvedByExplicitPriority);
 
          GlobalVariables.OutputMessage(MessageTypeOrDestinationEnum.ConflictProtocol, sb.ToString());
          if (statesWithConflicts > 0)
             GlobalVariables.OutputMessage(
                MessageTypeOrDestinationEnum.Warning,
-               $"Found and resolved conflicts in {statesWithConflicts} states."
+               $"Found and resolved conflicts in {statesWithConflicts} state()s."
                );
+         if (sumOfConflictsNotSolvedByExplicitPriority > 0)
+            GlobalVariables.OutputMessage(MessageTypeOrDestinationEnum.Warning,
+             $"{sumOfConflictsNotSolvedByExplicitPriority} conflict(s) could not be solved by samantic priorities.");
 
       }
 
@@ -529,21 +532,29 @@ namespace grammlator {
       /// Ignores actions wih dynamic priorities.
       /// </summary>
       /// <param name="sb">The description of the conflicts will be written to <paramref name="sb"/></param>
-      private static Int32 P3c_FindAndResolveAllStaticConflicts(StringBuilder sb)
+      private static Int32 P3c_FindAndResolveAllStaticConflicts(StringBuilder sb, out int sumOfConflictsNotSolvedByExplicitPriority)
       {
          var allowedSymbolsUpToThisAction = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // allocate outside of loop
 
          Int32 statesWithConflict = 0;
+         sumOfConflictsNotSolvedByExplicitPriority = 0;
          // Examine all parser states 
          foreach (ParserState State in GlobalVariables.ListOfAllStates)
+         {
             statesWithConflict +=
                State.FindAndSolveConflictsOfState(
                   allowedSymbolsUpToThisAction,
+                  out int numberOfConflictsNotSolvedByExplicitPriority,
                   sb
                   );
+            sumOfConflictsNotSolvedByExplicitPriority += numberOfConflictsNotSolvedByExplicitPriority;
+         }
 
          sb.AppendLine()
-           .AppendLine($"-- Result of conflict analysis: found {statesWithConflict} states with static conflicts. --");
+           .AppendLine($"-- Result of conflict analysis: found {statesWithConflict} states with static conflicts.");
+         if (sumOfConflictsNotSolvedByExplicitPriority > 0)
+            sb.AppendLine
+               ($"-- Warning: {sumOfConflictsNotSolvedByExplicitPriority} conflict(s) could not be solved by semantic priorities.");
 
          return statesWithConflict;
       }
