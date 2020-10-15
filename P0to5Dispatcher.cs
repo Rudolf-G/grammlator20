@@ -56,15 +56,17 @@ namespace grammlator {
             SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, true, RegionString.Value, GrammarString.Value);
          if (StartOfGrammlatorLines >= 0)
          {
+            Int32 StartOfRegion = StartOfGrammlatorLines
+               + SourceReader.Source.Span[StartOfGrammlatorLines..].IndexOf('#');
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
                 $"Found \"{RegionString} {GrammarString}\"",
-                StartOfGrammlatorLines);
+                StartOfRegion + 1);
          }
          else
          {
             OutputMessageAndPosition(
                MessageTypeOrDestinationEnum.Abort,
-               $"Missing \"{RegionString} {GrammarString}\".",
+               $"Missing \"{RegionString} {GrammarString}\"",
                SourceReader.Position);
          }
 
@@ -76,15 +78,23 @@ namespace grammlator {
 #endif
          SymbolDictionary.Clear();
 
+         /*************** Call the parser ****************/
          Int32 StartOfGeneratedCode =
             P1aParser.MakeInstanceAndExecute(SourceReader, SymbolDictionary);
+
+         // The parser outputs the message "Found #region grammlator generated"
+         // before checking the symbols (which may cause additional messages)
 
          outputMessage(MessageTypeOrDestinationEnum.AbortIfErrors, "Error(s) in phase 1: translation abandoned.");
 
          if (StartOfGeneratedCode < 0)
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
-               $"Missing \"{RegionString} {GrammlatorString}\".",
-               SourceReader.Position);
+               $"Missing \"{RegionString} {GrammlatorString}\"",
+               StartOfGeneratedCode);
+         //else
+         //   OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
+         //      $"Found \"{RegionString} {GrammlatorString} {GeneratedString}\"",
+         //      StartOfGeneratedCode);
 
          // Copy grammar to Resultbuilder
          SourceReader.CopyFromTo(Resultbuilder,
@@ -97,14 +107,17 @@ namespace grammlator {
             EndregionString.Value, GrammlatorString.Value, GeneratedString.Value);
          if (EndOfGeneratedCode >= 0)
          {
+            Int32 StartOfEndRegion = EndOfGeneratedCode
+               + SourceReader.Source.Span[EndOfGeneratedCode..].IndexOf('#');
+
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
-                 $"Found \"{EndregionString} {GrammlatorString} {GeneratedString}\", the last line of replaced code.",
-                StartOfGrammlatorLines);
+                 $"Found \"{EndregionString} {GrammlatorString} {GeneratedString}\"",
+                StartOfEndRegion + 1);
          }
          else
          {
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
-               $"Missing \"{EndregionString} {GrammlatorString} {GeneratedString}\".",
+               $"Missing \"{EndregionString} {GrammlatorString} {GeneratedString}\"",
                SourceReader.Position);
          }
 

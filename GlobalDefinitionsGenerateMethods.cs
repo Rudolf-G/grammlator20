@@ -1073,8 +1073,9 @@ namespace grammlator {
          codegen.AppendWithOptionalLinebreak("if (");
 
          codegen.IncrementIndentationLevel();
-         // codegen.Indent(nestingLevel + 1);
+
          GenerateCondition(codegen, a.TerminalSymbols, relevantSymbols);
+
          codegen.AppendWithOptionalLinebreak(") ");
 
          P5GenerateCode.GenerateCodeSequence(codegen, a, labelMustBeGenerated: false);
@@ -1663,7 +1664,7 @@ namespace grammlator {
 
          if (Condition[0])
          {
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value);
+            codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
             if (inverse)
                codegen.AppendWithOptionalLinebreak(" > ");
             else
@@ -1675,9 +1676,9 @@ namespace grammlator {
          if (Condition[last])
          {
             if (!Is1st)
-               codegen.AppendWithOptionalLinebreak(inverse?" && ":" || ");
+               codegen.Append(inverse?" && ":" || ");
 
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value);
+            codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
             if (inverse)
                codegen.AppendWithOptionalLinebreak(" < ");
             else

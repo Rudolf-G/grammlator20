@@ -7,87 +7,7 @@ using System.Text;
 using System.Windows.Xps;
 
 namespace grammlator {
-   /// <summary>
-   /// This enum defines the characters and character groups recognized by InputClassifier and used by Lexer.
-   /// </summary>
-   public enum ClassifierResult {
-      [Description(@"DefiningSymbol(Int32 i) %7 ""="" ")]
-      DefiningSymbol,
-      [Description(@"Comma(Int32 i) %7 "","" ")]
-      Comma,
-      [Description(@"DefinitionSeparatorSymbol(Int32 i) %7 ""|"" ")]
-      DefinitionSeparatorSymbol,
 
-      [Description(@"TerminatorSymbol(Int32 i) %5 "";"" ")]
-      TerminatorSymbol,
-      [Description(@"Plus(Int32 i) %3 ""+"" ")]
-      Plus,
-      [Description(@"Colon(Int32 i) %3 "":"" ")]
-      Colon,
-      [Description(@"Percent(Int32 i) %3 ""%"" ")]
-      Percent,
-
-      [Description(@"GroupStart(Int32 i) 3x ""("" ")]
-      GroupStart,
-      [Description(@"OptionStart(Int32 i) 1x ""["" ")]
-      OptionStart,
-      [Description(@"RepeatStart(Int32 i) 1x ""{"" ")]
-      RepeatStart,
-
-      [Description(@"GroupEnd(Int32 i) %3 "")"" ")]
-      GroupEnd,
-      [Description(@"OptionEnd(Int32 i) %1 ""]"" ")]
-      OptionEnd,
-      [Description(@"RepeatEnd(Int32 i) %1 ""}"" ")]
-      RepeatEnd,
-      [Description(@"NumberSign(Int32 i) %1 ""#"" ")]
-      NumberSign,
-
-      // The following "virtual" symbols represent the change from grammlator lines to CSharp lines and vice versa
-      [Description(@"CSharpStart(Int32 i) %8 ""C#"" ")]
-      CSharpStart,
-      [Description(@"CSharpEnd(Int32 i) %1 ""//|"" ")]
-      CSharpEnd,
-
-      // The following symbols may be part of a combined symbol and are handled individually by the generated code "?" may be part of "??"
-      [Description(@"Questionmark(Int32 i) %5 ""?"" ")]
-      Questionmark, // part of "??"
-      [Description(@"Asterisk(Int32 i) %1 ""*"" ")]
-      Asterisk, // Part of "*="
-      [Description(@"Minus(Int32 i) %1 ""-"" ")]
-      Minus, // Part of "-="
-      [Description(@"At(Int32 i) %1 ""@"" ")]
-      At, // @
-
-      [Description(@"WhiteSpace(Int32 i) %20 "" "" ")]
-      WhiteSpace,     // used as delimiter, skipped by lexer
-      [Description(@"Slash(Int32 i) %9 ""/"" ")]
-      Slash,          // delimiter of comments
-      [Description(@"OtherCharacter(Int32 i) %1 ")]
-      OtherCharacter, // allowed only in comments
-      [Description(@"Quotationmark(Int32 i) %5 ""''"" ")]
-      Quotationmark,     // delimits string constants used as names
-      [Description(@"Letter(Int32 i) %10 ""letter"" ")]
-      Letter,
-      [Description(@"Digit(Int32 i) %5 ""digit"" ")]
-      Digit   // as part of names and numbers
-   };
-
-   public static class ClassifierResultExtensions {
-      public static String MyToString(this ClassifierResult cr)
-      {
-         const String MyDisplay = "=,|;-+:%*([{)]}#xx?x/x\"xx";
-
-         if ((Int32)cr >= MyDisplay.Length)
-            return cr.ToString();
-
-         Char result = MyDisplay[(Int32)cr];
-         if (result != 'x')
-            return result.ToString();
-         else
-            return cr.ToString();
-      }
-   }
 #pragma warning restore CS1591 // Fehledes XML-Kommentar für öffentlich sichtbaren Typ oder Element
 
    /// <summary>
@@ -203,15 +123,9 @@ namespace grammlator {
       /// <summary>
       /// The position in SourceReader of the last peeked Symbol. Accepting the symbol by AcceptSymbol will increment the value by 1.
       /// </summary>
-      private Int32 CurrentPosition {
+      public Int32 CurrentPosition {
          get { return SourceReader.Position - inputLine.Length + CurrentColumn; } // TOCHECK replace CurrentPosition by a local variable
       }
-
-      /// <summary>
-      /// Returns CurrentPosition
-      /// </summary>
-      public Int32 InputPosition
-          => CurrentPosition;      
 
       /// <summary>
       /// Makes the next not accepted symbol available in Symbol and its attributes in AttributesOfSymbol.
@@ -223,7 +137,6 @@ namespace grammlator {
          if (!Accepted)
             return Symbol;
 
-         Int32 Index;
          Char c;
 
          // AcceptSymbol already incremented CurrentColumn
@@ -266,17 +179,7 @@ namespace grammlator {
             }
          }
 
-         if (Char.IsWhiteSpace(c))
-            Symbol = ClassifierResult.WhiteSpace;
-         else if (Char.IsLetter(c))
-            Symbol = ClassifierResult.Letter;
-         else if (Char.IsDigit(c))
-            Symbol = ClassifierResult.Digit;
-         else if ((Index = Array.IndexOf(SpecialCharacterList, c)) >= 0)
-            Symbol = assignedSymbol[Index];
-         else
-            Symbol = ClassifierResult.OtherCharacter;
-
+         Symbol = GetResultFromChar(c);
          PositionOfSymbol = CurrentPosition;
          return Symbol;
       }
@@ -293,58 +196,50 @@ namespace grammlator {
 
       // The translation of input characters to ClassifierResults is supported by two arrays
 
-      /// <summary>
-      /// The <see cref="SpecialCharacterList"/> lists all special characters used in grammlator
-      /// so that they can be mapped by the array <see cref="assignedSymbol"/> to elements of <see cref="ClassifierResult"/>.
-      /// Whitespace, digits, standard letters and all other characters are handled separately.
-      /// </summary>
-      private readonly Char[] SpecialCharacterList =
-          new Char[] { // the order of the characters listed here must correspond to assignedSymbol
-               '=', ',', '|',
-                ';', '+', ':', '%',
-                '(', '[', '{',
-               ')', ']', '}', '#',
-                '?','*','-','@',
-                '\"', '/',
-               '\\', '_', '.'
-          };
+      private ClassifierResult GetResultFromChar(char c)
+      {
+         if (Char.IsWhiteSpace(c))
+            return ClassifierResult.WhiteSpace;
+         if (Char.IsLetter(c))
+            return ClassifierResult.Letter;
+         if (Char.IsDigit(c))
+            return ClassifierResult.Digit;
 
-      /// <summary>
-      /// This array maps each character in the list <see cref="SpecialCharacterList"/> to a symbol
-      /// </summary>
-      private readonly ClassifierResult[] assignedSymbol = new ClassifierResult[]
-      { // the order of the enum elements listed here must correspond to SpecialCharacterList
-            ClassifierResult.DefiningSymbol, // =
-            ClassifierResult.Comma, // ,
-            ClassifierResult.DefinitionSeparatorSymbol, // |
+         return c switch
+         {
+            '=' => ClassifierResult.DefiningSymbol,
+            ',' => ClassifierResult.Comma, // ,
+            '|' => ClassifierResult.DefinitionSeparatorSymbol, // |
 
-            ClassifierResult.TerminatorSymbol, // ;
-            ClassifierResult.Plus, // +
-            ClassifierResult.Colon, // *
-            ClassifierResult.Percent, // %
+            ';' => ClassifierResult.TerminatorSymbol, // ;
+            '+' => ClassifierResult.Plus, // +
+            ':' => ClassifierResult.Colon, // :
+            '%' => ClassifierResult.Percent, // %
 
-            ClassifierResult.GroupStart, // (
-            ClassifierResult.OptionStart, // [
-            ClassifierResult.RepeatStart, // {
+            '(' => ClassifierResult.GroupStart, // (
+            '[' => ClassifierResult.OptionStart, // [
+            '{' => ClassifierResult.RepeatStart, // {
 
-            ClassifierResult.GroupEnd, // )
-            ClassifierResult.OptionEnd, // ]
-            ClassifierResult.RepeatEnd, // }
-            ClassifierResult.NumberSign, // #
+            ')' => ClassifierResult.GroupEnd, // )
+            ']' => ClassifierResult.OptionEnd, // ]
+            '}' => ClassifierResult.RepeatEnd, // }
+            '#' => ClassifierResult.NumberSign, // #
 
-            ClassifierResult.Questionmark, // ?
-            ClassifierResult.Asterisk, // *
-            ClassifierResult.Minus, // -
-            ClassifierResult.At, // @
+            '?' => ClassifierResult.Questionmark, // ?
+            '*' => ClassifierResult.Asterisk, // *
+            '-' => ClassifierResult.Minus, // -
+            '@' => ClassifierResult.At, // @
 
-            ClassifierResult.Quotationmark, // "
-            ClassifierResult.Slash, // /
+            '"' => ClassifierResult.Quotationmark, // "
+            '/' => ClassifierResult.Slash, // /
 
             // The following characters are interpreted as letters in additon to all characters of the class char.IsLetter(c)
-            ClassifierResult.Letter, // Backslash (escape symbol of unicode sequences \u006) // TODO translate unicode escape sequences to characters
-            ClassifierResult.Letter, // Underline
-            ClassifierResult.Letter  // Point
-      };
+            '\\' => ClassifierResult.Letter, // Backslash (escape symbol of unicode sequences \u006) // TODO translate unicode escape sequences to characters
+            '_' => ClassifierResult.Letter, // Underline
+            '.' => ClassifierResult.Letter,  // Point
+            _ => ClassifierResult.OtherCharacter
+         };
+      }
 
       private Boolean wasGrammarLine = true; // the first grammar line  is not to be interpreted as change from method lines to grammar lines
 

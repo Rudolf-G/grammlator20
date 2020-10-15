@@ -9,11 +9,11 @@
     <ApplicationIcon>Grammlator.ico</ApplicationIcon>
     <AssemblyVersion>20.6.0.0</AssemblyVersion>
     <StartupObject>grammlator.App</StartupObject>
-    <FileVersion>2020.10.14.0</FileVersion>
+    <FileVersion>2020.10.15.0</FileVersion>
     <Version>2020.04.01</Version>
     <PackageLicenseExpression>Without warranty</PackageLicenseExpression>
     <Copyright>Dr. Rudolf Gardill</Copyright>
-    <PackageReleaseNotes>ported to .Net Core 3.1</PackageReleaseNotes>
+    <PackageReleaseNotes>define terminals by enum, use more than one grammlator region</PackageReleaseNotes>
     <NeutralLanguage></NeutralLanguage>
     <Nullable>enable</Nullable>
   </PropertyGroup>

@@ -35,12 +35,12 @@ namespace grammlator {
          GlobalVariables.OutputMessage(MessageTypeOrDestinationEnum.ConflictProtocol, sb.ToString());
          if (statesWithConflicts > 0)
             GlobalVariables.OutputMessage(
-               MessageTypeOrDestinationEnum.Warning,
+               MessageTypeOrDestinationEnum.Information,
                $"Found and resolved conflicts in {statesWithConflicts} state()s."
                );
          if (sumOfConflictsNotSolvedByExplicitPriority > 0)
             GlobalVariables.OutputMessage(MessageTypeOrDestinationEnum.Warning,
-             $"{sumOfConflictsNotSolvedByExplicitPriority} conflict(s) could not be solved by samantic priorities.");
+             $"{sumOfConflictsNotSolvedByExplicitPriority} conflict(s) have been solved by giving shift actions priority.");
 
       }
 
