@@ -8,7 +8,6 @@ using System.Text;
 
 namespace grammlator {
 #pragma warning disable CS1591 // Fehlender XML-Kommentar für öffentlich sichtbaren Typ oder Element
-   [Flags]
    public enum LexerResult {
       // Defines the output of the lexer, which is assigned to Symbol to be used by the parser
       // The elements of LexerResult are ordered such that grammlator can
@@ -58,7 +57,8 @@ namespace grammlator {
    public static class LexerResultExtensions {
       public static String MyToString(this LexerResult lr)
       {
-         const String MyDisplay = "=:%xx-xxx?*+,#([{\u2047x)}]xx|;"; // \u2047 is "??" as one character
+         const String MyDisplay 
+            = "=:%xx-xxx?*+,#([{\u2047x)}]xx|;"; // \u2047 is "??" as one character
 
          Debug.Assert(lr != LexerResult.Error);
          if ((Int32)lr >= MyDisplay.Length)
@@ -97,9 +97,6 @@ namespace grammlator {
       {
          Source = sourceReader.Source;
          inputClassifier = new P1cInputClassifier(sourceReader, attributeStack);
-         //this._a = attributeStack;
-         //this._s = stateStack;
-
          LexerTextPos = 0;
          Accepted = true;
       }
@@ -113,6 +110,8 @@ namespace grammlator {
          get; private set;
       }
 
+      public Int32 StartOf1stGrammlatorGeneratedLine { get { return inputClassifier.StartOf1stGrammlatorGeneratedLine; } }
+
       /// <summary>
       /// Skips all input lines which are not grammar lines.
       /// The next symbol will be CSharpEnd.
@@ -122,28 +121,7 @@ namespace grammlator {
          Accepted = true;
          inputClassifier.SkipToEndOfCSLines();
       }
-
-      /// <summary>
-      /// Skips whitespace and comment lines and checks if the reached line starts with the given markers
-      /// </summary>
-      /// <param name="markers">true if input line contains the squence of markers (and optional whitespace)</param>
-      /// <returns>true if the markers are found in the input line</returns>
-      public Boolean MarkedLineFollows(params String[] markers)
-      {
-         ClassifierResult s;
-         if (inputClassifier.Accepted)
-         {
-            do
-            {
-               // skip whitespace (may be multiple lines)
-               inputClassifier.AcceptSymbol();
-               s = inputClassifier.PeekSymbol();
-
-            } while (s == ClassifierResult.WhiteSpace);
-         }
-         return inputClassifier.IsMarkedLine(markers);
-      }
-
+     
       /// <summary>
       /// Makes the next symbol available for Phase1. If accepted==false does nothing (symbol is already available)
       /// Else computes the next Symbol, pushs its attributes to an internal stack and sets accepted to false.
@@ -391,9 +369,9 @@ namespace grammlator {
          Asterisk, // Part of "*="
          [Description(@"Minus(Int32 i) %1 ""-"" ")]
          Minus, // Part of "-="
-         [Description(@"At(Int32 i) %1 ""@"" ")]
-         At, // @
 
+         [Description(@"At(Int32 i) %1 ""@"" ")]
+         At, // @ may be 1st character of a string
          [Description(@"WhiteSpace(Int32 i) %20 "" "" ")]
          WhiteSpace,     // used as delimiter, skipped by lexer
          [Description(@"Slash(Int32 i) %9 ""/"" ")]
@@ -402,6 +380,7 @@ namespace grammlator {
          OtherCharacter, // allowed only in comments
          [Description(@"Quotationmark(Int32 i) %5 ""''"" ")]
          Quotationmark,     // delimits string constants used as names
+
          [Description(@"Letter(Int32 i) %10 ""letter"" ")]
          Letter,
          [Description(@"Digit(Int32 i) %5 ""digit"" ")]

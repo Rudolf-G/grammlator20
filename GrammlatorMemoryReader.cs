@@ -156,7 +156,7 @@ namespace grammlator {
       /// <summary>
       /// Read and depending on <paramref name="copy"/> and <paramref name="copyLineWithMarkers"/> copy
       /// all lines to <paramref name="sb"/> until a line starting with the <paramref name="markers"/>, optionally separated by whitespace, is reached.
-      /// Returns the position of the 1st character of the 1st marker in the source.
+      /// Returns the position of the 1st character of the 1st marker in the source or -1 if not found.
       /// </summary>
       /// <param name="sb">Depending on <paramref name="copy"/> and <paramref name="copyLineWithMarkers"/> 
       /// lines will be appended to <paramref name="sb"/> </param>
@@ -164,10 +164,10 @@ namespace grammlator {
       /// <param name="copyLineWithMarkers">if true, also the found line will be copied to <paramref name="sb"/> else not</param>
       /// <param name="markers"><paramref name="markers"/> is a sequence of strings</param>
       /// <returns>Position of the 1st character of the 1st marker in the source</returns>
-      public Int32 ReadAndCopyUntilMarkedLineFound(StringBuilder sb, Boolean copy, Boolean copyLineWithMarkers, params String[] markers)
+      public Int32 ReadAndCopyUntilMarkedLineFound(StringBuilder? sb, Boolean copy, Boolean copyLineWithMarkers, params String[] markers)
          {
 
-         if (sb == null)
+         if (copy && sb == null)
             throw new ArgumentNullException(nameof(sb));
 
          if (markers == null)
@@ -182,7 +182,7 @@ namespace grammlator {
 
             StartOfLine = Position;
 
-            lineSpan = ReadLine().Span;
+            lineSpan = ReadLine().Span; // sets Position to next line
 
             if (lineSpan.IsEmpty)
                return -1; // end of Source: didn't find the markers
@@ -193,17 +193,16 @@ namespace grammlator {
                if (copy)
                   {
                   if (copyLineWithMarkers)
-                     sb.Append(Source[StartPosition..Position]);
+                     sb!.Append(Source[StartPosition..Position]);
                   else // copy only the lines up to the line with markers
-                     sb.Append(Source[StartPosition..StartOfLine]);
+                     sb!.Append(Source[StartPosition..StartOfLine]);
                   } // else skip the lines
                break; // end of search
                }
             // continue searching
             }
 
-         return StartOfLine + lineSpan.IndexBehindSeparators(0);
-         ;
+         return StartOfLine; //  + lineSpan.IndexBehindSeparators(0);
          }
 
       public void CopyFromTo(StringBuilder sb, Int32 from, Int32 to)

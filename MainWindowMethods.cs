@@ -234,10 +234,12 @@ namespace grammlator {
 
       internal void SetCursorTo(Int32 tabIndex, TextBox box, Int32 position, Int32 length = 3)
       {
-         if (position >= box.Text.Length - length)
-            position = box.Text.Length - length - 1;
+         if (position >= box.Text.Length)
+            position = box.Text.Length - 1;
          if (position < 0)
             position = 0;
+         if (position + length > box.Text.Length)
+            length = box.Text.Length - position;
 
          GrammlatorTabControl.SelectedIndex = tabIndex;
          box.Select(position, length);
@@ -297,7 +299,7 @@ namespace grammlator {
             SourceTextBox.Text = File.ReadAllText(OpenSourceFileDialog.FileName);
             SourceFilename = OpenSourceFileDialog.FileName;
 
-            ActualStatus.SetFlags(StatusFlag.SourceHasFilename, true);
+            ActualStatus.SetFlags(StatusFlag.SourceHasFilename | StatusFlag.SourceNotEmpty, true);
             ActualStatus.SetFlags(StatusFlag.SourceTextChanged, false);
 
 

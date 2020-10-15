@@ -11,7 +11,6 @@ namespace grammlator {
    /// This enum defines the characters and character groups recognized by InputClassifier and used by Lexer.
    /// </summary>
    public enum ClassifierResult {
-      // The following characters will be passed on by the lexer to the parser
       [Description(@"DefiningSymbol(Int32 i) %7 ""="" ")]
       DefiningSymbol,
       [Description(@"Comma(Int32 i) %7 "","" ")]
@@ -45,15 +44,12 @@ namespace grammlator {
       NumberSign,
 
       // The following "virtual" symbols represent the change from grammlator lines to CSharp lines and vice versa
-      // They will also be passed on by the lexer to the parser
       [Description(@"CSharpStart(Int32 i) %8 ""C#"" ")]
       CSharpStart,
       [Description(@"CSharpEnd(Int32 i) %1 ""//|"" ")]
       CSharpEnd,
-      // The following characters are evaluated by the lexer and not passed on to the parser
 
       // The following symbols may be part of a combined symbol and are handled individually by the generated code "?" may be part of "??"
-      // Nevertheless they can be copied
       [Description(@"Questionmark(Int32 i) %5 ""?"" ")]
       Questionmark, // part of "??"
       [Description(@"Asterisk(Int32 i) %1 ""*"" ")]
@@ -108,8 +104,7 @@ namespace grammlator {
       /// <summary>
       /// Constructor
       /// </summary>
-      /// <param name="SbResult"></param>
-      /// <param name="SourceReader">the LineReader provides "string ReadLine()" und "int LineNumber"</param>
+      /// <param name="SourceReader">the LineReader provides "string ReadLine()" and "int LineNumber"</param>
       /// <param name="attributeStack">The <paramref name="attributeStack"/> is used to store the attributes of the recognized character</param>
       public P1cInputClassifier(
             SpanReaderWithCharacterAndLineCounter SourceReader,
@@ -120,6 +115,7 @@ namespace grammlator {
          Accepted = true;
          inputLine = ReadOnlyMemory<Char>.Empty;
          CurrentColumn = inputLine.Length + 1; // Alike end of line had been recognized and accepted
+         StartOf1stGrammlatorGeneratedLine = -1;
 
          // Grammlator parameterization
          GrammarlineMarker = GlobalSettings.GrammarLineMarker.Value; // = "//|"
@@ -138,6 +134,7 @@ namespace grammlator {
       }
 
 
+#pragma warning disable IDE1006 // Benennungsstile
       ///<summary>
       /// The attributeStack <see cref="_a"/> of <see cref="GrammlatorRuntime"/> 
       /// is used  by grammlator generated code 
@@ -145,7 +142,6 @@ namespace grammlator {
       /// b) to get the attributes of input symbols. 
       /// Caution: Access to the elements of the attribute stack is not type save.
       ///</summary>
-#pragma warning disable IDE1006 // Benennungsstile
       private StackOfMultiTypeElements _a {
          get; set;
       }
@@ -186,8 +182,6 @@ namespace grammlator {
       /// </summary>
       public void AcceptSymbol()
       {
-         //if (Accepted)
-         //   return;
          Accepted = true;
 
          // Push position to the stack of attributes
@@ -209,23 +203,15 @@ namespace grammlator {
       /// <summary>
       /// The position in SourceReader of the last peeked Symbol. Accepting the symbol by AcceptSymbol will increment the value by 1.
       /// </summary>
-      public Int32 CurrentPosition {
+      private Int32 CurrentPosition {
          get { return SourceReader.Position - inputLine.Length + CurrentColumn; } // TOCHECK replace CurrentPosition by a local variable
       }
 
       /// <summary>
       /// Returns CurrentPosition
       /// </summary>
-      public Int32 InputPosition // TOCHECK  replace InputPosition by CurrentPosition (without lineNumber and columnNumber)
-          => CurrentPosition;
-
-      /// <summary>
-      /// Checks if actual line  starts with the sequence of strings optionally separated by withespace
-      /// </summary>
-      /// <param name="markers">markers = sequence of strings</param>
-      /// <returns>treu if the line starts with the markers</returns>
-      public Boolean IsMarkedLine(params String[] markers)
-         => inputLine.Span.IndexBehindMarkers(0, markers) > -1;
+      public Int32 InputPosition
+          => CurrentPosition;      
 
       /// <summary>
       /// Makes the next not accepted symbol available in Symbol and its attributes in AttributesOfSymbol.
@@ -279,8 +265,6 @@ namespace grammlator {
                return Symbol;
             }
          }
-
-         PositionOfSymbol = CurrentPosition;
 
          if (Char.IsWhiteSpace(c))
             Symbol = ClassifierResult.WhiteSpace;
@@ -367,6 +351,10 @@ namespace grammlator {
       private enum TypeOfInputlineEnum { Grammar, CSharp };
       private TypeOfInputlineEnum TypeOfInputline;
 
+      /// <summary>
+      /// Index of the line containing "#region grammlator generated"
+      /// </summary>
+      public Int32 StartOf1stGrammlatorGeneratedLine { get; private set; }
 
       /// <summary>
       /// Read and analyze next line, set resulting TypeOfInputline. Set CurrentColumn to a column after skipping separators and the grammar line markers.
@@ -377,7 +365,7 @@ namespace grammlator {
       {
 
 
-         // Get next line 
+      ReadNextLine:
          inputLine = SourceReader.ReadLine();
 
          if (inputLine.IsEmpty)
@@ -401,7 +389,7 @@ namespace grammlator {
 
          if ((newPosition = inputLine.Span.IndexBehindMarkers(CurrentColumn, GrammarlineMarker)) > -1)
          {
-            // found grammar line, start evaluation 
+            // found grammar line (starting with "//|"), start evaluation 
             TypeOfInputline = TypeOfInputlineEnum.Grammar;
 
             CurrentColumn = newPosition;
@@ -427,14 +415,71 @@ namespace grammlator {
             CurrentColumn = inputLine.Length - SourceReader.EoLLength; // is >=0 
             return ' ';
          }
-         else if (inputLine.Span.IndexBehindMarkers(CurrentColumn, GlobalSettings.EndregionString.Value, GlobalSettings.GrammarString.Value) > -1)
+         else if (inputLine.Span.IndexBehindMarkers(
+            CurrentColumn, GlobalSettings.EndregionString.Value, GlobalSettings.GrammarString.Value) > -1
+            )
          {
-            // found "#endregion"
-            // handle all lines (in the grammar region) starting with "endregion...grammar" as grammar lines so that the parser can
-            // recognize the # as TerminatorAtEndOfGrammar
-            TypeOfInputline = TypeOfInputlineEnum.Grammar;
-            // start interpreting at the first character of endregion, which is at position CurrentColumn
-            return inputLine.Span[CurrentColumn];
+         // skip to "region grammar" or "#region grammlator generated", error message if end of file
+         SkipToNextRegion:
+            // a) skip all text to position behind "region"
+            Int32 StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(null,
+               copy: false, false, // do not copy, but skip marked line
+               GlobalSettings.RegionString.Value);
+
+            inputLine = SourceReader.Source[StartOfMarkedLine..SourceReader.Position];
+            CurrentColumn = 0;
+
+            if (StartOfMarkedLine < 0)
+            {
+               // Reached end of Input
+               // end of source: Output message and throw exception
+               GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
+                   $"The end of file has been reached prematurely by the lexical analyzer while searching "
+                   + $"{GlobalSettings.RegionString.Value}",
+                   SourceReader.Position
+                   );
+
+               Debug.Fail("This Debug line should be never executed, because ...Message(..Abort..) has been called");
+
+            }
+
+            Int32 i = SourceReader.Source.Span.IndexBehindMarkers(StartOfMarkedLine, GlobalSettings.RegionString.Value);
+
+            if (i < 0)
+               Debug.Fail($"Has already been tested and is not again {GlobalSettings.RegionString.Value}");
+
+            if (SourceReader.Source.Span.IndexBehindMarkers(i, GlobalSettings.GrammarString.Value) > 0)
+            {
+               // found "#region grammar": skip this line and continue parsing with next line
+               goto ReadNextLine;
+
+            }
+            else if ((i = SourceReader.Source.Span.IndexBehindMarkers(i, GlobalSettings.GrammlatorString.Value)) > 0)
+            {
+               // found "#region grammlator", expect "generated": 
+               i = SourceReader.Source.Span.IndexBehindMarkers(i, GlobalSettings.GeneratedString.Value);
+               if (i < 0)
+               {
+                  // expected but didn't find "generated"
+                  GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
+                      $"Found \"{GlobalSettings.RegionString.Value} {GlobalSettings.GrammlatorString.Value}\""
+                      + $"which is not followed by \"{GlobalSettings.GeneratedString.Value}\"",
+                      SourceReader.Position
+                      );
+               }
+               // found "#region grammlator generated"
+               StartOf1stGrammlatorGeneratedLine = StartOfMarkedLine;
+               // the parser must see the '#' to interpret it as end of grammar
+               TypeOfInputline = TypeOfInputlineEnum.Grammar;
+               // start interpreting at the '#', which is at position CurrentColumn (==0)
+               return inputLine.Span[0];
+            }
+            else
+            {
+               // found some other "region xxx"
+               goto SkipToNextRegion;
+            }
+            // Debug.Assert(false);
          }
          else
          {

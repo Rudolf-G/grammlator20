@@ -175,6 +175,7 @@ namespace grammlator {
          if (!String.IsNullOrEmpty(SourceFilename))
          {
             OpenSourceFileDialog.InitialDirectory = Path.GetDirectoryName(SourceFilename);
+            OpenSourceFileDialog.FileName = Path.GetFileName(SourceFilename);
          }
 
          OpenSourceFileDialog.Title = "Load source file";

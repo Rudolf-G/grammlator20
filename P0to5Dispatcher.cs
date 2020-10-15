@@ -51,14 +51,14 @@ namespace grammlator {
          ResetGlobalVariables(outputMessage, outputMessageAndPos);
          var SymbolDictionary = new Dictionary<UnifiedString, Symbol>(1000);
 
-         // ----- Copy input up to and including line starting with "#region" GrammarString
-         Int32 StartOfMarkedLine =
+         // ----- Copy input up to and including line starting with "#region grammar"
+         Int32 StartOfGrammlatorLines =
             SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, true, RegionString.Value, GrammarString.Value);
-         if (StartOfMarkedLine >= 0)
+         if (StartOfGrammlatorLines >= 0)
          {
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
-                $"Found \"{RegionString} {GrammarString}\", grammlator will start translation at next line.",
-                StartOfMarkedLine);
+                $"Found \"{RegionString} {GrammarString}\"",
+                StartOfGrammlatorLines);
          }
          else
          {
@@ -75,37 +75,31 @@ namespace grammlator {
          outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 1: analyse the source and check usage of symbols.");
 #endif
          SymbolDictionary.Clear();
-         P1aParser.MakeInstanceAndExecute(SourceReader, SymbolDictionary);
+
+         Int32 StartOfGeneratedCode =
+            P1aParser.MakeInstanceAndExecute(SourceReader, SymbolDictionary);
 
          outputMessage(MessageTypeOrDestinationEnum.AbortIfErrors, "Error(s) in phase 1: translation abandoned.");
 
-         // Copy grammar to Resultbuilder
-         SourceReader.CopyFromTo(Resultbuilder, grammarPosition, SourceReader.Position);
-
-         // Copy part between grammar and generated string to Resultbuilder
-         StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, false,
-            RegionString.Value, GrammlatorString.Value, GeneratedString.Value);
-         if (StartOfMarkedLine >= 0)
-         {
-            OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
-                 $"Found \"{RegionString} {GrammlatorString} {GeneratedString}\", the first line of generated code, which will be replaced.",
-                StartOfMarkedLine);
-         }
-         else
-         {
+         if (StartOfGeneratedCode < 0)
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
                $"Missing \"{RegionString} {GrammlatorString}\".",
                SourceReader.Position);
-         }
+
+         // Copy grammar to Resultbuilder
+         SourceReader.CopyFromTo(Resultbuilder,
+            from: grammarPosition,
+            to: StartOfGeneratedCode
+            );
 
          // Skip generated part
-         StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, false, false,
+         Int32 EndOfGeneratedCode = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, false, false,
             EndregionString.Value, GrammlatorString.Value, GeneratedString.Value);
-         if (StartOfMarkedLine >= 0)
+         if (EndOfGeneratedCode >= 0)
          {
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
                  $"Found \"{EndregionString} {GrammlatorString} {GeneratedString}\", the last line of replaced code.",
-                StartOfMarkedLine);
+                StartOfGrammlatorLines);
          }
          else
          {

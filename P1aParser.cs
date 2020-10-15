@@ -13,12 +13,13 @@ namespace grammlator {
    /// </summary>
    internal sealed partial class P1aParser : GrammlatorApplication {
       /// <summary>
-      /// Create an instance of the parser and execute it
+      /// Create an instance of the parser (and the lexer and the classifier) and execute it.
+      /// Return the SourceReader position of the line containing "region grammlator generated"
       /// </summary>
       /// <param name="SbResult"></param>
       /// <param name="SourceReader"></param>
       /// <param name="symbolDictionary"></param>
-      public static void MakeInstanceAndExecute(
+      public static Int32 MakeInstanceAndExecute(
           SpanReaderWithCharacterAndLineCounter SourceReader,
           Dictionary<UnifiedString, Symbol> symbolDictionary)
           => new P1aParser(SourceReader, symbolDictionary).DoPhase1();
@@ -32,7 +33,8 @@ namespace grammlator {
       /// <param name="SymbolDictionary"></param>
       private P1aParser(
           SpanReaderWithCharacterAndLineCounter SourceReader,
-          Dictionary<UnifiedString, Symbol> SymbolDictionary) : base(initialSizeOfAttributeStack: 100, initialSizeOfStateStack: 100)
+          Dictionary<UnifiedString, Symbol> SymbolDictionary
+         ) : base(initialSizeOfAttributeStack: 100, initialSizeOfStateStack: 100)
       {
          this.SymbolDictionary = SymbolDictionary;
          this.Source = SourceReader.Source;
@@ -40,27 +42,27 @@ namespace grammlator {
          Lexer = new P1bLexer(SourceReader, _a, _s);
       }
 
-      private void DoPhase1()
+      /// <summary>
+      /// Analyze the grammar, 
+      /// return the SourceReader position of the line containing "region grammlator generated"
+      /// </summary>
+      /// <returns></returns>
+      private Int32 DoPhase1()
       {
          // Grammlator parameterization
          String RegionString = GlobalSettings.RegionString.Value;
-         String EndregionString = GlobalSettings.EndregionString.Value;
-         String GrammarString = GlobalSettings.GrammarString.Value;
+         String GrammlatorString = GlobalSettings.GrammlatorString.Value;
+         String GeneratedString = GlobalSettings.GeneratedString.Value;
 
          try
          {
             AnalyzeGrammlatorGrammar();
 
-            if (Lexer.MarkedLineFollows(EndregionString, GrammarString))
-            {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Status,
-                  $"Found \"{EndregionString} {GrammarString}\".");
-            }
-            else
-            {
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Abort,
-                  $"Expected \"{EndregionString} {GrammarString}\"");
-            }
+            P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Status,
+               @$"Found """
+              +@$"{GlobalSettings.RegionString.Value} {GlobalSettings.GrammlatorString.Value} "
+              +@$"{ GlobalSettings.GeneratedString.Value}"
+              +@$""".");
 
             GlobalVariables.NumberOfNonterminalSymbols = SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols;
 
@@ -72,6 +74,8 @@ namespace grammlator {
             }
          }
          finally { }
+
+         return Lexer.StartOf1stGrammlatorGeneratedLine;
       }
 
       private readonly P1bLexer Lexer;
