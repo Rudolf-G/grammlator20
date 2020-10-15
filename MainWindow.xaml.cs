@@ -326,7 +326,7 @@ namespace grammlator {
       private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs args)
       {
          ActualStatus.SetFlags(StatusFlag.SourceTextChanged, true);
-         ActualStatus.SetFlags(StatusFlag.SourceNotEmpty, (sender as TextBox)?.LineCount > 10);
+         ActualStatus.SetFlags(StatusFlag.SourceNotEmpty, (sender as TextBox)?.LineCount >= 5);
       }
    }
 }

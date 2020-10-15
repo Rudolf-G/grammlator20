@@ -103,7 +103,7 @@
                 <MenuItem x:Name="MenuItemSaveResult" Header="_Save result ..." Click="MenuItemSaveResult_Click"/>
                 <MenuItem x:Name="MenuItemSaveResultToSource" Header="_Save result to source ..." Click="MenuItemSaveResultToSource_Click"/>
             </MenuItem>
-            <MenuItem Header="_Translate">
+            <MenuItem Header="_Translate" x:Name="MenuItemTranslate" >
                 <MenuItem x:Name="MenuItemTranslateStandard" Header="with _standard options ..." Click="MenuItemTranslateStandard_Click"/>
                 <Separator/>
                 <MenuItem x:Name="MenuItemReloadAndTranslate" Header="_reload source and translate ..." Click="MenuItemReloadAndTranslate_Click"/>

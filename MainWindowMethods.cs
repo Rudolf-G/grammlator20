@@ -69,6 +69,7 @@ namespace grammlator {
          Boolean SourceNotEmpty = ActualStatus.TestFlags(StatusFlag.SourceNotEmpty);
          MenuItemSaveSource.IsEnabled = SourceNotEmpty;
          MenuItemTranslateStandard.IsEnabled = SourceNotEmpty;
+      
 
          Boolean SourceHasFilename = ActualStatus.TestFlags(StatusFlag.SourceHasFilename);
          MenuItemReloadAndTranslate.IsEnabled = SourceHasFilename;
@@ -76,6 +77,8 @@ namespace grammlator {
             Title = SourceFilename;
          else
             Title = "- no source filename -";
+
+         MenuItemTranslate.IsEnabled = MenuItemTranslateStandard.IsEnabled | MenuItemReloadAndTranslate.IsEnabled;
 
          Boolean ResultAvailable = ActualStatus.TestFlags(StatusFlag.ResultAvailable);
          MenuItemSaveResult.IsEnabled = ResultAvailable;
