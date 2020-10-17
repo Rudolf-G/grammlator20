@@ -167,7 +167,7 @@ namespace grammlator {
          LoadSourcefile();
       }
 
-      private void MenuItemClearSourceTab_Click(Object sender, RoutedEventArgs e)
+      private void MenuItemClearSourceTextbox_Click(Object sender, RoutedEventArgs e)
       {
          SourceTextBox.Clear();
          SourceFilename = "";
@@ -225,7 +225,7 @@ namespace grammlator {
          OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
       }
 
-      private void DisplayExample_Click(Object sender, RoutedEventArgs e)
+      private void MenuItemDisplayExample_Click(Object sender, RoutedEventArgs e)
       {
          String FileFullPath = AppContext.BaseDirectory + "GrammlatorConsoleExample.txt";
          bool exists = File.Exists(FileFullPath);

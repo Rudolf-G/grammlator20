@@ -98,10 +98,11 @@
         <Menu x:Name="GrammlatorMenu">
             <MenuItem Header="_File" UseLayoutRounding="True">
                 <MenuItem x:Name="MenuItemLoadSourceFile" Header="_Load source file ..." Click="MenuItemLoadSourceFile_Click"/>
+                <MenuItem x:Name="MenuItemClearSourceTab" Header="_Clear source textbox !" Click="MenuItemClearSourceTextbox_Click"/>
                 <Separator/>
                 <MenuItem x:Name="MenuItemSaveSource" Header="Save source ..." Click="MenuItemSaveSource_Click"/>
                 <MenuItem x:Name="MenuItemSaveResult" Header="_Save result ..." Click="MenuItemSaveResult_Click"/>
-                <MenuItem x:Name="MenuItemSaveResultToSource" Header="_Save result to source ..." Click="MenuItemSaveResultToSource_Click"/>
+                <MenuItem x:Name="MenuItemSaveResultToSource" Header="_Copy result to source textbox and save ..." Click="MenuItemSaveResultToSource_Click"/>
             </MenuItem>
             <MenuItem Header="_Translate" x:Name="MenuItemTranslate" >
                 <MenuItem x:Name="MenuItemTranslateStandard" Header="with _standard options ..." Click="MenuItemTranslateStandard_Click"/>
