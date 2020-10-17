@@ -38,7 +38,7 @@ namespace GrammlatorExamples {
          #region grammar
          //| TerminalSymbolEnum: "AorBorEnd"; 
          //| SymbolNameOrFunctionCall: "PeekSymbol()"; SymbolAcceptInstruction: "i++;";
-         //| ErrorHaltInstruction: "MyError(); return false;"
+         //| ErrorHaltInstruction: "MyError(); return false;";
          //| StateStack: "StateStack";
          //| AttributeStack: "AttrStack";
          //|

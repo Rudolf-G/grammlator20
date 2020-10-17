@@ -167,6 +167,15 @@ namespace grammlator {
          LoadSourcefile();
       }
 
+      private void MenuItemClearSourceTab_Click(Object sender, RoutedEventArgs e)
+      {
+         SourceTextBox.Clear();
+         SourceFilename = "";
+         ActualStatus.SetFlags(StatusFlag.SourceHasFilename | StatusFlag.SourceNotEmpty | StatusFlag.SourceTextChanged, false);
+         ClearAllResultsAndErrorBoxes();
+      }
+
+
       private Boolean LoadSourcefile()
       {
 
@@ -326,7 +335,8 @@ namespace grammlator {
       private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs args)
       {
          ActualStatus.SetFlags(StatusFlag.SourceTextChanged, true);
-         ActualStatus.SetFlags(StatusFlag.SourceNotEmpty, (sender as TextBox)?.LineCount > 10);
+         TextBox tb = (TextBox)sender;
+         ActualStatus.SetFlags(StatusFlag.SourceNotEmpty, tb.LineCount >= 5);
       }
    }
 }

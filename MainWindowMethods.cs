@@ -47,7 +47,7 @@ namespace grammlator {
          {
             FlagChanged = flagChanged;
             Status = 0;
-            FlagChanged?.Invoke();
+            FlagChanged?.Invoke(); // calls StatusChanged()
          }
          internal void SetFlags(StatusFlag flags, Boolean value)
          {
@@ -76,6 +76,8 @@ namespace grammlator {
             Title = SourceFilename;
          else
             Title = "- no source filename -";
+
+         MenuItemTranslate.IsEnabled = MenuItemTranslateStandard.IsEnabled | MenuItemReloadAndTranslate.IsEnabled;
 
          Boolean ResultAvailable = ActualStatus.TestFlags(StatusFlag.ResultAvailable);
          MenuItemSaveResult.IsEnabled = ResultAvailable;
