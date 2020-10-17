@@ -388,8 +388,8 @@ namespace grammlator {
 
       //|
       //| OptionalDeclarationOfTerminalSymbols=
-      //|      SemikolonOrEnum
-      //|    | TerminalSymbolsList, SemikolonOrEnum
+      //|      OptionalSemikolonOrEnum
+      //|    | TerminalSymbolsList, OptionalSemikolonOrEnum
 
       //|  TerminalSymbolsList=
       //|     TerminalSymbol
@@ -433,7 +433,7 @@ namespace grammlator {
          OptimizeTrivialDefinitions = OptimizeTrivialDefinitionsBackup;
       }
 
-      //| SemikolonOrEnum= // at end of terminal definitions
+      //| OptionalSemikolonOrEnum= // at end of terminal definitions
       //|    | ";"
       //|    | EnumOrEmptyCode
 
@@ -1011,7 +1011,7 @@ namespace grammlator {
             goto Reduce2;
          Reduce6:
          /* sAdjust: -1
-          * OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, SemikolonOrEnum;◄ */
+          * OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, OptionalSemikolonOrEnum;◄ */
          _s.Pop();
       Reduce2:
          /* DeclarationOfTerminalSymbols= OptionalDeclarationOfTerminalSymbols;◄ */
@@ -1939,7 +1939,7 @@ namespace grammlator {
          _s.Discard(2);
       State5:
          const String StateDescription5 =
-              "OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, ►SemikolonOrEnum;\r\n"
+              "OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, ►OptionalSemikolonOrEnum;\r\n"
             + "TerminalSymbolsList= TerminalSymbolsList, ►\"|\", TerminalSymbol;";
          _s.Push(1);
          ParserInput = Lexer.PeekSymbol();

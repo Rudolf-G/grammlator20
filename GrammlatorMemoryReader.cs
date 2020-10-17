@@ -136,7 +136,7 @@ namespace grammlator {
          if (eolIndex < 0)
             { // no end of line
             EoLLength = 0;
-            result = Source[Position..^1];
+            result = Source[Position..^0];
             Position = Source.Length; // last line of input
             return result;
             }
