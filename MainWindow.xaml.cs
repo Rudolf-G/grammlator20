@@ -167,6 +167,15 @@ namespace grammlator {
          LoadSourcefile();
       }
 
+      private void MenuItemClearSourceTab_Click(Object sender, RoutedEventArgs e)
+      {
+         SourceTextBox.Clear();
+         SourceFilename = "";
+         ActualStatus.SetFlags(StatusFlag.SourceHasFilename | StatusFlag.SourceNotEmpty | StatusFlag.SourceTextChanged, false);
+         ClearAllResultsAndErrorBoxes();
+      }
+
+
       private Boolean LoadSourcefile()
       {
 
@@ -216,7 +225,7 @@ namespace grammlator {
          OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
       }
 
-      private void MenuItemDisplayExample_Click(Object sender, RoutedEventArgs e)
+      private void DisplayExample_Click(Object sender, RoutedEventArgs e)
       {
          String FileFullPath = AppContext.BaseDirectory + "GrammlatorConsoleExample.txt";
          bool exists = File.Exists(FileFullPath);
@@ -326,7 +335,8 @@ namespace grammlator {
       private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs args)
       {
          ActualStatus.SetFlags(StatusFlag.SourceTextChanged, true);
-         ActualStatus.SetFlags(StatusFlag.SourceNotEmpty, (sender as TextBox)?.LineCount >= 5);
+         TextBox tb = (TextBox)sender;
+         ActualStatus.SetFlags(StatusFlag.SourceNotEmpty, tb.LineCount >= 5);
       }
    }
 }

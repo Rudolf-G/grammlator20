@@ -47,7 +47,7 @@ namespace grammlator {
          {
             FlagChanged = flagChanged;
             Status = 0;
-            FlagChanged?.Invoke();
+            FlagChanged?.Invoke(); // calls StatusChanged()
          }
          internal void SetFlags(StatusFlag flags, Boolean value)
          {
