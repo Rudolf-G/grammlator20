@@ -452,7 +452,7 @@ namespace grammlator {
           */
          if (SymbolDictionary.Count == 0)
             TerminalSymbolDeclaration(
-               new UnifiedString("*"),
+               new UnifiedString(GlobalSettings.NameOfDefaultTerminalSymbol.Value),
                numberOfAttributes: 0,
                weight: 0);
          GlobalVariables.NumberOfTerminalSymbols = SymbolDictionary.Count;

@@ -180,6 +180,10 @@ namespace grammlator {
          = new Int64Setting("ErrorLimit", 6, InternalSettings,
             @"Grammlator will abort translation if ErrorLimit errormessages are found.");
 
+      internal static readonly StringSetting NameOfDefaultTerminalSymbol
+         = new StringSetting("NameOfDefaultTerminalSymbol", "*default terminal symbol*", InternalSettings,
+            @"Grammlator will create a terminal symbol with this name if the source does not declare any terminal symbol");
+
       /*** Settings which can be modified by the user ***/
 
       /// <summary>

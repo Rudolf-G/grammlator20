@@ -801,7 +801,7 @@ namespace grammlator {
          IdentifierAndAttributesToSB(sb);
 
          if (IsNullable)
-            sb.Append(", generates the empty string");
+            sb.Append(", generates the empty sequence");
 
          if (!isUsed)
             sb.Append(", is not used in any definition");

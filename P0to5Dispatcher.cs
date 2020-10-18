@@ -91,10 +91,6 @@ namespace grammlator {
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
                $"Missing \"{RegionString} {GrammlatorString}\"",
                StartOfGeneratedCode);
-         //else
-         //   OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
-         //      $"Found \"{RegionString} {GrammlatorString} {GeneratedString}\"",
-         //      StartOfGeneratedCode);
 
          // Copy grammar to Resultbuilder
          SourceReader.CopyFromTo(Resultbuilder,

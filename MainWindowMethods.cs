@@ -29,14 +29,15 @@ namespace grammlator {
       readonly Stopwatch Watch = new Stopwatch();
 
       [Flags]
-      internal enum StatusFlag {
-         NoSourceNoResult = 0,
-         SourceNotEmpty = 1, SourceHasFilename = 2, SourceTextChanged = 4, // SourceTextChanged is set but not yet used
-         ResultAvailable = 8
+      internal enum StatusFlags {
+         NoFlags = 0,
+         SourceNotEmpty = 1, SourceHasFilename = 2,
+         SourceTextChanged = 4, SourceTextChangedSinceLastTranslate = 8, 
+         ResultAvailable = 32
       };
 
       internal struct StatusStruct {
-         StatusFlag Status;
+         StatusFlags Status;
          Action FlagChanged;
 
          internal void SetAction(Action flagChanged)
@@ -49,9 +50,9 @@ namespace grammlator {
             Status = 0;
             FlagChanged?.Invoke(); // calls StatusChanged()
          }
-         internal void SetFlags(StatusFlag flags, Boolean value)
+         internal void SetFlags(StatusFlags flags, Boolean value)
          {
-            StatusFlag Old = Status;
+            StatusFlags Old = Status;
             Status |= flags; // set flags using OR
             if (!value)
                Status ^= flags; // clear set flags using XOR
@@ -59,19 +60,24 @@ namespace grammlator {
                FlagChanged?.Invoke();
          }
 
-         internal Boolean TestFlags(StatusFlag flags)
-            => (Status & flags) != 0;
+         /// <summary>
+         /// Tests if each of the flags is true. Returns true if no flags are specified.
+         /// </summary>
+         /// <param name="flags">The flags to test</param>
+         /// <returns>true if if all specified flags are set (or if no flags are specified)</returns>
+         internal Boolean TestFlags(StatusFlags flags)
+            => (Status & flags) == flags;
 
       }
 
       void StatusChanged() // this should be the only one place to enable or disable MenuItems
       {
-         Boolean SourceNotEmpty = ActualStatus.TestFlags(StatusFlag.SourceNotEmpty);
+         Boolean SourceNotEmpty = ActualStatus.TestFlags(StatusFlags.SourceNotEmpty);
          MenuItemSaveSource.IsEnabled = SourceNotEmpty;
          MenuItemTranslateStandard.IsEnabled = SourceNotEmpty;
-      
 
-         Boolean SourceHasFilename = ActualStatus.TestFlags(StatusFlag.SourceHasFilename);
+
+         Boolean SourceHasFilename = ActualStatus.TestFlags(StatusFlags.SourceHasFilename);
          MenuItemReloadAndTranslate.IsEnabled = SourceHasFilename;
          if (SourceHasFilename)
             Title = SourceFilename;
@@ -80,7 +86,7 @@ namespace grammlator {
 
          MenuItemTranslate.IsEnabled = MenuItemTranslateStandard.IsEnabled | MenuItemReloadAndTranslate.IsEnabled;
 
-         Boolean ResultAvailable = ActualStatus.TestFlags(StatusFlag.ResultAvailable);
+         Boolean ResultAvailable = ActualStatus.TestFlags(StatusFlags.ResultAvailable);
          MenuItemSaveResult.IsEnabled = ResultAvailable;
          MenuItemSaveResultToSource.IsEnabled = ResultAvailable;
          MenuItemCompare.IsEnabled = ResultAvailable;
@@ -88,6 +94,15 @@ namespace grammlator {
       }
 
       StatusStruct ActualStatus;
+
+      private Boolean AllowReplaceSourceBoxTextIfChanged(StatusFlags changeFlag, String messageBoxText)
+      {
+         if (!ActualStatus.TestFlags(changeFlag))
+            return true;
+         return MessageBoxResult.Yes 
+            == MessageBox.Show("Do you want to replace the contents of the source textbox?", messageBoxText, MessageBoxButton.YesNo);
+      }
+
 
       /// <summary>
       ///Store messagetype, message (with text position 0) for later display in UI.
@@ -162,7 +177,10 @@ namespace grammlator {
             if (errors >= GlobalSettings.ErrorLimit.Value)
                throw new ErrorInSourcedataException(
                   $"More than {GlobalSettings.ErrorLimit.Value} messages");
-            goto case MessageTypeOrDestinationEnum.Status;
+            // display shortened message in log and complete message in ErrorList
+            AppendLine(Log, messageHeader(), ReferenceToBox(MessageIncludingPosition));
+            AddErrorBox(MessageIncludingPosition, pos, bold: true);
+            return;
 
          case MessageTypeOrDestinationEnum.Warning:
             warnings++;
@@ -171,7 +189,7 @@ namespace grammlator {
          case MessageTypeOrDestinationEnum.Status:
             // display shortened message in log and complete message in ErrorList
             AppendLine(Log, messageHeader(), ReferenceToBox(MessageIncludingPosition));
-            AddErrorBox(MessageIncludingPosition, pos);
+            AddErrorBox(MessageIncludingPosition, pos, bold: false);
             return;
 
          case MessageTypeOrDestinationEnum.AbortIfErrors:
@@ -196,7 +214,7 @@ namespace grammlator {
 
       readonly FontFamily StandardFont = new FontFamily("Consolas");
 
-      private void AddErrorBox(String text, Int32 position)
+      private void AddErrorBox(String text, Int32 position, Boolean bold = false)
       {
          ErrorPositions.Add(position);
 
@@ -211,6 +229,7 @@ namespace grammlator {
             UseLayoutRounding = true,
             Padding = new Thickness(5, 5, 5, 5),
             FontFamily = StandardFont,
+            FontWeight = bold ? FontWeights.Bold : FontWeights.Normal,
             FontSize = 10,
             TextWrapping = TextWrapping.Wrap,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -272,7 +291,7 @@ namespace grammlator {
 
       private void ClearAllResultsAndErrorBoxes()
       {
-         ActualStatus.SetFlags(StatusFlag.ResultAvailable, false);
+         ActualStatus.SetFlags(StatusFlags.ResultAvailable, false);
 
          RemoveErrorBoxes();
          SymbolsTextBox.Clear();
@@ -302,8 +321,10 @@ namespace grammlator {
             SourceTextBox.Text = File.ReadAllText(OpenSourceFileDialog.FileName);
             SourceFilename = OpenSourceFileDialog.FileName;
 
-            ActualStatus.SetFlags(StatusFlag.SourceHasFilename | StatusFlag.SourceNotEmpty, true);
-            ActualStatus.SetFlags(StatusFlag.SourceTextChanged, false);
+            ActualStatus.SetFlags(StatusFlags.SourceHasFilename | StatusFlags.SourceNotEmpty, true);
+            ActualStatus.SetFlags(
+               StatusFlags.SourceTextChanged | StatusFlags.SourceTextChangedSinceLastTranslate,
+               false);
 
 
             // show source file with cursor at first position
@@ -350,7 +371,8 @@ namespace grammlator {
             }
             else
             {
-               ActualStatus.SetFlags(StatusFlag.ResultAvailable, true);
+               ActualStatus.SetFlags(StatusFlags.ResultAvailable, true);
+               ActualStatus.SetFlags(StatusFlags.SourceTextChangedSinceLastTranslate, false);
             }
          }
          catch (ErrorInSourcedataException e)
@@ -360,7 +382,7 @@ namespace grammlator {
             // show message in new Errorbox
             if (errors++ == 0)
                firstErrorIndex = ErrorPositions.Count;
-            AddErrorBox(e.Message, e.Position);
+            AddErrorBox(e.Message, e.Position, bold: true);
          }
          catch (Exception ex)
          {
@@ -404,7 +426,7 @@ namespace grammlator {
          else if (errors > 0)
             AppendLine(Log, "<<<< translation not completed (errors)  ", "");
 
-         if (!ActualStatus.TestFlags(StatusFlag.ResultAvailable))
+         if (!ActualStatus.TestFlags(StatusFlags.ResultAvailable))
          {
             ResultTextBox.Clear();
          }

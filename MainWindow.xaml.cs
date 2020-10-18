@@ -52,7 +52,75 @@ namespace grammlator {
       };
 
 
-      private bool SaveFile(string lastFileName, string title, string text, bool allowSourceAsDestination)
+      private void MenuItemSaveSource_Click(Object sender, RoutedEventArgs e)
+      {
+         SaveSource();
+      }
+
+      private void MenuItemLoadSourceFile_Click(Object sender, RoutedEventArgs e)
+      {
+         if (!AllowReplaceSourceBoxTextIfChanged(StatusFlags.SourceTextChanged, "The source textbox has been edited and not yet saved!"))
+            return;
+
+         LoadSourcefile();
+      }
+
+      private void MenuItemClearSourceTextbox_Click(Object sender, RoutedEventArgs e)
+      {
+         if (!AllowReplaceSourceBoxTextIfChanged(StatusFlags.SourceTextChanged, "The source textbox has been edited and not yet saved!"))
+            return;
+
+         SourceTextBox.Clear();
+         SourceFilename = "";
+         ActualStatus.SetFlags(
+            StatusFlags.SourceHasFilename | StatusFlags.SourceNotEmpty
+            | StatusFlags.SourceTextChanged | StatusFlags.SourceTextChangedSinceLastTranslate
+            , false);
+         ClearAllResultsAndErrorBoxes();
+      }
+
+      private void SaveSource()
+      {
+         if (!SaveFile(SourceFilename, "Save source file", SourceTextBox.Text, true))
+            return;
+
+         // Source has been saved (may be with a different filename)
+
+         // TODO mark sourcefile as unchanged (has been saved)
+
+         SourceFilename = SaveSourceOrResultDialog.FileName;
+         ActualStatus.SetFlags(StatusFlags.SourceHasFilename, true);
+         ActualStatus.SetFlags(
+            StatusFlags.SourceTextChanged | StatusFlags.SourceTextChangedSinceLastTranslate,
+            false);
+      }
+
+      private void MenuItemSaveResult_Click(Object sender, RoutedEventArgs e)
+      {
+         if (!ActualStatus.TestFlags(StatusFlags.ResultAvailable))
+         {
+            // this should not occur because the "SaveResult" should be disabled
+            MessageBox.Show("No result available");
+            return;
+         };
+
+         // Preset ResultFilename with SourceFilename+"-generated"
+         String ResultFilename = "";
+         if (SourceFilename != "")
+            ResultFilename =
+                Path.GetDirectoryName(SourceFilename) + "\\" +
+                Path.GetFileNameWithoutExtension(SourceFilename) + "-generated" +
+                Path.GetExtension(SourceFilename);
+
+         // SaveFile will display warnings if saving to source
+         if (!SaveFile(ResultFilename, "Save result", ResultTextBox.Text, false))
+            return;
+
+         // Result has been saved
+
+      }
+
+      private bool SaveFile(string lastFileName, string title, string text, bool saveOfSource)
       {
          Debug.Assert(!String.IsNullOrEmpty(title));
 
@@ -63,6 +131,8 @@ namespace grammlator {
          }
 
          SaveSourceOrResultDialog.Title = title;
+
+         /*** Show SaveFileDialog ***/
          Boolean? r = SaveSourceOrResultDialog.ShowDialog();
          if (r != true)
             return false; // canceled by user
@@ -70,10 +140,37 @@ namespace grammlator {
          // Did the user select the source file?
          bool SourceFileReplace = SourceFilename != "" && SourceFilename == SaveSourceOrResultDialog.FileName;
 
-         if (!allowSourceAsDestination && SourceFileReplace)
+         if (!saveOfSource && SourceFileReplace)
          {
-            // ask user if source textbox contens and source file should be replaced by result
-            if (MessageBoxResult.Cancel == MessageBox.Show("Copy the result to the source text and save to source file?",
+
+            // ask user if source textbox content and source file should be replaced by result
+            // a) least problem: no change of textbox since last load
+            if (!ActualStatus.TestFlags(StatusFlags.SourceTextChanged))
+            {
+               if (MessageBoxResult.Cancel == MessageBox.Show("Copy the result to the source text and save to source file? (source has not been edited)",
+                  "Save result to source?", MessageBoxButton.OKCancel)
+                  )
+                  return false;
+            }
+            // b) minor problem: no change of textbox since last translate (will be included in the result)
+            else if (!ActualStatus.TestFlags(StatusFlags.SourceTextChangedSinceLastTranslate))
+            {
+               if (MessageBoxResult.Cancel == MessageBox.Show("Copy the result to the source text and save it to the source file? (source has been edited and then translated)",
+                  "Save result to source?", MessageBoxButton.OKCancel)
+                  )
+                  return false;
+            }
+            // c) be careful: change of textbox since last successful translate (will be lost)
+            else
+            {
+               if (MessageBoxResult.Cancel == MessageBox.Show("Copy the result to the source text and save to source file? (source has been edited since last successful translation !)",
+                  "Save result to source?", MessageBoxButton.OKCancel)
+                  )
+                  return false;
+            }
+
+            // "Replacing the source file with the result of the last translation will also replace the contents of the source textbox. The textbox has been edited since the last successfull translation!"
+            if (MessageBoxResult.Cancel == MessageBox.Show("Copy the result to the source file and then to the source text?",
                "Save result to source?", MessageBoxButton.OKCancel)
                )
                return false;
@@ -95,90 +192,53 @@ namespace grammlator {
          if (SourceFileReplace)
          {
             SourceFilename = SaveSourceOrResultDialog.FileName;
-            ActualStatus.SetFlags(StatusFlag.SourceHasFilename, true);
-            ActualStatus.SetFlags(StatusFlag.SourceTextChanged, false); // has just been saved
+            ActualStatus.SetFlags(StatusFlags.SourceHasFilename, true);
+            ActualStatus.SetFlags(
+               StatusFlags.SourceTextChanged | StatusFlags.SourceTextChangedSinceLastTranslate,
+               false); // has just been saved
          }
          return true;
       }
 
-      private void MenuItemSaveSource_Click(Object sender, RoutedEventArgs e)
-      {
-         SaveSource();
-      }
-
       private void MenuItemSaveResultToSource_Click(Object sender, RoutedEventArgs e)
       {
-         if (!ActualStatus.TestFlags(StatusFlag.ResultAvailable))
+         if (!ActualStatus.TestFlags(StatusFlags.ResultAvailable))
          {
             // this should not occur because the "SaveResultToSource" should be disabled
             MessageBox.Show("No result available");
             return;
          }
 
+         if (!AllowReplaceSourceBoxTextIfChanged(StatusFlags.SourceTextChangedSinceLastTranslate,
+            "The source textbox has been edited since last successful translation and not yet saved!")
+   )
+            return;
+
+
          SourceTextBox.Text = ResultTextBox.Text;
          SaveSource();
       }
 
-      private void SaveSource()
-      {
-         if (!SaveFile(SourceFilename, "Save source file", SourceTextBox.Text, true))
-            return;
-
-         // Source has been saved (may be with a different filename)
-
-         // TODO mark sourcefile as unchanged (has been saved)
-
-         SourceFilename = SaveSourceOrResultDialog.FileName;
-         ActualStatus.SetFlags(StatusFlag.SourceHasFilename, true);
-         ActualStatus.SetFlags(StatusFlag.SourceTextChanged, false);
-      }
-
-      private void MenuItemSaveResult_Click(Object sender, RoutedEventArgs e)
-      {
-         if (!ActualStatus.TestFlags(StatusFlag.ResultAvailable))
-         {
-            // this should not occur because the "SaveResult" should be disabled
-            MessageBox.Show("No result available");
-            return;
-         };
-
-         // Preset ResultFilename with SourceFilename+"-generated"
-         String ResultFilename = "";
-         if (SourceFilename != "")
-            ResultFilename =
-                Path.GetDirectoryName(SourceFilename) + "\\" +
-                Path.GetFileNameWithoutExtension(SourceFilename) + "-generated" +
-                Path.GetExtension(SourceFilename);
-
-
-         if (!SaveFile(ResultFilename, "Save result", ResultTextBox.Text, false))
-            return;
-
-         // Result has been saved
-
-      }
-
-
       private void MenuItemTranslateStandard_Click(Object _1, RoutedEventArgs _2)
          => Translate();
 
-      private void MenuItemLoadSourceFile_Click(Object sender, RoutedEventArgs e)
+      private void MenuItemReloadAndTranslate_Click(Object sender, RoutedEventArgs e)
       {
-         LoadSourcefile();
-      }
+         if (String.IsNullOrEmpty(SourceFilename))
+         {
+            MessageBox.Show("unknown filename");
+            return;
+         }
 
-      private void MenuItemClearSourceTextbox_Click(Object sender, RoutedEventArgs e)
-      {
-         SourceTextBox.Clear();
-         SourceFilename = "";
-         ActualStatus.SetFlags(StatusFlag.SourceHasFilename | StatusFlag.SourceNotEmpty | StatusFlag.SourceTextChanged, false);
-         ClearAllResultsAndErrorBoxes();
-      }
+         if (!AllowReplaceSourceBoxTextIfChanged(StatusFlags.SourceTextChanged, "The source textbox has been edited and not yet saved!"))
+            return;
 
+         if (LoadSourcefile())
+            Translate();
+      }
 
       private Boolean LoadSourcefile()
       {
-
          OpenSourceFileDialog.FileName = "";
 
          if (!String.IsNullOrEmpty(SourceFilename))
@@ -193,18 +253,6 @@ namespace grammlator {
             return false; // canceled by user
 
          return ClearResultsAndReadFileToSourceTextbox(); // and set ActualStatus
-      }
-
-      private void MenuItemReloadAndTranslate_Click(Object sender, RoutedEventArgs e)
-      {
-         if (String.IsNullOrEmpty(SourceFilename))
-         {
-            MessageBox.Show("unknown filename");
-            return;
-         }
-
-         if (LoadSourcefile())
-            Translate();
       }
 
       private void CompareIgnoringSeparators_Click(Object _1, RoutedEventArgs _2)
@@ -265,6 +313,15 @@ namespace grammlator {
          OnFocusTextBox(new FocusTextBoxEventArgs(InfoTextBox));
       }
 
+      private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs args)
+      {
+         ActualStatus.SetFlags(
+            StatusFlags.SourceTextChanged | StatusFlags.SourceTextChangedSinceLastTranslate, true
+            );
+         TextBox tb = (TextBox)sender;
+         ActualStatus.SetFlags(StatusFlags.SourceNotEmpty, tb.LineCount >= 5);
+      }
+
       private void SourceTextBox_MouseEnter(Object sender, System.Windows.Input.MouseEventArgs e)
       {
          SourceTextBox.Focus();
@@ -286,15 +343,15 @@ namespace grammlator {
       public event EventHandler<FocusTextBoxEventArgs> FocusTextBox;
 
       /// <summary>
-      /// While handling a click on a TextBox it is not possible 
-      /// to give focus to another textbox by "AnotherBox.Focus()".
+      /// While handling a double click on an error TextBox a call of
+      /// SourceTextBox.Focus() has no effect.
       /// This problem is solved by <see cref="OnFocusTextBox(FocusTextBoxEventArgs)"/>,
       /// which raises an event. This event is handled by the MainWindow.
       /// </summary>
-      /// <param name="e"></param>
+      /// <param name="e">typically the source textbox</param>
       protected virtual void OnFocusTextBox(FocusTextBoxEventArgs e)
       {
-         FocusTextBox?.Invoke(this, e);
+         FocusTextBox?.Invoke(this, e); // invokes HandleFocusTextBox
       }
 
       void HandleFocusTextBox(object? sender, FocusTextBoxEventArgs e)
@@ -309,8 +366,10 @@ namespace grammlator {
 
       private void ErrorBox_GotFocus(Object sender, RoutedEventArgs e)
       {
+         // Set cursor of the source textbox
          if (sender is TextBox tb)
          {
+            // The name of the error textbox contains its number, which is used to index ErrorPositions
             Int32 Index = Int32.Parse(tb.Name.AsSpan(1));
             if (Index < ErrorPositions.Count)
                SetCursorOfSourceTextbox(ErrorPositions[Index]);
@@ -332,11 +391,5 @@ namespace grammlator {
             }
       }
 
-      private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs args)
-      {
-         ActualStatus.SetFlags(StatusFlag.SourceTextChanged, true);
-         TextBox tb = (TextBox)sender;
-         ActualStatus.SetFlags(StatusFlag.SourceNotEmpty, tb.LineCount >= 5);
-      }
    }
 }
