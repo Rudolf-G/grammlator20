@@ -434,6 +434,7 @@ namespace grammlator {
       }
 
       //| OptionalSemikolonOrEnum= // at end of terminal definitions
+      //|    /* empty */
       //|    | ";"
       //|    | EnumOrEmptyCode
 

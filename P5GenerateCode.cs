@@ -114,7 +114,7 @@ namespace grammlator {
                labelMustBeGenerated: true);
          }
          if (GlobalVariables.TheEndOfGeneratedCodeAction.Calls > 0)
-         {
+         {           
             GenerateCodeSequence(Codegen,
                GlobalVariables.TheEndOfGeneratedCodeAction, GlobalVariables.TheEndOfGeneratedCodeAction.AcceptCalls > 0,
                labelMustBeGenerated: true);
@@ -376,6 +376,8 @@ namespace grammlator {
                codegen.GenerateBeginOfBlock();
                BeginOfBlockHasBeenGenerated = true;
             }
+
+            /**** Generate the action ****/
 
             ActionToGenerate = ActionToGenerate.Generate(codegen, out Accept);
 

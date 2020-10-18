@@ -12,8 +12,8 @@ namespace grammlator {
       //| // Grammlator settings
       //| TerminalSymbolEnum: "E";
       //| SymbolNameOrFunctionCall: "Peek()";
-      //| SymbolAcceptInstruction: "Accepted = true;"
-      //| ErrorHaltInstruction: "return false;"
+      //| SymbolAcceptInstruction: "Accepted = true;";
+      //| ErrorHaltInstruction: "return false;";
       //| CompareToFlagTestBorder: 2;
       //| IsMethod: "_is";
       //|
@@ -23,7 +23,7 @@ namespace grammlator {
          CloseParenthesis = 32, Percent = 64, Comma = 128, Other = 512, EOL = 1024
       };
 
-      #endregion
+      #endregion grammar
       private Boolean Analyze(ReadOnlyMemory<char> description, int textPos)
       {
          int i = -1; // Index of the last accepted char
@@ -62,14 +62,14 @@ namespace grammlator {
             };
          }
 
-         #region description grammar
+         #region grammar
          //|
          //| *= QuotationMark, Space*,
          //|    TerminalIdentifier, Space*,
          //|    OpenParenthesis, Space*,
          //|    Attributes?,
          //|    CloseParenthesis, Space*
-         //|    Weight?
+         //|    OptionalWeight
          void AssignAttributes()
          {
             if (!TerminalHasBeenDefined)
@@ -118,8 +118,10 @@ namespace grammlator {
             IdentifierFirstPos = i;
             IdentifierLastPos = i;
          }
-         //|   | Identifier, (LetterOrDigit= Letter|Digit)
+         //|   | Identifier, (LetterOrDigit= Letter | Digit ) 
          void IdentifierNextChar() => IdentifierLastPos = i;
+         //|
+         //| 
          //|
          //| Digits=
          //|    Digit ??-2??
@@ -142,293 +144,293 @@ namespace grammlator {
             => AttributeIdentifiers.Add(description[IdentifierFirstPos..(IdentifierLastPos + 1)]);
 
          //|
-         //| AttributeType=Identifier
+         //| AttributeType= Identifier ??-10??
          void AddAttributeType()
             => AttributeTypes.Add(description[IdentifierFirstPos..(IdentifierLastPos + 1)]);
 
          //|
-         //| Weight= Percent, Digits
+         //| OptionalWeight= /* empty */ ??-20?? | Percent, Digits ??-21??
          void ReAssignWeight()
             => long.TryParse(description[NumberFirstPos..(NumberLastPos + 1)].Span, out Terminal!.Weight);
          //|
          #endregion grammar
-         #region grammlator generated 9 Okt 2020 (grammlator file version/date 2020.10.06.0/9 Okt 2020)
-         Int32 _StateStackInitialCount = _s.Count;
-         Boolean _is(E flags) => ((Peek()) & flags) != 0;
+#region grammlator generated 18 Okt 2020 (grammlator file version/date 2020.10.15.0/18 Okt 2020)
+  Int32 _StateStackInitialCount = _s.Count;
+  Boolean _is(E flags) => ((Peek()) & flags) != 0;
 
-         // State1:
-         /* *Startsymbol= ►QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, Weight?; */
-         if (Peek() != E.QuotationMark)
-            goto EndWithError;
-         Debug.Assert(Peek() == E.QuotationMark);
-      AcceptState3:
-         Accepted = true;
-         // State3:
-         /* *Startsymbol= QuotationMark, Space*, ►TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, Weight?;
-          * Space*= Space*, ►Space; */
-         if (Peek() <= E.Space)
-            goto AcceptState3;
-         if (Peek() > E.Letter)
-            goto EndWithError;
-         Debug.Assert(Peek() == E.Letter);
-         Accepted = true;
-         // Reduce1:
-         /* Identifier= Letter;◄ */
+  // State1:
+  /* *Startsymbol= ►QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, OptionalWeight; */
+  if (Peek() != E.QuotationMark)
+     goto EndWithError;
+  Debug.Assert(Peek() == E.QuotationMark);
+AcceptState3:
+  Accepted = true;
+  // State3:
+  /* *Startsymbol= QuotationMark, Space*, ►TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, OptionalWeight;
+   * Space*= Space*, ►Space; */
+  if (Peek() <= E.Space)
+     goto AcceptState3;
+  if (Peek() > E.Letter)
+     goto EndWithError;
+  Debug.Assert(Peek() == E.Letter);
+  Accepted = true;
+  // Reduce1:
+  /* Identifier= Letter;◄ */
 
-         IdentifierFirstChar();
+  IdentifierFirstChar();
 
-      State4:
-         /* TerminalIdentifier= Identifier●;
-          * Identifier= Identifier, ►LetterOrDigit; */
-         if (_is(E.Space | E.OpenParenthesis))
-         // Reduce2:
-         {
-            /* TerminalIdentifier= Identifier;◄ */
+State4:
+  /* TerminalIdentifier= Identifier●;
+   * Identifier= Identifier, ►LetterOrDigit; */
+  if (Peek() <= E.Space || _is(E.OpenParenthesis))
+     // Reduce2:
+     {
+     /* TerminalIdentifier= Identifier;◄ */
 
-            TerminalIdentifier();
+     TerminalIdentifier();
 
-            goto State6;
-         }
-         if (Peek() >= E.QuotationMark)
-            goto EndWithError;
-         Debug.Assert(_is(E.Letter | E.Digit));
-         Accepted = true;
-         // Reduce3:
-         /* Identifier= Identifier, LetterOrDigit;◄ */
+     goto State6;
+     }
+  if (Peek() >= E.QuotationMark)
+     goto EndWithError;
+  Debug.Assert(_is(E.Letter | E.Digit));
+  Accepted = true;
+  // Reduce3:
+  /* Identifier= Identifier, LetterOrDigit;◄ */
 
-         IdentifierNextChar();
+  IdentifierNextChar();
 
-         goto State4;
+  goto State4;
 
-      Reduce5:
-         /* Identifier= Letter;◄ */
+Reduce5:
+  /* Identifier= Letter;◄ */
 
-         IdentifierFirstChar();
+  IdentifierFirstChar();
 
-      State14:
-         /* Identifier= Identifier, ►LetterOrDigit;
-          * AttributeType= Identifier●; */
-         if (Peek() <= E.Space)
-         // Reduce9:
-         {
-            /* AttributeType= Identifier;◄ */
+State14:
+  /* Identifier= Identifier, ►LetterOrDigit;
+   * AttributeType= Identifier●; */
+  if (Peek() <= E.Space)
+     // Reduce9:
+     {
+     /* AttributeType= Identifier;◄ */
 
-            AddAttributeType();
+     AddAttributeType();
 
-            goto State10;
-         }
-         if (Peek() >= E.QuotationMark)
-            goto EndWithError;
-         Debug.Assert(_is(E.Letter | E.Digit));
-         Accepted = true;
-         // Reduce10:
-         /* Identifier= Identifier, LetterOrDigit;◄ */
+     goto State10;
+     }
+  if (Peek() >= E.QuotationMark)
+     goto EndWithError;
+  Debug.Assert(_is(E.Letter | E.Digit));
+  Accepted = true;
+  // Reduce10:
+  /* Identifier= Identifier, LetterOrDigit;◄ */
 
-         IdentifierNextChar();
+  IdentifierNextChar();
 
-         goto State14;
+  goto State14;
 
-      State6:
-         /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, ►OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, Weight?;
-          * Space*= Space*, ►Space; */
-         if (Peek() <= E.Space)
-         {
-            Accepted = true;
-            goto State6;
-         }
-         if (Peek() != E.OpenParenthesis)
-            goto EndWithError;
-         Debug.Assert(Peek() == E.OpenParenthesis);
-         Accepted = true;
-      State8:
-         /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, ►Attributes?, CloseParenthesis, Space*, Weight?;
-          * Space*= Space*, ►Space; */
-         _s.Push(0);
-         if (Peek() == E.CloseParenthesis)
-         // State15:
-         {
-            /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, ►CloseParenthesis, Space*, Weight?; */
-            Debug.Assert(Peek() == E.CloseParenthesis);
-            goto AcceptState17;
-         }
-         if (Peek() <= E.Space)
-         {
-            Accepted = true;
-            // Reduce4:
-            /* sAdjust: -1
-             * Space*= Space*, Space;◄ */
-            _s.Pop();
-            goto State8;
-         }
-         if (Peek() > E.Letter)
-            goto EndWithError;
-         Debug.Assert(Peek() == E.Letter);
-         Accepted = true;
-         goto Reduce5;
+State6:
+  /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, ►OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, OptionalWeight;
+   * Space*= Space*, ►Space; */
+  if (Peek() <= E.Space)
+     {
+     Accepted = true;
+     goto State6;
+     }
+  if (Peek() != E.OpenParenthesis)
+     goto EndWithError;
+  Debug.Assert(Peek() == E.OpenParenthesis);
+  Accepted = true;
+State8:
+  /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, ►Attributes?, CloseParenthesis, Space*, OptionalWeight;
+   * Space*= Space*, ►Space; */
+  _s.Push(0);
+  if (Peek() == E.CloseParenthesis)
+     // State15:
+     {
+     /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, ►CloseParenthesis, Space*, OptionalWeight; */
+     Debug.Assert(Peek() == E.CloseParenthesis);
+     goto AcceptState17;
+     }
+  if (Peek() <= E.Space)
+     {
+     Accepted = true;
+     // Reduce4:
+     /* sAdjust: -1
+      * Space*= Space*, Space;◄ */
+     _s.Pop();
+     goto State8;
+     }
+  if (Peek() > E.Letter)
+     goto EndWithError;
+  Debug.Assert(Peek() == E.Letter);
+  Accepted = true;
+  goto Reduce5;
 
-      State10:
-         /* Space*= Space*, ►Space;
-          * Attribute= AttributeType, Space*, ►Identifier; */
-         if (Peek() <= E.Space)
-         {
-            Accepted = true;
-            goto State10;
-         }
-         if (Peek() > E.Letter)
-            goto EndWithError;
-         Debug.Assert(Peek() == E.Letter);
-         Accepted = true;
-         // Reduce6:
-         /* Identifier= Letter;◄ */
+State10:
+  /* Space*= Space*, ►Space;
+   * Attribute= AttributeType, Space*, ►Identifier; */
+  if (Peek() <= E.Space)
+     {
+     Accepted = true;
+     goto State10;
+     }
+  if (Peek() > E.Letter)
+     goto EndWithError;
+  Debug.Assert(Peek() == E.Letter);
+  Accepted = true;
+  // Reduce6:
+  /* Identifier= Letter;◄ */
 
-         IdentifierFirstChar();
+  IdentifierFirstChar();
 
-      State11:
-         /* Identifier= Identifier, ►LetterOrDigit;
-          * Attribute= AttributeType, Space*, Identifier●; */
-         if (_is(E.Letter | E.Digit))
-         {
-            Accepted = true;
-            // Reduce8:
-            /* Identifier= Identifier, LetterOrDigit;◄ */
+State11:
+  /* Identifier= Identifier, ►LetterOrDigit;
+   * Attribute= AttributeType, Space*, Identifier●; */
+  if (_is(E.Letter | E.Digit))
+     {
+     Accepted = true;
+     // Reduce8:
+     /* Identifier= Identifier, LetterOrDigit;◄ */
 
-            IdentifierNextChar();
+     IdentifierNextChar();
 
-            goto State11;
-         }
-         if (!_is(E.Space | E.CloseParenthesis | E.Comma))
-            goto EndWithError;
-         Debug.Assert(_is(E.Space | E.CloseParenthesis | E.Comma));
-         // Reduce7:
-         /* Attribute= AttributeType, Space*, Identifier;◄ */
+     goto State11;
+     }
+  if (Peek() > E.Space && !_is(E.CloseParenthesis | E.Comma))
+     goto EndWithError;
+  Debug.Assert(Peek() <= E.Space || _is(E.CloseParenthesis | E.Comma));
+  // Reduce7:
+  /* Attribute= AttributeType, Space*, Identifier;◄ */
 
-         AddAtributeIdentifier();
+  AddAtributeIdentifier();
 
-         // Branch1:
-         if (_s.Peek() == 0)
-            goto State13;
-         State24:
-         /* Space*= Space*, ►Space;
-          * Attributes= Attributes, Comma, Space*, Attribute, Space*●; */
-         if (Peek() <= E.Space)
-         {
-            Accepted = true;
-            goto State24;
-         }
-         if (!_is(E.CloseParenthesis | E.Comma))
-            goto EndWithError;
-         Debug.Assert(_is(E.CloseParenthesis | E.Comma));
-         // Reduce16:
-         /* sAdjust: -1
-          * Attributes= Attributes, Comma, Space*, Attribute, Space*;◄ */
-         _s.Pop();
-      State20:
-         /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, ►CloseParenthesis, Space*, Weight?;
-          * Attributes= Attributes, ►Comma, Space*, Attribute, Space*; */
-         if (Peek() >= E.Comma)
-         {
-            Accepted = true;
-            goto State22;
-         }
-         Debug.Assert(Peek() == E.CloseParenthesis);
-      AcceptState17:
-         Accepted = true;
-         // State17:
-         /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, ►Weight?;
-          * Space*= Space*, ►Space; */
-         if (Peek() <= E.Space)
-            goto AcceptState17;
-         if (Peek() == E.Percent)
-         {
-            Accepted = true;
-            // State18:
-            /* Weight= Percent, ►Digits; */
-            if (Peek() != E.Digit)
-               goto EndWithError;
-            Debug.Assert(Peek() == E.Digit);
-            Accepted = true;
-            // Reduce12:
-            /* Digits= Digit;◄ */
+  // Branch1:
+  if (_s.Peek() == 0)
+     goto State13;
+State24:
+  /* Space*= Space*, ►Space;
+   * Attributes= Attributes, Comma, Space*, Attribute, Space*●; */
+  if (Peek() <= E.Space)
+     {
+     Accepted = true;
+     goto State24;
+     }
+  if (!_is(E.CloseParenthesis | E.Comma))
+     goto EndWithError;
+  Debug.Assert(_is(E.CloseParenthesis | E.Comma));
+  // Reduce16:
+  /* sAdjust: -1
+   * Attributes= Attributes, Comma, Space*, Attribute, Space*;◄ */
+  _s.Pop();
+State20:
+  /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, ►CloseParenthesis, Space*, OptionalWeight;
+   * Attributes= Attributes, ►Comma, Space*, Attribute, Space*; */
+  if (Peek() >= E.Comma)
+     {
+     Accepted = true;
+     goto State22;
+     }
+  Debug.Assert(Peek() == E.CloseParenthesis);
+AcceptState17:
+  Accepted = true;
+  // State17:
+  /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, ►OptionalWeight;
+   * Space*= Space*, ►Space; */
+  if (Peek() <= E.Space)
+     goto AcceptState17;
+  if (Peek() == E.Percent)
+     {
+     Accepted = true;
+     // State18:
+     /* OptionalWeight= Percent, ►Digits; */
+     if (Peek() != E.Digit)
+        goto EndWithError;
+     Debug.Assert(Peek() == E.Digit);
+     Accepted = true;
+     // Reduce12:
+     /* Digits= Digit;◄ */
 
-            FirstDigit();
+     FirstDigit();
 
-            goto State19;
-         }
-         Debug.Assert(!_is(E.Space | E.Percent));
-      Reduce11:
-         /* sAdjust: -1
-          * *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, Weight?;◄ */
-         _s.Pop();
+     goto State19;
+     }
+  Debug.Assert(Peek() > E.Space && !_is(E.Percent));
+Reduce11:
+  /* sAdjust: -1
+   * *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, OptionalWeight;◄ */
+  _s.Pop();
 
-         AssignAttributes();
+  AssignAttributes();
 
-         goto EndOfGeneratedCode;
+  goto EndOfGeneratedCode;
 
-      State13:
-         /* Space*= Space*, ►Space;
-          * Attributes= Attribute, Space*●; */
-         if (Peek() <= E.Space)
-         {
-            Accepted = true;
-            goto State13;
-         }
-         if (!_is(E.CloseParenthesis | E.Comma))
-            goto EndWithError;
-         Debug.Assert(_is(E.CloseParenthesis | E.Comma));
-         goto State20;
+State13:
+  /* Space*= Space*, ►Space;
+   * Attributes= Attribute, Space*●; */
+  if (Peek() <= E.Space)
+     {
+     Accepted = true;
+     goto State13;
+     }
+  if (!_is(E.CloseParenthesis | E.Comma))
+     goto EndWithError;
+  Debug.Assert(_is(E.CloseParenthesis | E.Comma));
+  goto State20;
 
-      State19:
-         /* Weight= Percent, Digits●;
-          * Digits= Digits, ►Digit; */
-         if (Peek() != E.Digit)
-         // Reduce13:
-         {
-            /* Weight= Percent, Digits;◄ */
+State19:
+  /* OptionalWeight= Percent, Digits●;
+   * Digits= Digits, ►Digit; */
+  if (Peek() != E.Digit)
+     // Reduce13:
+     {
+     /* OptionalWeight= Percent, Digits;◄ */
 
-            ReAssignWeight();
+     ReAssignWeight();
 
-            goto Reduce11;
-         }
-         Debug.Assert(Peek() == E.Digit);
-         Accepted = true;
-         // Reduce14:
-         /* Digits= Digits, Digit;◄ */
+     goto Reduce11;
+     }
+  Debug.Assert(Peek() == E.Digit);
+  Accepted = true;
+  // Reduce14:
+  /* Digits= Digits, Digit;◄ */
 
-         NextDigit();
+  NextDigit();
 
-         goto State19;
+  goto State19;
 
-      State22:
-         /* Space*= Space*, ►Space;
-          * Attributes= Attributes, Comma, Space*, ►Attribute, Space*; */// *Push(1)
-         if (Peek() >= E.Digit)
-         // PushState2:
-         {
-            _s.Push(1);
-            goto EndWithError;
-         }
-         if (Peek() <= E.Space)
-         {
-            Accepted = true;
-            // Reduce15:
-            /* Space*= Space*, Space;◄ */
-            goto State22;
-         }
-         Debug.Assert(Peek() == E.Letter);
-         Accepted = true;
-         // PushState1:
-         _s.Push(1);
-         goto Reduce5;
+State22:
+  /* Space*= Space*, ►Space;
+   * Attributes= Attributes, Comma, Space*, ►Attribute, Space*; */// *Push(1)
+  if (Peek() >= E.Digit)
+     // PushState2:
+     {
+     _s.Push(1);
+     goto EndWithError;
+     }
+  if (Peek() <= E.Space)
+     {
+     Accepted = true;
+     // Reduce15:
+     /* Space*= Space*, Space;◄ */
+     goto State22;
+     }
+  Debug.Assert(Peek() == E.Letter);
+  Accepted = true;
+  // PushState1:
+  _s.Push(1);
+  goto Reduce5;
 
-      EndWithError:
-         // This point is reached after an input error has been found
-         _s.Discard(_s.Count - _StateStackInitialCount);
-         return false;
+EndWithError:
+  // This point is reached after an input error has been found
+  _s.Discard(_s.Count - _StateStackInitialCount);
+  return false;
 
-      EndOfGeneratedCode:
-         ;
+EndOfGeneratedCode:
+  ;
 
-         #endregion grammlator generated 9 Okt 2020 (grammlator file version/date 2020.10.06.0/9 Okt 2020)
+#endregion grammlator generated 18 Okt 2020 (grammlator file version/date 2020.10.15.0/18 Okt 2020)
          return true;
       }
 
