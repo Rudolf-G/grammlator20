@@ -124,7 +124,7 @@ namespace grammlator {
          }
          sb.AppendLine(": ")
            .AppendLine("Items:");
-         CoreItems.ToStringbuilderMitZusatzinfo(sb)
+         CoreItems.ToStringbuilderExtended(sb)
            .Append("Actions: ");
          Actions?.AppendToSB(sb)
            .AppendLine();
@@ -308,7 +308,7 @@ namespace grammlator {
                  .Append("Conflicts in state ")
                  .Append(IdNumber + 1)
                  .AppendLine();
-               CoreItems.ToStringbuilderMitZusatzinfo(sb);
+               CoreItems.ToStringbuilderExtended(sb);
             }
 
             // find one group of actions which conflict with the ConflictAction and solve the conflict for this group
@@ -899,7 +899,7 @@ namespace grammlator {
          }
       }
 
-      internal StringBuilder ToStringbuilderMitZusatzinfo(StringBuilder sb)
+      internal StringBuilder ToStringbuilderExtended(StringBuilder sb)
       {
          foreach (ItemStruct Item in this)
          {

@@ -34,6 +34,8 @@ namespace grammlator {
          // do not offer the directory containing the assembly as default initial directory
          if (OpenSourceDirectory == GlobalVariables.AssemblyFullPath)
             OpenSourceFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+         MainUserInterfaceMethods.SetExampleMenus(MenuItemDisplayExample, this, "GrammlatorExamples.zip");
       }
 
       const String fileFilter = "cs files (*.cs)|*.cs|All files (*.*)|*.*";
@@ -273,19 +275,22 @@ namespace grammlator {
          OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
       }
 
-      private void MenuItemDisplayExample_Click(Object sender, RoutedEventArgs e)
+      internal void MenuItemDisplayExample_Click(Object sender, RoutedEventArgs e)
       {
-         String FileFullPath = AppContext.BaseDirectory + "GrammlatorConsoleExample.txt";
-         bool exists = File.Exists(FileFullPath);
-         if (exists)
+         if (sender is MenuItem menuItem
+            && menuItem.HasHeader
+            && menuItem.Header is String header)
          {
-            using var reader = new StreamReader(FileFullPath);
-            InfoTextBox.Text = reader.ReadToEnd();
+            // use header as name of zip-file element
+            MainUserInterfaceMethods
+               .CopyExampleToInfoTextBox(header, InfoTextBox);
+
+            GrammlatorTabControl.SelectedIndex = 7;
+            OnFocusTextBox(new FocusTextBoxEventArgs(InfoTextBox));
+            return;
          }
-         else
-            InfoTextBox.Text = "File not found: " + FileFullPath;
-         GrammlatorTabControl.SelectedIndex = 7;
-         OnFocusTextBox(new FocusTextBoxEventArgs(InfoTextBox));
+         // error !!!
+         return;
       }
 
       private void DisplaySettings_Click(Object sender, RoutedEventArgs e)

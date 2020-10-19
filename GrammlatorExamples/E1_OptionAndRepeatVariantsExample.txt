@@ -1,0 +1,81 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+namespace GrammlatorExamples {
+   static class OptionAndRepeatVariantsExample {
+
+      #region grammar
+      //| TerminalSymbolEnum: "SomeLetters";
+      //| SymbolNameOrFunctionCall: "(SomeLetters)InputLine[i]";
+      //| SymbolAcceptInstruction: "i++;";
+      //| ErrorHaltInstruction: "DisplayRemainder(); return false;";
+      //|
+      enum SomeLetters {
+         precedingCharacters = 96,
+         a, b, c, d, e, f, g, h, i, j, k, l, m, n, o ,p, q, r, s, t,
+         successiveCharacters }
+      //|
+      //| *= examples t; 
+      //|    // concatenation without "," (grammlator: not allowed in combination with subsequent "(")
+      //| examples=    // definition of nonterminal symbol "=" (EBNF)
+      //|              /* comment */  // comment
+      //|              //  alternation "|" (EBNF) , 
+      //|     (a, b)   // concatenation "," (EBNF)
+      //|              // grouping "(..)" (EBNF), grammlator local grouping:
+      //|              //   (a, b) is equivalent to ...(local1)...; (local1)=a, b;
+      //|              //   the special name "(local1)" can not be used explicitely
+      //|   | (test=b) // grouping with rule, grammlator global grouping:
+      //|              //   equivalent to ...test...; test=b;
+      //|   | [c]      // optional  (EBNF), grammlator local optional:
+      //|              //   [c] is equivalent to ...(Local2)?...; (Local2)= c;
+      //|   | d?,   m  // optional, grammlator global optional
+      //|              //   grammlator defines d? by d?= | d; if not yet defined,. d? can be used explicitely
+      //|   | {e},  n  // repetition (EBNF), grammlator local repetition:
+      //|              //   {e} is eqivalent to ...(local3)*...; (Local3)=e;
+      //|   | f*,   o  // repetition, grammlator global left recursive repetition
+      //|              //   grammlator adds f*= | f*, f; if not yet defined (here f* is a name and not an expression)
+      //|   | g**,  p  // grammlator: global right recursive repetition
+      //|              //   grammlator adds g**= | g, g**; if not yet defined 
+      //|   | h+       // one or more times, grammlator: left recursive
+      //|              //   grammlator adds h+= | h+, h; if not yet defined 
+      //|   | i++      // grammlator: global right recursive one or more times
+      //|              //   grammlator adds i++= | i++, i; if not yet defined 
+      //|
+      //| // combining local grouping with repetitions makes repetitions local:    
+      //|   | (j)*, q  // repetition, grammlator: local grouping with left recursive repetition
+      //|              //   (g)* is equivalent to  ...(local4)*...; (local4)=g; (local4)*= |(local4)*, (local4);
+      //|   | (k)**, r // grammlator: local right recursive repetition
+      //|
+      //| // combining global grouping with repetitions declares global repetitions: 
+      //|   | (test2=l)+ //  ...(test2=l)+.. is eqivalent to ...test2+...; test2=l;
+      //|                //   grammlator adds test2+= test2, | test2+, test2; if not yet defined 
+      //|  //    ??+5??   // priority specification at the end of a definition (grammlator)
+      //|     ;        // terminator symbol (EBNF, optional in grammltor)
+      //|
+      #endregion grammar
+
+      public static void Discard(this Stack<Int32> s, int n)
+      {
+         while (n > 0)
+         { n--; s.Pop(); }
+      }
+
+      public static Boolean AnalyzeInput()
+      {
+         String InputLine = Console.ReadLine() + '*';
+         int i = 0;
+
+         void DisplayRemainder()
+            => Console.WriteLine(" Remainder of line: \"" + InputLine.Substring(i) + "\"");
+
+         var _s = new Stack<int>();
+
+#region grammlator generated
+
+#endregion grammlator generated
+         DisplayRemainder();
+         return true;
+      }
+   }
+}

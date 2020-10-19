@@ -113,7 +113,9 @@
                 <MenuItem x:Name="MenuItemCompareIgnoringSeparators" Header=".. ignoring leading separators" Click="CompareIgnoringSeparators_Click"/>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem x:Name="MenuItemDisplayExample" Header="Display example" Click="MenuItemDisplayExample_Click"/>
+                <MenuItem x:Name="MenuItemDisplayExample" Header="Display example">
+                    <MenuItem x:Name="GrammlatorConsoleExample" Header="GrammlatorConsoleExample.txt" Click="MenuItemDisplayExample_Click"/>
+                </MenuItem>
                 <MenuItem x:Name="MenuItemDisplaySettings" Header="Display settings" Click="DisplaySettings_Click"/>
             </MenuItem>
         </Menu>
