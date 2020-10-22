@@ -42,6 +42,14 @@ namespace grammlator {
 
       internal BitArray? PossibleInputTerminals = null;
 
+      /// <summary>
+      /// The set of all terminal symbols accepted by terminal transitions of the FollowState
+      /// It is the Or of all of the terminalTransition.TerminalSymbols with terminalTransition is in this.Actions.
+      /// <para>Is set and used (to avoid recomputation) in P3 AssignTerminalSymbolsAndComputeDirectRead()
+      /// for all states which are the NextAction of a nonterminal transition.</para>
+      /// </summary>
+      internal BitArray? DirectRead = null;
+
       internal Boolean ContainsErrorHandlerCall {
          get;
          set;

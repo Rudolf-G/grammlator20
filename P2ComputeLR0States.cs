@@ -265,10 +265,9 @@ namespace grammlator {
       {
          if (inputSymbol is NonterminalSymbol nonterminalInputSymbol)
          {
-            // (Eingabesymbol ist cNichtterminalesSymbol) => nichtterminaler Übergang
-            /*   -- eine Aktion mit dem gleichen nichtterminalen Eingabesymbol
-                 -- kann es im aktuellen Zustand noch nicht geben - also eintragen
-                 -- sofern das Symbol mindestens eine Alternative hat}
+            /*  (inputSymbol is NonterminalSymbol) => nonterminal transition
+             *   -- an action with the same nonterminal symbol can not
+             *   -- yet be in the actual state: add it
             */
             if (nonterminalInputSymbol.NontrivialDefinitionsList.Count > 0)
             {
@@ -281,10 +280,12 @@ namespace grammlator {
          }
          else
          {
-            // In der Aktionenliste des aktuell bearbeiteten Zustands
-            // eine cAktionTerminalerÜbergang anlegen, falls nicht vorhanden
+            /* (inputSymbol is TerminalSymbol) => 
+             * add new TerminalTransition with nextAction if not yet in ActionsOfActualState
+             * else add inputSymbol to its TerminalSymbols
+             */
 
-            // Den passenden terminalen Übergang in der Aktionenliste suchen
+            // Search the TerminalTransition with nextAction
             TerminalTransition existingTransition =
                 ActionsOfActualState
                 .OfType<TerminalTransition>()

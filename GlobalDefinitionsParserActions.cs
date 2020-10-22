@@ -908,7 +908,7 @@ namespace grammlator {
       /// </summary>
       public BitArray TerminalSymbols {
          get; set;
-      } // als Folgesymbole oder als Eingabesymbole 
+      }
 
       public ConditionalAction(BitArray terminalSymbols, ParserAction nextAction) : base(nextAction)
       {
@@ -1029,33 +1029,34 @@ namespace grammlator {
             wenn alle Symbole relevant wären  
          */
          Int32 result = 0;
-         Boolean aktuellerWert = TerminalSymbols[0];
-         Boolean Basiswert = aktuellerWert;
-         Boolean NächsterWert;
+         Boolean ActualValue = TerminalSymbols[0];
+         Boolean BaseValue = ActualValue;
+         Boolean NextValue;
 
          for (Int32 i = 1; i < TerminalSymbols.Count; i++)
          {
-            NächsterWert = TerminalSymbols[i];
-            // es liegt vor: eine bereits analysierte Folge von Werten == Basiswert
-            // danach der aktuelle Wert,
-            // danach der nächste Wert.
-            // Wenn alle Werte gleich sind, ist kein Vergleich notwendig !
-            if (aktuellerWert != Basiswert)
+            NextValue = TerminalSymbols[i];
+            /* We have an already analyzed sequence of values == BaseValue
+             * then the ActualValue
+             * then the NextValue
+             * If all are equal no comparision is neede
+             */
+            if (ActualValue != BaseValue)
             {
-               // Der aktuelle Wert ist anders als der Basiswert, also ist ein Vergleich zu generieren
+               // different values: a comparision is needed
                result++; // = oder >= Abfrage notwendig bzw. <> oder <=
-               if (NächsterWert != Basiswert)
+               if (NextValue != BaseValue)
                {
-                  // Der nächste Wert ist gleich zum aktuellen Wert, also genügt eine >= bzw. <= Abfrage
-                  Basiswert = NächsterWert; // erneute Abfragen sind erst nötig, wenn der Wert wieder wechselt
+                  // The next value is equal the actual value: a >= or <= comparision is sufficient
+                  BaseValue = NextValue; // new checks are needed not befor the value changes
                }
-               // sonst ist der Basiswert bereits richtig (gleich dem nächsten Wert)
-               // es genügt ebenfalls eine Abfrage, nämlich auf Gleichheit (bzw. Ungleichheit) mit dem aktuellen Wert
+               // else the BaseValue is correct (equal to the NextValue)
+               // one comparision with the actual value will be sufficient
             }
-            aktuellerWert = NächsterWert;
+            ActualValue = NextValue;
          }
-         // letzten Wert noch berücksichtigen
-         if (aktuellerWert != Basiswert)
+         // don't forget the last value
+         if (ActualValue != BaseValue)
             result++;
          return result;
       }

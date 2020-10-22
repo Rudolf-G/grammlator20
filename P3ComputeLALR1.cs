@@ -54,40 +54,47 @@ namespace grammlator {
       /// <summary>
       /// <para>For each <see cref="NonterminalTransition"/> compute the direct read set of terminal symbols
       /// and and assign it to its TerminalSymbols.</para>
-      /// For <see cref="LookaheadAction"/> assign the empty set to TerminalSymbols.
-      /// For both set Codenumber to 0;
+      /// <para>For <see cref="LookaheadAction"/> assign the empty set to TerminalSymbols.
+      /// For both set Codenumber to 0;</para>
       /// </summary>
       private static void AssignTerminalSymbolsAndComputeDirectRead()
       {
          foreach (ParserState state in GlobalVariables.ListOfAllStates)
          {
-            foreach (LookaheadOrNonterminalTransition parserAction
+            foreach (LookaheadOrNonterminalTransition laOrNonterminalTansition
                 in state.Actions.OfType<LookaheadOrNonterminalTransition>())
             {
-               // Debug.Assert(parserAction.TerminalSymbols == null);
+               // Replace default assignment of parserAction.TerminalSymbols
+               Debug.Assert(laOrNonterminalTansition.TerminalSymbols.Empty());
 
-               parserAction.TerminalSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
-               parserAction.Codenumber = 0; // initial value for DIGRAPH algorithm
+               laOrNonterminalTansition.TerminalSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
+               laOrNonterminalTansition.Codenumber = 0; // initial value for DIGRAPH algorithm
 
-               if (parserAction is LookaheadAction)
+               if (!(laOrNonterminalTansition is NonterminalTransition NonterminalTransition)
                   continue;
 
-               Debug.Assert(parserAction is NonterminalTransition);
-
-               switch (parserAction.NextAction)
+               switch (NonterminalTransition.NextAction)
                {
                case ParserState FollowState:
                {
                   // The nonterminal transition leads to a parser state.
-                  // Compute TerminalSymbols as direct read,
+                  // Compute its TerminalSymbols as direct read of the state,
                   // which is the set of all terminal symbols
                   // accepted by terminal transitions of the FollowState
-
-                  foreach (TerminalTransition terminalTransition
-                      in FollowState.Actions.OfType<TerminalTransition>())
+                  if (FollowState.DirectRead == null)
                   {
-                     parserAction.TerminalSymbols.Or(terminalTransition.TerminalSymbols);
+                     foreach (TerminalTransition terminalTransition
+                         in FollowState.Actions.OfType<TerminalTransition>())
+                     {
+                        NonterminalTransition.TerminalSymbols.Or(terminalTransition.TerminalSymbols);
+                     }
+                     FollowState.DirectRead = new BitArray(NonterminalTransition.TerminalSymbols);
                   }
+                  else
+                  {
+                     NonterminalTransition.TerminalSymbols.Or(FollowState.DirectRead);
+                  }
+
 
                   break;
                }
@@ -103,9 +110,9 @@ namespace grammlator {
                {
                   // The nonterminal transition leads to a halt action.
                   // All terminal symbols may follow.
-                  Debug.Assert(parserAction.NextAction == GlobalVariables.ListOfAllHaltActions[0]);
-                  Debug.Assert(((NonterminalTransition)parserAction).InputSymbol.Identifier == "*Startsymbol");
-                  parserAction.TerminalSymbols.Or(GlobalVariables.AllTerminalSymbols);
+                  Debug.Assert(NonterminalTransition.NextAction == GlobalVariables.ListOfAllHaltActions[0]);
+                  Debug.Assert(((NonterminalTransition)NonterminalTransition).InputSymbol.Identifier == "*Startsymbol");
+                  NonterminalTransition.TerminalSymbols.Or(GlobalVariables.AllTerminalSymbols);
                   break;
                }
                }
@@ -149,7 +156,7 @@ namespace grammlator {
 
          // A nextState is reached by the actualTransition.
          // Analyse each of its nonterminal transitions NextTransition,
-         // which can produce the empty string (input symbol IsNullable):
+         // which can produce the empty sequence (input symbol IsNullable):
          //    compute the read symbols of the nullable NextTransition (recursively)
          //    and add those to the read symbols of actualTransition
 
@@ -197,14 +204,14 @@ namespace grammlator {
 
          // TODO log non trivial SCC
 
-         NonterminalTransition TopOfStack;
+         NonterminalTransition TopOfStackTransition;
          do
          {
-            TopOfStack = StackOfNonterminalTransitions.Pop();
-            TopOfStack.Codenumber = Int32.MaxValue;
-            TopOfStack.TerminalSymbols.Or(actualTransition.TerminalSymbols); // equivalent to Assign(...)
+            TopOfStackTransition = StackOfNonterminalTransitions.Pop();
+            TopOfStackTransition.Codenumber = Int32.MaxValue;
+            TopOfStackTransition.TerminalSymbols.Or(actualTransition.TerminalSymbols); // equivalent to Assign(...)
          }
-         while (TopOfStack != actualTransition);
+         while (TopOfStackTransition != actualTransition);
       }
 
       /*
