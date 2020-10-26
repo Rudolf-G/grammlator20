@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
@@ -433,7 +434,7 @@ namespace grammlator {
       private ParserAction GeneratePriorityBranchAsSwitch(P5CodegenCS codegen, out Boolean accept)
       {
 
-         codegen.AppendInstruction($"switch({GlobalSettings.MethodIndexOfMaximum}(");
+         codegen.AppendInstruction($"switch({GlobalSettings.NameOfIndexOfMaximumMethod}(");
 
          // IndexOfMaximum has to return the index of the 1st occurence of the greatest argument. Then:
          // TerminalTransition (priority 0) has priority over dynamic priority value 0 because it is generated 1st !! 
@@ -508,27 +509,27 @@ namespace grammlator {
       /// <returns>next action: <see cref="ErrorHaltAction>"/> </returns>
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
-         if (!String.IsNullOrEmpty(GlobalSettings.ErrorHandlerMethod.Value))
+         if (!String.IsNullOrEmpty(GlobalSettings.NameOfErrorHandlerMethod.Value))
          {
             // generate ErrorHandlerCall   ErrorHandler(ErrorStateNumber, StateDescription, ParserInput);
             codegen
                .Indent()
                .Append("if (")
-               .Append(GlobalSettings.ErrorHandlerMethod.Value)
+               .Append(GlobalSettings.NameOfErrorHandlerMethod.Value)
                .Append('(')
                .Append(this.IdNumber + 1)
                .Append(", ");
-            if (String.IsNullOrEmpty(GlobalSettings.StateDescriptionPrefix.Value))
-               codegen.Append("\"\""); // empty error description
+            if (String.IsNullOrEmpty(GlobalSettings.PrefixOfStateDescriptionConstant.Value))
+               codegen.Append(@""""""); // empty error description
             else
             {
                codegen
-               .Append(GlobalSettings.StateDescriptionPrefix.Value)
+               .Append(GlobalSettings.PrefixOfStateDescriptionConstant.Value)
                .Append(this.State.IdNumber + 1);
             }
             codegen
                .Append(", ")
-               .Append(GlobalSettings.SymbolNameOrFunctionCall.Value)
+               .Append(GlobalSettings.InputComparisionArgument.Value)
                .AppendLine("))");
 
             if (this.State.StateStackNumber >= 0)
@@ -603,7 +604,7 @@ namespace grammlator {
                .Append(".Discard(")
                .Append(GlobalSettings.StateStack.Value)
                .Append(".Count - ")
-               .Append(GlobalSettings.StateStackInitialCountVariable.Value)
+               .Append(GlobalSettings.NameOfStateStackInitialCountVariable.Value)
                .AppendLine(");");
          // codegen.IndentAndAppendLine("_s.Discard(_s.Count - StateStackInitialCount);");  // TODO als Ressource definieren
 
@@ -614,7 +615,7 @@ namespace grammlator {
                .Append(".Remove(")
                .Append(GlobalSettings.AttributeStack.Value)
                .Append(".Count - ")
-               .Append(GlobalSettings.AttributeStackInitialCountVariable.Value)
+               .Append(GlobalSettings.NameOfAttributeStackInitialCountVariable.Value)
                .AppendLine(");");
 
          // generate additional instruction
@@ -664,14 +665,14 @@ namespace grammlator {
          CoreItems.AppendToSB(sbTemp);
 
          if (ContainsErrorHandlerCall
-            && !String.IsNullOrEmpty(GlobalSettings.StateDescriptionPrefix.Value)
-            && !String.IsNullOrEmpty(GlobalSettings.ErrorHandlerMethod.Value)
+            && !String.IsNullOrEmpty(GlobalSettings.PrefixOfStateDescriptionConstant.Value)
+            && !String.IsNullOrEmpty(GlobalSettings.NameOfErrorHandlerMethod.Value)
             )
          {
             // Generate assignment to VariableNameStateDescription (if defined)
             codegen.Indent();
             codegen.Append("const String ");
-            codegen.Append(GlobalSettings.StateDescriptionPrefix.Value);
+            codegen.Append(GlobalSettings.PrefixOfStateDescriptionConstant.Value);
             codegen.Append(IdNumber + 1);
             codegen.Append(" =");
             codegen.AppendLine();
@@ -682,7 +683,7 @@ namespace grammlator {
             codegen.IndentAndAppendLinesWithSeparator(
                 linesToAppend: sbTemp.ToString() // the strings describing the items of the state
                 , stringPrecedingFirstLine: "     \""  // indentation and character """" in front of each string
-                , separatorAtEndofLine: GlobalSettings.NewLineWithEscapes + "\""  // at end of each string except the last
+                , separatorAtEndofLine: GlobalSettings.StringNewLineWithEscapes + "\""  // at end of each string except the last
                 , separatorAtNewLine: "   + \"" // before each string except the first
                 , stringAtEndOfLastLine: "\";" // after the last string
                 );
@@ -718,9 +719,12 @@ namespace grammlator {
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
          // This is prepared  by shortening chains in phase 4 und implemented by the following.
 
-         if (!(PossibleInputTerminals!.IsEqualTo(GlobalVariables.AllTerminalSymbols)))
+         if (!PossibleInputTerminals!.All())
          {
             // there has been look ahead: no InstructionAssignSymbol needed
+            // Show restricted set of possible symbols
+            GenerateConditionAsComment(codegen, PossibleInputTerminals!, checkingForbiddenTerminals: false);
+
          }
          else if (Actions.Count >= 1)
          {
@@ -733,7 +737,7 @@ namespace grammlator {
                 )
             {
                codegen.IndentExactly()
-                     .AppendWithOptionalLinebreak(GlobalSettings.SymbolAssignInstruction.Value);
+                     .AppendWithOptionalLinebreak(GlobalSettings.InputAssignInstruction.Value);
             }
             else
             {
@@ -768,8 +772,8 @@ namespace grammlator {
             else                     => generate switch instruction
          */
 
-         if (IfComplexity > GlobalSettings.IfToSwitchBorder.Value)
-            return GenerateSwitchWithActionsOfState(codegen, out accept);
+         if (IfComplexity > GlobalSettings.GenerateSwitchStartingLevel.Value)
+            return GenerateSwitchWithActionsOfState(codegen, out accept); // <--- generate switch
 
          // Sort the actions dependent on their terminal inp.
          // Sort criteria and order see CompareWeightandConditionComplexity
@@ -787,7 +791,7 @@ namespace grammlator {
             Actions[^1] = temp;
          }
 
-         return GenerateConditionalActionsOfState(codegen, out accept);
+         return GenerateConditionalActionsOfState(codegen, out accept);// <--- generate if(....)
       }
 
       /// <summary>
@@ -807,7 +811,8 @@ namespace grammlator {
          for (Int32 i = 0; i < Actions.Count - 1; i++)
          {
             var a = (ConditionalAction)Actions[i];
-            GenerateOneConditionalAction(codegen, a, relevantSymbols); // Modifies relevantSymbols
+            GenerateOneConditionalAction(codegen, a, relevantSymbols,
+               a.NextAction is ErrorhandlingAction || a.NextAction is ErrorHaltAction); // Modifies relevantSymbols
          }
 
          var LastAction = (ConditionalAction)Actions[^1];
@@ -820,7 +825,8 @@ namespace grammlator {
          if (nextAction != null && suppressedCondition != null
             && !suppressedCondition.All())
          {
-            GenerateConditionAsComment(codegen, suppressedCondition);
+            GenerateConditionAsComment(codegen, suppressedCondition,
+               nextAction is ErrorhandlingAction || nextAction is ErrorHaltAction);
          }
 
          Accept = LastAction is TerminalTransition;
@@ -844,74 +850,78 @@ namespace grammlator {
 
          codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("switch (");
-         codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
+         codegen.Append(GlobalSettings.InputComparisionArgument.Value);
          codegen.Append(")");
          codegen.GenerateBeginOfBlock();
 
-         Int32 IndexOfLastUsedTerminal = PossibleInputTerminals!.IndexOfLastTrueElement();
-         Int32 IndexOfFirstUsedTerminal = PossibleInputTerminals!.IndexOfFirstTrueElement();
+         Int32 IndexOfLastPossibleTerminal = PossibleInputTerminals!.IndexOfLastTrueElement();
+         Int32 IndexOf1stPossibleTerminal = PossibleInputTerminals!.IndexOfFirstTrueElement();
 
          Int32 LeadingCount = 0, TrailingCount = 0;
          ConditionalAction? LeadingAction = null, TrailingAction = null;
 
+         // for each action generate 0 or more "case ...:"-clauses and then the action
+         // or for special cases a comment "..... // see end of switch"
+         // if 
          for (Int32 i = 0; i < Actions.Count; i++)
          {
             var ThisAction = (ConditionalAction)Actions[i];
+
             BitArray Terminals = ThisAction.TerminalSymbols;
-            Int32 TerminalIndex = Terminals.FindNextTrue(-1);
+            Int32 TerminalIndex = Terminals.IndexOfFirstTrueElement();
             Boolean IsDefaultAction = false;
 
-            // Special case if Terminals contains the first used terminal
-            if (TerminalIndex == IndexOfFirstUsedTerminal)
+            // Special case: default action if Terminals contains the first possible terminal
+            if (TerminalIndex == IndexOf1stPossibleTerminal)
             {
                // remember this action and the count of leading terminals
                Debug.Assert(LeadingCount == 0, "Phase5: LeadingCount already != 0");
                LeadingAction = ThisAction;
-               LeadingCount = Terminals.FindNextFalse(IndexOfFirstUsedTerminal) - IndexOfFirstUsedTerminal;
-               TerminalIndex = Terminals.FindNextTrue(IndexOfFirstUsedTerminal + LeadingCount);
+               LeadingCount = Terminals.FindNextFalse(IndexOf1stPossibleTerminal) - IndexOf1stPossibleTerminal;
+               TerminalIndex = Terminals.FindNextTrue(IndexOf1stPossibleTerminal + LeadingCount);
                IsDefaultAction = true;
 
-               // generate first part of comment
+               // generate first part of comment "// <= xxx"
                codegen.IndentExactly();
                codegen.Append("// <= ");
                codegen.AppendWithPrefix(
                    GlobalSettings.TerminalSymbolEnum.Value,
-                   GlobalVariables.TerminalSymbols[LeadingCount - 1].Identifier
+                   GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal+LeadingCount - 1].Identifier
                    );
             }
 
-            // Special case if Terminals contains the last used terminal
-            if (Terminals[IndexOfLastUsedTerminal])
+            // Special case: default action if Terminals contains the last possible terminal
+            if (Terminals[IndexOfLastPossibleTerminal])
             {
                // remember this action and the count of trailing terminals
                Debug.Assert(TrailingCount == 0, "Phase5: TrailingCount already != 0");
                TrailingAction = ThisAction;
-               TrailingCount = IndexOfLastUsedTerminal - Terminals.FindPrecedingFalse(IndexOfLastUsedTerminal);
+               TrailingCount = IndexOfLastPossibleTerminal - Terminals.FindPrecedingFalse(IndexOfLastPossibleTerminal);
                IsDefaultAction = true;
 
-               // generate first part of comment
+               // generate first part of comment "// >= yyy"
                codegen.IndentExactly();
                codegen.Append("// >= ");
                codegen.AppendWithPrefix(
                    GlobalSettings.TerminalSymbolEnum.Value,
-                   GlobalVariables.TerminalSymbols[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
+                   GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].Identifier
                    );
             }
 
             if (IsDefaultAction)
             {
-               // generate second part of comment
+               // generate second part of comment ": goto aaa; // see end of switch"
                codegen.Append(": ");
                codegen.Append("goto ");
                codegen.Append(P5CodegenCS.GotoLabel(ThisAction));
-               codegen.Append(" // see end of switch");
+               codegen.Append("; // see end of switch");
             }
 
-            // if remaining terminal symbols, for each 
-            Boolean RemainingSymbols = false;
-            while (TerminalIndex < IndexOfLastUsedTerminal - TrailingCount + 1)
+            // if remaining terminal symbols, for each generate "case xxx:"
+            Boolean CreatedCase = false;
+            while (TerminalIndex < IndexOfLastPossibleTerminal - TrailingCount + 1)
             {
-               RemainingSymbols = true;
+               CreatedCase = true;
                // generate "case TerminalSymbol: " 
                codegen.IndentExactly();
                codegen.Append("case ");
@@ -924,7 +934,7 @@ namespace grammlator {
                TerminalIndex = Terminals.FindNextTrue(TerminalIndex);
             }
 
-            if (RemainingSymbols)
+            if (CreatedCase)
             {
                codegen.IncrementIndentationLevel();
 
@@ -932,7 +942,7 @@ namespace grammlator {
                {
                   // adjust the statistics because here a "goto label" will be generated
                   // in addition to the code generated in the default action.
-                  // If the statistics are not adjusted those code may be generated without label.
+                  // If the statistics are not adjusted those code might be generated without label.
                   if (ThisAction is TerminalTransition)
                      ThisAction.NextAction.AcceptCalls++;
                   else if (ThisAction is ErrorhandlingAction)
@@ -973,7 +983,7 @@ namespace grammlator {
             // yes: generate if
             codegen.IndentExactly();
             codegen.Append("if (");
-            codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
+            codegen.Append(GlobalSettings.InputComparisionArgument.Value);
 
             // prefer action which generates goto as first action
             // TODO else prefer action which does not generate a label
@@ -994,7 +1004,7 @@ namespace grammlator {
                codegen.Append(" >= ")
                .AppendWithPrefix(
                    GlobalSettings.TerminalSymbolEnum.Value,
-                   GlobalVariables.TerminalSymbols[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
+                   GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].Identifier
                    );
             }
             else
@@ -1002,7 +1012,7 @@ namespace grammlator {
                codegen.Append(" <= ");
                codegen.AppendWithPrefix(
                    GlobalSettings.TerminalSymbolEnum.Value,
-                   GlobalVariables.TerminalSymbols[LeadingCount - 1].Identifier
+                   GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal + LeadingCount - 1].Identifier
                    );
             }
 
@@ -1014,102 +1024,112 @@ namespace grammlator {
          }
 
          // generate comment as Debug.Assert
-         GenerateCommentAtEndOfSwitch(codegen, IndexOfLastUsedTerminal, LeadingCount, TrailingCount, Action1Generate, Action2Generate, ActionsSwapped);
+         GenerateCommentAtEndOfSwitch(codegen, IndexOf1stPossibleTerminal, IndexOfLastPossibleTerminal, LeadingCount, TrailingCount, Action1Generate, Action2Generate, ActionsSwapped);
 
          // generate Action2
          accept = Action2 is TerminalTransition; // TOCHECK try to avoid the out parameter "accept"?
          return Action2Generate;
       }
 
-      private static void GenerateCommentAtEndOfSwitch(P5CodegenCS codegen, Int32 IndexOfLastUsedTerminal, Int32 LeadingCount, Int32 TrailingCount, ParserAction Action1Generate, ParserAction Action2Generate, Boolean ActionsSwapped)
+      private static void GenerateCommentAtEndOfSwitch(P5CodegenCS codegen, Int32 IndexOf1stPossibleTerminal, Int32 IndexOfLastPossibleTerminal, 
+         Int32 LeadingCount, Int32 TrailingCount, ParserAction Action1Generate, ParserAction Action2Generate, Boolean ActionsSwapped)
       {
-         if (GlobalSettings.DebugAssertMethod.Value == "")
+         if (GlobalSettings.NameOfCSharpDebugAssertMethod.Value == "")
             return;
          codegen.IndentExactly();
          codegen
-            .Append(GlobalSettings.DebugAssertMethod.Value).
+            .Append(GlobalSettings.NameOfCSharpDebugAssertMethod.Value).
             Append('(');
          if (Action1Generate == Action2Generate)
          {
-            codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
+            codegen.Append(GlobalSettings.InputComparisionArgument.Value);
             codegen.Append(" <= ");
             codegen.AppendWithPrefix(
                 GlobalSettings.TerminalSymbolEnum.Value,
-                GlobalVariables.TerminalSymbols[LeadingCount - 1].Identifier
+                GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal+LeadingCount - 1].Identifier
                 );
             codegen.Append(" || ");
-            codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
+            codegen.Append(GlobalSettings.InputComparisionArgument.Value);
             codegen.Append(" >= ");
             codegen.AppendWithPrefix(
                 GlobalSettings.TerminalSymbolEnum.Value,
-                GlobalVariables.TerminalSymbols[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
+                GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].Identifier
                 );
          }
          else if (ActionsSwapped)
          {
-            codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
+            codegen.Append(GlobalSettings.InputComparisionArgument.Value);
             codegen.Append(" <= ");
             codegen.AppendWithPrefix(
                 GlobalSettings.TerminalSymbolEnum.Value,
-                GlobalVariables.TerminalSymbols[LeadingCount - 1].Identifier
+                GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal+LeadingCount - 1].Identifier
                 );
          }
          else
          {
-            codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
+            codegen.Append(GlobalSettings.InputComparisionArgument.Value);
             codegen.Append(" >= ");
             codegen.AppendWithPrefix(
                 GlobalSettings.TerminalSymbolEnum.Value,
-                GlobalVariables.TerminalSymbols[IndexOfLastUsedTerminal - TrailingCount + 1].Identifier
+                GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].Identifier
                 );
          }
          codegen.AppendLine(");");
          codegen.AppendLine("");
       }
 
-      private static void GenerateOneConditionalAction(P5CodegenCS codegen, ConditionalAction a, BitArray relevantSymbols)
+      /// <summary>
+      /// 
+      /// </summary>
+      /// <param name="codegen"></param>
+      /// <param name="a"></param>
+      /// <param name="relevantSymbols"></param>
+      /// <param name="checkForbiddenTerminals">true if it is the condition of an error action which checks forbidden Symbols</param>
+      private static void GenerateOneConditionalAction(P5CodegenCS codegen, ConditionalAction a, BitArray relevantSymbols, Boolean checkForbiddenTerminals)
       {
          codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("if (");
 
          codegen.IncrementIndentationLevel();
 
-         GenerateCondition(codegen, a.TerminalSymbols, relevantSymbols);
+         GenerateCondition(codegen, a.TerminalSymbols, relevantSymbols, checkForbiddenTerminals);
 
          codegen.AppendWithOptionalLinebreak(") ");
 
          P5GenerateCode.GenerateCodeSequence(codegen, a, labelMustBeGenerated: false);
 
-         // All elements (value==true) in conditions of remaining actions remain relevant.
-         // Only bits representing not allowed elements may become irrelevant.
+         // TODO if !GlobalSettings.InputElementsAreTerminals: is context tested (not longer relevant)?
          relevantSymbols.ExceptWith(a.TerminalSymbols);
 
          codegen.DecrementIndentationLevel();
       }
 
+      /// <summary>
+      /// A block of equal bits starting with a relevant bit and ending with a relevant bit.
+      /// </summary>
       internal struct BlockOfEqualBits {
          /// <summary>
          /// false if the relevant bits of the block are false, true if the relevant bits are true
          /// </summary>
-         internal Boolean blockType;
+         internal Boolean BlockType;
 
          /// <summary>
-         /// blockStart is the index of the first bit of the block
+         /// blockStart is the index of the first relevant bit of the block
          /// </summary>
-         internal Int32 blockStart;
+         internal Int32 BlockStart;
 
          /// <summary>
          /// blockLength is the number of relevant bits
          /// </summary>
-         internal Int32 blockLength;
+         internal Int32 RelevantBitsCount;
 
          /// <summary>
-         /// blockEnd is the indexc of the last bit of the block
+         /// blockEnd is the indexc of the last relevant bit of the block
          /// </summary>
-         internal Int32 blockEnd;
+         internal Int32 BlockEnd;
       }
 
-      private static void GenerateCondition(P5CodegenCS codegen, BitArray Condition, BitArray Relevant)
+      private static void GenerateCondition(P5CodegenCS codegen, BitArray condition, BitArray relevant, Boolean checkingForbiddenTerminals)
       {
          // In the worst case all symbols are relevant and the condition changes at each index
          // so that each symbol needs an own block
@@ -1120,54 +1140,55 @@ namespace grammlator {
          /// </summary>
          List<BlockOfEqualBits> blockList = new List<BlockOfEqualBits>(GlobalVariables.NumberOfTerminalSymbols);
 
-         if (blockList.Capacity != Condition.Count)
-            blockList.Capacity = Condition.Count;
+         if (blockList.Capacity != condition.Count)
+            blockList.Capacity = condition.Count;
 
          // determine consecutive blocks (indexes) of equal values of Condition ignoring not relevant symbols (indexes)
-         ComputeBlocklist(Condition, Relevant, blockList);
+         ComputeBlocklist(condition, relevant, blockList);
 
+         // TODO if !GlobalSettings.InputElementsAreTerminals: take account of context testing
          Boolean test1sRecommended = AnalyseBlockList(blockList, out Int32 Complexity);
 
-         if (Complexity > GlobalSettings.CompareToFlagTestBorder.Value * 100 - 50
+         if (Complexity > GlobalSettings.GenerateFlagTestStartingLevel.Value * 100 - 50
             // 350 allows e.g. 2 comparisions and 1 logical operator
-            && GlobalSettings.FlagTestMethodName.Value != ""
+            && GlobalSettings.NameOfFlagTestMethod.Value != ""
             && GlobalVariables.NumberOfTerminalSymbols <= 63
             // TODO correct condition: the value of each enum element must be >= 0  and  <=63
             )
          {
-            GenerateIsIn(codegen, Condition, Relevant);
+            GenerateIsIn(codegen, condition, relevant, checkingForbiddenTerminals);
 
             // The generated code contains 1 "<<"-operator, 1 "&"-bitoperator, 1 "==0" comparision, optional a "!"-operator,
             // 1 method call (may be inlined by JIT-Compiler), some additions of constants which are evaluated at compile time
          }
          else if (test1sRecommended)
          {
-            GenerateTest1s(codegen, blockList);
+            GenerateTest1s(codegen, blockList, checkingForbiddenTerminals);
          }
          else
          {
-            GenerateTest0s(codegen, blockList);
+            GenerateTest0s(codegen, blockList, checkingForbiddenTerminals);
          }
 
          blockList.Clear(); // keep capacity for reuse
          return;
       }
 
-      private static void GenerateConditionAsComment(P5CodegenCS codegen, BitArray condition)
+      private static void GenerateConditionAsComment(P5CodegenCS codegen, BitArray condition, Boolean checkingForbiddenTerminals)
       {
-         if (GlobalSettings.DebugAssertMethod.Value == "")
+         if (GlobalSettings.NameOfCSharpDebugAssertMethod.Value == "")
             return;
          codegen
             .IndentExactly()
-            .AppendWithOptionalLinebreak(GlobalSettings.DebugAssertMethod.Value)
+            .AppendWithOptionalLinebreak(GlobalSettings.NameOfCSharpDebugAssertMethod.Value)
             .Append('(')
             .IncrementIndentationLevel();
          // codegen.Indent(nestingLevel + 1);
          // force complete check, e.g. /* MyCharacterInput.Symbol >= CharGroupEnum.Digit */
          /* MyCharacterInput.Symbol == CharGroupEnum.Digit || MyCharacterInput.Symbol == CharGroupEnum.Letter */
-         GenerateCondition(codegen, condition, GlobalVariables.AllTerminalSymbols);
+         GenerateCondition(codegen, condition, GlobalVariables.AllTerminalSymbols, checkingForbiddenTerminals);
 
-         // The restriction on relevant symbols would produce a optimized condition resulting on preceding checks, e.g.
+         // The restriction on relevant symbols would produce an optimized condition resulting on preceding checks, e.g.
          /* MyCharacterInput.Symbol >= CharGroupEnum.Digit */
          // GenerateCondition(Condition, RelevantSymbols); 
 
@@ -1195,53 +1216,53 @@ namespace grammlator {
             return; // no relevant elements, blocklist remains empty
          }
 
-         Boolean blockType;
-         Int32 blockStart;
-         Int32 blockLength; // counts the relevant bits
-         Int32 blockEnd;
+         Boolean BlockType;
+         Int32 BlockStart;
+         Int32 RelevantBitsCount;
+         Int32 BlockEnd;
 
-         Int32 nextRelevant = firstRelevant; // first relevant
+         Int32 NextRelevant = firstRelevant; // start with first relevant
 
          while (true)
          { // loop over all blocks
-            Debug.Assert(nextRelevant <= lastRelevant);
+            Debug.Assert(NextRelevant <= lastRelevant);
 
-            blockStart = nextRelevant;
-            blockType = Condition[blockStart];
-            blockLength = 1;
-            blockEnd = blockStart;
+            BlockStart = NextRelevant;
+            BlockType = Condition[BlockStart];
+            RelevantBitsCount = 1;
+            BlockEnd = BlockStart;
 
-            // increment blockEnd and blockLength until end of block or end of relevant part of condition
-            while (++nextRelevant <= lastRelevant)
+            // increment BlockEnd and RelevantBitsCount until end of block or end of relevant part of condition
+            while (++NextRelevant <= lastRelevant)
             {
-               // ignore all elements which are not relevant
-               nextRelevant = Relevant.FindNextTrue(nextRelevant - 1);
+               // skip all elements which are not relevant
+               NextRelevant = Relevant.FindNextTrue(NextRelevant - 1);
                // Note: Relevant.FindNextTrue(LastRelevant) == LastRelevant
 
-               Debug.Assert(nextRelevant <= lastRelevant && Relevant[nextRelevant]);
+               Debug.Assert(NextRelevant <= lastRelevant && Relevant[NextRelevant]);
 
                // beyond end of block?
-               if (Condition[nextRelevant] != blockType)
+               if (Condition[NextRelevant] != BlockType)
                   break; // yes
 
-               // assume this is the last relevant bit 
-               blockEnd = nextRelevant;
+               // this is until now the last relevant bit 
+               BlockEnd = NextRelevant;
                // count the relevant bits
-               blockLength++;
+               RelevantBitsCount++;
             }
 
             // found a block
             BlockList.Add(new BlockOfEqualBits {
-               blockType = blockType,
-               blockStart = blockStart,
-               blockLength = blockLength,
-               blockEnd = blockEnd
+               BlockType = BlockType,
+               BlockStart = BlockStart,
+               RelevantBitsCount = RelevantBitsCount,
+               BlockEnd = BlockEnd
             });
 
-            if (nextRelevant > lastRelevant)
+            if (NextRelevant > lastRelevant)
                break; // no more blocks
 
-            Debug.Assert(nextRelevant <= lastRelevant && Relevant[nextRelevant] && Condition[nextRelevant] != blockType); // = blockStart of next block
+            Debug.Assert(NextRelevant <= lastRelevant && Relevant[NextRelevant] && Condition[NextRelevant] != BlockType); // = blockStart of next block
          }
       }
 
@@ -1261,23 +1282,21 @@ namespace grammlator {
 
          var Complexity = new Int32[2] { 0, 0 };
 
-         Int32 first = BlockList[0].blockStart;
-         Int32 last = BlockList[^1].blockEnd;
-
-         BlockOfEqualBits block;
+         Int32 firstRelevant = BlockList[0].BlockStart;
+         Int32 lastRelevant = BlockList[^1].BlockEnd;
 
          // default: start the loop below with the first block
          Int32 blockIndex = 0;
+         BlockOfEqualBits block = BlockList[0];
 
-         //  1st block may need special handling
-         block = BlockList[0];
-
-         if (blockIndex == 0 && block.blockLength >= 2)
+         // The 1st block may need special handling
+         // TODO bear in mind modifications and new GlobalSettings.InputElementsAreTerminals
+         if (blockIndex == 0 && block.RelevantBitsCount >= 2)
          {
             // special handlings of first block if it is type true and contains more than 1 element
-            Debug.Assert(blockIndex == 0 && block.blockStart == first);
+            Debug.Assert(blockIndex == 0 && block.BlockStart == firstRelevant);
 
-            if (block.blockEnd == last)
+            if (block.BlockEnd == lastRelevant)
             {
                // special case: all elements are equal, condition returns true
                // This should not happen if conflicts are solved properly.
@@ -1293,7 +1312,7 @@ namespace grammlator {
             ////var endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockEnd);
             ////codegen.AppendWithOptionalLinebreakAndPrefix(endTerminalSymbol.InputClass, "Symbol <= ");
             ////codegen.AppendWithPrefix(endTerminalSymbol.SymbolEnum, endTerminalSymbol.Bezeichner);
-            Complexity[block.blockType ? 1 : 0] += 100;
+            Complexity[block.BlockType ? 1 : 0] += 100;
 
             blockIndex++; // special case has been handled here, start the loop below with next block
          }
@@ -1308,10 +1327,10 @@ namespace grammlator {
                // concatenate code for not the first block etc. with " || " 
                ////codegen.AppendLineAndIndent();
                ////codegen.Append(" || ");
-               Complexity[block.blockType ? 1 : 0] += 100;
+               Complexity[block.BlockType ? 1 : 0] += 100;
             }
 
-            switch (block.blockLength)
+            switch (block.RelevantBitsCount)
             {
             // prefer == and != (by using complexity 99) to <=, <, > and >= (with complexity 100) 
             // The codegen examples are taken from GenerateTest1s.
@@ -1320,18 +1339,18 @@ namespace grammlator {
             {
                ////codegen.AppendWithOptionalLinebreakAndPrefix(startTerminalSymbol.InputClass, "Symbol == ");
                ////codegen.AppendWithPrefix(startTerminalSymbol.SymbolEnum, startTerminalSymbol.Bezeichner);
-               Complexity[block.blockType ? 1 : 0] += 99; // == 
+               Complexity[block.BlockType ? 1 : 0] += 99; // == 
                break;
             }
 
             case 2: // generate: check of two allowed symbols or special case
             {
-               if (block.blockEnd == last)
+               if (block.BlockEnd == lastRelevant)
                {
                   // special case: at the end of relevant symbols test of end may be ommitted
                   ////codegen.AppendWithOptionalLinebreakAndPrefix(startTerminalSymbol.InputClass, "Symbol >= ");
                   ////codegen.AppendWithPrefix(startTerminalSymbol.SymbolEnum, startTerminalSymbol.Bezeichner);
-                  Complexity[block.blockType ? 1 : 0] += 100; // >=
+                  Complexity[block.BlockType ? 1 : 0] += 100; // >=
                }
                else
                { // compare two symbols: same complexity as test of interval but better readability
@@ -1340,19 +1359,19 @@ namespace grammlator {
                  ////codegen.Append(" || ");
                  ////codegen.AppendWithOptionalLinebreakAndPrefix(startTerminalSymbol.InputClass, "Symbol == ");
                  ////codegen.AppendWithPrefix(startTerminalSymbol.SymbolEnum, startTerminalSymbol.Bezeichner);
-                  Complexity[block.blockType ? 1 : 0] += 100 + 99 + 99; // == || ==
+                  Complexity[block.BlockType ? 1 : 0] += 100 + 99 + 99; // == || ==
                }
                break;
             }
 
             default:// generate: check a sequence of three or more allowed symbols
             {
-               if (block.blockEnd == last)
+               if (block.BlockEnd == lastRelevant)
                {
                   // special case: at end the of relevant symbols test of end may be ommitted
                   ////codegen.AppendWithOptionalLinebreakAndPrefix(startTerminalSymbol.InputClass, "Symbol >= ");
                   ////codegen.AppendWithPrefix(startTerminalSymbol.SymbolEnum, startTerminalSymbol.Bezeichner);
-                  Complexity[block.blockType ? 1 : 0] += 100; // >=
+                  Complexity[block.BlockType ? 1 : 0] += 100; // >=
                }
                else
                { // generate: test closed interval of three or more symbols
@@ -1361,7 +1380,7 @@ namespace grammlator {
                  ////codegen.Append(" && ");
                  ////codegen.AppendWithOptionalLinebreakAndPrefix(endTerminalSymbol.InputClass, "Symbol <= ");
                  ////codegen.AppendWithPrefix(endTerminalSymbol.SymbolEnum, endTerminalSymbol.Bezeichner);
-                  Complexity[block.blockType ? 1 : 0] += 300; // >= && <=
+                  Complexity[block.BlockType ? 1 : 0] += 300; // >= && <=
                }
                break;
             }
@@ -1381,20 +1400,16 @@ namespace grammlator {
       /// Code is generated for all blocks with BlockType == false
       /// </summary>
       /// <param name="blockList"></param>
-      private static void GenerateTest0s(P5CodegenCS codegen, List<BlockOfEqualBits> blockList)
+      private static void GenerateTest0s(P5CodegenCS codegen, List<BlockOfEqualBits> blockList, Boolean checkingForbiddenTerminals)
       {
          /* Code is generated for all blocks  of type == false, typically  "(symbol < 'StartIndexOfBlock' || symbol > EndIndexOfBlock) && ..."  
           * Code for different blocks is concatenated by " && "
-          * special cases:
-          *    blockstart==0: "Symbol > EndOfBlock"  because symbol represents all preceding values
-          *    blockend==last: "Symbol < StartOfBlock" because symbol represents all following value
-          *    blockstart == blockend:  "Symbol != StartOfBlock"
-          *    blockstart == 1st relevant elements index: "symbol > EndOfBlock"
-          *    blockend   == last relevant elements index: "Symbol < StartOfBlock"
-          *    blockLength==2: "Symbol != StartOfBlock && Symbol != EndOfBlock"
-          *    blocklength >2: "(Symbol < StartOfBlock || Symbol > EndOfBlock)" with paranthesis
-
-          *  some more special cases see below
+          * Cases:
+          *    if IsSpecial1stBlock() : "Symbol > EndOfBlock"
+          *    blockLength==1         : "Symbol != StartOfBlock"
+          *    blockLength==2         : "Symbol != StartOfBlock && Symbol != EndOfBlock"
+          *    blocklength >2         : "(Symbol < StartOfBlock || Symbol > EndOfBlock)" with paranthesis
+          *    if IsSpecialLastBlock(): "Symbol < StartOfBlock"
           */
 
          if (blockList.Count == 0)
@@ -1404,106 +1419,149 @@ namespace grammlator {
             return;
          }
 
-         Int32 first = blockList[0].blockStart;
-         Int32 last = blockList[^1].blockEnd;
+         Int32 firstRelevant = blockList[0].BlockStart;
+         Int32 lastRelevant = blockList[^1].BlockEnd;
 
-         BlockOfEqualBits block;
+         // Start the loop below with the first block of type==false
+         Int32 blockIndex = blockList[0].BlockType ? 1 : 0;
+         BlockOfEqualBits block = blockList[blockIndex];
+         Boolean is1stCondition = true;
 
-         // default: start the loop below with the first block of type==false
-         Int32 blockIndex = blockList[0].blockType ? 1 : 0;
          // Enclose condition in parentheses if there is one more block of the same type
          Boolean useParentheses = blockList.Count > blockIndex + 2; // example: Count==3, blockIndex=1 => no parentheses
 
-         // 1st block may need special handling
-         block = blockList[0];
+         // The 1st and last block may be handled special: check only BlockEnd (resp. Blockstart) instead of interval
+         Boolean IsSpecial1stBlockOf0s() => // generate "Symbol > EndOfBlock && ..." 
+              blockIndex == 0 // the 1st block of 0s must be block 0 (no preceding 1s)
+              &&
+              (GlobalSettings.InputPeekChecksBounds.Value
+                ? // the condition will test only defined terminals, simplification allowed (check only BlockEnd) 
+                block.RelevantBitsCount >= 2
+                :
+                //  the condition has to handle values lower than the defined terminals
+                //  namely as 1s in case of error actions (complete interval check necessary to allow lower values)
+                //  else as 0s (simplification extending interval of 0s) 
+                !checkingForbiddenTerminals
+              );
 
-         if (blockIndex == 0)
+         Boolean IsSpecialLastBlockOf0s() => // generate &&"Symbol < StartOfBlock"
+              blockIndex == blockList.Count - 1 // the last block of 1s must be the last block (no trailing 0s)
+              &&
+              (GlobalSettings.InputPeekChecksBounds.Value
+                ? // the condition will test only defined terminals, simplification allowed (check only BlockStart)
+                block.RelevantBitsCount >= 2
+                :
+                //  the condition has to handle values higher than the defined terminals
+                //  namely as 1s in case of error actions (complete interval check necessary to allow higher values)
+                // else as 0s (simplification extending interval of 0s)
+                !checkingForbiddenTerminals
+              );
+
+         if (blockIndex == 1 && !checkingForbiddenTerminals && !GlobalSettings.InputPeekChecksBounds.Value)
          {
-            // special handlings of first block , which has to handle all values preceding the 1st!
-            Debug.Assert(blockIndex == 0 && block.blockStart == first);
+            // Simulate block -1 and generate exclusion of preceding values   "Symbol > EndOfBlock && ..." 
+            String firstTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(0).Identifier;
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " > ");
+            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, firstTerminalSymbol);
+            is1stCondition = false;
+         }
+         else // blockIndex == 0 !
+         if (IsSpecial1stBlockOf0s())
+         {
+            //  generate "Symbol > EndOfBlock && ..."
+            Debug.Assert(blockIndex == 0 && block.BlockStart == firstRelevant);
 
-            if (block.blockEnd == last)
+            if (block.BlockEnd == lastRelevant)
             {
-               // special case: all elements are false, condition returns false
-               // This should not happen if conflicts are solved properly.
-               // This will have the effect that parts of the generated code can never be reached
+               // Only 1 block; should not occur here, because blockList.Count<=1 has been excluded in If(...
+               // so that conditions generated as comment are not only the text "true" or "false"
                codegen.AppendWithOptionalLinebreak("false");
-
                return;
             }
 
-            // special case: at beginning of relevant symbols test of start may be ommitted
-            TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockEnd);
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " > ");
-            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+            String endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd).Identifier;
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " >= ");
+            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
 
             blockIndex += 2; // special case has been handled here, start the loop below with next block of same type 
+            is1stCondition = false;
          }
 
-         // handle all (remaining) blocks with type==true
+         // handle all (remaining) blocks with type==false
          for (; blockIndex < blockList.Count; blockIndex += 2)
          {
-            // by increment 2 all blocks of blockType==false are skipped
+            // all blocks of blockType==true are skipped by blockIndex += 2
             block = blockList[blockIndex];
-            Debug.Assert(!block.blockType);
+            Debug.Assert(!block.BlockType);
 
-            TerminalSymbol startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockStart);
-            TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockEnd);
+            String startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockStart).Identifier;
+            String endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd).Identifier;
 
-            if (blockIndex >= 2)
+            if (!is1stCondition)
             {
                // concatenate code for not the first block etc. with " && " 
                codegen.AppendLineAndIndent();
                codegen.Append("&& ");
             }
+            is1stCondition = false;
 
-            switch (block.blockLength)
+            if (IsSpecialLastBlockOf0s())
             {
-            case 1: // generate: check of equality of one allowed symbol
-            {
-               if (block.blockEnd == last)
-                  goto default;
-               codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " != ");
-               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
-               break;
+               // generate "Symbol > EndOfBlock" 
+               codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " < ");
+               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
             }
-            case 2: // generate: check of two allowed symbols or special case
-            {
-               if (block.blockEnd == last)
-                  goto default;
-               // compare two symbols: same complexity as test of interval but better readability
-               // no parantheses necessary
-               codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " != ");
-               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
-               codegen.Append(" && ");
-               codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " != ");
-               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
-               break;
-            }
-            default:// generate: check a sequence of three or more allowed symbols
-            {
-               if (block.blockEnd == last)
+            else
+               switch (block.RelevantBitsCount)
                {
-                  // special case: at end the of relevant symbols test of end must be ommitted
-                  // because the last terminal symbol represents al following symbols
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " < ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+               case 1: // generate: check of unequality of one allowed symbol
+               {
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " != ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
+                  break;
                }
-               else
-               { // generate: test closed interval of three or more symbols
+               case 2: // generate: check of two forbidden symbols
+               {
+                  // compare two symbols: same complexity as test of interval but better readability
+                  // no parantheses necessary
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " != ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
+                  codegen.Append(" && ");
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " != ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
+                  break;
+               }
+               default:// generate: check a sequence of three or more allowed symbols
+               {
+                  // generate: test closed interval of three or more symbols
                   if (useParentheses)
                      codegen.Append('(');
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " < ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " < ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
                   codegen.Append(" || ");
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " > ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " > ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
                   if (useParentheses)
                      codegen.Append(')');
+                  break;
                }
-               break;
+               }
+         }
+
+         if (blockList[^1].BlockType && !checkingForbiddenTerminals && !GlobalSettings.InputPeekChecksBounds.Value)
+         {
+            // Append condition to check additional values 
+            Debug.Assert(blockIndex == blockList.Count);
+
+            if (!is1stCondition)
+            {
+               // concatenate code for not the first block etc. with " || " 
+               codegen.AppendLineAndIndent();
+               codegen.Append("&& ");
             }
-            }
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " <= ");
+            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value,
+               GlobalVariables.GetTerminalSymbolByIndex(blockList[^1].BlockEnd).Identifier);
          }
       }
 
@@ -1511,17 +1569,16 @@ namespace grammlator {
       /// Code is generated for all blocks with BlockType == true
       /// </summary>
       /// <param name="blockList"></param>
-      private static void GenerateTest1s(P5CodegenCS codegen, List<BlockOfEqualBits> blockList)
+      private static void GenerateTest1s(P5CodegenCS codegen, List<BlockOfEqualBits> blockList, Boolean checkingForbiddenTerminals)
       {
          /* Code is generated for all blocks of type == true, typically  "(symbol >= 'StartOfBlock' && symbol <= 'EndOfBlock") || ..." 
           * Code for different blocks is concatenated by " || "
-          * special cases:
-          *    blockstart == blockend:  "Symbol == StartOfBlock"
-          *    blockstart == 1st relevant elements index: "symbol <= EndOfBlock"
-          *    blockend   == last relevant elements index: "Symbol >= StartOfBlock"
-          *    blockLength==2: "Symbol == StartOfBlock || Symbol == EndOfBlock"
-          *    blocklength >2: "(Symbol >= StartOfBlock && Symbol <= EndOfBlock)" with paranthesis
-          *  some more special cases see below
+          * Cases:
+          *    if IsSpecial1stBlock() : "Symbol <= EndOfBlock":   see below
+          *    blockLength==1         :  "Symbol == StartOfBlock"
+          *    blockLength==2         : "Symbol == StartOfBlock || Symbol == EndOfBlock"
+          *    blocklength >2         : "(Symbol >= StartOfBlock && Symbol <= EndOfBlock)" with paranthesis
+          *    if IsSpecialLastBlock(): "Symbol >= StartOfBlock": only if ... (see below)
           */
 
          if (blockList.Count == 0)
@@ -1531,187 +1588,308 @@ namespace grammlator {
             return;
          }
 
-         Int32 first = blockList[0].blockStart;
-         Int32 last = blockList[^1].blockEnd;
+         Int32 firstRelevant = blockList[0].BlockStart;
+         Int32 lastRelevant = blockList[^1].BlockEnd;
 
-         /// blockType==0 if the block contains 0s else 1
-         BlockOfEqualBits block;
+         // Start the loop below with the first block of type==true
+         Int32 blockIndex = blockList[0].BlockType ? 0 : 1;
+         BlockOfEqualBits block = blockList[blockIndex];
+         Boolean is1stCondition = true;
 
-         // default: start the loop below with the first block of type==true
-         Int32 blockIndex = blockList[0].blockType ? 0 : 1;
          // Enclose condition in parentheses if there is one more block of the same type
          Boolean useParentheses = blockList.Count > blockIndex + 2; // example: Count==3, blockIndex=1 => no parentheses
 
-         // 1st block may need special handling
-         block = blockList[0];
-         if (blockIndex == 0) //  && block.blockLength >= 2 && blockList.Count > 1)
-         {
-            // special handlings of first block if its type is true and contains more than 1 element
-            Debug.Assert(blockIndex == 0 && block.blockStart == first);
+         // The 1st and last block may be handled special: check only BlockEnd (resp. Blockstart) instead of interval
+         Boolean IsSpecial1stBlockOf1s() =>
+              blockIndex == 0 // the 1st block of 1s must be block 0 (no preceding 0s)
+              &&
+              (GlobalSettings.InputPeekChecksBounds.Value
+                ? // the condition will test only defined terminals, simplification allowed (check only BlockEnd) 
+                block.RelevantBitsCount >= 2
+                :
+                //  the condition has to handle values lower than the defined terminals
+                //  namely as 1s in case of error actions (check of lower values necessary)
+                //  else as 0s (no simplification, complete interval check necessary) 
+                checkingForbiddenTerminals
+              );
 
-            if (block.blockEnd == last)
+         Boolean IsSpecialLastBlockOf1s(int xxxindex)
+         {
+            Boolean xxxresult;
+            //if (xxxindex != blockList.Count - 1)
+            //   return false;
+            xxxresult =
+               (xxxindex == blockList.Count - 1) // the last block of 1s must be the last block (no trailing 0s)
+               &&
+               (GlobalSettings.InputPeekChecksBounds.Value
+                 ? // the condition will test only defined terminals, simplification allowed (check only BlockStart)
+                 block.RelevantBitsCount >= 2
+                 :
+                 //  the condition has to handle values gigher than the defined terminals
+                 //  namely as 1s in case of error actions (check of higher values necessary)
+                 // else as 0s (no simplification, complete interval check needed) 
+                 checkingForbiddenTerminals
+               );
+            Debug.Assert(!xxxresult || (xxxindex + 1 == blockList.Count));
+            return xxxresult;
+         }
+
+         // TOCHECK warning message if gaps between terminals symbols and not GlobalSettings.InputElementsAreTerminals.Value
+
+         if (blockIndex == 1 && checkingForbiddenTerminals && !GlobalSettings.InputPeekChecksBounds.Value)
+         {
+            // Simulate block -1 and generate test of preceding values  "Symbol < 1st terminal symbol"
+            String firstTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(0).Identifier;
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " < ");
+            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, firstTerminalSymbol);
+            is1stCondition = false;
+         }
+         else // blockIndex == 0 !
+         if (IsSpecial1stBlockOf1s())
+         {
+            // generate "symbol <= EndOfBlock"
+            if (block.BlockEnd == lastRelevant)
             {
-               // Must not occur here, because blockList.Count<=1 has been excluded in If(...
+               // Only 1 block; should not occur here, because blockList.Count<=1 has been excluded in If(...
                // so that conditions generated as comment are not only the text "true"
                codegen.AppendWithOptionalLinebreak("true");
                return;
             }
 
-            // special case: at beginning of relevant symbols test of start may be ommitted;
-            // resp. must be omitted if the first terminal is intended to include all lower values
-            TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockEnd);
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " <= ");
+            TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd);
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " <= ");
             codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
 
+            is1stCondition = false;
             blockIndex += 2; // special case has been handled here, start the loop below with next block of same type 
          }
 
          // handle all (remaining) blocks with type==true
          for (; blockIndex < blockList.Count; blockIndex += 2)
          {
-            // by increment 2 all blocks of blockType==false are skipped
+            // all blocks of blockType==false are skipped by blockIndex += 2
             block = blockList[blockIndex];
-            Debug.Assert(block.blockType);
+            Debug.Assert(block.BlockType);
 
-            TerminalSymbol startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockStart);
-            TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.blockEnd);
+            String startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockStart).Identifier;
+            String endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd).Identifier;
 
-            if (blockIndex >= 2)
+            if (!is1stCondition)
             {
                // concatenate code for not the first block etc. with " || " 
                codegen.AppendLineAndIndent();
                codegen.Append("|| ");
             }
+            is1stCondition = false;
 
-            switch (block.blockLength)
+            if (IsSpecialLastBlockOf1s(blockIndex))
             {
-            case 1: // generate: check of equality of one allowed symbol (except block with last terminal symbol)
-            {
-               if (block.blockEnd == last)
-                  goto default;
-               codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " == ");
-               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
-               break;
+               // generate "Symbol >= StartOfBlock"
+               codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " >= ");
+               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
             }
-            case 2: // generate: check of two allowed symbols or special case
-            {
-               if (block.blockEnd == last)
-                  goto default;
-               // compare two symbols: same complexity as test of interval but better readability
-               // no parantheses necessary
-               codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " == ");
-               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
-               codegen.Append(" || ");
-               codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " == ");
-               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
-               break;
-            }
-
-            default:// generate: check a sequence of three or more allowed symbols
-            {
-               if (block.blockEnd == last)
+            else
+               switch (block.RelevantBitsCount)
                {
-                  // special case: at end the of relevant symbols test of end may be ommitted
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " >= ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+               case 1: // generate: check of equality of one allowed symbol
+               {
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " == ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
+                  break;
                }
-               else
-               { // generate: test closed interval of three or more symbols
+               case 2: // generate: check of two allowed symbols
+               {
+                  // compare two symbols: same complexity as test of interval but better readability
+                  // no parantheses necessary
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " == ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
+                  codegen.Append(" || ");
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " == ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
+                  break;
+               }
+
+               default:// generate: check a sequence of three or more allowed symbols
+               {
+                  // generate: test closed interval of three or more symbols
                   if (useParentheses)
                      codegen.Append('(');
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " >= ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " >= ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
                   codegen.Append(" && ");
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.SymbolNameOrFunctionCall.Value, " <= ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " <= ");
+                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
                   if (useParentheses)
                      codegen.Append(')');
+                  break;
                }
-               break;
+               }
+         }
+
+         if (!blockList[^1].BlockType && checkingForbiddenTerminals && !GlobalSettings.InputPeekChecksBounds.Value)
+         {
+            // Append condition to check additional values 
+            Debug.Assert(blockIndex == blockList.Count);
+
+            if (!is1stCondition)
+            {
+               // concatenate code for not the first block etc. with " || " 
+               codegen.AppendLineAndIndent();
+               codegen.Append("|| ");
             }
-            }
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputComparisionArgument.Value, " > ");
+            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value,
+               GlobalVariables.GetTerminalSymbolByIndex(blockList[^1].BlockEnd).Identifier);
          }
       }
 
-      private static void GenerateIsIn(P5CodegenCS codegen, BitArray Condition, BitArray Relevant)
+      private static void GenerateIsIn(P5CodegenCS codegen, BitArray condition, BitArray relevant, Boolean checkingForbiddenTerminals)
       {
-         BitArray InverseCondition = new BitArray(Condition).Not().And(Relevant);
-         if (Condition.PopulationCount() < InverseCondition.PopulationCount()) // TOCHECK 1st and last condition?
-            GenerateIsInArguments(codegen, Condition, false);
+         BitArray InverseCondition = new BitArray(condition).Not().And(relevant);
+         if (condition.PopulationCount() < InverseCondition.PopulationCount()) // TOCHECK 1st and last condition?
+            GenerateIsInArguments(codegen, condition, false, relevant, checkingForbiddenTerminals);
          else
-            GenerateIsInArguments(codegen, InverseCondition, true);
+            GenerateIsInArguments(codegen, InverseCondition, true, relevant, checkingForbiddenTerminals);
       }
 
-      private static void GenerateIsInArguments(P5CodegenCS codegen, BitArray Condition, Boolean inverse)
+      private static void GenerateIsInArguments(P5CodegenCS codegen, BitArray condition, Boolean inverse, BitArray relevant, Boolean checkingForbiddenTerminals)
       {
          codegen.IncrementIndentationLevel();
 
-         if (Condition.All())
+         if (condition.All())
          {
             codegen.AppendWithOptionalLinebreak("true")
                .DecrementIndentationLevel();
             return;
          }
-         else if (Condition.Empty())
+         else if (condition.Empty())
          {
             codegen.AppendWithOptionalLinebreak("false")
                .DecrementIndentationLevel();
             return;
          }
 
-         Debug.Assert(Condition.Length >= 2);
-         Boolean Is1st = true;
+         Debug.Assert(condition.Length >= 2); // else it would be "true" or "false"
 
-         if (Condition[0])
-         {
-            codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
-            if (inverse)
-               codegen.AppendWithOptionalLinebreak(" > ");
-            else
-               codegen.AppendWithOptionalLinebreak(" <= ");
-            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, GlobalVariables.GetTerminalSymbolByIndex(0).Identifier);
-            Is1st = false;
-         }
-         int last = Condition.Length - 1;
-         if (Condition[last])
-         {
-            if (!Is1st)
-               codegen.Append(inverse?" && ":" || ");
+         int first = relevant.IndexOfFirstTrueElement();
+         int last = relevant.IndexOfLastTrueElement();
 
-            codegen.Append(GlobalSettings.SymbolNameOrFunctionCall.Value);
-            if (inverse)
-               codegen.AppendWithOptionalLinebreak(" < ");
-            else
-               codegen.AppendWithOptionalLinebreak(" >= ");
-            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, GlobalVariables.GetTerminalSymbolByIndex(last).Identifier);
-            Is1st = false;
+         /* consider GlobalSettings.InputElementsAreTerminals
+          * There are 2 cases
+          * a) independent of checkingForbiddenTerminals
+          * a1) !inverse  =>    IsIn( a | c | e ...) with xxx == 1
+          * a2) inverse   =>    !IsIn( b | d ...) with xxx == 0 implemented by inverting the bits
+          *
+          * consider !GlobalSettings.InputElementsAreTerminals: there are extra values
+          * There are 4 cases
+          * a) standard "if (...) accept..." !checkingForbiddenTerminals (extra values return false)
+          * a1) !inverse  =>    IsIn( a | c | e ...)
+          * a2) inverse   =>    symbol >= first && symbol <= last && !IsIn( b | d ...) 
+          * b) special "if (...) error.." checkingForbiddenTerminals (extra values return true)
+          * b1) !inverse  =>    symbol < first || symbol > last || IsIn( a | c | e ...)
+          * b2) inverse  = >    !IsIn( b | d ...) 
+          */
+
+         Boolean CheckExtraValues =
+            !GlobalSettings.InputPeekChecksBounds.Value // special case if there may be extra values
+            && (checkingForbiddenTerminals ^ inverse)       // and if checkingForbiddenTerminals and inverse are different
+            ;
+
+         string op2 = ""; // will be finally "" or " || " or " && "
+
+         if (CheckExtraValues) // cases a2) and b1)
+         {
+            // generate code to check lower and higher values
+            string op1, op3;
+
+            if (checkingForbiddenTerminals) // && ! inverse : case b1)
+            {  // include lower and higher values: "symbol < first || Symbol > last || (!)IsIn") 
+               op1 = " < ";
+               op2 = " || ";
+               op3 = " > ";
+
+               // optimize: include test of first and/or last sequence if condition[first / last]
+               //   "symbol < first || Symbol > last || IsIn(first|...|last")
+               //        ==>  "symbol <= first+x || Symbol >= last-y || IsIn(first+x+1...last-y-1")
+               if (condition[first])
+               {
+                  while (first < last && (condition[first + 1] || !relevant[first + 1]))
+                     first++;
+                  op1 = " <= ";
+               }
+               if (condition[last])
+               {
+                  while (last > first && (condition[last - 1] || !relevant[last - 1]))
+                     last--; // Note:  first==last is possible
+                  op3 = " >= ";
+               }
+            }
+            else // !checkingForbiddenTerminals && inverse: case a2)
+            {  // exclude lower and higher values: "symbol >= first && Symbol <= last && (!)IsIn") 
+               op1 = " >= ";
+               op2 = " && ";
+               op3 = " <= ";
+               // optimize: include test of first and/or last if condition[] is true
+               //   "symbol >= first && Symbol <= last && IsIn(first|...|last")
+               //        ==>  "symbol > first && Symbol < last && IsIn(...")
+               if (condition[first])
+               {
+                  while (first < last && condition[first + 1])
+                     first++;
+                  op1 = " > ";
+               }
+               if (condition[last])
+               {
+                  while (first < last && condition[last - 1])
+                     last--;
+                  op3 = " < "; // Note:  first==last is possible
+               }
+            }
+
+            codegen
+            .Append(GlobalSettings.InputComparisionArgument.Value)
+            .Append(op1)
+            .AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, GlobalVariables.GetTerminalSymbolByIndex(first).Identifier)
+            .Append(op2)
+            .Append((GlobalSettings.InputComparisionArgument.Value))
+            .Append(op3)
+            .AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, GlobalVariables.GetTerminalSymbolByIndex(last).Identifier);
+            // op2 will be appended if at least one Flag is tested
+            first++;
+            last--;
          }
 
          Boolean Is1stTrueFlag = true;
-         // foreach terminal symbol except 1st and last:
-         for (Int32 i = Condition.FindNextTrue(0); i < Condition.Count - 1; i = Condition.FindNextTrue(i))
+         // foreach terminal symbol (maybe except [0] and [^1], maybe empty depending on above code generation):
+         for (Int32 i = condition.FindNextTrue(first - 1); i <= last; i = condition.FindNextTrue(i))
          {
+            if (!relevant[i])
+               continue;
+
             TerminalSymbol t = GlobalVariables.GetTerminalSymbolByIndex(i);
 
-            t.IsUsedInIsIn = true; // the int constant "_(identifier of terminal symbol)" has to be declared
+            // the int constant "_(identifier of terminal symbol)" has to be declared (if not terminals are flags)
+            t.IsUsedInIsIn = true; 
 
             if (Is1stTrueFlag)
             {
-               if (!Is1st)
-                  codegen.AppendWithOptionalLinebreak(inverse ? " && " : " || ");
-               Is1st = false;
+
+               codegen.Append(op2); // "" or " || " or " && "
+
                if (inverse)
                   codegen.Append("!");
+
                codegen
-                  .Append(GlobalSettings.FlagTestMethodName.Value)
+                  .Append(GlobalSettings.NameOfFlagTestMethod.Value)
                   .Append('(');
             }
-            else if (!Is1stTrueFlag)
+            else
                codegen.AppendWithOptionalLinebreak(" | ");
+
             Is1stTrueFlag = false;
 
             codegen
-               .AppendWithOptionalLinebreak(GlobalSettings.FlagsPrefix.Value)
+               .AppendWithOptionalLinebreak(GlobalSettings.PrefixOfFlagConstants.Value)
                   .Append(t.Identifier);
          }
 

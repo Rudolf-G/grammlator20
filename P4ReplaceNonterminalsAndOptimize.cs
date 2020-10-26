@@ -113,7 +113,7 @@ namespace grammlator {
              GlobalVariables.ListOfAllStates.Count - DetermineNotStackingStates();
 
          // Optionally assign small StateStackNumbers
-         if (GlobalSettings.OptimizeStateStackNumbers.Value)
+         if (GlobalSettings.GenerateSmallStateStackNumbers.Value)
          {
             AssignStatesSmallStackNumbers();
          }

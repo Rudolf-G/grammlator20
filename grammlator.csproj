@@ -7,13 +7,13 @@
     <Authors>Dr. Rudolf Gardill</Authors>
     <PackageIcon>Grammlator.ico</PackageIcon>
     <ApplicationIcon>Grammlator.ico</ApplicationIcon>
-    <AssemblyVersion>20.6.0.0</AssemblyVersion>
+    <AssemblyVersion>20.10.0.0</AssemblyVersion>
     <StartupObject>grammlator.App</StartupObject>
-    <FileVersion>2020.10.18.0</FileVersion>
+    <FileVersion>2020.10.26.0</FileVersion>
     <Version>2020.04.01</Version>
     <PackageLicenseExpression>Without warranty</PackageLicenseExpression>
     <Copyright>Dr. Rudolf Gardill</Copyright>
-    <PackageReleaseNotes>define terminals by enum, use more than one grammlator region</PackageReleaseNotes>
+    <PackageReleaseNotes>changed names of settings, added setting InputPeekChecksBounds (experimental)</PackageReleaseNotes>
     <NeutralLanguage></NeutralLanguage>
     <Nullable>enable</Nullable>
   </PropertyGroup>

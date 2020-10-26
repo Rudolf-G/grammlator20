@@ -130,7 +130,7 @@ namespace grammlator {
       }
 
       /// <summary>
-      /// Checks if all bits are 0
+      /// Checks if all bits are 0, true if no bits
       /// </summary>
       /// <param name="bits"></param>
       /// <returns>true if all Bits are true</returns>
@@ -165,7 +165,7 @@ namespace grammlator {
       }
 
       /// <summary>
-      /// Checks if all bits are 1
+      /// Checks if all bits are 1, true if no bits
       /// </summary>
       /// <param name="bits"></param>
       /// <returns>returns true if all bits are set</returns>
@@ -211,7 +211,7 @@ namespace grammlator {
             throw new ArgumentNullException(nameof(rightArgument));
          if (leftArgument == null)
             throw new ArgumentNullException(nameof(leftArgument));
-
+         // TODO use int array to implement "BitArray IsEqualTo(...)"
          if (leftArgument.Count != rightArgument.Count)
             return false;
          for (Int32 i = 0; i < leftArgument.Count; i++)

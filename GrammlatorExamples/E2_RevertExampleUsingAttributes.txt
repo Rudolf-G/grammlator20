@@ -36,11 +36,11 @@ namespace GrammlatorExamples {
          var AttrStack = new StackOfMultiTypeElements(50);
 
          #region grammar
-         //| TerminalSymbolEnum: "AorBorEnd"; 
-         //| SymbolNameOrFunctionCall: "PeekSymbol()"; SymbolAcceptInstruction: "i++;";
+         //| TerminalSymbolEnum:   "AorBorEnd"; 
+         //| InputExpression:      "PeekSymbol()"; InputAcceptInstruction: "i++;";
          //| ErrorHaltInstruction: "MyError(); return false;";
-         //| StateStack: "StateStack";
-         //| AttributeStack: "AttrStack";
+         //| StateStack:           "StateStack";
+         //| AttributeStack:       "AttrStack";
          //|
          //|  a | b | End | Other;
          //|

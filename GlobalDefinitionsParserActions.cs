@@ -39,26 +39,29 @@ namespace grammlator {
 
       internal static String LabelPrefix(ParserActionEnum e)
       {
-         return e switch
-         {
-            ParserActionEnum.isDefinition => "ApplyDefinition",
-            ParserActionEnum.isParserState => "State",
-            ParserActionEnum.isPushStateAction => "PushState",
-            ParserActionEnum.isLookaheadAction => "LookAhead",
-            ParserActionEnum.isReduceAction => "Reduce",
-            ParserActionEnum.isHaltAction => "ApplyStartsymbolDefinition",
-            ParserActionEnum.isErrorhaltAction => "EndWithError",
-            ParserActionEnum.isTerminalTransition => "TerminalTransition",
-            ParserActionEnum.isAcceptAction => "Accept",
-            ParserActionEnum.isNonterminalTransition => "NonterminalTransition",
-            ParserActionEnum.isBranchAction => "Branch",
-            ParserActionEnum.isPrioritySelectAction => "PrioritySelect",
-            ParserActionEnum.isPriorityBranchAction => "PriorityBranch",
-            ParserActionEnum.isErrorhandlingAction => "HandleError",
-            ParserActionEnum.isDeletedParserAction => "Deleted",
-            ParserActionEnum.isEndOfGeneratedCode => "EndOfGeneratedCode",
-            _ => "UnknownAction"
-         };
+         String result =
+            e switch
+            {
+               ParserActionEnum.isDefinition => "ApplyDefinition???",
+               ParserActionEnum.isParserState => "State",
+               ParserActionEnum.isPushStateAction => "PushState",
+               ParserActionEnum.isLookaheadAction => "LookAhead???",
+               ParserActionEnum.isReduceAction => "Reduce",
+               ParserActionEnum.isHaltAction => "ApplyStartsymbolDefinition",
+               ParserActionEnum.isErrorhaltAction => "EndWithError",
+               ParserActionEnum.isTerminalTransition => "TerminalTransition???",
+               ParserActionEnum.isAcceptAction => "Accept",
+               ParserActionEnum.isNonterminalTransition => "NonterminalTransition???",
+               ParserActionEnum.isBranchAction => "Branch",
+               ParserActionEnum.isPrioritySelectAction => "PrioritySelect",
+               ParserActionEnum.isPriorityBranchAction => "PriorityBranch",
+               ParserActionEnum.isErrorhandlingAction => "HandleError",
+               ParserActionEnum.isDeletedParserAction => "Deleted???",
+               ParserActionEnum.isEndOfGeneratedCode => "EndOfGeneratedCode",
+               _ => "UnknownAction???"
+            };
+         Debug.Assert(result[^1] != '?');
+         return result;
       }
    }
 
@@ -1406,7 +1409,7 @@ namespace grammlator {
          base.CountUsage(Accept);
 
          // A goto to State will be generated if and only if ErrorHandlerIsDefined
-         if (GlobalSettings.ErrorHandlerMethod.Value != "")
+         if (GlobalSettings.NameOfErrorHandlerMethod.Value != "")
             State.CountUsage(false);
       }
 
@@ -1545,9 +1548,5 @@ namespace grammlator {
 
          return base.AppendShortToSB(sb);
       }
-
-
-
-
    }
 }

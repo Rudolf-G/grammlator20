@@ -53,20 +53,20 @@ namespace grammlator {
 
          // ----- Copy input up to and including line starting with "#region grammar"
          Int32 StartOfGrammlatorLines =
-            SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, true, RegionString.Value, GrammarString.Value);
+            SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, true, RegionBegin.Value, RegionGrammarMarker.Value);
          if (StartOfGrammlatorLines >= 0)
          {
             Int32 StartOfRegion = StartOfGrammlatorLines
                + SourceReader.Source.Span[StartOfGrammlatorLines..].IndexOf('#');
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
-                $"Found \"{RegionString} {GrammarString}\"",
+                $"Found \"{RegionBegin} {RegionGrammarMarker}\"",
                 StartOfRegion + 1);
          }
          else
          {
             OutputMessageAndPosition(
                MessageTypeOrDestinationEnum.Abort,
-               $"Missing \"{RegionString} {GrammarString}\"",
+               $"Missing \"{RegionBegin} {RegionGrammarMarker}\"",
                SourceReader.Position);
          }
 
@@ -89,7 +89,7 @@ namespace grammlator {
 
          if (StartOfGeneratedCode < 0)
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
-               $"Missing \"{RegionString} {GrammlatorString}\"",
+               $"Missing \"{RegionBegin} {RegionGrammlatorMarker}\"",
                StartOfGeneratedCode);
 
          // Copy grammar to Resultbuilder
@@ -100,20 +100,20 @@ namespace grammlator {
 
          // Skip generated part
          Int32 EndOfGeneratedCode = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, false, false,
-            EndregionString.Value, GrammlatorString.Value, GeneratedString.Value);
+            RegionEnd.Value, RegionGrammlatorMarker.Value, RegionGeneratedMarker.Value);
          if (EndOfGeneratedCode >= 0)
          {
             Int32 StartOfEndRegion = EndOfGeneratedCode
                + SourceReader.Source.Span[EndOfGeneratedCode..].IndexOf('#');
 
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Status,
-                 $"Found \"{EndregionString} {GrammlatorString} {GeneratedString}\"",
+                 $"Found \"{RegionEnd} {RegionGrammlatorMarker} {RegionGeneratedMarker}\"",
                 StartOfEndRegion + 1);
          }
          else
          {
             OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
-               $"Missing \"{EndregionString} {GrammlatorString} {GeneratedString}\"",
+               $"Missing \"{RegionEnd} {RegionGrammlatorMarker} {RegionGeneratedMarker}\"",
                SourceReader.Position);
          }
 

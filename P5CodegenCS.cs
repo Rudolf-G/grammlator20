@@ -26,7 +26,7 @@ namespace grammlator {
       /// </summary>
       private readonly StringBuilder CodeLine = new StringBuilder();
 
-      private readonly Int32 LineLengthLimit = (Int32)GlobalSettings.LineLengthLimit.Value;
+      private readonly Int32 LineLengthLimit = (Int32)GlobalSettings.OutputLineLengthLimit.Value;
       // TOCHECK can more generated lines be shortened to LineLengthLimit?
 
       /// <summary>
@@ -55,11 +55,11 @@ namespace grammlator {
 
          StringBuilder ResultPart2 = CodeBuilder;
          CodeBuilder = ResultBuilder;
-         Append(GlobalSettings.RegionString.Value).
+         Append(GlobalSettings.RegionBegin.Value).
             Append(' ').
-            Append(GlobalSettings.GrammlatorString.Value).
+            Append(GlobalSettings.RegionGrammlatorMarker.Value).
             Append(' ').
-            Append(GlobalSettings.GeneratedString.Value).
+            Append(GlobalSettings.RegionGeneratedMarker.Value).
             Append(' ').
             Append(GlobalVariables.TranslationInfo);
 
@@ -67,7 +67,7 @@ namespace grammlator {
          {
             IndentExactly()
                .Append("Int32 ")
-               .Append(GlobalSettings.StateStackInitialCountVariable.Value)
+               .Append(GlobalSettings.NameOfStateStackInitialCountVariable.Value)
                .Append(" = ")
                .Append(GlobalSettings.StateStack.Value)
                .AppendLine(".Count; ");
@@ -77,7 +77,7 @@ namespace grammlator {
          {
             IndentExactly()
                .Append("Int32 ")
-               .Append(GlobalSettings.AttributeStackInitialCountVariable.Value)
+               .Append(GlobalSettings.NameOfAttributeStackInitialCountVariable.Value)
                .Append(" = ")
                .Append(GlobalSettings.AttributeStack.Value)
                .AppendLine(".Count; ");
@@ -88,11 +88,11 @@ namespace grammlator {
          Int64 MinValue = GlobalVariables.TerminalSymbols[0].EnumValue;
          Int64 MaxValue = GlobalVariables.TerminalSymbols[^1].EnumValue;
 
-         if (GlobalSettings.FlagTestMethodName.Value != "")
+         if (GlobalSettings.NameOfFlagTestMethod.Value != "")
          {
             Int64 Offset = useTerminalValuesAsFlags
                ? 0  // not used
-               : MaxValue <= 63 ? 0 : MinValue;
+               : MaxValue <= 63 ? 0 : MinValue; // if possible use Offset==0
             Boolean IsInFunctionHastoBeGenerated = false;
 
             foreach (TerminalSymbol t in GlobalVariables.TerminalSymbols)
@@ -106,7 +106,7 @@ namespace grammlator {
                      String Identifier = t.Identifier;
                      IndentExactly();
                      Append("const Int64 ")
-                        .Append(GlobalSettings.FlagsPrefix.Value) //  "_f"
+                        .Append(GlobalSettings.PrefixOfFlagConstants.Value) //  "_f"
                         .Append(Identifier) // "b"
                         .Append(" = 1L << (Int32)(")
                         .AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, Identifier); // LexerResult.CSharpEnd
@@ -123,7 +123,7 @@ namespace grammlator {
                // generate e.g. "Boolean _IsIn"
                IndentExactly().
                Append("Boolean ");
-               Append(GlobalSettings.FlagTestMethodName.Value);
+               Append(GlobalSettings.NameOfFlagTestMethod.Value);
 
                if (useTerminalValuesAsFlags)
                {
@@ -131,14 +131,14 @@ namespace grammlator {
                   Append("(")
                      .Append(GlobalSettings.TerminalSymbolEnum.Value)
                      .Append(" flags) => ((")
-                     .Append(GlobalSettings.SymbolNameOrFunctionCall.Value) // "PeekSymbol()"
+                     .Append(GlobalSettings.InputComparisionArgument.Value) // "PeekSymbol()"
                      .AppendLine(") & flags) != 0;");
                }
                else
                {
                   // generate e.g. "(Int64 flags) => (1L << (Int32)((PeekSymbol()) - 0) & flags) != 0;
                   Append("(Int64 flags) => (1L << (Int32)((")
-                  .Append(GlobalSettings.SymbolNameOrFunctionCall.Value) // "PeekSymbol()"
+                  .Append(GlobalSettings.InputComparisionArgument.Value) // "PeekSymbol()"
                   .Append(')');
                   if (Offset != 0)
                      Append('-')
@@ -156,11 +156,11 @@ namespace grammlator {
 
       public void GenerateEndOfRegion()
       {
-         Append(GlobalSettings.EndregionString.Value).
+         Append(GlobalSettings.RegionEnd.Value).
             Append(' ').
-            Append(GlobalSettings.GrammlatorString.Value).
+            Append(GlobalSettings.RegionGrammlatorMarker.Value).
             Append(' ').
-            Append(GlobalSettings.GeneratedString.Value).
+            Append(GlobalSettings.RegionGeneratedMarker.Value).
             Append(' ').
             AppendLine(GlobalVariables.TranslationInfo);
       }
@@ -406,18 +406,7 @@ namespace grammlator {
       {
          SetCol(IndentationPosition());
          return this;
-      }
-
-      /// <summary>
-      /// Set indentation level and indent to maximum of actual lineposition and new indentation position
-      /// </summary>
-      /// <param name="newIndentation">new indentation level</param>
-      public P5CodegenCS Indent(Int32 newIndentation)
-      {
-         IndentationLevel = newIndentation;
-         Indent();
-         return this;
-      }
+      }            
 
       /// <summary>
       /// Indent to maximum of actual lineposition and new indentation position
@@ -465,10 +454,8 @@ namespace grammlator {
          AppendLine();
       }
 
-      // keine neue Zeile anfangen
-
       public void GenerateAcceptInstruction()
-          => AppendWithOptionalLinebreak(GlobalSettings.SymbolAcceptInstruction.Value);
+          => AppendWithOptionalLinebreak(GlobalSettings.InputAcceptInstruction.Value);
 
       /// <summary>
       /// returns a label built from an action specific string and the actions IdNumber+1

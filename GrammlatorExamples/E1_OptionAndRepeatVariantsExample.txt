@@ -6,10 +6,10 @@ namespace GrammlatorExamples {
    static class OptionAndRepeatVariantsExample {
 
       #region grammar
-      //| TerminalSymbolEnum: "SomeLetters";
-      //| SymbolNameOrFunctionCall: "(SomeLetters)InputLine[i]";
-      //| SymbolAcceptInstruction: "i++;";
-      //| ErrorHaltInstruction: "DisplayRemainder(); return false;";
+      //| TerminalSymbolEnum:     "SomeLetters";
+      //| InputExpression:        "(SomeLetters)InputLine[i]";
+      //| InputAcceptInstruction: "i++;";
+      //| ErrorHaltInstruction:   "DisplayRemainder(); return false;";
       //|
       enum SomeLetters {
          precedingCharacters = 96,

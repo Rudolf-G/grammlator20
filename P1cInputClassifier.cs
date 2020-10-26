@@ -38,7 +38,7 @@ namespace grammlator {
          StartOf1stGrammlatorGeneratedLine = -1;
 
          // Grammlator parameterization
-         GrammarlineMarker = GlobalSettings.GrammarLineMarker.Value; // = "//|"
+         GrammarlineMarker = GlobalSettings.CSharpGrammarLineMarker.Value; // = "//|"
          CSharpCommentlineMarker = GlobalSettings.CSharpCommentlineMarker.Value; // = "//"
          CSharpPragma = GlobalSettings.CSharpPragmaMarker.Value; // = "#pragma"
       }
@@ -311,7 +311,7 @@ namespace grammlator {
             return ' ';
          }
          else if (inputLine.Span.IndexBehindMarkers(
-            CurrentColumn, GlobalSettings.EndregionString.Value, GlobalSettings.GrammarString.Value) > -1
+            CurrentColumn, GlobalSettings.RegionEnd.Value, GlobalSettings.RegionGrammarMarker.Value) > -1
             )
          {
          // skip to "region grammar" or "#region grammlator generated", error message if end of file
@@ -319,7 +319,7 @@ namespace grammlator {
             // a) skip all text to position behind "region"
             Int32 StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(null,
                copy: false, false, // do not copy, but skip marked line
-               GlobalSettings.RegionString.Value);
+               GlobalSettings.RegionBegin.Value);
 
             inputLine = SourceReader.Source[StartOfMarkedLine..SourceReader.Position];
             CurrentColumn = 0;
@@ -330,7 +330,7 @@ namespace grammlator {
                // end of source: Output message and throw exception
                GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
                    $"The end of file has been reached prematurely by the lexical analyzer while searching "
-                   + $"{GlobalSettings.RegionString.Value}",
+                   + $"{GlobalSettings.RegionBegin.Value}",
                    SourceReader.Position
                    );
 
@@ -338,27 +338,27 @@ namespace grammlator {
 
             }
 
-            Int32 i = SourceReader.Source.Span.IndexBehindMarkers(StartOfMarkedLine, GlobalSettings.RegionString.Value);
+            Int32 i = SourceReader.Source.Span.IndexBehindMarkers(StartOfMarkedLine, GlobalSettings.RegionBegin.Value);
 
             if (i < 0)
-               Debug.Fail($"Has already been tested and is not again {GlobalSettings.RegionString.Value}");
+               Debug.Fail($"Has already been tested and is not again {GlobalSettings.RegionBegin.Value}");
 
-            if (SourceReader.Source.Span.IndexBehindMarkers(i, GlobalSettings.GrammarString.Value) > 0)
+            if (SourceReader.Source.Span.IndexBehindMarkers(i, GlobalSettings.RegionGrammarMarker.Value) > 0)
             {
                // found "#region grammar": skip this line and continue parsing with next line
                goto ReadNextLine;
 
             }
-            else if ((i = SourceReader.Source.Span.IndexBehindMarkers(i, GlobalSettings.GrammlatorString.Value)) > 0)
+            else if ((i = SourceReader.Source.Span.IndexBehindMarkers(i, GlobalSettings.RegionGrammlatorMarker.Value)) > 0)
             {
                // found "#region grammlator", expect "generated": 
-               i = SourceReader.Source.Span.IndexBehindMarkers(i, GlobalSettings.GeneratedString.Value);
+               i = SourceReader.Source.Span.IndexBehindMarkers(i, GlobalSettings.RegionGeneratedMarker.Value);
                if (i < 0)
                {
                   // expected but didn't find "generated"
                   GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Abort,
-                      $"Found \"{GlobalSettings.RegionString.Value} {GlobalSettings.GrammlatorString.Value}\""
-                      + $"which is not followed by \"{GlobalSettings.GeneratedString.Value}\"",
+                      $"Found \"{GlobalSettings.RegionBegin.Value} {GlobalSettings.RegionGrammlatorMarker.Value}\""
+                      + $"which is not followed by \"{GlobalSettings.RegionGeneratedMarker.Value}\"",
                       SourceReader.Position
                       );
                }

@@ -70,7 +70,7 @@ namespace grammlator {
                laOrNonterminalTansition.TerminalSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
                laOrNonterminalTansition.Codenumber = 0; // initial value for DIGRAPH algorithm
 
-               if (!(laOrNonterminalTansition is NonterminalTransition NonterminalTransition)
+               if (!(laOrNonterminalTansition is NonterminalTransition NonterminalTransition))
                   continue;
 
                switch (NonterminalTransition.NextAction)

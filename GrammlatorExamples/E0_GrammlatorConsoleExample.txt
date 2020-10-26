@@ -13,10 +13,10 @@ namespace GrammlatorConsoleExample {
    class HelloExample {
       #region grammar
       //| /* grammlator settings: */
-      //| TerminalSymbolEnum: "SomeLetters";
-      //| SymbolNameOrFunctionCall: "Peek()";
-      //| SymbolAcceptInstruction: "Accepted = true;";
-      //| ErrorHaltInstruction: "Console.WriteLine("":-("");";
+      //| TerminalSymbolEnum:     "SomeLetters";
+      //| InputExpression:        "Peek()";
+      //| InputAcceptInstruction: "Accepted = true;";
+      //| ErrorHaltInstruction:   "Console.WriteLine("":-("");";
       //|
       //| /* declaration of terminal symbols: */
       //|    e | f | g | h | i | j | k | l | m | n | o | EndOfLine | other

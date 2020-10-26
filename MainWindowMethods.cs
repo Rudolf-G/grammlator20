@@ -174,9 +174,9 @@ namespace grammlator {
          case MessageTypeOrDestinationEnum.Error:
             if (errors++ == 0)
                firstErrorIndex = ErrorPositions.Count;
-            if (errors >= GlobalSettings.ErrorLimit.Value)
+            if (errors >= GlobalSettings.GrammlatorErrorLimit.Value)
                throw new ErrorInSourcedataException(
-                  $"More than {GlobalSettings.ErrorLimit.Value} messages");
+                  $"More than {GlobalSettings.GrammlatorErrorLimit.Value} messages");
             // display shortened message in log and complete message in ErrorList
             AppendLine(Log, messageHeader(), ReferenceToBox(MessageIncludingPosition));
             AddErrorBox(MessageIncludingPosition, pos, bold: true);
@@ -516,14 +516,14 @@ namespace grammlator {
                continue; // lines are equal
 
             // Test if special lines and allow them to differ after the keywords
-            if (s1LineTrimmed.StartsWith(GlobalSettings.RegionString.Value)
-                && s2LineTrimmed.StartsWith(GlobalSettings.RegionString.Value))
+            if (s1LineTrimmed.StartsWith(GlobalSettings.RegionBegin.Value)
+                && s2LineTrimmed.StartsWith(GlobalSettings.RegionBegin.Value))
             {
                continue;
             }
 
-            if (s1LineTrimmed.StartsWith(GlobalSettings.EndregionString.Value)
-                && s2LineTrimmed.StartsWith(GlobalSettings.EndregionString.Value))
+            if (s1LineTrimmed.StartsWith(GlobalSettings.RegionEnd.Value)
+                && s2LineTrimmed.StartsWith(GlobalSettings.RegionEnd.Value))
             {
                continue;
             }

@@ -318,6 +318,31 @@ namespace grammlator {
          OnFocusTextBox(new FocusTextBoxEventArgs(InfoTextBox));
       }
 
+      private void MenuItemDisplaySettingsCompact_Click(Object sender, RoutedEventArgs e)
+      {
+         StringBuilder InfoBuilder = new StringBuilder(1000);
+         String Delimiter;
+
+         InfoBuilder.AppendLine("The grammlator settings are:").AppendLine();
+
+         foreach (Setting s in GlobalSettings.VisibleSettings)
+         {
+            if (s.HasType == Setting.SettingType.StringType)
+               Delimiter = "\"";
+            else
+               Delimiter = "";
+
+            InfoBuilder.Append(s.Name).Append(": ")
+               .Append(Delimiter).Append(s.InitialValueAsString).Append(Delimiter)
+               .AppendLine(";");
+         }
+         InfoTextBox.Text = InfoBuilder.ToString();
+         GrammlatorTabControl.SelectedIndex = 7;
+         OnFocusTextBox(new FocusTextBoxEventArgs(InfoTextBox));
+
+      }
+
+
       private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs args)
       {
          ActualStatus.SetFlags(
@@ -395,6 +420,5 @@ namespace grammlator {
                containedTb.Width = li.ActualWidth - ListboxDistanceAtRight;
             }
       }
-
    }
 }

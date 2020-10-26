@@ -116,7 +116,8 @@
                 <MenuItem x:Name="MenuItemDisplayExample" Header="Display example">
                     <MenuItem x:Name="GrammlatorConsoleExample" Header="GrammlatorConsoleExample.txt" Click="MenuItemDisplayExample_Click"/>
                 </MenuItem>
-                <MenuItem x:Name="MenuItemDisplaySettings" Header="Display settings" Click="DisplaySettings_Click"/>
+                <MenuItem x:Name="MenuItemDisplaySettings" Header="Display settings with comments" Click="DisplaySettings_Click"/>
+                <MenuItem x:Name="MenuItemDisplaySettingsCompact" Header="Display settings compact" Click="MenuItemDisplaySettingsCompact_Click"/>
             </MenuItem>
         </Menu>
     </Grid>

@@ -10,12 +10,12 @@ namespace grammlator {
       #region grammar
       //|
       //| // Grammlator settings
-      //| TerminalSymbolEnum: "E";
-      //| SymbolNameOrFunctionCall: "Peek()";
-      //| SymbolAcceptInstruction: "Accepted = true;";
-      //| ErrorHaltInstruction: "return false;";
-      //| CompareToFlagTestBorder: 2;
-      //| IsMethod: "_is";
+      //| TerminalSymbolEnum:            "E";
+      //| InputExpression:               "Peek()";
+      //| InputAcceptInstruction:        "Accepted = true;";
+      //| ErrorHaltInstruction:          "return false;";
+      //| GenerateFlagTestStartingLevel:  2;
+      //| NameOfFlagTestMethod:          "_is";
       //|
       //| // Terminal definitions:
       enum E {
@@ -154,7 +154,7 @@ namespace grammlator {
             => long.TryParse(description[NumberFirstPos..(NumberLastPos + 1)].Span, out Terminal!.Weight);
          //|
          #endregion grammar
-#region grammlator generated 18 Okt 2020 (grammlator file version/date 2020.10.15.0/18 Okt 2020)
+#region grammlator generated 26 Okt 2020 (grammlator file version/date 2020.10.18.0/26 Okt 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Boolean _is(E flags) => ((Peek()) & flags) != 0;
 
@@ -168,9 +168,9 @@ AcceptState3:
   // State3:
   /* *Startsymbol= QuotationMark, Space*, ►TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, OptionalWeight;
    * Space*= Space*, ►Space; */
-  if (Peek() <= E.Space)
+  if (Peek() == E.Space)
      goto AcceptState3;
-  if (Peek() > E.Letter)
+  if (Peek() != E.Letter)
      goto EndWithError;
   Debug.Assert(Peek() == E.Letter);
   Accepted = true;
@@ -182,7 +182,7 @@ AcceptState3:
 State4:
   /* TerminalIdentifier= Identifier●;
    * Identifier= Identifier, ►LetterOrDigit; */
-  if (Peek() <= E.Space || _is(E.OpenParenthesis))
+  if (_is(E.Space | E.OpenParenthesis))
      // Reduce2:
      {
      /* TerminalIdentifier= Identifier;◄ */
@@ -210,7 +210,7 @@ Reduce5:
 State14:
   /* Identifier= Identifier, ►LetterOrDigit;
    * AttributeType= Identifier●; */
-  if (Peek() <= E.Space)
+  if (Peek() == E.Space)
      // Reduce9:
      {
      /* AttributeType= Identifier;◄ */
@@ -233,7 +233,7 @@ State14:
 State6:
   /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, ►OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, OptionalWeight;
    * Space*= Space*, ►Space; */
-  if (Peek() <= E.Space)
+  if (Peek() == E.Space)
      {
      Accepted = true;
      goto State6;
@@ -251,9 +251,10 @@ State8:
      {
      /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, ►CloseParenthesis, Space*, OptionalWeight; */
      Debug.Assert(Peek() == E.CloseParenthesis);
+     Debug.Assert(Peek() == E.CloseParenthesis);
      goto AcceptState17;
      }
-  if (Peek() <= E.Space)
+  if (Peek() == E.Space)
      {
      Accepted = true;
      // Reduce4:
@@ -262,7 +263,7 @@ State8:
      _s.Pop();
      goto State8;
      }
-  if (Peek() > E.Letter)
+  if (Peek() != E.Letter)
      goto EndWithError;
   Debug.Assert(Peek() == E.Letter);
   Accepted = true;
@@ -271,12 +272,12 @@ State8:
 State10:
   /* Space*= Space*, ►Space;
    * Attribute= AttributeType, Space*, ►Identifier; */
-  if (Peek() <= E.Space)
+  if (Peek() == E.Space)
      {
      Accepted = true;
      goto State10;
      }
-  if (Peek() > E.Letter)
+  if (Peek() != E.Letter)
      goto EndWithError;
   Debug.Assert(Peek() == E.Letter);
   Accepted = true;
@@ -298,9 +299,9 @@ State11:
 
      goto State11;
      }
-  if (Peek() > E.Space && !_is(E.CloseParenthesis | E.Comma))
+  if (!_is(E.Space | E.CloseParenthesis | E.Comma))
      goto EndWithError;
-  Debug.Assert(Peek() <= E.Space || _is(E.CloseParenthesis | E.Comma));
+  Debug.Assert(_is(E.Space | E.CloseParenthesis | E.Comma));
   // Reduce7:
   /* Attribute= AttributeType, Space*, Identifier;◄ */
 
@@ -312,7 +313,7 @@ State11:
 State24:
   /* Space*= Space*, ►Space;
    * Attributes= Attributes, Comma, Space*, Attribute, Space*●; */
-  if (Peek() <= E.Space)
+  if (Peek() == E.Space)
      {
      Accepted = true;
      goto State24;
@@ -327,7 +328,8 @@ State24:
 State20:
   /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, ►CloseParenthesis, Space*, OptionalWeight;
    * Attributes= Attributes, ►Comma, Space*, Attribute, Space*; */
-  if (Peek() >= E.Comma)
+  Debug.Assert(_is(E.CloseParenthesis | E.Comma));
+  if (Peek() == E.Comma)
      {
      Accepted = true;
      goto State22;
@@ -338,7 +340,7 @@ AcceptState17:
   // State17:
   /* *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, ►OptionalWeight;
    * Space*= Space*, ►Space; */
-  if (Peek() <= E.Space)
+  if (Peek() == E.Space)
      goto AcceptState17;
   if (Peek() == E.Percent)
      {
@@ -356,7 +358,7 @@ AcceptState17:
 
      goto State19;
      }
-  Debug.Assert(Peek() > E.Space && !_is(E.Percent));
+  Debug.Assert(!_is(E.Space | E.Percent));
 Reduce11:
   /* sAdjust: -1
    * *Startsymbol= QuotationMark, Space*, TerminalIdentifier, Space*, OpenParenthesis, Space*, Attributes?, CloseParenthesis, Space*, OptionalWeight;◄ */
@@ -369,7 +371,7 @@ Reduce11:
 State13:
   /* Space*= Space*, ►Space;
    * Attributes= Attribute, Space*●; */
-  if (Peek() <= E.Space)
+  if (Peek() == E.Space)
      {
      Accepted = true;
      goto State13;
@@ -409,7 +411,7 @@ State22:
      _s.Push(1);
      goto EndWithError;
      }
-  if (Peek() <= E.Space)
+  if (Peek() == E.Space)
      {
      Accepted = true;
      // Reduce15:
@@ -430,7 +432,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 18 Okt 2020 (grammlator file version/date 2020.10.15.0/18 Okt 2020)
+#endregion grammlator generated 26 Okt 2020 (grammlator file version/date 2020.10.18.0/26 Okt 2020)
          return true;
       }
 

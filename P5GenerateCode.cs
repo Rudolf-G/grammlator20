@@ -84,11 +84,11 @@ namespace grammlator {
             Int64 MinValue = GlobalVariables.TerminalSymbols[0].EnumValue;
             Int64 MaxValue = GlobalVariables.TerminalSymbols[^1].EnumValue;
             if (MaxValue - MinValue > 63)
-               GlobalSettings.FlagTestMethodName.Value = "";
+               GlobalSettings.NameOfFlagTestMethod.Value = "";
          }
          else
          {
-            GlobalSettings.FlagsPrefix.Value = GlobalSettings.TerminalSymbolEnum.Value + '.';
+            GlobalSettings.PrefixOfFlagConstants.Value = GlobalSettings.TerminalSymbolEnum.Value + '.';
          }
 
          // Generate the code for the parsers first action and the sequence of actions reached from this action without goto
@@ -148,7 +148,7 @@ namespace grammlator {
 
          return action.Calls <= 0
              || (action.Calls >= 2 && indentationLevel > 0)
-             || indentationLevel >= GlobalSettings.NestingLevelLimit.Value;
+             || indentationLevel >= GlobalSettings.OutputNestingLevelLimit.Value;
       }
 
       /// <summary>
@@ -235,7 +235,7 @@ namespace grammlator {
          Boolean GenerateGoto =
             calls <= 0 // code has been already generated or must not be generated
             || (calls > 1 && insideBlock)  // code with more than 1 reference needs label but label not allowed in block
-            || codegen.IndentationLevel >= GlobalSettings.NestingLevelLimit.Value; // code would be indented to much
+            || codegen.IndentationLevel >= GlobalSettings.OutputNestingLevelLimit.Value; // code would be indented to much
 
          Boolean GenerateLabel =
             !GenerateGoto &&
