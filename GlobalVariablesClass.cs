@@ -36,7 +36,7 @@ namespace grammlator {
       }
 
       static public String AssemblyFullPath { get; private set; } = "";
-      private static String GetVersioninfo {
+      internal static String GetVersioninfo {
          get {
 
             Assembly ThisAssembly = typeof(GlobalVariables).Assembly;

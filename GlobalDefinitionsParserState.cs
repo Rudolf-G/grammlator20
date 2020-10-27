@@ -581,7 +581,7 @@ namespace grammlator {
          if (counter == 0)
             return null; // there is an unconditional action
 
-         if (allowedSymbols.All())
+         if (allowedSymbols.All() && GlobalSettings.InputPeekChecksBounds.Value)
             return null; // in this state all terminal symbols are allowed
 
          ConditionalAction e;

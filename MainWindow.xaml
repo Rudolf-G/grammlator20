@@ -118,6 +118,7 @@
                 </MenuItem>
                 <MenuItem x:Name="MenuItemDisplaySettings" Header="Display settings with comments" Click="DisplaySettings_Click"/>
                 <MenuItem x:Name="MenuItemDisplaySettingsCompact" Header="Display settings compact" Click="MenuItemDisplaySettingsCompact_Click"/>
+                <MenuItem x:Name="MenuItemDisplayVersion" Header="Display grammlator version" Click="MenuItemDisplayVersion_Click"/>
             </MenuItem>
         </Menu>
     </Grid>

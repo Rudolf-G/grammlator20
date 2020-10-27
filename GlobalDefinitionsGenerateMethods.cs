@@ -1131,6 +1131,9 @@ namespace grammlator {
 
       private static void GenerateCondition(P5CodegenCS codegen, BitArray condition, BitArray relevant, Boolean checkingForbiddenTerminals)
       {
+         // Special case if error action and no relevant symbols are true
+         // TODO generate a condition that only checks the bounds  "xxx<1stTerminals || xxx>lastTrminal" or 
+
          // In the worst case all symbols are relevant and the condition changes at each index
          // so that each symbol needs an own block
 
@@ -1213,7 +1216,11 @@ namespace grammlator {
 
          if (firstRelevant == -1)
          {
-            return; // no relevant elements, blocklist remains empty
+            if (GlobalSettings.InputPeekChecksBounds.Value)
+               return; // no relevant elements, blocklist remains empty
+            else
+               Debug.Assert(false, "! InputPeekChecksBounds and no relevant elements: checking bounds is not yet implemented");
+            // this may occur if all terminals are allowed and an error action must be generated only to check the bounds
          }
 
          Boolean BlockType;
