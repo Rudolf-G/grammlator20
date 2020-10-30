@@ -9,11 +9,11 @@
     <ApplicationIcon>Grammlator.ico</ApplicationIcon>
     <AssemblyVersion>20.10.0.0</AssemblyVersion>
     <StartupObject>grammlator.App</StartupObject>
-    <FileVersion>2020.10.26.0</FileVersion>
+    <FileVersion>2020.10.30.0</FileVersion>
     <Version>2020.04.01</Version>
     <PackageLicenseExpression>Without warranty</PackageLicenseExpression>
     <Copyright>Dr. Rudolf Gardill</Copyright>
-    <PackageReleaseNotes>changed names of settings, added setting InputPeekChecksBounds (experimental)</PackageReleaseNotes>
+    <PackageReleaseNotes>allow ' to be used as letter</PackageReleaseNotes>
     <NeutralLanguage></NeutralLanguage>
     <Nullable>enable</Nullable>
   </PropertyGroup>

@@ -533,5 +533,37 @@ namespace grammlator {
          return s1Remain.Length == 0 && s2Remain.Length == 0;
       }
 
+      private void TextBoxUndo(object sender, RoutedEventArgs e)
+      {
+         if (!(sender is TextBox box))
+            return;
+
+         if (box.CanUndo == true)
+         {
+            box.Undo();
+         }
+      }
+
+      private void TextBoxRedo(object sender, RoutedEventArgs e)
+      {
+         if (!(sender is TextBox box))
+            return;
+
+         if (box.CanRedo == true)
+         {
+            box.Redo();
+         }
+      }
+
+      private void TextBoxSelectAll(object sender, RoutedEventArgs e)
+      {
+         if (!(sender is TextBox box))
+            return;
+
+         box.SelectAll();
+      }
+
+
+
    }
 }

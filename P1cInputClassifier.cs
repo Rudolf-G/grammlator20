@@ -19,12 +19,12 @@ namespace grammlator {
       // and the EnumerateRunes Method
       // https://docs.microsoft.com/en-gb/dotnet/api/system.memoryextensions.enumeraterunes?view=netcore-3.1
       //  foreach (Rune r in s){}
-      // bzw. explzitem Aufruf der enumerator-Methoden https://docs.microsoft.com/de-de/dotnet/csharp/iterators
+      // or explicit call of iterators https://docs.microsoft.com/de-de/dotnet/csharp/iterators
 
       /// <summary>
       /// Constructor
       /// </summary>
-      /// <param name="SourceReader">the LineReader provides "string ReadLine()" and "int LineNumber"</param>
+      /// <param name="SourceReader">the reader provides "ReadOnlyMemory<Char> ReadLine()" and "int LineNumber", "int Position" "int EoLLength"</param>
       /// <param name="attributeStack">The <paramref name="attributeStack"/> is used to store the attributes of the recognized character</param>
       public P1cInputClassifier(
             SpanReaderWithCharacterAndLineCounter SourceReader,
@@ -235,6 +235,7 @@ namespace grammlator {
 
             // The following characters are interpreted as letters in additon to all characters of the class char.IsLetter(c)
             '\\' => ClassifierResult.Letter, // Backslash (escape symbol of unicode sequences \u006) // TODO translate unicode escape sequences to characters
+            '\'' => ClassifierResult.Letter,  // Apostrophe
             '_' => ClassifierResult.Letter, // Underline
             '.' => ClassifierResult.Letter,  // Point
             _ => ClassifierResult.OtherCharacter

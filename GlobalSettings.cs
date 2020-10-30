@@ -216,7 +216,7 @@ Examples: ""Symbol"" or ""MyReader.Peek()"" or ""(MyEnum)line[i]""
       ""MyEnum Symbol"" or ""MyEnum MyReader.Peek(){....}"" or ...");
 
       internal static BooleanSetting InputPeekChecksBounds
-         = new BooleanSetting("InputPeekChecksBounds", true, VisibleSettings,
+         = new BooleanSetting("InputPeekChecksBounds", true, InternalSettings, // TODO implement and then VisibleSettings
 @"If false then grammlator generates more complex code which handles values smaller than the
 1st terminal symbols value or larger then the last terminals value as error conditions.
 If true then grammlator may generate shortened conditions that will behave undefined if the

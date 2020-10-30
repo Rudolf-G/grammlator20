@@ -9,10 +9,8 @@ using System.ComponentModel;
 
 namespace grammlator {
 
-   #region grammar
-   //| /* ---- Start of grammlator grammar as control structure  ---- */
-   //|
-   //| // Compiler settings:
+   #region grammar grammlator settings and terminal definitions
+   //| // grammlator settings:
    //| TerminalSymbolEnum:               "LexerResult";
    //| InputExpression:                  "ParserInput";
    //| InputAssignInstruction:           "ParserInput = Lexer.PeekSymbol();";
@@ -241,7 +239,7 @@ namespace grammlator {
       private void P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum messageType, String message)
           => GlobalVariables.OutputMessageAndPosition(messageType, message, Lexer.LexerTextPos);
 
-      #region grammar
+      #region grammar of grammlator parser
 
       //|  *= GrammlatorGrammar /* one startsymbol, which has no attributes */
 
@@ -577,7 +575,7 @@ namespace grammlator {
       private static void ConstantPriorityGiven(out IntMethodClass? dynamicPriority) => dynamicPriority = null;
 
       //|    | "??",  // TODO lookahead to be used by dynamic priotity method? "Name(Attributes)"(String Name, Int32 NumberOfAttributes), 
-      //|        CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, ["??"]
+      //|        CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, "??"?
       private static void DynamicPriorityRecognized(out Int64 constPriority, out IntMethodClass? dynamicPriority, IntMethodClass? intMethod)
       {
          constPriority = 0;
@@ -745,7 +743,7 @@ namespace grammlator {
       //| /* ------------------------------- simplified CSharp grammar ------------------- */
       //|
       //| CSvoidMethod(VoidMethodClass voidMethod)=
-      //|    CSMethodProperties(MethodClass method), "(", eFormalParameters, ")"
+      //|    CSMethodProperties(MethodClass method), "(", formalParameters?, ")"
       private void CSvoidMethodRecognized(out VoidMethodClass? voidMethod, MethodClass? method)
       {
          Debug.Assert(method != null);
@@ -766,7 +764,7 @@ namespace grammlator {
 
       //| /* The same definition as for CSvoidMethod is used for CSintMethod, but different semantics */
       //| CSintMethod(IntMethodClass intMethod)=
-      //|    CSMethodProperties(MethodClass method), "(", eFormalParameters, ")"
+      //|    CSMethodProperties(MethodClass method), "(", formalParameters?, ")"
       private void CSintMethodRecognized(out IntMethodClass? intMethod, MethodClass? method)
       {
          if (method is IntMethodClass iMethod)
@@ -798,10 +796,6 @@ namespace grammlator {
       private void MethodModifierTypeAndNameRecognized2(
           out MethodClass method, UnifiedString modifier1String, UnifiedString modifier2String, UnifiedString methodTypeString, UnifiedString methodNameString)
           => MethodProperties(out method, modifier1String, modifier2String, methodTypeString, methodNameString);
-
-      //| eFormalParameters=
-      //|    /* empty */
-      //|    | formalParameters
 
       //| formalParameters=
       //|    formalParameter
@@ -916,7 +910,8 @@ namespace grammlator {
 
          var aCountBeforeAccept = _a.Count;
 
-         Lexer.AcceptSymbol(); // accept the wrong symbol to make its position available in Lexer.Lex1TextPos and to discard it
+         // accept the symbol that caused the error to make its position available in Lexer.Lex1TextPos and to discard it
+         Lexer.AcceptSymbol(); 
 
          P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
              $"Grammar analysis error:{nl}input symbol \"{symbol.MyToString()}\" ignored: not allowed in state {stateNumber}{nl}{stateDescription}{nl}");
@@ -937,7 +932,7 @@ namespace grammlator {
          // Declare local variables used by grammlator generated code
          LexerResult ParserInput;
          /* ************************ end of code written by programmer ******************** */
-#region grammlator generated 26 Okt 2020 (grammlator file version/date 2020.10.18.0/26 Okt 2020)
+#region grammlator generated 29 Okt 2020 (grammlator file version/date 2020.10.26.0/27 Okt 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fDefiningSymbol = 1L << (Int32)(LexerResult.DefiningSymbol);
@@ -1367,7 +1362,7 @@ AcceptReduce30:
   Lexer.AcceptSymbol();
   // Reduce30:
   /* sAdjust: -1
-   * CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ")";◄ */
+   * CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ")";◄ */
   _s.Pop();
 
   CSvoidMethodRecognized(
@@ -1505,7 +1500,7 @@ AcceptReduce40:
   Lexer.AcceptSymbol();
   // Reduce40:
   /* sAdjust: -1
-   * CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ")";◄ */
+   * CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ")";◄ */
   _s.Pop();
 
   CSintMethodRecognized(
@@ -1515,7 +1510,7 @@ AcceptReduce40:
 
 State41:
   const String StateDescription41 =
-       "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", CSharpStart, CSintMethod(IntMethodClass intMethod), ►CSharpEnd, (Local1)?;";
+       "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", CSharpStart, CSintMethod(IntMethodClass intMethod), ►CSharpEnd, \"??\"?;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.CSharpEnd)
      {
@@ -1527,7 +1522,7 @@ State41:
   Lexer.AcceptSymbol();
 State42:
   const String StateDescription42 =
-       "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, ►(Local1)?;";
+       "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, ►\"??\"?;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.DoubleQuestionmark)
      {
@@ -1545,7 +1540,7 @@ State42:
      || ParserInput >= LexerResult.CSharpStart);
 Reduce41:
   /* sAdjust: -1, aAdjust: 1
-   * PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= "??", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, (Local1)?;◄ */
+   * PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= "??", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, "??"?;◄ */
   _s.Pop();
   _a.Allocate();
 
@@ -2222,7 +2217,7 @@ State21:
 
 State22:
   const String StateDescription22 =
-       "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), ►\"(\", eFormalParameters, \")\";";
+       "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), ►\"(\", formalParameters?, \")\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.GroupStart)
      {
@@ -2234,7 +2229,7 @@ State22:
   Lexer.AcceptSymbol();
 State23:
   const String StateDescription23 =
-       "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), \"(\", ►eFormalParameters, \")\";";
+       "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), \"(\", ►formalParameters?, \")\";";
   _s.Push(0);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
@@ -2249,39 +2244,39 @@ State23:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-  // State26:
-  /* CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ►")"; */
+  // State24:
+  /* CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ►")"; */
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce30;
 
-State24:
-  const String StateDescription24 =
-       "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), \"(\", eFormalParameters, ►\")\";\r\n"
+State25:
+  const String StateDescription25 =
+       "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), \"(\", formalParameters?, ►\")\";\r\n"
      + "formalParameters= formalParameters, ►Comma, formalParameter;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.GroupEnd)
      goto AcceptReduce30;
   if (ParserInput != LexerResult.Comma)
      {
-     if (ErrorHandler(24, StateDescription24, ParserInput))
-        goto State24;
+     if (ErrorHandler(25, StateDescription25, ParserInput))
+        goto State25;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma);
-AcceptState25:
+AcceptState26:
   Lexer.AcceptSymbol();
-State25:
-  const String StateDescription25 =
+State26:
+  const String StateDescription26 =
        "formalParameters= formalParameters, Comma, ►formalParameter;";
   _s.Push(1);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(25, StateDescription25, ParserInput))
+     if (ErrorHandler(26, StateDescription26, ParserInput))
         {
         _s.Pop();
-        goto State25;
+        goto State26;
         };
      goto EndWithError;
      }
@@ -2334,7 +2329,7 @@ Branch9:
   switch (_s.Peek())
   {
   case 0:
-     goto State24;
+     goto State25;
   case 1:
      // Reduce31:
      {
@@ -2346,17 +2341,17 @@ Branch9:
   /*case 2:
   default: break; */
   }
-State39:
-  const String StateDescription39 =
-       "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), \"(\", eFormalParameters, ►\")\";\r\n"
+State40:
+  const String StateDescription40 =
+       "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), \"(\", formalParameters?, ►\")\";\r\n"
      + "formalParameters= formalParameters, ►Comma, formalParameter;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Comma)
-     goto AcceptState25;
+     goto AcceptState26;
   if (ParserInput != LexerResult.GroupEnd)
      {
-     if (ErrorHandler(39, StateDescription39, ParserInput))
-        goto State39;
+     if (ErrorHandler(40, StateDescription40, ParserInput))
+        goto State40;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
@@ -2483,7 +2478,7 @@ Branch10:
      goto State22;
 State37:
   const String StateDescription37 =
-       "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), ►\"(\", eFormalParameters, \")\";";
+       "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), ►\"(\", formalParameters?, \")\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.GroupStart)
      {
@@ -2495,7 +2490,7 @@ State37:
   Lexer.AcceptSymbol();
 State38:
   const String StateDescription38 =
-       "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), \"(\", ►eFormalParameters, \")\";";
+       "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), \"(\", ►formalParameters?, \")\";";
   _s.Push(2);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
@@ -2510,8 +2505,8 @@ State38:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-  // State40:
-  /* CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", eFormalParameters, ►")"; */
+  // State39:
+  /* CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ►")"; */
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce40;
@@ -2565,7 +2560,7 @@ AcceptState35:
 State35:
   const String StateDescription35 =
        "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", ►signedNumber(Int64 constPriority), \"??\";\r\n"
-     + "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", ►CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, (Local1)?;";
+     + "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", ►CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, \"??\"?;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Minus)
      {
@@ -2589,7 +2584,7 @@ State35:
   Lexer.AcceptSymbol();
 State36:
   const String StateDescription36 =
-       "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", CSharpStart, ►CSintMethod(IntMethodClass intMethod), CSharpEnd, (Local1)?;";
+       "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", CSharpStart, ►CSintMethod(IntMethodClass intMethod), CSharpEnd, \"??\"?;";
   _s.Push(1);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
@@ -3695,7 +3690,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 26 Okt 2020 (grammlator file version/date 2020.10.18.0/26 Okt 2020)
+#endregion grammlator generated 29 Okt 2020 (grammlator file version/date 2020.10.26.0/27 Okt 2020)
 
       }
    }

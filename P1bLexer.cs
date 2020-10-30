@@ -9,7 +9,7 @@ using System.Text;
 namespace grammlator {
 #pragma warning disable CS1591 // Fehlender XML-Kommentar für öffentlich sichtbaren Typ oder Element
 
-   #region grammar
+   #region grammar part 1: lexer settings
    //| /* ---- Start of Lex1 grammar as control structure  ---- */
    //|
    //| // Grammlator settings
@@ -28,67 +28,68 @@ namespace grammlator {
    /// This enum defines the characters and character groups recognized by InputClassifier and used by Lexer.
    /// </summary>
    public enum ClassifierResult {
-      // the values of this enum elements are used as indexes in 
-      // const String MyDisplay = "=,|;-+:%*([{)]}#xx?x/x\"xx"; see ClassifierResultExtensions
-      [Description(@"DefiningSymbol(Int32 i) %7 ""="" ")]
+      // The values of this enum elements are used as indexes in 
+      //   const String MyDisplay = "=,|;-+:%*([{)]}#xx?x/x\"xx"; see ClassifierResultExtensions
+      // The attribute of each terminal is the position in the input stream
+      [Description(@"DefiningSymbol(Int32 index) %7 ""="" ")]
       DefiningSymbol,
-      [Description(@"Comma(Int32 i) %7 "","" ")]
+      [Description(@"Comma(Int32 index) %7 "","" ")]
       Comma,
-      [Description(@"DefinitionSeparatorSymbol(Int32 i) %7 ""|"" ")]
+      [Description(@"DefinitionSeparatorSymbol(Int32 index) %7 ""|"" ")]
       DefinitionSeparatorSymbol,
 
-      [Description(@"TerminatorSymbol(Int32 i) %5 "";"" ")]
+      [Description(@"TerminatorSymbol(Int32 index) %5 "";"" ")]
       TerminatorSymbol,
-      [Description(@"Plus(Int32 i) %3 ""+"" ")]
+      [Description(@"Plus(Int32 index) %3 ""+"" ")]
       Plus,
-      [Description(@"Colon(Int32 i) %3 "":"" ")]
+      [Description(@"Colon(Int32 index) %3 "":"" ")]
       Colon,
-      [Description(@"Percent(Int32 i) %3 ""%"" ")]
+      [Description(@"Percent(Int32 index) %3 ""%"" ")]
       Percent,
 
-      [Description(@"GroupStart(Int32 i) 3x ""("" ")]
+      [Description(@"GroupStart(Int32 index) 3x ""("" ")]
       GroupStart,
-      [Description(@"OptionStart(Int32 i) 1x ""["" ")]
+      [Description(@"OptionStart(Int32 index) 1x ""["" ")]
       OptionStart,
-      [Description(@"RepeatStart(Int32 i) 1x ""{"" ")]
+      [Description(@"RepeatStart(Int32 index) 1x ""{"" ")]
       RepeatStart,
 
-      [Description(@"GroupEnd(Int32 i) %3 "")"" ")]
+      [Description(@"GroupEnd(Int32 index) %3 "")"" ")]
       GroupEnd,
-      [Description(@"OptionEnd(Int32 i) %1 ""]"" ")]
+      [Description(@"OptionEnd(Int32 index) %1 ""]"" ")]
       OptionEnd,
-      [Description(@"RepeatEnd(Int32 i) %1 ""}"" ")]
+      [Description(@"RepeatEnd(Int32 index) %1 ""}"" ")]
       RepeatEnd,
-      [Description(@"NumberSign(Int32 i) %1 ""#"" ")]
+      [Description(@"NumberSign(Int32 index) %1 ""#"" ")]
       NumberSign,
 
       // The following "virtual" symbols represent the change from grammlator lines to CSharp lines and vice versa
-      [Description(@"CSharpStart(Int32 i) %8 ""C#"" ")]
+      [Description(@"CSharpStart(Int32 index) %8 ""C#"" ")]
       CSharpStart,
-      [Description(@"CSharpEnd(Int32 i) %1 ""//|"" ")]
+      [Description(@"CSharpEnd(Int32 index) %1 ""//|"" ")]
       CSharpEnd,
 
       // The following symbols may be part of a combined symbol and are handled individually by the generated code "?" may be part of "??"
-      [Description(@"Questionmark(Int32 i) %5 ""?"" ")]
+      [Description(@"Questionmark(Int32 index) %5 ""?"" ")]
       Questionmark, // part of "??"
-      [Description(@"Asterisk(Int32 i) %1 ""*"" ")]
+      [Description(@"Asterisk(Int32 index) %1 ""*"" ")]
       Asterisk, // Part of "*="
-      [Description(@"Minus(Int32 i) %1 ""-"" ")]
+      [Description(@"Minus(Int32 index) %1 ""-"" ")]
       Minus, // Part of "-="
-      [Description(@"At(Int32 i) %1 ""@"" ")]
+      [Description(@"At(Int32 index) %1 ""@"" ")]
       At, // @
 
-      [Description(@"WhiteSpace(Int32 i) %20 "" "" ")]
+      [Description(@"WhiteSpace(Int32 index) %20 "" "" ")]
       WhiteSpace,     // used as delimiter, skipped by lexer
-      [Description(@"Slash(Int32 i) %9 ""/"" ")]
+      [Description(@"Slash(Int32 index) %9 ""/"" ")]
       Slash,          // delimiter of comments
-      [Description(@"OtherCharacter(Int32 i) %1 ")]
+      [Description(@"OtherCharacter(Int32 index) %1 ")]
       OtherCharacter, // allowed only in comments
-      [Description(@"Quotationmark(Int32 i) %5 ""''"" ")]
+      [Description(@"Quotationmark(Int32 index) %5 ""''"" ")]
       Quotationmark,     // delimits string constants used as names
-      [Description(@"Letter(Int32 i) %10 ""letter"" ")]
-      Letter,
-      [Description(@"Digit(Int32 i) %5 ""digit"" ")]
+      [Description(@"Letter(Int32 index) %10 ""letter"" ")]
+      Letter,  // including '\', '_' and '.'
+      [Description(@"Digit(Int32 index) %5 ""digit"" ")]
       Digit   // as part of names and numbers
    };
    //|
@@ -341,7 +342,7 @@ namespace grammlator {
 
       };
 
-      #region grammar
+      #region grammar of grammlator lexer
       //|
       //| // Declaration of the startsymbol: the attributes of the definitions are used as attributes of the generated symbols
       //| *= 
@@ -377,7 +378,7 @@ namespace grammlator {
       private void AssignDoubleQuestionmarkToSymbol() => Symbol = LexerResult.DoubleQuestionmark;
 
       //| Gap= GapString
-      private void AdvanceTextPos() => LexerTextPos = inputClassifier.CurrentPosition; // TOCHECK inputClassifier.InputPosition will be obsolete
+      private void AdvanceTextPos() => LexerTextPos = inputClassifier.CurrentPosition;
 
       //| GapString=
       //|      /*empty */
@@ -396,11 +397,11 @@ namespace grammlator {
       //|    | GroupEnd(Int32 i)         | OptionEnd(Int32 i)     | RepeatEnd(Int32 i)                 | NumberSign(Int32 i)
       //|    | Percent(Int32 i)
 
-      //|    StartsymbolCSharpStart = CSharpStart(Int32 i) // c == NewLineCharacter !!!
+      //|    StartsymbolCSharpStart = CSharpStart(Int32 i)
       private void AssignCSharpStartToSymbol()
           => Symbol = LexerResult.CSharpStart;
 
-      //|    StartsymbolCSharpEnd= CSharpEnd(Int32 i) // c == NewLineCharacter !!!
+      //|    StartsymbolCSharpEnd= CSharpEnd(Int32 i)
       private void AssignCSharpEndToSymbol()
           => Symbol = LexerResult.CSharpEnd;
 
@@ -409,26 +410,25 @@ namespace grammlator {
 
       //| Comment=
       //|    "/"(Int32 i1), "*"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, "/"(Int32 iEnd)
-      //|    | "/"(Int32 i1), "/"(Int32 i2) /* ignore rest of line */
-      private void SlashSlashComment() => inputClassifier.IgnoreAllCharactersUntilEndOfLine();
+      //|    | "/"(Int32 i1), "/"(Int32 i2) /* ignore remainder of line */
+      private void SingleLineComment() => inputClassifier.IgnoreAllCharactersUntilEndOfLine();
 
       //| CommentcharacterSequenceEndingWithAsterisk=
       //|   "*"(Int32 i)
       //|    | CommentcharacterSequenceNotEndingWithAsterisk, "*"(Int32 i)
-      //|    | CommentcharacterSequenceEndingWithAsterisk, "*"(Int32 i)
+      //|    | CommentcharacterSequenceEndingWithAsterisk, "*"(Int32 i) // ending with more asterisks
 
       //| CommentcharacterSequenceNotEndingWithAsterisk=
       //|   "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i)
       //|   | CommentcharacterSequenceNotEndingWithAsterisk, "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i)
       //|   | CommentcharacterSequenceEndingWithAsterisk, anyCharacterExceptAsteriskAndSlash(Int32 i)
 
-      //| "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i)-= /* and except CSharpStart and CSharpEnd */
+      //| "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 index)-= /* and except CSharpStart and CSharpEnd */
       //|    Asterisk | CSharpStart | CSharpEnd;
       //|
-      //| anyCharacterExceptAsteriskAndSlash(Int32 i)-= /* and except CSharpStart and CSharpEnd */
-      //|   Asterisk | Slash | CSharpStart | CSharpEnd;
+      //| anyCharacterExceptAsteriskAndSlash(Int32 index)-= Asterisk | Slash | CSharpStart | CSharpEnd;
       //|
-      //| anyCharacterExceptQuotationmark(Int32 i)-= /* and except CSharpStart and CSharpEnd */
+      //| anyCharacterExceptQuotationmark(Int32 index)-= /* and except CSharpStart and CSharpEnd */
       //|   Quotationmark | CSharpStart | CSharpEnd;
       //|
       //| Name(UnifiedString unifiedString)=
@@ -499,7 +499,7 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated 26 Okt 2020 (grammlator file version/date 2020.10.18.0/26 Okt 2020)
+#region grammlator generated 30 Okt 2020 (grammlator file version/date 2020.10.26.0/30 Okt 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fCSharpStart = 1L << (Int32)(ClassifierResult.CSharpStart);
   const Int64 _fCSharpEnd = 1L << (Int32)(ClassifierResult.CSharpEnd);
@@ -619,7 +619,7 @@ State2:
      inputClassifier.AcceptSymbol();
      // Reduce5:
      /* aAdjust: -1
-      * At?= At(Int32 i);◄ */
+      * At?= At(Int32 index);◄ */
      _a.Remove();
      goto State3;
      }
@@ -891,7 +891,7 @@ State9:
      /* aAdjust: -2
       * Comment= "/"(Int32 i1), "/"(Int32 i2);◄ */
 
-     SlashSlashComment();
+     SingleLineComment();
 
      _a.Remove(2);
      goto Reduce1;
@@ -942,7 +942,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 26 Okt 2020 (grammlator file version/date 2020.10.18.0/26 Okt 2020)
+#endregion grammlator generated 30 Okt 2020 (grammlator file version/date 2020.10.26.0/30 Okt 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }
