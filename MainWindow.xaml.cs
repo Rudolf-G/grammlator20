@@ -318,7 +318,7 @@ namespace grammlator {
          OnFocusTextBox(new FocusTextBoxEventArgs(InfoTextBox));
       }
 
-      private StringBuilder InfoBuilder = new StringBuilder(1000);
+      private readonly StringBuilder InfoBuilder = new StringBuilder(1000);
       private void MenuItemDisplaySettingsCompact_Click(Object sender, RoutedEventArgs e)
       {
          String Delimiter;

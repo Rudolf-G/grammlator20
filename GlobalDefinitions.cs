@@ -810,12 +810,17 @@ namespace grammlator {
    }
 
    internal sealed class TerminalSymbol : Symbol {
-      internal TerminalSymbol(String s, Int32 Position) : base(s, Position)
-          => _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;  // Terminal symbols are never empty
+      internal TerminalSymbol(String identifier, Int32 Position, Int64 value) : base(identifier, Position)
+      {
+         EnumValue = value;
+         _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;  // Terminal symbols are never empty
+         FlagName = MakeFlagIdentifier(EnumValue, identifier);
+      }
 
       internal Int64 EnumValue;
       internal Int64 Weight;
       internal Boolean IsUsedInIsIn = false;
+      internal String FlagName { get; private set; }
 
       internal override String SymboltypeString => "terminal symbol";
 
@@ -824,18 +829,33 @@ namespace grammlator {
 
       internal override void Append(StringBuilder sb)
       {
-         sb.Append(SymboltypeString)
-             .Append(" nr. ")
-             .Append((SymbolNumber + 1).ToString("D2"))
-             .Append(": ");
-
-         //if (!String.IsNullOrEmpty(GlobalVariables.TerminalSymbolEnum.Value))
-         //   sb.Append(GlobalVariables.TerminalSymbolEnum.Value).Append('.');
+         sb.AppendFormat
+            ("{0} nr.{1,3}, value:{2,4}: ",
+            SymboltypeString, SymbolNumber + 1, EnumValue);
 
          IdentifierAndAttributesToSB(sb);
 
          if (!isUsed)
             sb.Append(", is not used  in any definition");
+      }
+
+      static readonly StringBuilder FlagNameBuilder = new StringBuilder(50);
+      /// <summary>
+      /// Construct a unique identifier to be used for the flag representation of the terminal symbol
+      /// </summary>
+      /// <param name="value"></param>
+      /// <param name="NameAsString"></param>
+      /// <returns></returns>
+      private static String MakeFlagIdentifier(Int64 value, String NameAsString)
+      {
+         FlagNameBuilder.Clear(); // .Append(GlobalSettings.PrefixOfFlagConstants);
+         foreach (char c in NameAsString)
+            if (char.IsLetter(c) || char.IsDigit(c))
+               FlagNameBuilder.Append(c);
+         if (FlagNameBuilder.Length < NameAsString.Length) // special characters have been removed, make it unique
+            FlagNameBuilder.Insert(0, value); // the 1st char of a name will not be a character
+         FlagNameBuilder.Insert(0, GlobalSettings.PrefixOfFlagConstants);
+         return FlagNameBuilder.ToString();
       }
    }
 
@@ -1037,6 +1057,11 @@ namespace grammlator {
       }
    }
 
+   /// <summary>
+   /// <see cref="UnifiedString"/> is a record type which stores strings in a static directory
+   /// and identifies each string by a unique index. To get the string use ToString().
+   /// The comparision of strings by "==" is the comparision of the integer value.
+   /// </summary>
    internal struct UnifiedString {
       /// <summary>
       /// All <see cref="UnifiedString"/>s which represent the same string have the same <see cref="Index"/>.
@@ -1078,19 +1103,25 @@ namespace grammlator {
 
       internal UnifiedString(String s) : this(s.AsMemory()) { }
 
+      /// <summary>
+      /// Returns the unified string stored in the directory. Does not allocate additional memory.
+      /// </summary>
+      /// <returns></returns>
       public override String ToString() => UnifiedStrings[Index];
+
+      public Boolean IsEmpty { get { return Index == 0; } }
 
       public override bool Equals(object? obj)
          => obj != null && (obj is UnifiedString objAsUnified) && (objAsUnified.Index == Index);
 
       public override int GetHashCode() => Index.GetHashCode();
 
-      public static bool operator == (UnifiedString x, UnifiedString y)
+      public static bool operator ==(UnifiedString x, UnifiedString y)
       {
          return x.Index == y.Index;
       }
 
-      public static bool operator != (UnifiedString x, UnifiedString y)
+      public static bool operator !=(UnifiedString x, UnifiedString y)
       {
          return x.Index != y.Index;
       }

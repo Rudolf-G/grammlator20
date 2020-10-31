@@ -128,13 +128,15 @@ namespace grammlator {
 
          // ----- Do phase 3
 #if DEBUG
-         outputMessage(MessageTypeOrDestinationEnum.Information, "Start of phase 3: compute follow symbols, solve conflicts, write conflicts protocol");
+         outputMessage(MessageTypeOrDestinationEnum.Information,
+            "Start of phase 3: compute follow symbols, solve conflicts, write conflicts protocol");
 #endif
          P3ComputeLALR1.MakeInstanceAndExecute(out sumOfConflictsNotSolvedByExplicitPriority);
 
          // ----- Write protocol of symbols and states before optimizations
 #if DEBUG
-         outputMessage(MessageTypeOrDestinationEnum.Information, "                  write protocol of symbols and states before optimizations");
+         outputMessage(MessageTypeOrDestinationEnum.Information,
+            "                  write protocol of symbols and states before optimizations");
 #endif
          var Protocol = new StringBuilder(5000);
          Protocol.AppendLine("List of all symbols:")

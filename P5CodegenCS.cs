@@ -106,8 +106,7 @@ namespace grammlator {
                      String Identifier = t.Identifier;
                      IndentExactly();
                      Append("const Int64 ")
-                        .Append(GlobalSettings.PrefixOfFlagConstants.Value) //  "_f"
-                        .Append(Identifier) // "b"
+                        .Append(t.FlagName) // "fb"
                         .Append(" = 1L << (Int32)(")
                         .AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, Identifier); // LexerResult.CSharpEnd
                      if (Offset != 0)

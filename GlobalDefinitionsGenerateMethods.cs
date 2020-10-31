@@ -1896,8 +1896,7 @@ namespace grammlator {
             Is1stTrueFlag = false;
 
             codegen
-               .AppendWithOptionalLinebreak(GlobalSettings.PrefixOfFlagConstants.Value)
-                  .Append(t.Identifier);
+               .AppendWithOptionalLinebreak(t.FlagName);
          }
 
          codegen.DecrementIndentationLevel();

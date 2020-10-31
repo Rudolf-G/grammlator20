@@ -394,15 +394,22 @@ namespace grammlator {
       //|     | TerminalSymbolsList, "|", TerminalSymbol
 
       //|  TerminalSymbol=
-      //|      "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes), OptionalWeight(Int64 Weight)
-      private void TerminalSymbol(UnifiedString name, Int32 NumberOfAttributes, Int64 Weight)
-             => TerminalSymbolDeclaration(name, NumberOfAttributes, Weight);
+      //|      "Name(Attributes)"(UnifiedString name, Int32 numberOfAttributes), OptionalValue(Int64 value), OptionalWeight(Int64 weight)
+      private void TerminalSymbol(UnifiedString name, Int32 numberOfAttributes, Int64 value, Int64 weight)
+             => TerminalSymbolDeclaration(name, numberOfAttributes, value, weight);
 
       //|  OptionalWeight(Int64 weight)=
       //|      /* empty */
       private static void OptionalDefaultWeight(out Int64 weight)
          => weight = GlobalSettings.TerminalDefaultWeight.Value;
       //|     | "%", Number(Int64 weight)
+
+      //| OptionalValue(Int64 value)=
+      //|    /* empty */
+      private void OptionalValueDefault(out Int64 value) => value = ++LastTerminalValue;
+      Int64 LastTerminalValue = -1;
+      //|   | "=", Number(Int64 value)
+      private void OptionalValueAssignment(Int64 value) => LastTerminalValue = value;
 
       //|  ExtendedName (UnifiedString name)=
       //|       Name(UnifiedString name)
@@ -452,6 +459,7 @@ namespace grammlator {
             TerminalSymbolDeclaration(
                new UnifiedString(GlobalSettings.TerminalSymbolDefaultName.Value),
                numberOfAttributes: 0,
+               value: 0,
                weight: 0);
          GlobalVariables.NumberOfTerminalSymbols = SymbolDictionary.Count;
          GlobalVariables.DefineArrayTerminalSymbolByIndex(SymbolDictionary);
@@ -931,8 +939,9 @@ namespace grammlator {
       {
          // Declare local variables used by grammlator generated code
          LexerResult ParserInput;
-         /* ************************ end of code written by programmer ******************** */
-#region grammlator generated 29 Okt 2020 (grammlator file version/date 2020.10.26.0/27 Okt 2020)
+         LastTerminalValue = -1;
+  /* ************************ end of code written by programmer ******************** */
+#region grammlator generated 31 Okt 2020 (grammlator file version/date 2020.10.30.0/30 Okt 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fDefiningSymbol = 1L << (Int32)(LexerResult.DefiningSymbol);
@@ -962,7 +971,7 @@ State2:
   if (ParserInput == LexerResult.Name)
      {
      Lexer.AcceptSymbol();
-     goto State74;
+     goto State76;
      }
   if (ParserInput == LexerResult.TerminatorSymbol)
      {
@@ -970,7 +979,7 @@ State2:
      goto Reduce2;
      }
   if (ParserInput == LexerResult.LexerString)
-     goto AcceptState69;
+     goto AcceptState71;
   if (ParserInput == LexerResult.StarEqual)
      goto Reduce2;
   if (ParserInput != LexerResult.CSharpStart)
@@ -983,22 +992,22 @@ State2:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpStart);
-AcceptState79:
+AcceptState81:
   Lexer.AcceptSymbol();
-State79:
-  const String StateDescription79 =
+State81:
+  const String StateDescription81 =
        "EnumOrEmptyCode= CSharpStart, ►CSEnumDeclaration, CSharpEnd;\r\n"
      + "EnumOrEmptyCode= CSharpStart, ►CSharpEnd;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
      {
      Lexer.AcceptSymbol();
-     goto State96;
+     goto State98;
      }
   if (ParserInput != LexerResult.CSharpEnd)
      {
-     if (ErrorHandler(79, StateDescription79, ParserInput))
-        goto State79;
+     if (ErrorHandler(81, StateDescription81, ParserInput))
+        goto State81;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
@@ -1007,7 +1016,7 @@ AcceptBranch17:
   // Branch17:
   if (_s.Peek() == 0)
      goto Reduce2;
-Reduce6:
+Reduce8:
   /* sAdjust: -1
    * OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, OptionalSemikolonOrEnum;◄ */
   _s.Pop();
@@ -1016,76 +1025,76 @@ Reduce2:
 
   CompareTerminalDeclarationsWithEnum();
 
-State7:
-  const String StateDescription7 =
+State9:
+  const String StateDescription9 =
        "GrammlatorGrammar= OptionalGrammlatorSettings, DeclarationOfTerminalSymbols, ►GrammarRuleList, TerminatorAtEndOfGrammar;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.StarEqual)
      {
-     if (ErrorHandler(7, StateDescription7, ParserInput))
-        goto State7;
+     if (ErrorHandler(9, StateDescription9, ParserInput))
+        goto State9;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.StarEqual);
   Lexer.AcceptSymbol();
-  // Reduce8:
+  // Reduce10:
   /* "*="= StarEqual;◄ */
 
   StartOfFirstGrammarRule();
 
-State8:
-  const String StateDescription8 =
+State10:
+  const String StateDescription10 =
        "FirstGrammarRule= \"*=\", ►outerDefinitions;";
   _s.Push(2);
   ParserInput = Lexer.PeekSymbol();
   switch (ParserInput)
   {
-  // <= LexerResult.NumberSign: goto HandleError8; // see end of switch
+  // <= LexerResult.NumberSign: goto HandleError10; // see end of switch
   case LexerResult.GroupEnd:
   case LexerResult.RepeatEnd:
   case LexerResult.OptionEnd:
-     goto HandleError8;
+     goto HandleError10;
   case LexerResult.GroupStart:
-     goto AcceptState61;
+     goto AcceptState63;
   case LexerResult.OptionStart:
-     goto AcceptState59;
+     goto AcceptState61;
   case LexerResult.RepeatStart:
-     goto AcceptState46;
+     goto AcceptState48;
   case LexerResult.DoubleQuestionmark:
-     goto AcceptState35;
+     goto AcceptState37;
   case LexerResult.CSharpStart:
-     goto AcceptState21;
+     goto AcceptState23;
   case LexerResult.Name:
   case LexerResult.LexerString:
-     goto AcceptState69;
-  // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce9; // see end of switch
+     goto AcceptState71;
+  // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce11; // see end of switch
   } // end of switch
   if (ParserInput <= LexerResult.NumberSign)
-     goto HandleError8;
+     goto HandleError10;
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
 
-Reduce9:
+Reduce11:
   /* EndOfDefinitionWithoutSemantics= ;◄ */
 
   EndOfDefinitionWithoutSemanticsRecognized();
 
-  // State13:
+  // State15:
   /* outerDefinitions= EndOfDefinitionWithoutSemantics, ►";";
    * outerDefinitions= EndOfDefinition, ►"|", outerDefinitionList; */
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
   if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     goto AcceptState14;
+     goto AcceptState16;
   Debug.Assert(ParserInput == LexerResult.TerminatorSymbol);
 AcceptBranch5:
   Lexer.AcceptSymbol();
 Branch5:
   if (_s.Peek() == 2)
-     goto Reduce11;
-Reduce67:
+     goto Reduce13;
+Reduce69:
   /* sAdjust: -1
    * GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "=", outerDefinitions;◄ */
   _s.Pop();
-Reduce63:
+Reduce65:
   /* sAdjust: -1, aAdjust: -2
    * GrammarRuleList= GrammarRuleList, GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes);◄ */
   _s.Pop();
@@ -1095,8 +1104,8 @@ Reduce63:
      );
 
   _a.Remove(2);
-State63:
-  const String StateDescription63 =
+State65:
+  const String StateDescription65 =
        "GrammlatorGrammar= OptionalGrammlatorSettings, DeclarationOfTerminalSymbols, GrammarRuleList, ►TerminatorAtEndOfGrammar;\r\n"
      + "GrammarRuleList= GrammarRuleList, ►GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes);";
   _s.Push(10);
@@ -1104,7 +1113,7 @@ State63:
   if (ParserInput == LexerResult.NumberSign)
      {
      Lexer.AcceptSymbol();
-     // Reduce61:
+     // Reduce63:
      /* sAdjust: -2
       * GrammlatorGrammar= OptionalGrammlatorSettings, DeclarationOfTerminalSymbols, GrammarRuleList, TerminatorAtEndOfGrammar;◄ */
      _s.Discard(2);
@@ -1112,18 +1121,18 @@ State63:
      }
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
      {
-     if (ErrorHandler(63, StateDescription63, ParserInput))
+     if (ErrorHandler(65, StateDescription65, ParserInput))
         {
         _s.Pop();
-        goto State63;
+        goto State65;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.LexerString);
-AcceptState69:
+AcceptState71:
   Lexer.AcceptSymbol();
-State69:
-  const String StateDescription69 =
+State71:
+  const String StateDescription71 =
        "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), ►\"(Attributes)\"(Int32 NumberOfAttributes);\r\n"
      + "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name)●;";
   // *Push(0)
@@ -1133,18 +1142,18 @@ State69:
      Lexer.AcceptSymbol();
      // PushState5:
      _s.Push(0);
-     goto State70;
+     goto State72;
      }
   if (_is(_fColon | _fCSharpEnd | _fError | _fMinus | _fNumber | _fNumberSign))
      {
-     if (ErrorHandler(69, StateDescription69, ParserInput))
-        goto State69;
+     if (ErrorHandler(71, StateDescription71, ParserInput))
+        goto State71;
      // PushState6:
      _s.Push(0);
      goto EndWithError;
      }
   Debug.Assert(!_is(_fColon | _fCSharpEnd | _fError | _fMinus | _fNumber | _fNumberSign | _fGroupStart));
-  // Reduce68:
+  // Reduce70:
   /* aAdjust: 1
    * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name);◄ */
   _a.Allocate();
@@ -1160,9 +1169,9 @@ Branch14:
   case 1:
      goto State3;
   case 6:
-     goto State57;
+     goto State59;
   case 10:
-     // Reduce62:
+     // Reduce64:
      {
      /* outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes);◄ */
 
@@ -1172,12 +1181,12 @@ Branch14:
         NumberOfAttributes: _a.PeekRef(0)._Int32
         );
 
-     goto State64;
+     goto State66;
      }
   /*case 2: case 3: case 4: case 5: case 7: case 8: case 9: case 11:
   default: break; */
   }
-Reduce10:
+Reduce12:
   /* aAdjust: -1
    * SimpleElement(Symbol Symbol)= "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes);◄ */
 
@@ -1188,8 +1197,8 @@ Reduce10:
      );
 
   _a.Remove();
-State9:
-  const String StateDescription9 =
+State11:
+  const String StateDescription11 =
        "Element= RepeatedElement(Symbol Symbol)●;\r\n"
      + "RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), ►\"?\";\r\n"
      + "RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), ►\"+\";\r\n"
@@ -1200,7 +1209,7 @@ State9:
   if (ParserInput == LexerResult.Questionmark)
      {
      Lexer.AcceptSymbol();
-     // Reduce15:
+     // Reduce17:
      /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "?";◄ */
 
      OptionalElementRecognized(
@@ -1212,23 +1221,23 @@ State9:
   if (ParserInput == LexerResult.Asterisk)
      {
      Lexer.AcceptSymbol();
-     goto State11;
+     goto State13;
      }
   if (ParserInput == LexerResult.Plus)
      {
      Lexer.AcceptSymbol();
-     goto State10;
+     goto State12;
      }
   if (ParserInput <= LexerResult.MinusEqual
      || ParserInput == LexerResult.NumberSign)
      {
-     if (ErrorHandler(9, StateDescription9, ParserInput))
-        goto State9;
+     if (ErrorHandler(11, StateDescription11, ParserInput))
+        goto State11;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput >= LexerResult.GroupStart);
-  // Reduce14:
+  // Reduce16:
   /* aAdjust: -1
    * Element= RepeatedElement(Symbol Symbol);◄ */
 
@@ -1241,7 +1250,7 @@ Branch2:
   switch (_s.Peek())
   {
   case 5:
-     // Reduce27:
+     // Reduce29:
      {
      /* sAdjust: -2
       * SequenceOfElements= SequenceOfElements, ","?, Element;◄ */
@@ -1252,12 +1261,12 @@ Branch2:
   case 7:
   case 8:
   case 9:
-     goto State52;
+     goto State54;
   /*case 2: case 3: case 4: case 11:
   default: break; */
   }
-State16:
-  const String StateDescription16 =
+State18:
+  const String StateDescription18 =
        "SequenceOfElements= SequenceOfElements, ►\",\"?, Element;\r\n"
      + "outerDefinitionList= SequenceOfElements, ►EndOfDefinition, \"|\", outerDefinitionList;\r\n"
      + "outerLastDefinitionOfSequence= SequenceOfElements, ►EndOfDefinitionWithoutSemantics, \";\";\r\n"
@@ -1266,45 +1275,45 @@ State16:
   ParserInput = Lexer.PeekSymbol();
   switch (ParserInput)
   {
-  // <= LexerResult.Plus: goto HandleError16; // see end of switch
+  // <= LexerResult.Plus: goto HandleError18; // see end of switch
   case LexerResult.NumberSign:
   case LexerResult.GroupEnd:
   case LexerResult.RepeatEnd:
   case LexerResult.OptionEnd:
-     goto HandleError16;
+     goto HandleError18;
   case LexerResult.Comma:
-     goto AcceptState20;
+     goto AcceptState22;
   case LexerResult.GroupStart:
   case LexerResult.OptionStart:
   case LexerResult.RepeatStart:
   case LexerResult.Name:
   case LexerResult.LexerString:
-     goto State20;
+     goto State22;
   case LexerResult.DoubleQuestionmark:
-     goto AcceptState35;
+     goto AcceptState37;
   case LexerResult.CSharpStart:
-     goto AcceptState21;
-  // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce23; // see end of switch
+     goto AcceptState23;
+  // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce25; // see end of switch
   } // end of switch
   if (ParserInput <= LexerResult.Plus)
-     goto HandleError16;
+     goto HandleError18;
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
 
-  // Reduce23:
+  // Reduce25:
   /* EndOfDefinitionWithoutSemantics= ;◄ */
 
   EndOfDefinitionWithoutSemanticsRecognized();
 
-  // State17:
+  // State19:
   /* outerDefinitionList= SequenceOfElements, EndOfDefinition, ►"|", outerDefinitionList;
    * outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithoutSemantics, ►";"; */
   Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
   if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     goto AcceptState18;
+     goto AcceptState20;
   Debug.Assert(ParserInput == LexerResult.TerminatorSymbol);
-AcceptReduce25:
+AcceptReduce27:
   Lexer.AcceptSymbol();
-Reduce25:
+Reduce27:
   /* sAdjust: -1
    * outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithoutSemantics, ";";◄
    * or: outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithSemantics, ";"?;◄ */
@@ -1313,24 +1322,24 @@ Reduce25:
   switch (_s.Peek())
   {
   case 3:
-     goto Reduce22;
+     goto Reduce24;
   case 4:
-     goto Reduce26;
+     goto Reduce28;
   case 11:
-     goto Reduce67;
+     goto Reduce69;
   /*case 2:
   default: break; */
   }
-Reduce11:
+Reduce13:
   /* sAdjust: -1
    * FirstGrammarRule= "*=", outerDefinitions;◄ */
   _s.Pop();
 
   FirstGrammarRuleRecognized();
 
-  goto State63;
+  goto State65;
 
-Reduce12:
+Reduce14:
   /* aAdjust: -1
    * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ */
 
@@ -1339,28 +1348,28 @@ Reduce12:
      );
 
   _a.Remove();
-State15:
-  const String StateDescription15 =
+State17:
+  const String StateDescription17 =
        "outerDefinitions= EndOfDefinitionWithSemantics, ►\";\"?;\r\n"
      + "outerDefinitions= EndOfDefinition, ►\"|\", outerDefinitionList;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     goto AcceptState14;
+     goto AcceptState16;
   if (ParserInput == LexerResult.TerminatorSymbol)
      goto AcceptBranch5;
   if (ParserInput != LexerResult.NumberSign
      && ParserInput < LexerResult.Name)
      {
-     if (ErrorHandler(15, StateDescription15, ParserInput))
-        goto State15;
+     if (ErrorHandler(17, StateDescription17, ParserInput))
+        goto State17;
      goto EndWithError;
      }
   Debug.Assert(_is(_fNumberSign | _fName | _fLexerString));
   goto Branch5;
 
-AcceptReduce30:
+AcceptReduce32:
   Lexer.AcceptSymbol();
-  // Reduce30:
+  // Reduce32:
   /* sAdjust: -1
    * CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ")";◄ */
   _s.Pop();
@@ -1370,19 +1379,19 @@ AcceptReduce30:
      method: _a.PeekClear(0)._MethodClass
      );
 
-State31:
-  const String StateDescription31 =
+State33:
+  const String StateDescription33 =
        "SemanticAction(VoidMethodClass method)= CSharpStart, CSvoidMethod(VoidMethodClass method), ►CSharpEnd;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.CSharpEnd)
      {
-     if (ErrorHandler(31, StateDescription31, ParserInput))
-        goto State31;
+     if (ErrorHandler(33, StateDescription33, ParserInput))
+        goto State33;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
-  // Reduce36:
+  // Reduce38:
   /* sAdjust: -1
    * SemanticAction(VoidMethodClass method)= CSharpStart, CSvoidMethod(VoidMethodClass method), CSharpEnd;◄ */
   _s.Pop();
@@ -1390,7 +1399,7 @@ Branch8:
   switch (_s.Peek())
   {
   case 1:
-     // Reduce24:
+     // Reduce26:
      {
      /* aAdjust: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ */
@@ -1400,13 +1409,13 @@ Branch8:
         );
 
      _a.Remove();
-     goto State19;
+     goto State21;
      }
   case 2:
   case 11:
-     goto Reduce12;
+     goto Reduce14;
   case 3:
-     // Reduce53:
+     // Reduce55:
      {
      /* sAdjust: -1, aAdjust: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄
@@ -1422,7 +1431,7 @@ Branch8:
      goto Branch13;
      }
   case 6:
-     // Reduce48:
+     // Reduce50:
      {
      /* aAdjust: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ */
@@ -1432,10 +1441,10 @@ Branch8:
         );
 
      _a.Remove();
-     goto State48;
+     goto State50;
      }
   case 9:
-     // Reduce56:
+     // Reduce58:
      {
      /* aAdjust: -1
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄ */
@@ -1445,12 +1454,12 @@ Branch8:
         );
 
      _a.Remove();
-     goto State55;
+     goto State57;
      }
   /*case 0:
   default: break; */
   }
-  // Reduce21:
+  // Reduce23:
   /* sAdjust: -1, aAdjust: -3
    * EndOfDefinitionWithSemantics= PriorityDeclaration(Int64 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method);◄ */
   _s.Pop();
@@ -1467,38 +1476,38 @@ Branch4:
   {
   case 2:
   case 11:
-     goto State15;
+     goto State17;
   case 3:
-     goto Reduce51;
+     goto Reduce53;
   case 6:
-     goto State48;
+     goto State50;
   case 9:
-     goto State55;
+     goto State57;
   /*case 1:
   default: break; */
   }
-State19:
-  const String StateDescription19 =
+State21:
+  const String StateDescription21 =
        "outerDefinitionList= SequenceOfElements, EndOfDefinition, ►\"|\", outerDefinitionList;\r\n"
      + "outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithSemantics, ►\";\"?;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     goto AcceptState18;
+     goto AcceptState20;
   if (ParserInput == LexerResult.TerminatorSymbol)
-     goto AcceptReduce25;
+     goto AcceptReduce27;
   if (ParserInput != LexerResult.NumberSign
      && ParserInput < LexerResult.Name)
      {
-     if (ErrorHandler(19, StateDescription19, ParserInput))
-        goto State19;
+     if (ErrorHandler(21, StateDescription21, ParserInput))
+        goto State21;
      goto EndWithError;
      }
   Debug.Assert(_is(_fNumberSign | _fName | _fLexerString));
-  goto Reduce25;
+  goto Reduce27;
 
-AcceptReduce40:
+AcceptReduce42:
   Lexer.AcceptSymbol();
-  // Reduce40:
+  // Reduce42:
   /* sAdjust: -1
    * CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ")";◄ */
   _s.Pop();
@@ -1508,37 +1517,37 @@ AcceptReduce40:
      method: _a.PeekClear(0)._MethodClass
      );
 
-State41:
-  const String StateDescription41 =
+State43:
+  const String StateDescription43 =
        "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", CSharpStart, CSintMethod(IntMethodClass intMethod), ►CSharpEnd, \"??\"?;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.CSharpEnd)
      {
-     if (ErrorHandler(41, StateDescription41, ParserInput))
-        goto State41;
+     if (ErrorHandler(43, StateDescription43, ParserInput))
+        goto State43;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
-State42:
-  const String StateDescription42 =
+State44:
+  const String StateDescription44 =
        "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, ►\"??\"?;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.DoubleQuestionmark)
      {
      Lexer.AcceptSymbol();
-     goto Reduce41;
+     goto Reduce43;
      }
   if (ParserInput != LexerResult.NumberSign
      && ParserInput < LexerResult.CSharpStart)
      {
-     if (ErrorHandler(42, StateDescription42, ParserInput))
-        goto State42;
+     if (ErrorHandler(44, StateDescription44, ParserInput))
+        goto State44;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.NumberSign
      || ParserInput >= LexerResult.CSharpStart);
-Reduce41:
+Reduce43:
   /* sAdjust: -1, aAdjust: 1
    * PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= "??", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, "??"?;◄ */
   _s.Pop();
@@ -1550,8 +1559,8 @@ Reduce41:
      intMethod: _a.PeekClear(-1)._IntMethodClass
      );
 
-State12:
-  const String StateDescription12 =
+State14:
+  const String StateDescription14 =
        "EndOfDefinitionWithSemantics= PriorityDeclaration(Int64 constPriority, IntMethodClass dynPriority)●;\r\n"
      + "EndOfDefinitionWithSemantics= PriorityDeclaration(Int64 constPriority, IntMethodClass dynPriority), ►SemanticAction(VoidMethodClass method);";
   // *Push(0)
@@ -1561,20 +1570,20 @@ State12:
      Lexer.AcceptSymbol();
      // PushState1:
      _s.Push(0);
-     goto State21;
+     goto State23;
      }
   if (ParserInput != LexerResult.NumberSign
      && ParserInput < LexerResult.GroupEnd)
      {
-     if (ErrorHandler(12, StateDescription12, ParserInput))
-        goto State12;
+     if (ErrorHandler(14, StateDescription14, ParserInput))
+        goto State14;
      // PushState2:
      _s.Push(0);
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.NumberSign
      || ParserInput >= LexerResult.GroupEnd);
-  // Reduce20:
+  // Reduce22:
   /* aAdjust: -2
    * EndOfDefinitionWithSemantics= PriorityDeclaration(Int64 constPriority, IntMethodClass dynPriority);◄ */
 
@@ -1586,7 +1595,7 @@ State12:
   _a.Remove(2);
   goto Branch4;
 
-Reduce44:
+Reduce46:
   /* aAdjust: 5
    * SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes)= ;◄ */
   _a.Allocate(5);
@@ -1599,51 +1608,51 @@ Reduce44:
      SavedNumberOfSymbolAttributes: out _a.PeekRef(0)._Int32
      );
 
-State47:
-  const String StateDescription47 =
+State49:
+  const String StateDescription49 =
        "NestedElement(Symbol Symbol)= SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes), ►NestedGrammarRule(Symbol NestedSymbol, Int32 NumberOfAttributes);";
   _s.Push(6);
   ParserInput = Lexer.PeekSymbol();
   switch (ParserInput)
   {
   // <= LexerResult.NumberSign
-  // >= LexerResult.TerminatorSymbol: goto HandleError47; // see end of switch
+  // >= LexerResult.TerminatorSymbol: goto HandleError49; // see end of switch
   case LexerResult.GroupStart:
-     goto AcceptState61;
+     goto AcceptState63;
   case LexerResult.OptionStart:
-     goto AcceptState59;
+     goto AcceptState61;
   case LexerResult.RepeatStart:
-     goto AcceptState46;
+     goto AcceptState48;
   case LexerResult.DoubleQuestionmark:
-     goto AcceptState35;
+     goto AcceptState37;
   case LexerResult.CSharpStart:
-     goto AcceptState21;
+     goto AcceptState23;
   case LexerResult.GroupEnd:
   case LexerResult.RepeatEnd:
   case LexerResult.OptionEnd:
   case LexerResult.DefinitionSeparatorSymbol:
-     // Reduce45:
+     // Reduce47:
      {
      /* EndOfDefinitionWithoutSemantics= ;◄ */
 
      EndOfDefinitionWithoutSemanticsRecognized();
 
-     goto State48;
+     goto State50;
      }
   case LexerResult.Name:
   case LexerResult.LexerString:
-     goto AcceptState69;
+     goto AcceptState71;
   } // end of switch
   Debug.Assert(ParserInput <= LexerResult.NumberSign || ParserInput >= LexerResult.TerminatorSymbol);
 
-  if (ErrorHandler(47, StateDescription47, ParserInput))
+  if (ErrorHandler(49, StateDescription49, ParserInput))
      {
      _s.Pop();
-     goto State47;
+     goto State49;
      };
   goto EndWithError;
 
-Reduce47:
+Reduce49:
   /* aAdjust: 2
    * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedDefinitions;◄ */
   _a.Allocate(2);
@@ -1653,7 +1662,7 @@ Reduce47:
      NumberOfAttributes: out _a.PeekRef(0)._Int32
      );
 
-Reduce46:
+Reduce48:
   /* sAdjust: -1, aAdjust: -6
    * NestedElement(Symbol Symbol)= SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes), NestedGrammarRule(Symbol NestedSymbol, Int32 NumberOfAttributes);◄ */
   _s.Pop();
@@ -1673,31 +1682,31 @@ Reduce46:
   switch (_s.Peek())
   {
   case 0:
-     goto State58;
-  case 1:
      goto State60;
+  case 1:
+     goto State62;
   /*case 2:
   default: break; */
   }
-State62:
-  const String StateDescription62 =
+State64:
+  const String StateDescription64 =
        "SimpleElement(Symbol Symbol)= \"(\", NestedElement(Symbol Symbol), ►\")\";";
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
   if (ParserInput != LexerResult.GroupEnd)
      {
-     if (ErrorHandler(62, StateDescription62, ParserInput))
-        goto State62;
+     if (ErrorHandler(64, StateDescription64, ParserInput))
+        goto State64;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
-  // Reduce60:
+  // Reduce62:
   /* sAdjust: -1
    * SimpleElement(Symbol Symbol)= "(", NestedElement(Symbol Symbol), ")";◄ */
   _s.Pop();
-  goto State9;
+  goto State11;
 
-Reduce49:
+Reduce51:
   /* aAdjust: -1
    * Element= RepeatedElement(Symbol Symbol);◄ */
 
@@ -1706,8 +1715,8 @@ Reduce49:
      );
 
   _a.Remove();
-State52:
-  const String StateDescription52 =
+State54:
+  const String StateDescription54 =
        "Definition= SequenceOfElements, ►EndOfDefinition;\r\n"
      + "SequenceOfElements= SequenceOfElements, ►\",\"?, Element;";
   _s.Push(3);
@@ -1715,26 +1724,26 @@ State52:
   switch (ParserInput)
   {
   // <= LexerResult.Plus
-  // >= LexerResult.TerminatorSymbol: goto HandleError52; // see end of switch
+  // >= LexerResult.TerminatorSymbol: goto HandleError54; // see end of switch
   case LexerResult.NumberSign:
-     goto HandleError52;
+     goto HandleError54;
   case LexerResult.Comma:
-     goto AcceptState20;
+     goto AcceptState22;
   case LexerResult.GroupStart:
   case LexerResult.OptionStart:
   case LexerResult.RepeatStart:
   case LexerResult.Name:
   case LexerResult.LexerString:
-     goto State20;
+     goto State22;
   case LexerResult.DoubleQuestionmark:
-     goto AcceptState35;
+     goto AcceptState37;
   case LexerResult.CSharpStart:
-     goto AcceptState21;
+     goto AcceptState23;
   case LexerResult.GroupEnd:
   case LexerResult.RepeatEnd:
   case LexerResult.OptionEnd:
   case LexerResult.DefinitionSeparatorSymbol:
-     // Reduce52:
+     // Reduce54:
      {
      /* sAdjust: -1
       * EndOfDefinitionWithoutSemantics= ;◄
@@ -1749,15 +1758,15 @@ State52:
   } // end of switch
   Debug.Assert(ParserInput <= LexerResult.Plus || ParserInput >= LexerResult.TerminatorSymbol);
 
-HandleError52:
-  if (ErrorHandler(52, StateDescription52, ParserInput))
+HandleError54:
+  if (ErrorHandler(54, StateDescription54, ParserInput))
      {
      _s.Pop();
-     goto State52;
+     goto State54;
      };
   goto EndWithError;
 
-Reduce51:
+Reduce53:
   /* sAdjust: -1
    * NestedDefinitionList= NestedDefinitionList, "|", Definition;◄
    * or: Definition= SequenceOfElements, EndOfDefinition;◄ */
@@ -1766,54 +1775,54 @@ Branch13:
   switch (_s.Peek())
   {
   case 6:
-     goto State53;
+     goto State55;
   case 7:
-     goto State50;
+     goto State52;
   case 8:
-     goto Reduce51;
+     goto Reduce53;
   /*case 9:
   default: break; */
   }
-State56:
-  const String StateDescription56 =
+State58:
+  const String StateDescription58 =
        "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions●;\r\n"
      + "NestedDefinitionList= NestedDefinitionList, ►\"|\", Definition;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     goto AcceptState51;
+     goto AcceptState53;
   if (ParserInput <= LexerResult.CSharpStart
      || ParserInput >= LexerResult.Name)
      {
-     if (ErrorHandler(56, StateDescription56, ParserInput))
-        goto State56;
+     if (ErrorHandler(58, StateDescription58, ParserInput))
+        goto State58;
      goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
-Reduce55:
+Reduce57:
   /* sAdjust: -1
    * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions;◄ */
   _s.Pop();
-  goto Reduce46;
+  goto Reduce48;
 
-Reduce80:
+Reduce82:
   /* CSEnumDeclaration= CSEnumProperties, optionalBaseType, CSEnumMembers;◄ */
 
   CSEnumRecognized();
 
-State95:
-  const String StateDescription95 =
+State97:
+  const String StateDescription97 =
        "EnumOrEmptyCode= CSharpStart, CSEnumDeclaration, ►CSharpEnd;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.CSharpEnd)
      {
-     if (ErrorHandler(95, StateDescription95, ParserInput))
-        goto State95;
+     if (ErrorHandler(97, StateDescription97, ParserInput))
+        goto State97;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   goto AcceptBranch17;
 
-Reduce83:
+Reduce85:
   /* aAdjust: 1
    * OptionalDescriptionAttribute(String description)= ;◄ */
   _a.Allocate();
@@ -1822,37 +1831,37 @@ Reduce83:
      description: out _a.PeekRef(0)._String
      );
 
-State84:
-  const String StateDescription84 =
+State86:
+  const String StateDescription86 =
        "CSEnumMember= OptionalDescriptionAttribute(String description), ►Name(UnifiedString enumElementString), OptionalEnumElementNumber(Int64 enumNumber);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(84, StateDescription84, ParserInput))
-        goto State84;
+     if (ErrorHandler(86, StateDescription86, ParserInput))
+        goto State86;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-State85:
-  const String StateDescription85 =
+State87:
+  const String StateDescription87 =
        "CSEnumMember= OptionalDescriptionAttribute(String description), Name(UnifiedString enumElementString), ►OptionalEnumElementNumber(Int64 enumNumber);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.DefiningSymbol)
      {
      Lexer.AcceptSymbol();
-     goto State86;
+     goto State88;
      }
   if (ParserInput != LexerResult.Comma
      && ParserInput != LexerResult.RepeatEnd)
      {
-     if (ErrorHandler(85, StateDescription85, ParserInput))
-        goto State85;
+     if (ErrorHandler(87, StateDescription87, ParserInput))
+        goto State87;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput == LexerResult.RepeatEnd);
-  // Reduce85:
+  // Reduce87:
   /* aAdjust: 1
    * OptionalEnumElementNumber(Int64 enumNumber)= ;◄ */
   _a.Allocate();
@@ -1861,7 +1870,7 @@ State85:
      enumNumber: out _a.PeekRef(0)._Int64
      );
 
-Reduce86:
+Reduce88:
   /* sAdjust: -1, aAdjust: -3
    * CSEnumMember= OptionalDescriptionAttribute(String description), Name(UnifiedString enumElementString), OptionalEnumElementNumber(Int64 enumNumber);◄
    * then: CSEnumMemberList= ResetEnumDefaults, CSEnumMember;◄
@@ -1875,43 +1884,68 @@ Reduce86:
      );
 
   _a.Remove(3);
-State92:
-  const String StateDescription92 =
+State94:
+  const String StateDescription94 =
        "CSEnumMembers= \"{\", CSEnumMemberList, ►\"}\";\r\n"
      + "CSEnumMemberList= CSEnumMemberList, ►Comma, CSEnumMember;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Comma)
      {
      Lexer.AcceptSymbol();
-     goto State93;
+     goto State95;
      }
   if (ParserInput != LexerResult.RepeatEnd)
      {
-     if (ErrorHandler(92, StateDescription92, ParserInput))
-        goto State92;
+     if (ErrorHandler(94, StateDescription94, ParserInput))
+        goto State94;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatEnd);
   Lexer.AcceptSymbol();
-  goto Reduce80;
+  goto Reduce82;
 
 State3:
   const String StateDescription3 =
-       "TerminalSymbol= \"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes), ►OptionalWeight(Int64 Weight);";
+       "TerminalSymbol= \"Name(Attributes)\"(UnifiedString name, Int32 numberOfAttributes), ►OptionalValue(Int64 value), OptionalWeight(Int64 weight);";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.Percent)
+  if (ParserInput == LexerResult.DefiningSymbol)
      {
      Lexer.AcceptSymbol();
-     goto State4;
+     goto State6;
      }
-  if (!_is(_fStarEqual | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol))
+  if (!_is(_fPercent | _fStarEqual | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol))
      {
      if (ErrorHandler(3, StateDescription3, ParserInput))
         goto State3;
      goto EndWithError;
      }
-  Debug.Assert(_is(_fStarEqual | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol));
+  Debug.Assert(_is(_fPercent | _fStarEqual | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol));
   // Reduce4:
+  /* aAdjust: 1
+   * OptionalValue(Int64 value)= ;◄ */
+  _a.Allocate();
+
+  OptionalValueDefault(
+     value: out _a.PeekRef(0)._Int64
+     );
+
+State4:
+  const String StateDescription4 =
+       "TerminalSymbol= \"Name(Attributes)\"(UnifiedString name, Int32 numberOfAttributes), OptionalValue(Int64 value), ►OptionalWeight(Int64 weight);";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput == LexerResult.Percent)
+     {
+     Lexer.AcceptSymbol();
+     goto State5;
+     }
+  if (!_is(_fStarEqual | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol))
+     {
+     if (ErrorHandler(4, StateDescription4, ParserInput))
+        goto State4;
+     goto EndWithError;
+     }
+  Debug.Assert(_is(_fStarEqual | _fCSharpStart | _fDefinitionSeparatorSymbol | _fTerminatorSymbol));
+  // Reduce5:
   /* aAdjust: 1
    * OptionalWeight(Int64 weight)= ;◄ */
   _a.Allocate();
@@ -1920,26 +1954,27 @@ State3:
      weight: out _a.PeekRef(0)._Int64
      );
 
-Reduce5:
-  /* aAdjust: -3
-   * TerminalSymbol= "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes), OptionalWeight(Int64 Weight);◄ */
+Reduce6:
+  /* aAdjust: -4
+   * TerminalSymbol= "Name(Attributes)"(UnifiedString name, Int32 numberOfAttributes), OptionalValue(Int64 value), OptionalWeight(Int64 weight);◄ */
 
   TerminalSymbol(
-     name: _a.PeekRef(-2)._UnifiedString,
-     NumberOfAttributes: _a.PeekRef(-1)._Int32,
-     Weight: _a.PeekRef(0)._Int64
+     name: _a.PeekRef(-3)._UnifiedString,
+     numberOfAttributes: _a.PeekRef(-2)._Int32,
+     value: _a.PeekRef(-1)._Int64,
+     weight: _a.PeekRef(0)._Int64
      );
 
-  _a.Remove(3);
+  _a.Remove(4);
   // Branch1:
   if (_s.Peek() == 0)
-     goto State5;
-  // Reduce7:
+     goto State7;
+  // Reduce9:
   /* sAdjust: -2
    * TerminalSymbolsList= TerminalSymbolsList, "|", TerminalSymbol;◄ */
   _s.Discard(2);
-State5:
-  const String StateDescription5 =
+State7:
+  const String StateDescription7 =
        "OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, ►OptionalSemikolonOrEnum;\r\n"
      + "TerminalSymbolsList= TerminalSymbolsList, ►\"|\", TerminalSymbol;";
   _s.Push(1);
@@ -1947,67 +1982,88 @@ State5:
   if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
      {
      Lexer.AcceptSymbol();
-     goto State6;
+     goto State8;
      }
   if (ParserInput == LexerResult.TerminatorSymbol)
      {
      Lexer.AcceptSymbol();
-     goto Reduce6;
+     goto Reduce8;
      }
   if (ParserInput == LexerResult.StarEqual)
-     goto Reduce6;
+     goto Reduce8;
   if (ParserInput != LexerResult.CSharpStart)
      {
-     if (ErrorHandler(5, StateDescription5, ParserInput))
+     if (ErrorHandler(7, StateDescription7, ParserInput))
         {
         _s.Pop();
-        goto State5;
+        goto State7;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpStart);
-  goto AcceptState79;
+  goto AcceptState81;
 
-State4:
-  const String StateDescription4 =
+State5:
+  const String StateDescription5 =
        "OptionalWeight(Int64 weight)= \"%\", ►Number(Int64 weight);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Number)
      {
-     if (ErrorHandler(4, StateDescription4, ParserInput))
-        goto State4;
+     if (ErrorHandler(5, StateDescription5, ParserInput))
+        goto State5;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Number);
   Lexer.AcceptSymbol();
-  goto Reduce5;
+  goto Reduce6;
 
 State6:
   const String StateDescription6 =
+       "OptionalValue(Int64 value)= \"=\", ►Number(Int64 value);";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput != LexerResult.Number)
+     {
+     if (ErrorHandler(6, StateDescription6, ParserInput))
+        goto State6;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput == LexerResult.Number);
+  Lexer.AcceptSymbol();
+  // Reduce7:
+  /* OptionalValue(Int64 value)= "=", Number(Int64 value);◄ */
+
+  OptionalValueAssignment(
+     value: _a.PeekRef(0)._Int64
+     );
+
+  goto State4;
+
+State8:
+  const String StateDescription8 =
        "TerminalSymbolsList= TerminalSymbolsList, \"|\", ►TerminalSymbol;";
   _s.Push(1);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
      {
-     if (ErrorHandler(6, StateDescription6, ParserInput))
+     if (ErrorHandler(8, StateDescription8, ParserInput))
         {
         _s.Pop();
-        goto State6;
+        goto State8;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.LexerString);
-  goto AcceptState69;
+  goto AcceptState71;
 
-State10:
-  const String StateDescription10 =
+State12:
+  const String StateDescription12 =
        "RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), \"+\"●;\r\n"
      + "RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), \"+\", ►\"+\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Plus)
      {
      Lexer.AcceptSymbol();
-     // Reduce17:
+     // Reduce19:
      /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "+", "+";◄ */
 
      Repeat1rrRecognized(
@@ -2019,13 +2075,13 @@ State10:
   if (ParserInput <= LexerResult.Asterisk
      || ParserInput == LexerResult.NumberSign)
      {
-     if (ErrorHandler(10, StateDescription10, ParserInput))
-        goto State10;
+     if (ErrorHandler(12, StateDescription12, ParserInput))
+        goto State12;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput >= LexerResult.GroupStart);
-  // Reduce16:
+  // Reduce18:
   /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "+";◄ */
 
   Repeat1lrRecognized(
@@ -2036,7 +2092,7 @@ Branch3:
   switch (_s.Peek())
   {
   case 5:
-     // Reduce28:
+     // Reduce30:
      {
      /* sAdjust: -2, aAdjust: -1
       * Element= RepeatedElement(Symbol Symbol);◄
@@ -2054,11 +2110,11 @@ Branch3:
   case 7:
   case 8:
   case 9:
-     goto Reduce49;
+     goto Reduce51;
   /*case 2: case 3: case 4: case 11:
   default: break; */
   }
-  // Reduce13:
+  // Reduce15:
   /* aAdjust: -1
    * Element= RepeatedElement(Symbol Symbol);◄ */
 
@@ -2067,17 +2123,17 @@ Branch3:
      );
 
   _a.Remove();
-  goto State16;
+  goto State18;
 
-State11:
-  const String StateDescription11 =
+State13:
+  const String StateDescription13 =
        "RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), \"*\"●;\r\n"
      + "RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), \"*\", ►\"*\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Asterisk)
      {
      Lexer.AcceptSymbol();
-     // Reduce19:
+     // Reduce21:
      /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "*", "*";◄ */
 
      Repeat0rrRecognized(
@@ -2089,13 +2145,13 @@ State11:
   if (ParserInput <= LexerResult.Plus
      || ParserInput == LexerResult.NumberSign)
      {
-     if (ErrorHandler(11, StateDescription11, ParserInput))
-        goto State11;
+     if (ErrorHandler(13, StateDescription13, ParserInput))
+        goto State13;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput >= LexerResult.GroupStart);
-  // Reduce18:
+  // Reduce20:
   /* RepeatedElement(Symbol Symbol)= SimpleElement(Symbol Symbol), "*";◄ */
 
   Repeat0lrRecognized(
@@ -2104,69 +2160,44 @@ State11:
 
   goto Branch3;
 
-AcceptState14:
+AcceptState16:
   Lexer.AcceptSymbol();
-State14:
-  const String StateDescription14 =
+State16:
+  const String StateDescription16 =
        "outerDefinitions= EndOfDefinition, \"|\", ►outerDefinitionList;";
   _s.Push(3);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.GroupStart)
-     goto AcceptState61;
+     goto AcceptState63;
   if (ParserInput == LexerResult.OptionStart)
-     goto AcceptState59;
+     goto AcceptState61;
   if (ParserInput == LexerResult.RepeatStart)
-     goto AcceptState46;
+     goto AcceptState48;
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
      {
-     if (ErrorHandler(14, StateDescription14, ParserInput))
+     if (ErrorHandler(16, StateDescription16, ParserInput))
         {
         _s.Pop();
-        goto State14;
+        goto State16;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.LexerString);
-  goto AcceptState69;
-
-AcceptState18:
-  Lexer.AcceptSymbol();
-State18:
-  const String StateDescription18 =
-       "outerDefinitionList= SequenceOfElements, EndOfDefinition, \"|\", ►outerDefinitionList;";
-  _s.Push(4);
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.GroupStart)
-     goto AcceptState61;
-  if (ParserInput == LexerResult.OptionStart)
-     goto AcceptState59;
-  if (ParserInput == LexerResult.RepeatStart)
-     goto AcceptState46;
-  if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
-     {
-     if (ErrorHandler(18, StateDescription18, ParserInput))
-        {
-        _s.Pop();
-        goto State18;
-        };
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.LexerString);
-  goto AcceptState69;
+  goto AcceptState71;
 
 AcceptState20:
   Lexer.AcceptSymbol();
 State20:
   const String StateDescription20 =
-       "SequenceOfElements= SequenceOfElements, \",\"?, ►Element;";
-  _s.Push(5);
+       "outerDefinitionList= SequenceOfElements, EndOfDefinition, \"|\", ►outerDefinitionList;";
+  _s.Push(4);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.GroupStart)
-     goto AcceptState61;
+     goto AcceptState63;
   if (ParserInput == LexerResult.OptionStart)
-     goto AcceptState59;
+     goto AcceptState61;
   if (ParserInput == LexerResult.RepeatStart)
-     goto AcceptState46;
+     goto AcceptState48;
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
      {
      if (ErrorHandler(20, StateDescription20, ParserInput))
@@ -2177,12 +2208,37 @@ State20:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.LexerString);
-  goto AcceptState69;
+  goto AcceptState71;
 
-AcceptState21:
+AcceptState22:
   Lexer.AcceptSymbol();
-State21:
-  const String StateDescription21 =
+State22:
+  const String StateDescription22 =
+       "SequenceOfElements= SequenceOfElements, \",\"?, ►Element;";
+  _s.Push(5);
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput == LexerResult.GroupStart)
+     goto AcceptState63;
+  if (ParserInput == LexerResult.OptionStart)
+     goto AcceptState61;
+  if (ParserInput == LexerResult.RepeatStart)
+     goto AcceptState48;
+  if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
+     {
+     if (ErrorHandler(22, StateDescription22, ParserInput))
+        {
+        _s.Pop();
+        goto State22;
+        };
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.LexerString);
+  goto AcceptState71;
+
+AcceptState23:
+  Lexer.AcceptSymbol();
+State23:
+  const String StateDescription23 =
        "SemanticAction(VoidMethodClass method)= CSharpStart, ►CSvoidMethod(VoidMethodClass method), CSharpEnd;\r\n"
      + "SemanticAction(VoidMethodClass method)= CSharpStart, ►CSharpEnd;";
   // *Push(0)
@@ -2192,19 +2248,19 @@ State21:
      Lexer.AcceptSymbol();
      // PushState3:
      _s.Push(0);
-     goto State32;
+     goto State34;
      }
   if (ParserInput != LexerResult.CSharpEnd)
      {
-     if (ErrorHandler(21, StateDescription21, ParserInput))
-        goto State21;
+     if (ErrorHandler(23, StateDescription23, ParserInput))
+        goto State23;
      // PushState4:
      _s.Push(0);
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpEnd);
   Lexer.AcceptSymbol();
-  // Reduce29:
+  // Reduce31:
   /* aAdjust: 1
    * SemanticAction(VoidMethodClass method)= CSharpStart, CSharpEnd;◄ */
   _a.Allocate();
@@ -2215,76 +2271,76 @@ State21:
 
   goto Branch8;
 
-State22:
-  const String StateDescription22 =
+State24:
+  const String StateDescription24 =
        "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), ►\"(\", formalParameters?, \")\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.GroupStart)
      {
-     if (ErrorHandler(22, StateDescription22, ParserInput))
-        goto State22;
+     if (ErrorHandler(24, StateDescription24, ParserInput))
+        goto State24;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupStart);
   Lexer.AcceptSymbol();
-State23:
-  const String StateDescription23 =
+State25:
+  const String StateDescription25 =
        "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), \"(\", ►formalParameters?, \")\";";
   _s.Push(0);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
-     goto AcceptState27;
+     goto AcceptState29;
   if (ParserInput != LexerResult.GroupEnd)
      {
-     if (ErrorHandler(23, StateDescription23, ParserInput))
+     if (ErrorHandler(25, StateDescription25, ParserInput))
         {
         _s.Pop();
-        goto State23;
+        goto State25;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-  // State24:
+  // State26:
   /* CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ►")"; */
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-  goto AcceptReduce30;
+  goto AcceptReduce32;
 
-State25:
-  const String StateDescription25 =
+State27:
+  const String StateDescription27 =
        "CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), \"(\", formalParameters?, ►\")\";\r\n"
      + "formalParameters= formalParameters, ►Comma, formalParameter;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.GroupEnd)
-     goto AcceptReduce30;
+     goto AcceptReduce32;
   if (ParserInput != LexerResult.Comma)
      {
-     if (ErrorHandler(25, StateDescription25, ParserInput))
-        goto State25;
+     if (ErrorHandler(27, StateDescription27, ParserInput))
+        goto State27;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma);
-AcceptState26:
+AcceptState28:
   Lexer.AcceptSymbol();
-State26:
-  const String StateDescription26 =
+State28:
+  const String StateDescription28 =
        "formalParameters= formalParameters, Comma, ►formalParameter;";
   _s.Push(1);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(26, StateDescription26, ParserInput))
+     if (ErrorHandler(28, StateDescription28, ParserInput))
         {
         _s.Pop();
-        goto State26;
+        goto State28;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
-AcceptState27:
+AcceptState29:
   Lexer.AcceptSymbol();
-State27:
-  const String StateDescription27 =
+State29:
+  const String StateDescription29 =
        "formalParameter= Name(UnifiedString typeString), ►Name(UnifiedString nameString);\r\n"
      + "formalParameter= Name(UnifiedString typeString), ►\"?\", Name(UnifiedString nameString);\r\n"
      + "formalParameter= Name(UnifiedString ParameterModifierOptString), ►Name(UnifiedString typeString), Name(UnifiedString nameString);\r\n"
@@ -2293,29 +2349,29 @@ State27:
   if (ParserInput == LexerResult.Name)
      {
      Lexer.AcceptSymbol();
-     goto State28;
+     goto State30;
      }
   if (ParserInput != LexerResult.Questionmark)
      {
-     if (ErrorHandler(27, StateDescription27, ParserInput))
-        goto State27;
+     if (ErrorHandler(29, StateDescription29, ParserInput))
+        goto State29;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Questionmark);
   Lexer.AcceptSymbol();
-State30:
-  const String StateDescription30 =
+State32:
+  const String StateDescription32 =
        "formalParameter= Name(UnifiedString typeString), \"?\", ►Name(UnifiedString nameString);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(30, StateDescription30, ParserInput))
-        goto State30;
+     if (ErrorHandler(32, StateDescription32, ParserInput))
+        goto State32;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-  // Reduce35:
+  // Reduce37:
   /* aAdjust: -2
    * formalParameter= Name(UnifiedString typeString), "?", Name(UnifiedString nameString);◄ */
 
@@ -2329,9 +2385,9 @@ Branch9:
   switch (_s.Peek())
   {
   case 0:
-     goto State25;
+     goto State27;
   case 1:
-     // Reduce31:
+     // Reduce33:
      {
      /* sAdjust: -1
       * formalParameters= formalParameters, Comma, formalParameter;◄ */
@@ -2341,24 +2397,24 @@ Branch9:
   /*case 2:
   default: break; */
   }
-State40:
-  const String StateDescription40 =
+State42:
+  const String StateDescription42 =
        "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), \"(\", formalParameters?, ►\")\";\r\n"
      + "formalParameters= formalParameters, ►Comma, formalParameter;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Comma)
-     goto AcceptState26;
+     goto AcceptState28;
   if (ParserInput != LexerResult.GroupEnd)
      {
-     if (ErrorHandler(40, StateDescription40, ParserInput))
-        goto State40;
+     if (ErrorHandler(42, StateDescription42, ParserInput))
+        goto State42;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-  goto AcceptReduce40;
+  goto AcceptReduce42;
 
-State28:
-  const String StateDescription28 =
+State30:
+  const String StateDescription30 =
        "formalParameter= Name(UnifiedString typeString), Name(UnifiedString nameString)●;\r\n"
      + "formalParameter= Name(UnifiedString ParameterModifierOptString), Name(UnifiedString typeString), ►Name(UnifiedString nameString);\r\n"
      + "formalParameter= Name(UnifiedString ParameterModifierOptString), Name(UnifiedString typeString), ►\"?\", Name(UnifiedString nameString);";
@@ -2366,7 +2422,7 @@ State28:
   if (ParserInput == LexerResult.Name)
      {
      Lexer.AcceptSymbol();
-     // Reduce33:
+     // Reduce35:
      /* aAdjust: -3
       * formalParameter= Name(UnifiedString ParameterModifierOptString), Name(UnifiedString typeString), Name(UnifiedString nameString);◄ */
 
@@ -2382,18 +2438,18 @@ State28:
   if (ParserInput == LexerResult.Questionmark)
      {
      Lexer.AcceptSymbol();
-     goto State29;
+     goto State31;
      }
   if (ParserInput != LexerResult.Comma
      && ParserInput != LexerResult.GroupEnd)
      {
-     if (ErrorHandler(28, StateDescription28, ParserInput))
-        goto State28;
+     if (ErrorHandler(30, StateDescription30, ParserInput))
+        goto State30;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Comma
      || ParserInput == LexerResult.GroupEnd);
-  // Reduce32:
+  // Reduce34:
   /* aAdjust: -2
    * formalParameter= Name(UnifiedString typeString), Name(UnifiedString nameString);◄ */
 
@@ -2405,19 +2461,19 @@ State28:
   _a.Remove(2);
   goto Branch9;
 
-State29:
-  const String StateDescription29 =
+State31:
+  const String StateDescription31 =
        "formalParameter= Name(UnifiedString ParameterModifierOptString), Name(UnifiedString typeString), \"?\", ►Name(UnifiedString nameString);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(29, StateDescription29, ParserInput))
-        goto State29;
+     if (ErrorHandler(31, StateDescription31, ParserInput))
+        goto State31;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-  // Reduce34:
+  // Reduce36:
   /* aAdjust: -3
    * formalParameter= Name(UnifiedString ParameterModifierOptString), Name(UnifiedString typeString), "?", Name(UnifiedString nameString);◄ */
 
@@ -2430,22 +2486,22 @@ State29:
   _a.Remove(3);
   goto Branch9;
 
-State32:
-  const String StateDescription32 =
+State34:
+  const String StateDescription34 =
        "CSMethodProperties(MethodClass method)= Name(UnifiedString methodTypeString), ►Name(UnifiedString methodNameString);\r\n"
      + "CSMethodProperties(MethodClass method)= Name(UnifiedString modifierString), ►Name(UnifiedString methodTypeString), Name(UnifiedString methodNameString);\r\n"
      + "CSMethodProperties(MethodClass method)= Name(UnifiedString modifier1String), ►Name(UnifiedString modifier2String), Name(UnifiedString methodTypeString), Name(UnifiedString methodNameString);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(32, StateDescription32, ParserInput))
-        goto State32;
+     if (ErrorHandler(34, StateDescription34, ParserInput))
+        goto State34;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-State33:
-  const String StateDescription33 =
+State35:
+  const String StateDescription35 =
        "CSMethodProperties(MethodClass method)= Name(UnifiedString methodTypeString), Name(UnifiedString methodNameString)●;\r\n"
      + "CSMethodProperties(MethodClass method)= Name(UnifiedString modifierString), Name(UnifiedString methodTypeString), ►Name(UnifiedString methodNameString);\r\n"
      + "CSMethodProperties(MethodClass method)= Name(UnifiedString modifier1String), Name(UnifiedString modifier2String), ►Name(UnifiedString methodTypeString), Name(UnifiedString methodNameString);";
@@ -2453,16 +2509,16 @@ State33:
   if (ParserInput == LexerResult.Name)
      {
      Lexer.AcceptSymbol();
-     goto State34;
+     goto State36;
      }
   if (ParserInput != LexerResult.GroupStart)
      {
-     if (ErrorHandler(33, StateDescription33, ParserInput))
-        goto State33;
+     if (ErrorHandler(35, StateDescription35, ParserInput))
+        goto State35;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupStart);
-  // Reduce37:
+  // Reduce39:
   /* aAdjust: -1
    * CSMethodProperties(MethodClass method)= Name(UnifiedString methodTypeString), Name(UnifiedString methodNameString);◄ */
 
@@ -2475,51 +2531,51 @@ State33:
   _a.Remove();
 Branch10:
   if (_s.Peek() == 0)
-     goto State22;
-State37:
-  const String StateDescription37 =
+     goto State24;
+State39:
+  const String StateDescription39 =
        "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), ►\"(\", formalParameters?, \")\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.GroupStart)
      {
-     if (ErrorHandler(37, StateDescription37, ParserInput))
-        goto State37;
+     if (ErrorHandler(39, StateDescription39, ParserInput))
+        goto State39;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupStart);
   Lexer.AcceptSymbol();
-State38:
-  const String StateDescription38 =
+State40:
+  const String StateDescription40 =
        "CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), \"(\", ►formalParameters?, \")\";";
   _s.Push(2);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
-     goto AcceptState27;
+     goto AcceptState29;
   if (ParserInput != LexerResult.GroupEnd)
      {
-     if (ErrorHandler(38, StateDescription38, ParserInput))
+     if (ErrorHandler(40, StateDescription40, ParserInput))
         {
         _s.Pop();
-        goto State38;
+        goto State40;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-  // State39:
+  // State41:
   /* CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ►")"; */
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-  goto AcceptReduce40;
+  goto AcceptReduce42;
 
-State34:
-  const String StateDescription34 =
+State36:
+  const String StateDescription36 =
        "CSMethodProperties(MethodClass method)= Name(UnifiedString modifierString), Name(UnifiedString methodTypeString), Name(UnifiedString methodNameString)●;\r\n"
      + "CSMethodProperties(MethodClass method)= Name(UnifiedString modifier1String), Name(UnifiedString modifier2String), Name(UnifiedString methodTypeString), ►Name(UnifiedString methodNameString);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
      {
      Lexer.AcceptSymbol();
-     // Reduce39:
+     // Reduce41:
      /* aAdjust: -3
       * CSMethodProperties(MethodClass method)= Name(UnifiedString modifier1String), Name(UnifiedString modifier2String), Name(UnifiedString methodTypeString), Name(UnifiedString methodNameString);◄ */
 
@@ -2536,12 +2592,12 @@ State34:
      }
   if (ParserInput != LexerResult.GroupStart)
      {
-     if (ErrorHandler(34, StateDescription34, ParserInput))
-        goto State34;
+     if (ErrorHandler(36, StateDescription36, ParserInput))
+        goto State36;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupStart);
-  // Reduce38:
+  // Reduce40:
   /* aAdjust: -2
    * CSMethodProperties(MethodClass method)= Name(UnifiedString modifierString), Name(UnifiedString methodTypeString), Name(UnifiedString methodNameString);◄ */
 
@@ -2555,90 +2611,54 @@ State34:
   _a.Remove(2);
   goto Branch10;
 
-AcceptState35:
+AcceptState37:
   Lexer.AcceptSymbol();
-State35:
-  const String StateDescription35 =
+State37:
+  const String StateDescription37 =
        "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", ►signedNumber(Int64 constPriority), \"??\";\r\n"
      + "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", ►CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, \"??\"?;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Minus)
      {
      Lexer.AcceptSymbol();
-     goto State45;
+     goto State47;
      }
   if (ParserInput == LexerResult.Plus)
      {
      Lexer.AcceptSymbol();
-     goto State43;
+     goto State45;
      }
   if (ParserInput == LexerResult.Number)
-     goto AcceptState44;
+     goto AcceptState46;
   if (ParserInput != LexerResult.CSharpStart)
      {
-     if (ErrorHandler(35, StateDescription35, ParserInput))
-        goto State35;
+     if (ErrorHandler(37, StateDescription37, ParserInput))
+        goto State37;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.CSharpStart);
   Lexer.AcceptSymbol();
-State36:
-  const String StateDescription36 =
+State38:
+  const String StateDescription38 =
        "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", CSharpStart, ►CSintMethod(IntMethodClass intMethod), CSharpEnd, \"??\"?;";
   _s.Push(1);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(36, StateDescription36, ParserInput))
+     if (ErrorHandler(38, StateDescription38, ParserInput))
         {
         _s.Pop();
-        goto State36;
+        goto State38;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-  goto State32;
-
-State43:
-  const String StateDescription43 =
-       "signedNumber(Int64 value)= \"+\", ►Number(Int64 value);";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.Number)
-     {
-     if (ErrorHandler(43, StateDescription43, ParserInput))
-        goto State43;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput == LexerResult.Number);
-AcceptState44:
-  Lexer.AcceptSymbol();
-State44:
-  const String StateDescription44 =
-       "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", signedNumber(Int64 constPriority), ►\"??\";";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.DoubleQuestionmark)
-     {
-     if (ErrorHandler(44, StateDescription44, ParserInput))
-        goto State44;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput == LexerResult.DoubleQuestionmark);
-  Lexer.AcceptSymbol();
-  // Reduce42:
-  /* aAdjust: 1
-   * PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= "??", signedNumber(Int64 constPriority), "??";◄ */
-  _a.Allocate();
-
-  ConstantPriorityGiven(
-     dynamicPriority: out _a.PeekRef(0)._IntMethodClass
-     );
-
-  goto State12;
+  goto State34;
 
 State45:
   const String StateDescription45 =
-       "signedNumber(Int64 value)= \"-\", ►Number(Int64 value);";
+       "signedNumber(Int64 value)= \"+\", ►Number(Int64 value);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Number)
      {
@@ -2647,69 +2667,63 @@ State45:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Number);
+AcceptState46:
   Lexer.AcceptSymbol();
-  // Reduce43:
+State46:
+  const String StateDescription46 =
+       "PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= \"??\", signedNumber(Int64 constPriority), ►\"??\";";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput != LexerResult.DoubleQuestionmark)
+     {
+     if (ErrorHandler(46, StateDescription46, ParserInput))
+        goto State46;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput == LexerResult.DoubleQuestionmark);
+  Lexer.AcceptSymbol();
+  // Reduce44:
+  /* aAdjust: 1
+   * PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= "??", signedNumber(Int64 constPriority), "??";◄ */
+  _a.Allocate();
+
+  ConstantPriorityGiven(
+     dynamicPriority: out _a.PeekRef(0)._IntMethodClass
+     );
+
+  goto State14;
+
+State47:
+  const String StateDescription47 =
+       "signedNumber(Int64 value)= \"-\", ►Number(Int64 value);";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput != LexerResult.Number)
+     {
+     if (ErrorHandler(47, StateDescription47, ParserInput))
+        goto State47;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput == LexerResult.Number);
+  Lexer.AcceptSymbol();
+  // Reduce45:
   /* signedNumber(Int64 value)= "-", Number(Int64 value);◄ */
 
   NegateNumber(
      value: ref _a.PeekRef(0)._Int64
      );
 
-  goto State44;
+  goto State46;
 
-AcceptState46:
+AcceptState48:
   Lexer.AcceptSymbol();
-  // State46:
+  // State48:
   /* RepeatedElement(Symbol Symbol)= "{", ►NestedElement(Symbol Symbol), "}"; */
   _s.Push(0);
-  goto Reduce44;
-
-State48:
-  const String StateDescription48 =
-       "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedDefinitions●;\r\n"
-     + "NestedDefinitions= EndOfDefinition, ►\"|\", NestedDefinitionList;";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     goto AcceptState49;
-  if (ParserInput <= LexerResult.CSharpStart
-     || ParserInput >= LexerResult.Name)
-     {
-     if (ErrorHandler(48, StateDescription48, ParserInput))
-        goto State48;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
-  goto Reduce47;
-
-AcceptState49:
-  Lexer.AcceptSymbol();
-State49:
-  const String StateDescription49 =
-       "NestedDefinitions= EndOfDefinition, \"|\", ►NestedDefinitionList;";
-  _s.Push(7);
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.RepeatStart)
-     goto AcceptState46;
-  if (ParserInput == LexerResult.GroupStart)
-     goto AcceptState61;
-  if (ParserInput == LexerResult.OptionStart)
-     goto AcceptState59;
-  if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
-     {
-     if (ErrorHandler(49, StateDescription49, ParserInput))
-        {
-        _s.Pop();
-        goto State49;
-        };
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.LexerString);
-  goto AcceptState69;
+  goto Reduce46;
 
 State50:
   const String StateDescription50 =
-       "NestedDefinitions= EndOfDefinition, \"|\", NestedDefinitionList●;\r\n"
-     + "NestedDefinitionList= NestedDefinitionList, ►\"|\", Definition;";
+       "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedDefinitions●;\r\n"
+     + "NestedDefinitions= EndOfDefinition, ►\"|\", NestedDefinitionList;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
      goto AcceptState51;
@@ -2721,28 +2735,21 @@ State50:
      goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
-  // Reduce50:
-  /* sAdjust: -1
-   * NestedDefinitions= EndOfDefinition, "|", NestedDefinitionList;◄ */
-  _s.Pop();
-  // Branch12:
-  if (_s.Peek() == 6)
-     goto Reduce47;
-  goto Reduce55;
+  goto Reduce49;
 
 AcceptState51:
   Lexer.AcceptSymbol();
 State51:
   const String StateDescription51 =
-       "NestedDefinitionList= NestedDefinitionList, \"|\", ►Definition;";
-  _s.Push(8);
+       "NestedDefinitions= EndOfDefinition, \"|\", ►NestedDefinitionList;";
+  _s.Push(7);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.RepeatStart)
-     goto AcceptState46;
+     goto AcceptState48;
   if (ParserInput == LexerResult.GroupStart)
-     goto AcceptState61;
+     goto AcceptState63;
   if (ParserInput == LexerResult.OptionStart)
-     goto AcceptState59;
+     goto AcceptState61;
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
      {
      if (ErrorHandler(51, StateDescription51, ParserInput))
@@ -2753,76 +2760,64 @@ State51:
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.LexerString);
-  goto AcceptState69;
+  goto AcceptState71;
 
+State52:
+  const String StateDescription52 =
+       "NestedDefinitions= EndOfDefinition, \"|\", NestedDefinitionList●;\r\n"
+     + "NestedDefinitionList= NestedDefinitionList, ►\"|\", Definition;";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
+     goto AcceptState53;
+  if (ParserInput <= LexerResult.CSharpStart
+     || ParserInput >= LexerResult.Name)
+     {
+     if (ErrorHandler(52, StateDescription52, ParserInput))
+        goto State52;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
+  // Reduce52:
+  /* sAdjust: -1
+   * NestedDefinitions= EndOfDefinition, "|", NestedDefinitionList;◄ */
+  _s.Pop();
+  // Branch12:
+  if (_s.Peek() == 6)
+     goto Reduce49;
+  goto Reduce57;
+
+AcceptState53:
+  Lexer.AcceptSymbol();
 State53:
   const String StateDescription53 =
+       "NestedDefinitionList= NestedDefinitionList, \"|\", ►Definition;";
+  _s.Push(8);
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput == LexerResult.RepeatStart)
+     goto AcceptState48;
+  if (ParserInput == LexerResult.GroupStart)
+     goto AcceptState63;
+  if (ParserInput == LexerResult.OptionStart)
+     goto AcceptState61;
+  if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
+     {
+     if (ErrorHandler(53, StateDescription53, ParserInput))
+        {
+        _s.Pop();
+        goto State53;
+        };
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput == LexerResult.Name || ParserInput == LexerResult.LexerString);
+  goto AcceptState71;
+
+State55:
+  const String StateDescription55 =
        "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedDefinitions●;\r\n"
      + "NestedDefinitionList= NestedDefinitionList, ►\"|\", Definition;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     goto AcceptState51;
-  if (ParserInput <= LexerResult.CSharpStart
-     || ParserInput >= LexerResult.Name)
-     {
-     if (ErrorHandler(53, StateDescription53, ParserInput))
-        goto State53;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
-  goto Reduce47;
-
-State54:
-  const String StateDescription54 =
-       "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), ►NestedDefinitions;";
-  _s.Push(9);
-  ParserInput = Lexer.PeekSymbol();
-  switch (ParserInput)
-  {
-  // <= LexerResult.NumberSign
-  // >= LexerResult.TerminatorSymbol: goto HandleError54; // see end of switch
-  case LexerResult.GroupStart:
-     goto AcceptState61;
-  case LexerResult.OptionStart:
-     goto AcceptState59;
-  case LexerResult.RepeatStart:
-     goto AcceptState46;
-  case LexerResult.DoubleQuestionmark:
-     goto AcceptState35;
-  case LexerResult.CSharpStart:
-     goto AcceptState21;
-  case LexerResult.GroupEnd:
-  case LexerResult.RepeatEnd:
-  case LexerResult.OptionEnd:
-  case LexerResult.DefinitionSeparatorSymbol:
-     // Reduce54:
-     {
-     /* EndOfDefinitionWithoutSemantics= ;◄ */
-
-     EndOfDefinitionWithoutSemanticsRecognized();
-
-     goto State55;
-     }
-  case LexerResult.Name:
-  case LexerResult.LexerString:
-     goto AcceptState69;
-  } // end of switch
-  Debug.Assert(ParserInput <= LexerResult.NumberSign || ParserInput >= LexerResult.TerminatorSymbol);
-
-  if (ErrorHandler(54, StateDescription54, ParserInput))
-     {
-     _s.Pop();
-     goto State54;
-     };
-  goto EndWithError;
-
-State55:
-  const String StateDescription55 =
-       "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions●;\r\n"
-     + "NestedDefinitions= EndOfDefinition, ►\"|\", NestedDefinitionList;";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     goto AcceptState49;
+     goto AcceptState53;
   if (ParserInput <= LexerResult.CSharpStart
      || ParserInput >= LexerResult.Name)
      {
@@ -2831,17 +2826,78 @@ State55:
      goto EndWithError;
      }
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
-  goto Reduce55;
+  goto Reduce49;
+
+State56:
+  const String StateDescription56 =
+       "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), ►NestedDefinitions;";
+  _s.Push(9);
+  ParserInput = Lexer.PeekSymbol();
+  switch (ParserInput)
+  {
+  // <= LexerResult.NumberSign
+  // >= LexerResult.TerminatorSymbol: goto HandleError56; // see end of switch
+  case LexerResult.GroupStart:
+     goto AcceptState63;
+  case LexerResult.OptionStart:
+     goto AcceptState61;
+  case LexerResult.RepeatStart:
+     goto AcceptState48;
+  case LexerResult.DoubleQuestionmark:
+     goto AcceptState37;
+  case LexerResult.CSharpStart:
+     goto AcceptState23;
+  case LexerResult.GroupEnd:
+  case LexerResult.RepeatEnd:
+  case LexerResult.OptionEnd:
+  case LexerResult.DefinitionSeparatorSymbol:
+     // Reduce56:
+     {
+     /* EndOfDefinitionWithoutSemantics= ;◄ */
+
+     EndOfDefinitionWithoutSemanticsRecognized();
+
+     goto State57;
+     }
+  case LexerResult.Name:
+  case LexerResult.LexerString:
+     goto AcceptState71;
+  } // end of switch
+  Debug.Assert(ParserInput <= LexerResult.NumberSign || ParserInput >= LexerResult.TerminatorSymbol);
+
+  if (ErrorHandler(56, StateDescription56, ParserInput))
+     {
+     _s.Pop();
+     goto State56;
+     };
+  goto EndWithError;
 
 State57:
   const String StateDescription57 =
+       "NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions●;\r\n"
+     + "NestedDefinitions= EndOfDefinition, ►\"|\", NestedDefinitionList;";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
+     goto AcceptState51;
+  if (ParserInput <= LexerResult.CSharpStart
+     || ParserInput >= LexerResult.Name)
+     {
+     if (ErrorHandler(57, StateDescription57, ParserInput))
+        goto State57;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
+  goto Reduce57;
+
+State59:
+  const String StateDescription59 =
        "NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= \"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes), ►\"=\";\r\n"
      + "SimpleElement(Symbol Symbol)= \"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)●;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.DefiningSymbol)
      {
      Lexer.AcceptSymbol();
-     // Reduce57:
+     // Reduce59:
      /* NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes), "=";◄ */
 
      LeftSideOfNestedProduction(
@@ -2850,31 +2906,31 @@ State57:
         NumberOfAttributes: _a.PeekRef(0)._Int32
         );
 
-     goto State54;
+     goto State56;
      }
   if (_is(_fColon | _fPercent | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fMinusEqual | _fNumberSign | _fTerminatorSymbol))
      {
-     if (ErrorHandler(57, StateDescription57, ParserInput))
-        goto State57;
+     if (ErrorHandler(59, StateDescription59, ParserInput))
+        goto State59;
      goto EndWithError;
      }
   Debug.Assert(!_is(_fDefiningSymbol | _fColon | _fPercent | _fCSharpEnd | _fError | _fMinus | _fNumber | _fStarEqual | _fMinusEqual | _fNumberSign
          | _fTerminatorSymbol));
-  goto Reduce10;
+  goto Reduce12;
 
-State58:
-  const String StateDescription58 =
+State60:
+  const String StateDescription60 =
        "RepeatedElement(Symbol Symbol)= \"{\", NestedElement(Symbol Symbol), ►\"}\";";
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
   if (ParserInput != LexerResult.RepeatEnd)
      {
-     if (ErrorHandler(58, StateDescription58, ParserInput))
-        goto State58;
+     if (ErrorHandler(60, StateDescription60, ParserInput))
+        goto State60;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatEnd);
   Lexer.AcceptSymbol();
-  // Reduce58:
+  // Reduce60:
   /* sAdjust: -1
    * RepeatedElement(Symbol Symbol)= "{", NestedElement(Symbol Symbol), "}";◄ */
   _s.Pop();
@@ -2885,26 +2941,26 @@ State58:
 
   goto Branch3;
 
-AcceptState59:
+AcceptState61:
   Lexer.AcceptSymbol();
-  // State59:
+  // State61:
   /* RepeatedElement(Symbol Symbol)= "[", ►NestedElement(Symbol Symbol), "]"; */
   _s.Push(1);
-  goto Reduce44;
+  goto Reduce46;
 
-State60:
-  const String StateDescription60 =
+State62:
+  const String StateDescription62 =
        "RepeatedElement(Symbol Symbol)= \"[\", NestedElement(Symbol Symbol), ►\"]\";";
   Debug.Assert(ParserInput >= LexerResult.GroupEnd && ParserInput <= LexerResult.OptionEnd);
   if (ParserInput != LexerResult.OptionEnd)
      {
-     if (ErrorHandler(60, StateDescription60, ParserInput))
-        goto State60;
+     if (ErrorHandler(62, StateDescription62, ParserInput))
+        goto State62;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.OptionEnd);
   Lexer.AcceptSymbol();
-  // Reduce59:
+  // Reduce61:
   /* sAdjust: -1
    * RepeatedElement(Symbol Symbol)= "[", NestedElement(Symbol Symbol), "]";◄ */
   _s.Pop();
@@ -2915,119 +2971,73 @@ State60:
 
   goto Branch3;
 
-AcceptState61:
+AcceptState63:
   Lexer.AcceptSymbol();
-  // State61:
+  // State63:
   /* SimpleElement(Symbol Symbol)= "(", ►NestedElement(Symbol Symbol), ")"; */
   _s.Push(2);
-  goto Reduce44;
+  goto Reduce46;
 
-State64:
-  const String StateDescription64 =
+State66:
+  const String StateDescription66 =
        "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), ►\"=\", outerDefinitions;\r\n"
      + "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), ►\"-=\", ListOfExcludedTerminalSymbols, \";\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.MinusEqual)
      {
      Lexer.AcceptSymbol();
-     goto State65;
-     }
-  if (ParserInput != LexerResult.DefiningSymbol)
-     {
-     if (ErrorHandler(64, StateDescription64, ParserInput))
-        goto State64;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput == LexerResult.DefiningSymbol);
-  Lexer.AcceptSymbol();
-State68:
-  const String StateDescription68 =
-       "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), \"=\", ►outerDefinitions;";
-  _s.Push(11);
-  ParserInput = Lexer.PeekSymbol();
-  switch (ParserInput)
-  {
-  // <= LexerResult.NumberSign: goto HandleError68; // see end of switch
-  case LexerResult.GroupEnd:
-  case LexerResult.RepeatEnd:
-  case LexerResult.OptionEnd:
-     goto HandleError68;
-  case LexerResult.GroupStart:
-     goto AcceptState61;
-  case LexerResult.OptionStart:
-     goto AcceptState59;
-  case LexerResult.RepeatStart:
-     goto AcceptState46;
-  case LexerResult.DoubleQuestionmark:
-     goto AcceptState35;
-  case LexerResult.CSharpStart:
-     goto AcceptState21;
-  case LexerResult.Name:
-  case LexerResult.LexerString:
-     goto AcceptState69;
-  // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce9; // see end of switch
-  } // end of switch
-  if (ParserInput >= LexerResult.DefinitionSeparatorSymbol)
-     goto Reduce9;
-  Debug.Assert(ParserInput <= LexerResult.NumberSign);
-
-HandleError68:
-  if (ErrorHandler(68, StateDescription68, ParserInput))
-     {
-     _s.Pop();
-     goto State68;
-     };
-  goto EndWithError;
-
-State65:
-  const String StateDescription65 =
-       "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), \"-=\", ►ListOfExcludedTerminalSymbols, \";\";";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.Name)
-     {
-     if (ErrorHandler(65, StateDescription65, ParserInput))
-        goto State65;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput == LexerResult.Name);
-  Lexer.AcceptSymbol();
-  // Reduce64:
-  /* aAdjust: -1
-   * ListOfExcludedTerminalSymbols= Name(UnifiedString terminalName);◄ */
-
-  FirstExcludedTerminalSymbol(
-     terminalName: _a.PeekRef(0)._UnifiedString
-     );
-
-  _a.Remove();
-State66:
-  const String StateDescription66 =
-       "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), \"-=\", ListOfExcludedTerminalSymbols, ►\";\";\r\n"
-     + "ListOfExcludedTerminalSymbols= ListOfExcludedTerminalSymbols, ►\"|\", Name(UnifiedString name);";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
-     {
-     Lexer.AcceptSymbol();
      goto State67;
      }
-  if (ParserInput != LexerResult.TerminatorSymbol)
+  if (ParserInput != LexerResult.DefiningSymbol)
      {
      if (ErrorHandler(66, StateDescription66, ParserInput))
         goto State66;
      goto EndWithError;
      }
-  Debug.Assert(ParserInput == LexerResult.TerminatorSymbol);
+  Debug.Assert(ParserInput == LexerResult.DefiningSymbol);
   Lexer.AcceptSymbol();
-  // Reduce65:
-  /* GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "-=", ListOfExcludedTerminalSymbols, ";";◄ */
+State70:
+  const String StateDescription70 =
+       "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), \"=\", ►outerDefinitions;";
+  _s.Push(11);
+  ParserInput = Lexer.PeekSymbol();
+  switch (ParserInput)
+  {
+  // <= LexerResult.NumberSign: goto HandleError70; // see end of switch
+  case LexerResult.GroupEnd:
+  case LexerResult.RepeatEnd:
+  case LexerResult.OptionEnd:
+     goto HandleError70;
+  case LexerResult.GroupStart:
+     goto AcceptState63;
+  case LexerResult.OptionStart:
+     goto AcceptState61;
+  case LexerResult.RepeatStart:
+     goto AcceptState48;
+  case LexerResult.DoubleQuestionmark:
+     goto AcceptState37;
+  case LexerResult.CSharpStart:
+     goto AcceptState23;
+  case LexerResult.Name:
+  case LexerResult.LexerString:
+     goto AcceptState71;
+  // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce11; // see end of switch
+  } // end of switch
+  if (ParserInput >= LexerResult.DefinitionSeparatorSymbol)
+     goto Reduce11;
+  Debug.Assert(ParserInput <= LexerResult.NumberSign);
 
-  EndOfListOfExcludedTerminalSymbols();
-
-  goto Reduce63;
+HandleError70:
+  if (ErrorHandler(70, StateDescription70, ParserInput))
+     {
+     _s.Pop();
+     goto State70;
+     };
+  goto EndWithError;
 
 State67:
   const String StateDescription67 =
-       "ListOfExcludedTerminalSymbols= ListOfExcludedTerminalSymbols, \"|\", ►Name(UnifiedString name);";
+       "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), \"-=\", ►ListOfExcludedTerminalSymbols, \";\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
@@ -3039,6 +3049,52 @@ State67:
   Lexer.AcceptSymbol();
   // Reduce66:
   /* aAdjust: -1
+   * ListOfExcludedTerminalSymbols= Name(UnifiedString terminalName);◄ */
+
+  FirstExcludedTerminalSymbol(
+     terminalName: _a.PeekRef(0)._UnifiedString
+     );
+
+  _a.Remove();
+State68:
+  const String StateDescription68 =
+       "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), \"-=\", ListOfExcludedTerminalSymbols, ►\";\";\r\n"
+     + "ListOfExcludedTerminalSymbols= ListOfExcludedTerminalSymbols, ►\"|\", Name(UnifiedString name);";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput == LexerResult.DefinitionSeparatorSymbol)
+     {
+     Lexer.AcceptSymbol();
+     goto State69;
+     }
+  if (ParserInput != LexerResult.TerminatorSymbol)
+     {
+     if (ErrorHandler(68, StateDescription68, ParserInput))
+        goto State68;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput == LexerResult.TerminatorSymbol);
+  Lexer.AcceptSymbol();
+  // Reduce67:
+  /* GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "-=", ListOfExcludedTerminalSymbols, ";";◄ */
+
+  EndOfListOfExcludedTerminalSymbols();
+
+  goto Reduce65;
+
+State69:
+  const String StateDescription69 =
+       "ListOfExcludedTerminalSymbols= ListOfExcludedTerminalSymbols, \"|\", ►Name(UnifiedString name);";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput != LexerResult.Name)
+     {
+     if (ErrorHandler(69, StateDescription69, ParserInput))
+        goto State69;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput == LexerResult.Name);
+  Lexer.AcceptSymbol();
+  // Reduce68:
+  /* aAdjust: -1
    * ListOfExcludedTerminalSymbols= ListOfExcludedTerminalSymbols, "|", Name(UnifiedString name);◄ */
 
   OneMoreExcludedTerminalSymbol(
@@ -3046,10 +3102,10 @@ State67:
      );
 
   _a.Remove();
-  goto State66;
+  goto State68;
 
-State70:
-  const String StateDescription70 =
+State72:
+  const String StateDescription72 =
        "\"(Attributes)\"(Int32 numberOfAttributes)= \"(\", ►\")\";\r\n"
      + "\"(Attributes)\"(Int32 numberOfAttributes)= \"(\", ►\"Attributes)\"(Int32 numberOfAttributes, Int32 smallestNumber);";
   // *Push(0)
@@ -3059,19 +3115,19 @@ State70:
      Lexer.AcceptSymbol();
      // PushState7:
      _s.Push(0);
-     goto State73;
+     goto State75;
      }
   if (ParserInput != LexerResult.GroupEnd)
      {
-     if (ErrorHandler(70, StateDescription70, ParserInput))
-        goto State70;
+     if (ErrorHandler(72, StateDescription72, ParserInput))
+        goto State72;
      // PushState8:
      _s.Push(0);
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
-  // Reduce70:
+  // Reduce72:
   /* aAdjust: 1
    * "(Attributes)"(Int32 numberOfAttributes)= "(", ")";◄ */
   _a.Allocate();
@@ -3082,38 +3138,38 @@ State70:
 
 Branch15:
   if (_s.Peek() == 0)
-     // Reduce69:
+     // Reduce71:
      {
      /* sAdjust: -1
       * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes);◄ */
      _s.Pop();
      goto Branch14;
      }
-  // Reduce76:
+  // Reduce78:
   /* sAdjust: -1
    * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes);◄ */
   _s.Pop();
   goto State3;
 
-State71:
-  const String StateDescription71 =
+State73:
+  const String StateDescription73 =
        "\"Attributes)\"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 numberBeforeGroup), ►Comma, \"Attributes)\"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup);\r\n"
      + "\"Attributes)\"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 number), ►\")\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Comma)
      {
      Lexer.AcceptSymbol();
-     goto State72;
+     goto State74;
      }
   if (ParserInput != LexerResult.GroupEnd)
      {
-     if (ErrorHandler(71, StateDescription71, ParserInput))
-        goto State71;
+     if (ErrorHandler(73, StateDescription73, ParserInput))
+        goto State73;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Lexer.AcceptSymbol();
-  // Reduce72:
+  // Reduce74:
   /* aAdjust: 1
    * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 number), ")";◄ */
   _a.Allocate();
@@ -3126,7 +3182,7 @@ State71:
 
 Branch16:
   if (_s.Peek() == 1)
-     // Reduce73:
+     // Reduce75:
      {
      /* sAdjust: -1, aAdjust: -1
       * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 numberBeforeGroup), Comma, "Attributes)"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup);◄ */
@@ -3143,42 +3199,42 @@ Branch16:
      _a.Remove();
      goto Branch16;
      }
-  // Reduce71:
+  // Reduce73:
   /* sAdjust: -1, aAdjust: -1
    * "(Attributes)"(Int32 numberOfAttributes)= "(", "Attributes)"(Int32 numberOfAttributes, Int32 smallestNumber);◄ */
   _s.Pop();
   _a.Remove();
   goto Branch15;
 
-State72:
-  const String StateDescription72 =
+State74:
+  const String StateDescription74 =
        "\"Attributes)\"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 numberBeforeGroup), Comma, ►\"Attributes)\"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup);";
   _s.Push(1);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(72, StateDescription72, ParserInput))
+     if (ErrorHandler(74, StateDescription74, ParserInput))
         {
         _s.Pop();
-        goto State72;
+        goto State74;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-State73:
-  const String StateDescription73 =
+State75:
+  const String StateDescription75 =
        "Attribut(Int32 number)= Name(UnifiedString typeString), ►Name(UnifiedString nameString);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(73, StateDescription73, ParserInput))
-        goto State73;
+     if (ErrorHandler(75, StateDescription75, ParserInput))
+        goto State75;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-  // Reduce74:
+  // Reduce76:
   /* aAdjust: -1
    * Attribut(Int32 number)= Name(UnifiedString typeString), Name(UnifiedString nameString);◄ */
 
@@ -3189,10 +3245,10 @@ State73:
      );
 
   _a.Remove();
-  goto State71;
+  goto State73;
 
-State74:
-  const String StateDescription74 =
+State76:
+  const String StateDescription76 =
        "GrammlatorSetting= Name(UnifiedString name), ►\":\", LexerString(UnifiedString value), \";\";\r\n"
      + "GrammlatorSetting= Name(UnifiedString name), ►\":\", Number(Int64 value), \";\";\r\n"
      + "GrammlatorSetting= Name(UnifiedString name), ►\":\", Name(UnifiedString value), \";\";\r\n"
@@ -3202,7 +3258,17 @@ State74:
   ParserInput = Lexer.PeekSymbol();
   switch (ParserInput)
   {
-  // <= LexerResult.DefiningSymbol: goto HandleError74; // see end of switch
+  // <= LexerResult.DefiningSymbol
+  // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce77; // see end of switch
+  case LexerResult.Percent:
+  case LexerResult.StarEqual:
+  case LexerResult.CSharpStart:
+     goto Reduce77;
+  case LexerResult.Colon:
+     {
+     Lexer.AcceptSymbol();
+     goto State77;
+     }
   case LexerResult.CSharpEnd:
   case LexerResult.Error:
   case LexerResult.Minus:
@@ -3221,28 +3287,23 @@ State74:
   case LexerResult.OptionEnd:
   case LexerResult.Name:
   case LexerResult.LexerString:
-     goto HandleError74;
-  case LexerResult.Colon:
      {
-     Lexer.AcceptSymbol();
-     goto State75;
+     if (ErrorHandler(76, StateDescription76, ParserInput))
+        {
+        _s.Pop();
+        goto State76;
+        };
+     goto EndWithError;
      }
-  // >= LexerResult.DefinitionSeparatorSymbol: goto Reduce75; // see end of switch
-  case LexerResult.Percent:
-  case LexerResult.StarEqual:
-  case LexerResult.CSharpStart:
-     goto Reduce75;
   case LexerResult.GroupStart:
      {
      Lexer.AcceptSymbol();
-     goto State70;
+     goto State72;
      }
   } // end of switch
-  if (ParserInput <= LexerResult.DefiningSymbol)
-     goto HandleError74;
-  Debug.Assert(ParserInput >= LexerResult.DefinitionSeparatorSymbol);
+  Debug.Assert(ParserInput <= LexerResult.DefiningSymbol || ParserInput >= LexerResult.DefinitionSeparatorSymbol);
 
-Reduce75:
+Reduce77:
   /* sAdjust: -1, aAdjust: 1
    * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name);◄ */
   _s.Pop();
@@ -3254,8 +3315,8 @@ Reduce75:
 
   goto State3;
 
-State75:
-  const String StateDescription75 =
+State77:
+  const String StateDescription77 =
        "GrammlatorSetting= Name(UnifiedString name), \":\", ►LexerString(UnifiedString value), \";\";\r\n"
      + "GrammlatorSetting= Name(UnifiedString name), \":\", ►Number(Int64 value), \";\";\r\n"
      + "GrammlatorSetting= Name(UnifiedString name), \":\", ►Name(UnifiedString value), \";\";";
@@ -3263,34 +3324,34 @@ State75:
   if (ParserInput == LexerResult.Name)
      {
      Lexer.AcceptSymbol();
-     goto State77;
+     goto State79;
      }
   if (ParserInput == LexerResult.LexerString)
      {
      Lexer.AcceptSymbol();
-     goto State76;
+     goto State78;
      }
   if (ParserInput != LexerResult.Number)
      {
-     if (ErrorHandler(75, StateDescription75, ParserInput))
-        goto State75;
+     if (ErrorHandler(77, StateDescription77, ParserInput))
+        goto State77;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Number);
   Lexer.AcceptSymbol();
-State78:
-  const String StateDescription78 =
+State80:
+  const String StateDescription80 =
        "GrammlatorSetting= Name(UnifiedString name), \":\", Number(Int64 value), ►\";\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.TerminatorSymbol)
      {
-     if (ErrorHandler(78, StateDescription78, ParserInput))
-        goto State78;
+     if (ErrorHandler(80, StateDescription80, ParserInput))
+        goto State80;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.TerminatorSymbol);
   Lexer.AcceptSymbol();
-  // Reduce79:
+  // Reduce81:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(UnifiedString name), ":", Number(Int64 value), ";";◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
@@ -3304,19 +3365,19 @@ State78:
   _a.Remove(2);
   goto State2;
 
-State76:
-  const String StateDescription76 =
+State78:
+  const String StateDescription78 =
        "GrammlatorSetting= Name(UnifiedString name), \":\", LexerString(UnifiedString value), ►\";\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.TerminatorSymbol)
      {
-     if (ErrorHandler(76, StateDescription76, ParserInput))
-        goto State76;
+     if (ErrorHandler(78, StateDescription78, ParserInput))
+        goto State78;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.TerminatorSymbol);
   Lexer.AcceptSymbol();
-  // Reduce77:
+  // Reduce79:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(UnifiedString name), ":", LexerString(UnifiedString value), ";";◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
@@ -3330,19 +3391,19 @@ State76:
   _a.Remove(2);
   goto State2;
 
-State77:
-  const String StateDescription77 =
+State79:
+  const String StateDescription79 =
        "GrammlatorSetting= Name(UnifiedString name), \":\", Name(UnifiedString value), ►\";\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.TerminatorSymbol)
      {
-     if (ErrorHandler(77, StateDescription77, ParserInput))
-        goto State77;
+     if (ErrorHandler(79, StateDescription79, ParserInput))
+        goto State79;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.TerminatorSymbol);
   Lexer.AcceptSymbol();
-  // Reduce78:
+  // Reduce80:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(UnifiedString name), ":", Name(UnifiedString value), ";";◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
@@ -3356,134 +3417,134 @@ State77:
   _a.Remove(2);
   goto State2;
 
-State80:
-  const String StateDescription80 =
+State82:
+  const String StateDescription82 =
        "CSEnumDeclaration= CSEnumProperties, ►optionalBaseType, CSEnumMembers;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Colon)
      {
      Lexer.AcceptSymbol();
-     goto State94;
+     goto State96;
      }
   if (ParserInput != LexerResult.RepeatStart)
      {
-     if (ErrorHandler(80, StateDescription80, ParserInput))
-        goto State80;
+     if (ErrorHandler(82, StateDescription82, ParserInput))
+        goto State82;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatStart);
-State81:
-  const String StateDescription81 =
+State83:
+  const String StateDescription83 =
        "CSEnumDeclaration= CSEnumProperties, optionalBaseType, ►CSEnumMembers;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.RepeatStart)
      {
-     if (ErrorHandler(81, StateDescription81, ParserInput))
-        goto State81;
+     if (ErrorHandler(83, StateDescription83, ParserInput))
+        goto State83;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.RepeatStart);
   Lexer.AcceptSymbol();
-State82:
-  const String StateDescription82 =
+State84:
+  const String StateDescription84 =
        "CSEnumMembers= \"{\", ►\"}\";\r\n"
      + "CSEnumMembers= \"{\", ►CSEnumMemberList, \"}\";";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.RepeatEnd)
      {
      Lexer.AcceptSymbol();
-     // Reduce82:
+     // Reduce84:
      /* CSEnumMembers= "{", "}";◄ */
 
      EmptyEnumRecognized();
 
-     goto Reduce80;
+     goto Reduce82;
      }
   if (ParserInput != LexerResult.OptionStart
      && ParserInput != LexerResult.Name)
      {
-     if (ErrorHandler(82, StateDescription82, ParserInput))
-        goto State82;
+     if (ErrorHandler(84, StateDescription84, ParserInput))
+        goto State84;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.OptionStart
      || ParserInput == LexerResult.Name);
-  // Reduce81:
+  // Reduce83:
   /* ResetEnumDefaults= ;◄ */
 
   ResetEnumDefaults();
 
-  // State83:
+  // State85:
   /* CSEnumMemberList= ResetEnumDefaults, ►CSEnumMember; */
   _s.Push(0);
   Debug.Assert(ParserInput == LexerResult.OptionStart
      || ParserInput == LexerResult.Name);
   if (ParserInput == LexerResult.Name)
-     goto Reduce83;
+     goto Reduce85;
   Debug.Assert(ParserInput == LexerResult.OptionStart);
-AcceptState87:
-  Lexer.AcceptSymbol();
-State87:
-  const String StateDescription87 =
-       "OptionalDescriptionAttribute(String description)= \"[\", ►Name(UnifiedString attributeIdentifier), \"(\", LexerString(UnifiedString descriptionString), \")\", \"]\";";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.Name)
-     {
-     if (ErrorHandler(87, StateDescription87, ParserInput))
-        goto State87;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput == LexerResult.Name);
-  Lexer.AcceptSymbol();
-State88:
-  const String StateDescription88 =
-       "OptionalDescriptionAttribute(String description)= \"[\", Name(UnifiedString attributeIdentifier), ►\"(\", LexerString(UnifiedString descriptionString), \")\", \"]\";";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.GroupStart)
-     {
-     if (ErrorHandler(88, StateDescription88, ParserInput))
-        goto State88;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput == LexerResult.GroupStart);
+AcceptState89:
   Lexer.AcceptSymbol();
 State89:
   const String StateDescription89 =
-       "OptionalDescriptionAttribute(String description)= \"[\", Name(UnifiedString attributeIdentifier), \"(\", ►LexerString(UnifiedString descriptionString), \")\", \"]\";";
+       "OptionalDescriptionAttribute(String description)= \"[\", ►Name(UnifiedString attributeIdentifier), \"(\", LexerString(UnifiedString descriptionString), \")\", \"]\";";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.LexerString)
+  if (ParserInput != LexerResult.Name)
      {
      if (ErrorHandler(89, StateDescription89, ParserInput))
         goto State89;
      goto EndWithError;
      }
-  Debug.Assert(ParserInput == LexerResult.LexerString);
+  Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
 State90:
   const String StateDescription90 =
-       "OptionalDescriptionAttribute(String description)= \"[\", Name(UnifiedString attributeIdentifier), \"(\", LexerString(UnifiedString descriptionString), ►\")\", \"]\";";
+       "OptionalDescriptionAttribute(String description)= \"[\", Name(UnifiedString attributeIdentifier), ►\"(\", LexerString(UnifiedString descriptionString), \")\", \"]\";";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.GroupEnd)
+  if (ParserInput != LexerResult.GroupStart)
      {
      if (ErrorHandler(90, StateDescription90, ParserInput))
         goto State90;
      goto EndWithError;
      }
-  Debug.Assert(ParserInput == LexerResult.GroupEnd);
+  Debug.Assert(ParserInput == LexerResult.GroupStart);
   Lexer.AcceptSymbol();
 State91:
   const String StateDescription91 =
-       "OptionalDescriptionAttribute(String description)= \"[\", Name(UnifiedString attributeIdentifier), \"(\", LexerString(UnifiedString descriptionString), \")\", ►\"]\";";
+       "OptionalDescriptionAttribute(String description)= \"[\", Name(UnifiedString attributeIdentifier), \"(\", ►LexerString(UnifiedString descriptionString), \")\", \"]\";";
   ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.OptionEnd)
+  if (ParserInput != LexerResult.LexerString)
      {
      if (ErrorHandler(91, StateDescription91, ParserInput))
         goto State91;
      goto EndWithError;
      }
+  Debug.Assert(ParserInput == LexerResult.LexerString);
+  Lexer.AcceptSymbol();
+State92:
+  const String StateDescription92 =
+       "OptionalDescriptionAttribute(String description)= \"[\", Name(UnifiedString attributeIdentifier), \"(\", LexerString(UnifiedString descriptionString), ►\")\", \"]\";";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput != LexerResult.GroupEnd)
+     {
+     if (ErrorHandler(92, StateDescription92, ParserInput))
+        goto State92;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput == LexerResult.GroupEnd);
+  Lexer.AcceptSymbol();
+State93:
+  const String StateDescription93 =
+       "OptionalDescriptionAttribute(String description)= \"[\", Name(UnifiedString attributeIdentifier), \"(\", LexerString(UnifiedString descriptionString), \")\", ►\"]\";";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput != LexerResult.OptionEnd)
+     {
+     if (ErrorHandler(93, StateDescription93, ParserInput))
+        goto State93;
+     goto EndWithError;
+     }
   Debug.Assert(ParserInput == LexerResult.OptionEnd);
   Lexer.AcceptSymbol();
-  // Reduce87:
+  // Reduce89:
   /* aAdjust: -1
    * OptionalDescriptionAttribute(String description)= "[", Name(UnifiedString attributeIdentifier), "(", LexerString(UnifiedString descriptionString), ")", "]";◄ */
 
@@ -3494,64 +3555,44 @@ State91:
      );
 
   _a.Remove();
-  goto State84;
+  goto State86;
 
-State86:
-  const String StateDescription86 =
+State88:
+  const String StateDescription88 =
        "OptionalEnumElementNumber(Int64 enumNumber)= \"=\", ►Number(Int64 enumNumber);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Number)
      {
-     if (ErrorHandler(86, StateDescription86, ParserInput))
-        goto State86;
+     if (ErrorHandler(88, StateDescription88, ParserInput))
+        goto State88;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Number);
   Lexer.AcceptSymbol();
-  goto Reduce86;
+  goto Reduce88;
 
-State93:
-  const String StateDescription93 =
+State95:
+  const String StateDescription95 =
        "CSEnumMemberList= CSEnumMemberList, Comma, ►CSEnumMember;";
   _s.Push(1);
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
-     goto Reduce83;
+     goto Reduce85;
   if (ParserInput != LexerResult.OptionStart)
      {
-     if (ErrorHandler(93, StateDescription93, ParserInput))
+     if (ErrorHandler(95, StateDescription95, ParserInput))
         {
         _s.Pop();
-        goto State93;
+        goto State95;
         };
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.OptionStart);
-  goto AcceptState87;
-
-State94:
-  const String StateDescription94 =
-       "optionalBaseType= \":\", ►Name(UnifiedString Ignored);";
-  ParserInput = Lexer.PeekSymbol();
-  if (ParserInput != LexerResult.Name)
-     {
-     if (ErrorHandler(94, StateDescription94, ParserInput))
-        goto State94;
-     goto EndWithError;
-     }
-  Debug.Assert(ParserInput == LexerResult.Name);
-  Lexer.AcceptSymbol();
-  // Reduce88:
-  /* aAdjust: -1
-   * optionalBaseType= ":", Name(UnifiedString Ignored);◄ */
-  _a.Remove();
-  goto State81;
+  goto AcceptState89;
 
 State96:
   const String StateDescription96 =
-       "CSEnumProperties= Name(UnifiedString modifier1StringIndex), ►Name(UnifiedString modifier2StringIndex), Name(UnifiedString enumStringIndex), CSEnumName;\r\n"
-     + "CSEnumProperties= Name(UnifiedString modifierStringIndex), ►Name(UnifiedString enumStringIndex), CSEnumName;\r\n"
-     + "CSEnumProperties= Name(UnifiedString enumStringIndex), ►CSEnumName;";
+       "optionalBaseType= \":\", ►Name(UnifiedString Ignored);";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput != LexerResult.Name)
      {
@@ -3561,8 +3602,28 @@ State96:
      }
   Debug.Assert(ParserInput == LexerResult.Name);
   Lexer.AcceptSymbol();
-State97:
-  const String StateDescription97 =
+  // Reduce90:
+  /* aAdjust: -1
+   * optionalBaseType= ":", Name(UnifiedString Ignored);◄ */
+  _a.Remove();
+  goto State83;
+
+State98:
+  const String StateDescription98 =
+       "CSEnumProperties= Name(UnifiedString modifier1StringIndex), ►Name(UnifiedString modifier2StringIndex), Name(UnifiedString enumStringIndex), CSEnumName;\r\n"
+     + "CSEnumProperties= Name(UnifiedString modifierStringIndex), ►Name(UnifiedString enumStringIndex), CSEnumName;\r\n"
+     + "CSEnumProperties= Name(UnifiedString enumStringIndex), ►CSEnumName;";
+  ParserInput = Lexer.PeekSymbol();
+  if (ParserInput != LexerResult.Name)
+     {
+     if (ErrorHandler(98, StateDescription98, ParserInput))
+        goto State98;
+     goto EndWithError;
+     }
+  Debug.Assert(ParserInput == LexerResult.Name);
+  Lexer.AcceptSymbol();
+State99:
+  const String StateDescription99 =
        "CSEnumProperties= Name(UnifiedString modifier1StringIndex), Name(UnifiedString modifier2StringIndex), ►Name(UnifiedString enumStringIndex), CSEnumName;\r\n"
      + "CSEnumProperties= Name(UnifiedString modifierStringIndex), Name(UnifiedString enumStringIndex), ►CSEnumName;\r\n"
      + "CSEnumName= Name(UnifiedString nameString)●;";
@@ -3570,18 +3631,18 @@ State97:
   if (ParserInput == LexerResult.Name)
      {
      Lexer.AcceptSymbol();
-     goto State98;
+     goto State100;
      }
   if (ParserInput != LexerResult.Colon
      && ParserInput != LexerResult.RepeatStart)
      {
-     if (ErrorHandler(97, StateDescription97, ParserInput))
-        goto State97;
+     if (ErrorHandler(99, StateDescription99, ParserInput))
+        goto State99;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Colon
      || ParserInput == LexerResult.RepeatStart);
-  // Reduce90:
+  // Reduce92:
   /* aAdjust: -2
    * CSEnumName= Name(UnifiedString nameString);◄
    * then: CSEnumProperties= Name(UnifiedString enumStringIndex), CSEnumName;◄ */
@@ -3591,17 +3652,17 @@ State97:
      );
 
   _a.Remove(2);
-  goto State80;
+  goto State82;
 
-State98:
-  const String StateDescription98 =
+State100:
+  const String StateDescription100 =
        "CSEnumProperties= Name(UnifiedString modifier1StringIndex), Name(UnifiedString modifier2StringIndex), Name(UnifiedString enumStringIndex), ►CSEnumName;\r\n"
      + "CSEnumName= Name(UnifiedString nameString)●;";
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.Name)
      {
      Lexer.AcceptSymbol();
-     // Reduce93:
+     // Reduce95:
      /* aAdjust: -4
       * CSEnumName= Name(UnifiedString nameString);◄
       * then: CSEnumProperties= Name(UnifiedString modifier1StringIndex), Name(UnifiedString modifier2StringIndex), Name(UnifiedString enumStringIndex), CSEnumName;◄ */
@@ -3611,18 +3672,18 @@ State98:
         );
 
      _a.Remove(4);
-     goto State80;
+     goto State82;
      }
   if (ParserInput != LexerResult.Colon
      && ParserInput != LexerResult.RepeatStart)
      {
-     if (ErrorHandler(98, StateDescription98, ParserInput))
-        goto State98;
+     if (ErrorHandler(100, StateDescription100, ParserInput))
+        goto State100;
      goto EndWithError;
      }
   Debug.Assert(ParserInput == LexerResult.Colon
      || ParserInput == LexerResult.RepeatStart);
-  // Reduce92:
+  // Reduce94:
   /* aAdjust: -3
    * CSEnumName= Name(UnifiedString nameString);◄
    * then: CSEnumProperties= Name(UnifiedString modifierStringIndex), Name(UnifiedString enumStringIndex), CSEnumName;◄ */
@@ -3632,15 +3693,15 @@ State98:
      );
 
   _a.Remove(3);
-  goto State80;
+  goto State82;
 
-Reduce22:
+Reduce24:
   /* sAdjust: -1
    * outerDefinitions= EndOfDefinition, "|", outerDefinitionList;◄ */
   _s.Pop();
   goto Branch5;
 
-Reduce26:
+Reduce28:
   /* sAdjust: -2
    * outerDefinitionList= SequenceOfElements, EndOfDefinition, "|", outerDefinitionList;◄ */
   _s.Discard(2);
@@ -3648,37 +3709,29 @@ Reduce26:
   switch (_s.Peek())
   {
   case 2:
-     goto Reduce11;
+     goto Reduce13;
   case 3:
-     goto Reduce22;
+     goto Reduce24;
   case 4:
-     goto Reduce26;
+     goto Reduce28;
   /*case 11:
   default: break; */
   }
-  goto Reduce67;
+  goto Reduce69;
 
-HandleError8:
-  if (ErrorHandler(8, StateDescription8, ParserInput))
+HandleError10:
+  if (ErrorHandler(10, StateDescription10, ParserInput))
      {
      _s.Pop();
-     goto State8;
+     goto State10;
      };
   goto EndWithError;
 
-HandleError16:
-  if (ErrorHandler(16, StateDescription16, ParserInput))
+HandleError18:
+  if (ErrorHandler(18, StateDescription18, ParserInput))
      {
      _s.Pop();
-     goto State16;
-     };
-  goto EndWithError;
-
-HandleError74:
-  if (ErrorHandler(74, StateDescription74, ParserInput))
-     {
-     _s.Pop();
-     goto State74;
+     goto State18;
      };
   goto EndWithError;
 
@@ -3690,7 +3743,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 29 Okt 2020 (grammlator file version/date 2020.10.26.0/27 Okt 2020)
+#endregion grammlator generated 31 Okt 2020 (grammlator file version/date 2020.10.30.0/30 Okt 2020)
 
       }
    }

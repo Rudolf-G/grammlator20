@@ -90,6 +90,10 @@ namespace grammlator {
          //| TerminalIdentifier= Identifier
          void TerminalIdentifier()
          {
+            
+            Debug.Assert(false, "implementation not yet complete: value ... ?");
+
+
             ReadOnlyMemory<char> TerminalIdentifierMemory = description[IdentifierFirstPos..(IdentifierLastPos + 1)];
             UnifiedString TerminalString = new UnifiedString(TerminalIdentifierMemory);
             string TerminalIdentifier = TerminalString.ToString();
@@ -99,10 +103,9 @@ namespace grammlator {
             else
             {
                SymbolDictionary[TerminalString] =
-                  new TerminalSymbol(TerminalIdentifier, textPos) {
-                     EnumValue = SymbolDictionary.Count,
-                     Weight = Weight,
-                     SymbolNumber = SymbolDictionary.Count
+                  new TerminalSymbol(TerminalIdentifier, textPos, value: SymbolDictionary.Count) {
+                     SymbolNumber = SymbolDictionary.Count,
+                     Weight = Weight
                      //,
                      //AttributetypeStringIndexList = TypeStringIndexes,
                      //AttributenameStringIndexList = NameStringIndexes
@@ -436,7 +439,7 @@ EndOfGeneratedCode:
          return true;
       }
 
-      private Boolean EvalDescription(UnifiedString enumElementUString, ReadOnlySpan<Char> Description, List<String> ArgumentTypes, List<String> ArgumentNames)
+      private Boolean EvalDescription(UnifiedString enumElementUString, ReadOnlySpan<Char> Description, List<String> ArgumentTypes, List<String> ArgumentNames, Int64 enumElementValue)
       {
          // expect "EnumElementIdentifier" "(" typeIdentifier  argumentidentifier , ...")"
          String EnumElementIdentifier = enumElementUString.ToString();
@@ -505,8 +508,7 @@ EndOfGeneratedCode:
                NameStringIndexes[i] = new UnifiedString(ArgumentNames[i]);
             }
             SymbolDictionary[enumElementUString] =
-               t = new TerminalSymbol(EnumElementIdentifier, Lexer.LexerTextPos) {
-                  EnumValue = SymbolDictionary.Count,
+               t = new TerminalSymbol(EnumElementIdentifier, Lexer.LexerTextPos, value: enumElementValue) {
                   Weight = GlobalSettings.TerminalDefaultWeight.Value,
                   SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStrings = TypeStringIndexes,

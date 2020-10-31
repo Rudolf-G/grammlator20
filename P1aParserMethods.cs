@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections;
+using System.Text;
 
 namespace grammlator {
    internal partial class P1aParser {
@@ -70,10 +71,9 @@ namespace grammlator {
       /// <param name="Name">Name of the terminal symbol</param>
       /// <param name="numberOfAttributes">Number of attributes</param>
       /// <param name="weight">the terminal symbols weight, which influences the order of generated if clauses</param>
-      private void TerminalSymbolDeclaration(UnifiedString Name, Int32 numberOfAttributes, Int64 weight)
+      private void TerminalSymbolDeclaration(UnifiedString Name, Int32 numberOfAttributes, Int64 value, Int64 weight)
       {
-         //UnifiedString Name = GlobalVariables.GetStringOfIndex(Name);  // TODO use nameIndex as Key in SymbolDictionary
-         Debug.Assert(!String.IsNullOrEmpty(Name.ToString()), $"{nameof(Name)} is 0 or empty");
+         Debug.Assert(!Name.IsEmpty, $"{nameof(Name)} is empty");
 
          if (SymbolDictionary.ContainsKey(Name))
          {
@@ -83,9 +83,10 @@ namespace grammlator {
          }
          else
          {
+            String NameAsString = Name.ToString();
+
             SymbolDictionary[Name] =
-               new TerminalSymbol(Name.ToString(), Lexer.LexerTextPos) {
-                  EnumValue = SymbolDictionary.Count,
+               new TerminalSymbol(NameAsString, Lexer.LexerTextPos, value) {
                   Weight = weight,
                   SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStrings = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
@@ -99,8 +100,9 @@ namespace grammlator {
          // and reset the attribute counter for the next terminal symbols declaration
          AttributeCounter = 0;
 
+
          return;
-      }
+      }      
 
       private void EvaluateEnumElement(String description, UnifiedString enumElementName, Int64 enumElementValue)
       {
@@ -109,7 +111,7 @@ namespace grammlator {
          List<String> ArgumentNames = new List<string>(20);
          if (Description != "")
          {
-            if (!EvalDescription(enumElementName, Description, ArgumentTypes, ArgumentNames))
+            if (!EvalDescription(enumElementName, Description, ArgumentTypes, ArgumentNames, enumElementValue))
                P1OutputMessageAndLexerPosition(
                   MessageTypeOrDestinationEnum.Warning,
                   @$"Error in [Description(""..."") of enum element {enumElementName}");
@@ -121,9 +123,9 @@ namespace grammlator {
             // There is no terminal with the same name as the enum element
             // Declare a corresponding terminal
             Int32 NumberOfAttributes = 0;
+            String NameAsString = enumElementName.ToString();
             SymbolDictionary[enumElementName] =
-               new TerminalSymbol(enumElementName.ToString(), Lexer.LexerTextPos) {
-                  EnumValue = enumElementValue,
+               new TerminalSymbol(NameAsString, Lexer.LexerTextPos, value: enumElementValue) {
                   Weight = GlobalSettings.TerminalDefaultWeight.Value,
                   SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStrings = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes),
@@ -135,7 +137,7 @@ namespace grammlator {
          EnumValues.Add(enumElementValue);
       }
 
-      
+
       private void SortTerminalsByEnumValue()
       {
          var Keys = new UnifiedString[SymbolDictionary.Count];
@@ -194,7 +196,7 @@ namespace grammlator {
       {
          // The parser recognized the left side of a rule and has not yet evaluated any definition of this symbol
 
-         Debug.Assert(symbolName.Index > 0, "Identifier IsNullOrEmpty");
+         Debug.Assert(!symbolName.IsEmpty, "Identifier IsNullOrEmpty");
 
          NonterminalSymbol ns;
 

@@ -322,11 +322,13 @@ than this number (typically 5), else a switch statement will be generated.");
       /// </summary>
       internal static Int64Setting GenerateFlagTestStartingLevel
          = new Int64Setting("GenerateFlagTestStartingLevel", 3, settingList: VisibleSettings,
-@"The condition in If-statements can be generated as a sequence of < or > or = comparisions
-connected by && and ||. Or it can be generated as a test of flags (if no terminal
-symbol has a value >63). If the estmated complexity of the sequence of comparisions
-is greater than the CompareToFlagTestBorder then a test of flags will be generated.
-A typical value is ""3""");
+@"The comparision in If-statements can be generated as a sequence of
+< or > or == comparisions together with && and || operations.
+Or it can be generated as a test of flags if the span of the values
+of terminal symbols is less or equal 63 or if the values are flags.
+If the estimated complexity of the sequence of comparisions is greater than the
+CompareToFlagTestBorder then a test of flags will be generated.
+A typical value is ""3"".");
 
       /// <summary>
       /// e.g. "_Is(#)". Will be set to "" if an enum is found and the maximum value of an element is &gt;63
