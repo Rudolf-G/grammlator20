@@ -111,6 +111,8 @@ namespace grammlator {
       /// </summary>
       internal static readonly List<Setting> InternalSettings = new List<Setting>(15);
 
+      /* Grammar Line Markers and Region Settings*/
+
       /// <summary>
       /// e.g. "//|"
       /// </summary>
@@ -167,6 +169,8 @@ namespace grammlator {
          = new StringSetting("RegionGeneratedMarker", "generated", InternalSettings,
             @"The second part of the name of the region which contains the grammlator generated code, typically ""generated""");
 
+      /* */
+
       /// <summary>
       /// <see cref="StringNewLineWithEscapes"/> is defined by <see cref="Settings.NewLineConstant"/>
       /// and will typically be "\\r\\n"
@@ -184,33 +188,9 @@ namespace grammlator {
          = new StringSetting("TerminalSymbolDefaultName", "*default terminal symbol*", InternalSettings,
             @"Grammlator will create a terminal symbol with this name if the source does not declare any terminal symbol");
 
-      internal static readonly StringSetting StateStackPeekMethodFormat
-         = new StringSetting("StateStackPeekMethodFormat", "{0}.Peek()", InternalSettings,
-             @"to be used with 1 argument: the name of the state stack");
-
-      internal static readonly StringSetting StateStackPushInstructionFormat
-         = new StringSetting("StateStackPushInstructionFormat", "{0}.Push();", InternalSettings,
-            @"to be used with 1 argument: the name of the state stack");
-
-      internal static readonly StringSetting StateStackRemoveInstructionFormat
-         = new StringSetting("StateStackRemoveInstructionFormat", "{0}.Remove({1});", InternalSettings,
-            @"to be used with 2 arguments: the name of the state stack and the number of elements to remove.");
-
-      internal static readonly StringSetting StateStackResetInstructionFormat
-         = new StringSetting("StateStackResetInstructionFormat", "{0}.Remove({0}.Count - _StateStackInitialCount);",
-            InternalSettings,
-            @"to be used with 1 argument: the name of the state stack.");
-
-      internal static StringSetting NameOfStateStackInitialCountVariable
-   = new StringSetting("NameOfStateStackInitialCountVariable", "_StateStackInitialCount", InternalSettings,
-@"This variable is declared and used in the generated code to store the initial size of
-the state stack (if a state stack is used in the generated code).
-A typical value is ""StateStackInitialCount"".
-When this setting is changed then StateStackResetInstructionFormat must be adapted !");
-
-      /*** Settings which can be modified by the user ***/
-
       // TODO expect '.' to be part of TerminalSymbolEnum !!!
+
+      /*** Terminal and Input Settings ***/
 
       /// <summary>
       /// <see cref="TerminalSymbolEnum.Value"/> (e.g. "LexerResult") is used to generated code
@@ -281,7 +261,7 @@ Examples: """" or ""ErrorHandler""
    Boolean ErrorHandler(Int32 stateNumber, String stateDescription, MyEnum symbol)");
 
       /// <summary>
-      /// <see cref="ErrorHaltInstruction"/> is used to generate code
+      /// <see cref="ErrorHaltInstruction"/> is generated code only once 
       /// </summary>
       internal static StringSetting ErrorHaltInstruction
          = new StringSetting("ErrorHaltInstruction", "", VisibleSettings,
@@ -291,16 +271,6 @@ It is executed after the optional NameOfTheErrorHandlerMethod has been called
  nd returned false (or if there is no NameOfTheErrorHandlerMethod defined)
 just before the jump to the end of generated code.
 Examples: """" or ""return false;""");
-
-      internal static StringSetting StateStack
-         = new StringSetting("StateStack", "_s", VisibleSettings,
-@"This name is used in the generated code as the name of the state stack.
-A typical value is ""_s"", which is defined in grammlatorRuntime.cs.");
-
-      internal static StringSetting AttributeStack
-         = new StringSetting("AttributeStack", "_a", VisibleSettings,
-@"This name is used in the generated code as the name of the attribute stack.
-A typical value is ""_a"", which is defined in grammlatorRuntime.cs.");
 
       internal static Int64Setting TerminalDefaultWeight
          = new Int64Setting("TerminalDefaultWeight", 20, VisibleSettings,
@@ -401,18 +371,138 @@ and the empty string is used as argument in the call of the ErrorHandler.
 Then instead (if GenerateComments is true) the description of the state is generated as a comment.
 ");
 
-      internal static StringSetting NameOfAttributeStackInitialCountVariable
-         = new StringSetting("NameOfAttributeStackInitialCountVariable", "_AttributeStackInitialCount", VisibleSettings,
+      internal static StringSetting PriorityDynamicSwitchAndStartOfMathExpression
+   = new StringSetting("PriorityDynamicSwitchPart1", "switch(Methods.IndexOfMaximum(", VisibleSettings,
+@"This switch instruction uses a method which accepts integer arguments and returns
+the index of the largest value. A call of this instruction is generated, if there are
+conflicts solved by dynamic priorities and 3 or more priorities have to be compared.
+A typical value is ""switch(Methods.IndexOfMaximum("", the name of a method in grammlatorRuntime.cs.");
+
+      internal static StringSetting PriorityDynamicSwitchEndOfMatchExpression
+   = new StringSetting("PriorityDynamicSwitchEndOfMatchExpression", "))", VisibleSettings,
+@"A typical value is ""))""");
+
+      internal static StringSetting PriorityDynamicSwitchCaseLabelFormat
+   = new StringSetting("PriorityDynamicSwitchCaseLabelFormat", "case {0}: ", VisibleSettings,
+@"This format is used to generate the case labels.
+A typical value is ""case {0}: """);
+
+      /*** State and Attribute Stack settings ***/
+
+      internal static StringSetting StateStack
+         = new StringSetting("StateStack", "_s", VisibleSettings,
+@"This name is used in the generated code as the name of the state stack.
+A typical value is ""_s"", which is defined in grammlatorRuntime.cs.");
+
+      internal static readonly StringSetting StateStackPeekMethodFormat
+         = new StringSetting("StateStackPeekMethodFormat", "{0}.Peek()", InternalSettings,
+             @"to be used with 1 argument: the name of the state stack");
+
+      internal static readonly StringSetting StateStackIfPeekEqualMethodFormat
+         = new StringSetting("StateStackIfPeekEqualMethodFormat", "if ({0}.Peek() == {1})", InternalSettings,
+             @"to be used with 2 arguments: the name of the state stack and the condition");
+
+      internal static readonly StringSetting StateStackIfPeekNotEqualMethodFormat
+         = new StringSetting("StateStackIfPeekNotEqualMethodFormat", "if ({0}.Peek() != {1})", InternalSettings,
+             @"to be used with 2 arguments: the name of the state stack and the condition");
+
+      internal static readonly StringSetting StateStackPushInstructionFormat
+         = new StringSetting("StateStackPushInstructionFormat", "{0}.Push();", InternalSettings,
+            @"to be used with 1 argument: the name of the state stack");
+
+      internal static readonly StringSetting StateStackRemoveInstructionFormat
+         = new StringSetting("StateStackRemoveInstructionFormat", "{0}.Remove({1});", InternalSettings,
+            @"to be used with 2 arguments: the name of the state stack and the number of elements to remove.");
+
+      internal static StringSetting StateStackNameOfInitialCountVariable
+   = new StringSetting("StateStackNameOfInitialCountVariable", "_StateStackInitialCount", InternalSettings,
+@"This variable is declared and used in the generated code to store the initial size of
+the state stack (if a state stack is used in the generated code).
+A typical value is ""StateStackInitialCount"".");
+
+      internal static readonly StringSetting StateStackSaveCountInstructionFormat
+         = new StringSetting("StateStackSaveCountInstructionFormat", "Int32 {0} = {1}.Count;", InternalSettings,
+@"This instruction is generated at most once.
+The format uses 2 arguments:
+(0) the NameOfStateStackInitialCountVariable
+(1) the StateStack");
+
+      internal static readonly StringSetting StateStackResetInstructionFormat
+         = new StringSetting("StateStackResetInstructionFormat", "{0}.Remove({0}.Count - {1});",
+            InternalSettings,
+            @"to be used with 2 arguments: the name of the state stack and the NameOfStateStackInitialCountVariable.");
+
+      internal static StringSetting AttributeStack
+   = new StringSetting("AttributeStack", "_a", VisibleSettings,
+@"This name is used in the generated code as the name of the attribute stack.
+A typical value is ""_a"", which is defined in grammlatorRuntime.cs.");
+
+      internal static StringSetting AttributesOfSymbolStack
+   = new StringSetting("AttributesOfSymbolStack", "_AttributesOfSymbol", VisibleSettings,
+@"This name is used in the generated code as the name of a small attribute stack,
+which stores the attributes of the last recognized symbol while
+reductions may modify the stack.
+A typical value is ""_a"", which is defined in grammlatorRuntime.cs.");
+
+      internal static StringSetting AttributesCopyAndRemoveInstructionFormat
+         = new StringSetting("AttributesCopyAndRemoveInstructionFormat",
+            "{0}.CopyAndRemoveFrom({1}, {2})", VisibleSettings,
+@"This instruction is used to move n attribute values from one stack
+to another stack. This format is used with 3 arguments:
+(0) the destination stack, (1) the source stack, (2) the number of arguments");
+
+      internal static readonly StringSetting AttributeStackAllocateInstructionFormat
+= new StringSetting("AttributeStackAllocateInstructionFormat", "{0}.Allocate({1});", InternalSettings,
+@"to be used with 2 arguments: the name of the attribute stack and the number of elements to allocate.");
+
+      internal static readonly StringSetting AttributeStackRemoveInstructionFormat
+   = new StringSetting("AttributeStackRemoveInstructionFormat", "{0}.Remove({1});", InternalSettings,
+@"to be used with 2 arguments: the name of the attribute stack and the number of elements to remove.");
+
+      internal static StringSetting AttributeStackNameOfInitialCountVariable
+         = new StringSetting("AttributeStackNameOfInitialCountVariable", "_AttributeStackInitialCount", VisibleSettings,
 @"This  variable is declared and used in the generated code to store the initial size of the
 attribute stack (if an attribute stack is used in the generated code).
 A typical value is ""_AttributeStackInitialCount"".");
 
-      internal static StringSetting NameOfIndexOfMaximumMethod
-   = new StringSetting("NameOfIndexOfMaximumMethod", "Methods.IndexOfMaximum", VisibleSettings,
-@"This is the name of a method which accepts integer arguments and returns
-the index of the largest value. A call of this method is generated, if there are
-conflicts solved by dynamic priorities and 3 or more priorities have to be compared.
-A typical value is ""Methods.IndexOfMaximum"", the name of a method in grammlatorRuntime.cs.");
+      internal static readonly StringSetting AttributeStackSaveCountInstructionFormat
+   = new StringSetting("AttributeStackSaveCountInstructionFormat", "Int32 {0} = {1}.Count;", InternalSettings,
+@"This instruction is generated at most once.
+The format uses 2 arguments:
+(0) the NameOfAttributeStackInitialCountVariable
+(1) the AttributeStack");
+
+      internal static readonly StringSetting AttributeStackResetInstructionFormat
+   = new StringSetting("AttributeStackResetInstructionFormat", "{0}.Remove({0}.Count - {1});",
+      InternalSettings,
+      @"to be used with 2 arguments: the name of the attribute stack and the NameOfAttributeStackInitialCountVariable.");
+
+      internal static readonly StringSetting AttributePeekRefExpressionFormat
+   = new StringSetting("AttributePeekRefExpressionFormat", "{0}.PeekRef({1})._{2}",
+      InternalSettings,
+@"This C# expression is used as actual parameter of semantic method calls.
+It is used with 2 arguments:
+(0) the name of the attribute stack
+(1) the offset (<=0)
+(2) the access type");
+
+      internal static readonly StringSetting AttributePeekRefClearExpressionFormat
+   = new StringSetting("AttributePeekRefClearExpressionFormat", "{0}.PeekRefClear({1})._{2}",
+      InternalSettings,
+@"This C# expression is used as actual parameter of semantic method calls.
+It is used with 2 arguments:
+(0) the name of the attribute stack
+(1) the offset (<=0)
+(2) the access type");
+
+      internal static readonly StringSetting AttributePeekClearExpressionFormat
+   = new StringSetting("AttributePeekClearExpressionFormat", "{0}.PeekClear({1})._{2}",
+      InternalSettings,
+@"This C# expression is used as actual parameter of semantic method calls.
+It is used with 2 arguments:
+(0) the name of the attribute stack
+(1) the offset (<=0)
+(2) the access type");
 
    }
 }

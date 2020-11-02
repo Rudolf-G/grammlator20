@@ -539,7 +539,7 @@ State2:
 
      AssignCSharpStartToSymbol();
 
-     _a.Remove();
+     _a.Remove(1);
      goto EndOfGeneratedCode;
      }
   case ClassifierResult.CSharpEnd:
@@ -551,7 +551,7 @@ State2:
 
      AssignCSharpEndToSymbol();
 
-     _a.Remove();
+     _a.Remove(1);
      goto EndOfGeneratedCode;
      }
   case ClassifierResult.Questionmark:
@@ -620,7 +620,7 @@ State2:
      // Reduce5:
      /* aAdjust: -1
       * At?= At(Int32 index);◄ */
-     _a.Remove();
+     _a.Remove(1);
      goto State3;
      }
   case ClassifierResult.WhiteSpace:
@@ -629,7 +629,7 @@ State2:
      // Reduce6:
      /* aAdjust: -1
       * GapString= Gap, WhiteSpace(Int32 i);◄ */
-     _a.Remove();
+     _a.Remove(1);
      goto Reduce1;
      }
   case ClassifierResult.Slash:
@@ -656,7 +656,7 @@ State2:
         index: _a.PeekRef(0)._Int32
         );
 
-     _a.Remove();
+     _a.Remove(1);
      goto State7;
      }
   // >= ClassifierResult.Digit: goto AcceptReduce8; // see end of switch
@@ -703,7 +703,7 @@ State8:
      index: _a.PeekRef(0)._Int32
      );
 
-  _a.Remove();
+  _a.Remove(1);
   goto State8;
 
 AcceptReduce28:
@@ -713,7 +713,7 @@ AcceptReduce28:
    * CommentcharacterSequenceNotEndingWithAsterisk= "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i);◄
    * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i);◄
    * or: CommentcharacterSequenceNotEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, anyCharacterExceptAsteriskAndSlash(Int32 i);◄ */
-  _a.Remove();
+  _a.Remove(1);
 State11:
   const String StateDescription11 =
        "CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, ►\"*\"(Int32 i);\r\n"
@@ -737,7 +737,7 @@ AcceptReduce29:
    * CommentcharacterSequenceEndingWithAsterisk= "*"(Int32 i);◄
    * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceNotEndingWithAsterisk, "*"(Int32 i);◄
    * or: CommentcharacterSequenceEndingWithAsterisk= CommentcharacterSequenceEndingWithAsterisk, "*"(Int32 i);◄ */
-  _a.Remove();
+  _a.Remove(1);
 State12:
   const String StateDescription12 =
        "Comment= \"/\"(Int32 i1), \"*\"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, ►\"/\"(Int32 iEnd);\r\n"
@@ -804,7 +804,7 @@ State5:
            lexerString: out _a.PeekRefClear(-1)._UnifiedString
            );
 
-        _a.Remove();
+        _a.Remove(1);
         // Reduce18:
         /* StartsymbolString(UnifiedString lexerString)= String(UnifiedString lexerString);◄
          * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
@@ -841,7 +841,7 @@ State5:
      index: _a.PeekRef(0)._Int32
      );
 
-  _a.Remove();
+  _a.Remove(1);
   goto State5;
 
 State7:
@@ -853,7 +853,7 @@ State7:
      {
      /* aAdjust: 1
       * Name(UnifiedString unifiedString)= SequenceOfLettersOrDigits;◄ */
-     _a.Allocate();
+     _a.Allocate(1);
 
      GetNameFromSource(
         unifiedString: out _a.PeekRef(0)._UnifiedString
@@ -876,7 +876,7 @@ State7:
      index: _a.PeekRef(0)._Int32
      );
 
-  _a.Remove();
+  _a.Remove(1);
   goto State7;
 
 State9:
@@ -927,7 +927,7 @@ Reduce2:
      index: _a.PeekRef(0)._Int32
      );
 
-  _a.Remove();
+  _a.Remove(1);
   goto EndOfGeneratedCode;
 
 ApplyStartsymbolDefinition2:

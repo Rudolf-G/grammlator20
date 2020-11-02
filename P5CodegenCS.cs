@@ -64,24 +64,22 @@ namespace grammlator {
             Append(GlobalVariables.TranslationInfo);
 
          if (GenerateStateStackInitialCountVariable)
-         {
             IndentExactly()
-               .Append("Int32 ")
-               .Append(GlobalSettings.NameOfStateStackInitialCountVariable.Value)
-               .Append(" = ")
-               .Append(GlobalSettings.StateStack.Value)
-               .AppendLine(".Count; ");
-         }
+               .AppendFormat(
+               GlobalSettings.StateStackSaveCountInstructionFormat.Value,
+               GlobalSettings.StateStackNameOfInitialCountVariable.Value,
+               GlobalSettings.StateStack
+               );
 
          if (GenerateAttributeStackInitialCountVariable)
-         {
             IndentExactly()
-               .Append("Int32 ")
-               .Append(GlobalSettings.NameOfAttributeStackInitialCountVariable.Value)
-               .Append(" = ")
-               .Append(GlobalSettings.AttributeStack.Value)
-               .AppendLine(".Count; ");
-         }
+               .AppendFormat(
+               GlobalSettings.AttributeStackSaveCountInstructionFormat.Value,
+               GlobalSettings.AttributeStackNameOfInitialCountVariable.Value,
+               GlobalSettings.AttributeStack.Value
+               );
+
+         AppendLine(); // 
 
          // Define constants and method for Flag-Tests
 
@@ -278,17 +276,6 @@ namespace grammlator {
          return this;
       }
 
-      /// <summary>
-      /// Indents exactly before appending the strings
-      /// </summary>
-      /// <param name="stringsToAppend"></param>
-      public P5CodegenCS AppendInstruction(params String[] stringsToAppend)
-      {
-         IndentExactly();
-         AppendWithOptionalLinebreak(stringsToAppend);
-         return this;
-      }
-
       public P5CodegenCS Append(String s)
       {
          CodeLine.Append(s);
@@ -301,11 +288,6 @@ namespace grammlator {
          CodeLine.Append(s);
          return this;
       }
-
-      public void Append(String s1, Int32 i, String s2)
-          => CodeLine.Append(s1)
-              .Append(i)
-              .Append(s2);
 
       /// <summary>
       /// Indent() and then for each string AppendLineAndIndent
@@ -328,14 +310,11 @@ namespace grammlator {
          CodeLine.Append(i);
          return this;
       }
-
-      public P5CodegenCS AppendWithOptionalLinebreak(Int32 i)
+            
+      public P5CodegenCS AppendOptionalLinebreak()
       {
-         //AppendWithOptionalLinebreak(i.ToString());
-         Indent();
-         if (LineLength > 10 && (LineLength + 5) >= LineLengthLimit) // TOCHECK (LineLength > 10 && (LineLength + 5) >= LineLengthLimit
+         if (LineLength > 10 && (LineLength + 5) >= LineLengthLimit)
             AppendLineAndIndent();
-         CodeLine.Append(i);
          return this;
       }
 
@@ -369,16 +348,6 @@ namespace grammlator {
          CodeLine.Append(s);
          AppendLine();
          return this;
-      }
-
-      /// <summary>
-      /// Indent() and then for each string AppendLineAndIndent, then append line
-      /// </summary>
-      /// <param name="stringsToAppend"></param>
-      public void AppendLineWithOptionalLinebreak(params String[] stringsToAppend)
-      {
-         AppendWithOptionalLinebreak(stringsToAppend);
-         AppendLine();
       }
 
       /// <summary>
@@ -525,17 +494,17 @@ namespace grammlator {
       {
          IndentExactly();
          if (inverse)
-            Append("if (")
-               .Append(GlobalSettings.StateStack.Value)
-               .Append(".Peek() != ");
-         //            AppendWithOptionalLinebreak("if (_s.Peek() != ");
+            AppendFormat(
+               GlobalSettings.StateStackIfPeekNotEqualMethodFormat.Value,
+               GlobalSettings.StateStack.Value,
+               condition
+               );
          else
-            Append("if (")
-               .Append(GlobalSettings.StateStack.Value)
-               .Append(".Peek() == ");
-         //   AppendWithOptionalLinebreak("if (_s.Peek() == ");
-         AppendWithOptionalLinebreak(condition);
-         Append(") ");
+            AppendFormat(
+               GlobalSettings.StateStackIfPeekEqualMethodFormat.Value,
+               GlobalSettings.StateStack.Value,
+               condition
+               );
       }
 
       public P5CodegenCS GenerateSemanticMethodCall(MethodClass semanticMethod)
@@ -613,57 +582,22 @@ namespace grammlator {
       public void GenerateAttributeStackAdjustment(Int32 adjustment)
       {
          IndentExactly();
-         Append(AttributeAccessPrefix);
-         if (adjustment == 1)
-            Append("Allocate(); ");
-         else if (adjustment >= 1)
-            Append("Allocate(", adjustment, "); ");
-         else if (adjustment == -1)
-            Append("Remove(); ");
-         else
-            Append("Remove(", -adjustment, "); ");
+         if (adjustment > 0)
+         {
+            AppendFormat(
+            GlobalSettings.AttributeStackAllocateInstructionFormat.Value,
+            GlobalSettings.AttributeStack.Value,
+            adjustment
+            );
+
+         }
+         else if (adjustment <= 0)
+            AppendFormat(
+            GlobalSettings.AttributeStackRemoveInstructionFormat.Value,
+            GlobalSettings.AttributeStack.Value,
+            -adjustment
+            );
       }
-
-      /// <summary>
-      /// for example "_a."
-      /// </summary>
-      public readonly String AttributeAccessPrefix = GlobalSettings.AttributeStack.Value + ".";
-
-      /// <summary>
-      /// for example "_a.x-"
-      /// </summary>
-      public readonly String AttributeIndexPrefix = GlobalSettings.AttributeStack.Value + ".x";
-
-      /// <summary>
-      /// for example "_", used to modify the type of the methods formal parameter
-      /// to a fieldname of the elements of the attribute stack (e.g. modifies "Int32" to "_Int32")
-      /// </summary>
-      public const Char AttributeTypePrefix = '_';
-
-      /// <summary>
-      /// for example "_a.useup("
-      /// </summary>
-      public readonly String AttributePeekClearPart1 = GlobalSettings.AttributeStack.Value + ".PeekClear(";
-
-      /// <summary>
-      /// for example ")."
-      /// </summary>
-      public const String AttributePeekClearPart2 = ").";
-
-      /// <summary>
-      /// for example "_a.useup("
-      /// </summary>
-      public readonly String AttributePeekRefPart1 = GlobalSettings.AttributeStack.Value + ".PeekRef(";
-
-      /// <summary>
-      /// for example "_a.useup("
-      /// </summary>
-      public readonly String AttributePeekRefClearPart1 = GlobalSettings.AttributeStack.Value + ".PeekRefClear(";
-
-      /// <summary>
-      /// for example ")."
-      /// </summary>
-      public const String AttributePeekRefPart2 = ").";
 
       /// <summary>
       /// Append attribute get reference expression e.g. "_a.PeekRef(-1)._String"
@@ -673,11 +607,12 @@ namespace grammlator {
       public void AppendAttributePeekRef(Int32 offset, String AccessType)
       {
          Debug.Assert(offset <= 0);
-         Append(AttributePeekRefPart1);
-         Append(offset); // Appends the sign '-' because here offset < 0
-         Append(AttributePeekRefPart2);
-         Append(AttributeTypePrefix);
-         Append(AccessType);
+         AppendFormat(
+            GlobalSettings.AttributePeekRefExpressionFormat.Value,
+            GlobalSettings.AttributeStack.Value,
+            offset,
+            AccessType
+            );
       }
 
       /// <summary>
@@ -688,11 +623,11 @@ namespace grammlator {
       public void AppendAttributePeekRefClear(Int32 offset, String AccessType)
       {
          Debug.Assert(offset <= 0);
-         Append(AttributePeekRefClearPart1);
-         Append(offset); // Appends the sign '-' because here offset < 0
-         Append(AttributePeekRefPart2);
-         Append(AttributeTypePrefix);
-         Append(AccessType);
+         AppendFormat(
+            GlobalSettings.AttributePeekRefClearExpressionFormat.Value,
+            GlobalSettings.AttributeStack.Value,
+            offset,
+            AccessType);
       }
 
       /// <summary>
@@ -703,11 +638,11 @@ namespace grammlator {
       public void AppendAttributePeekClear(Int32 offset, String AccessType)
       {
          Debug.Assert(offset <= 0);
-         Append(AttributePeekClearPart1);
-         Append(offset);
-         Append(AttributePeekClearPart2);
-         Append(AttributeTypePrefix);
-         Append(AccessType);
+         AppendFormat(
+            GlobalSettings.AttributePeekClearExpressionFormat.Value,
+            GlobalSettings.AttributeStack.Value,
+            offset,
+            AccessType);
       }
    }
 }

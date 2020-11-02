@@ -1156,7 +1156,7 @@ State71:
   // Reduce70:
   /* aAdjust: 1
    * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name);◄ */
-  _a.Allocate();
+  _a.Allocate(1);
 
   NameWithoutAttributes(
      NumberOfAttributes: out _a.PeekRef(0)._Int32
@@ -1196,7 +1196,7 @@ Reduce12:
      NumberOfAttributes: _a.PeekRef(0)._Int32
      );
 
-  _a.Remove();
+  _a.Remove(1);
 State11:
   const String StateDescription11 =
        "Element= RepeatedElement(Symbol Symbol)●;\r\n"
@@ -1245,7 +1245,7 @@ State11:
      Symbol: _a.PeekRef(0)._Symbol
      );
 
-  _a.Remove();
+  _a.Remove(1);
 Branch2:
   switch (_s.Peek())
   {
@@ -1347,7 +1347,7 @@ Reduce14:
      method: _a.PeekRef(0)._VoidMethodClass
      );
 
-  _a.Remove();
+  _a.Remove(1);
 State17:
   const String StateDescription17 =
        "outerDefinitions= EndOfDefinitionWithSemantics, ►\";\"?;\r\n"
@@ -1408,7 +1408,7 @@ Branch8:
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
-     _a.Remove();
+     _a.Remove(1);
      goto State21;
      }
   case 2:
@@ -1427,7 +1427,7 @@ Branch8:
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
-     _a.Remove();
+     _a.Remove(1);
      goto Branch13;
      }
   case 6:
@@ -1440,7 +1440,7 @@ Branch8:
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
-     _a.Remove();
+     _a.Remove(1);
      goto State50;
      }
   case 9:
@@ -1453,7 +1453,7 @@ Branch8:
         method: _a.PeekRef(0)._VoidMethodClass
         );
 
-     _a.Remove();
+     _a.Remove(1);
      goto State57;
      }
   /*case 0:
@@ -1551,7 +1551,7 @@ Reduce43:
   /* sAdjust: -1, aAdjust: 1
    * PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= "??", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, "??"?;◄ */
   _s.Remove(1);
-  _a.Allocate();
+  _a.Allocate(1);
 
   DynamicPriorityRecognized(
      constPriority: out _a.PeekRef(-1)._Int64,
@@ -1714,7 +1714,7 @@ Reduce51:
      Symbol: _a.PeekRef(0)._Symbol
      );
 
-  _a.Remove();
+  _a.Remove(1);
 State54:
   const String StateDescription54 =
        "Definition= SequenceOfElements, ►EndOfDefinition;\r\n"
@@ -1825,7 +1825,7 @@ State97:
 Reduce85:
   /* aAdjust: 1
    * OptionalDescriptionAttribute(String description)= ;◄ */
-  _a.Allocate();
+  _a.Allocate(1);
 
   NoDescriptionAttribute(
      description: out _a.PeekRef(0)._String
@@ -1864,7 +1864,7 @@ State87:
   // Reduce87:
   /* aAdjust: 1
    * OptionalEnumElementNumber(Int64 enumNumber)= ;◄ */
-  _a.Allocate();
+  _a.Allocate(1);
 
   NoEnumElementNumber(
      enumNumber: out _a.PeekRef(0)._Int64
@@ -1923,7 +1923,7 @@ State3:
   // Reduce4:
   /* aAdjust: 1
    * OptionalValue(Int64 value)= ;◄ */
-  _a.Allocate();
+  _a.Allocate(1);
 
   OptionalValueDefault(
      value: out _a.PeekRef(0)._Int64
@@ -1948,7 +1948,7 @@ State4:
   // Reduce5:
   /* aAdjust: 1
    * OptionalWeight(Int64 weight)= ;◄ */
-  _a.Allocate();
+  _a.Allocate(1);
 
   OptionalDefaultWeight(
      weight: out _a.PeekRef(0)._Int64
@@ -2103,7 +2103,7 @@ Branch3:
         Symbol: _a.PeekRef(0)._Symbol
         );
 
-     _a.Remove();
+     _a.Remove(1);
      goto Branch2;
      }
   case 6:
@@ -2122,7 +2122,7 @@ Branch3:
      Symbol: _a.PeekRef(0)._Symbol
      );
 
-  _a.Remove();
+  _a.Remove(1);
   goto State18;
 
 State13:
@@ -2263,7 +2263,7 @@ State23:
   // Reduce31:
   /* aAdjust: 1
    * SemanticAction(VoidMethodClass method)= CSharpStart, CSharpEnd;◄ */
-  _a.Allocate();
+  _a.Allocate(1);
 
   EmptySemanticAction(
      method: out _a.PeekRef(0)._VoidMethodClass
@@ -2528,7 +2528,7 @@ State35:
      methodNameString: _a.PeekRef(0)._UnifiedString
      );
 
-  _a.Remove();
+  _a.Remove(1);
 Branch10:
   if (_s.Peek() == 0)
      goto State24;
@@ -2684,7 +2684,7 @@ State46:
   // Reduce44:
   /* aAdjust: 1
    * PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= "??", signedNumber(Int64 constPriority), "??";◄ */
-  _a.Allocate();
+  _a.Allocate(1);
 
   ConstantPriorityGiven(
      dynamicPriority: out _a.PeekRef(0)._IntMethodClass
@@ -3055,7 +3055,7 @@ State67:
      terminalName: _a.PeekRef(0)._UnifiedString
      );
 
-  _a.Remove();
+  _a.Remove(1);
 State68:
   const String StateDescription68 =
        "GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), \"-=\", ListOfExcludedTerminalSymbols, ►\";\";\r\n"
@@ -3101,7 +3101,7 @@ State69:
      name: _a.PeekRef(0)._UnifiedString
      );
 
-  _a.Remove();
+  _a.Remove(1);
   goto State68;
 
 State72:
@@ -3130,7 +3130,7 @@ State72:
   // Reduce72:
   /* aAdjust: 1
    * "(Attributes)"(Int32 numberOfAttributes)= "(", ")";◄ */
-  _a.Allocate();
+  _a.Allocate(1);
 
   EmptyListOfAttributes(
      numberOfAttributes: out _a.PeekRef(0)._Int32
@@ -3172,7 +3172,7 @@ State73:
   // Reduce74:
   /* aAdjust: 1
    * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 number), ")";◄ */
-  _a.Allocate();
+  _a.Allocate(1);
 
   FirstAttributeOfGroup(
      numberOfAttributesOfGroup: out _a.PeekRef(-1)._Int32,
@@ -3196,14 +3196,14 @@ Branch16:
         smallestNumberOfRightGroup: _a.PeekRef(0)._Int32
         );
 
-     _a.Remove();
+     _a.Remove(1);
      goto Branch16;
      }
   // Reduce73:
   /* sAdjust: -1, aAdjust: -1
    * "(Attributes)"(Int32 numberOfAttributes)= "(", "Attributes)"(Int32 numberOfAttributes, Int32 smallestNumber);◄ */
   _s.Remove(1);
-  _a.Remove();
+  _a.Remove(1);
   goto Branch15;
 
 State74:
@@ -3244,7 +3244,7 @@ State75:
      nameString: _a.PeekRef(0)._UnifiedString
      );
 
-  _a.Remove();
+  _a.Remove(1);
   goto State73;
 
 State76:
@@ -3307,7 +3307,7 @@ Reduce77:
   /* sAdjust: -1, aAdjust: 1
    * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name);◄ */
   _s.Remove(1);
-  _a.Allocate();
+  _a.Allocate(1);
 
   NameWithoutAttributes(
      NumberOfAttributes: out _a.PeekRef(0)._Int32
@@ -3554,7 +3554,7 @@ State93:
      descriptionString: _a.PeekRef(0)._UnifiedString
      );
 
-  _a.Remove();
+  _a.Remove(1);
   goto State86;
 
 State88:
@@ -3605,7 +3605,7 @@ State96:
   // Reduce90:
   /* aAdjust: -1
    * optionalBaseType= ":", Name(UnifiedString Ignored);◄ */
-  _a.Remove();
+  _a.Remove(1);
   goto State83;
 
 State98:

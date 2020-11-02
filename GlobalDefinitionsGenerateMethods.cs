@@ -426,33 +426,41 @@ namespace grammlator {
       private ParserAction GeneratePriorityBranchAsSwitch(P5CodegenCS codegen, out Boolean accept)
       {
 
-         codegen.AppendInstruction($"switch({GlobalSettings.NameOfIndexOfMaximumMethod}(");
+         codegen
+            .IndentExactly()
+            .Append(GlobalSettings.PriorityDynamicSwitchAndStartOfMathExpression.Value); // "switch(Methods.IndexOfMaximum("
 
          // IndexOfMaximum has to return the index of the 1st occurence of the greatest argument. Then:
          // TerminalTransition (priority 0) has priority over dynamic priority value 0 because it is generated 1st !! 
+
+         /* 1st argument: */
+         bool Is1stArgument = true;
          if (ConstantPriorityAction != null)
+         {
             codegen.Append(ConstantPriority).Append(", ");
+            Is1stArgument = false;
+         }
 
          codegen.IncrementIndentationLevel();
 
          for (Int32 i = 0; i < DynamicPriorityActions.Count; i++)
          {
+            if (!Is1stArgument)
+               codegen.Append(",");
+            Is1stArgument = false;
+
             codegen.IndentExactly()
                .AppendLine() // empty line preceding method call
-               .GenerateSemanticMethodCall(PriorityFunctions[i]);
-            if (i < DynamicPriorityActions.Count - 1)
-               codegen.Append(",");
-            codegen.AppendLine(); // end of line
-
-            if (i == DynamicPriorityActions.Count - 1)
-               codegen.AppendLine(); // empty line following method call
+               .GenerateSemanticMethodCall(PriorityFunctions[i])
+               .AppendLine();
          }
-         codegen.Indent().Append("))");
+         codegen
+            .AppendLine() // empty line following method calls
+            .Indent().Append(GlobalSettings.PriorityDynamicSwitchEndOfMatchExpression.Value); //"))"
 
          codegen.DecrementIndentationLevel();
          codegen.IndentExactly().Append("{");
          // end of generating switch condition
-
 
          // generate switch cases
          Int32 CaseCount = 0;
@@ -460,8 +468,12 @@ namespace grammlator {
          {
             ConditionalAction ca = (ConditionalAction)(ConstantPriorityAction);
 
-            codegen.IndentExactly().Append("case ").Append(CaseCount++).Append(": ");
-            codegen.IncrementIndentationLevel();
+            codegen.IndentExactly()
+               .AppendFormat(
+                  GlobalSettings.PriorityDynamicSwitchCaseLabelFormat.Value,
+                  CaseCount++
+                  )
+               .IncrementIndentationLevel();
             P5GenerateCode.GenerateCodeSequence(
                codegen,
                ca.NextAction, // ca may be TerminalTransition or LookaheadAction: condition is included in condition of PrioritySelect 
@@ -566,19 +578,17 @@ namespace grammlator {
                "// Halt: a definition of the startsymbol with " + numberOfAttributesToStore.ToString() + " attributes has been recognized.");
 
          if (GlobalVariables.ListOfAllStates[0].StateStackNumber >= 0)
-            codegen.IndentExactly()
-                   .AppendFormat(
+            codegen.IndentExactly().AppendFormat(
                      GlobalSettings.StateStackRemoveInstructionFormat.Value,
                      GlobalSettings.StateStack.Value,
                      1);
          if (numberOfAttributesToStore != 0)
-         {
-            codegen.Append("AttributesOfSymbol.CopyAndRemoveFrom(")
-               .Append(GlobalSettings.AttributeStack.Value)
-               .Append(", ")
-               .Append(numberOfAttributesToStore)
-               .AppendLine(");");
-         }
+            codegen.IndentExactly().AppendFormat(
+               GlobalSettings.AttributesCopyAndRemoveInstructionFormat.Value,
+               GlobalSettings.AttributesOfSymbolStack,
+               GlobalSettings.AttributeStack.Value,
+               numberOfAttributesToStore
+               );
 
          accept = false;
          return this.NextAction;
@@ -597,18 +607,19 @@ namespace grammlator {
             codegen.IndentExactly()
                    .AppendFormat(
                      GlobalSettings.StateStackResetInstructionFormat.Value,
-                     GlobalSettings.StateStack.Value
+                     GlobalSettings.StateStack.Value,
+                     GlobalSettings.StateStackNameOfInitialCountVariable
                      );
 
          // generate _a.Remove(x)
          if (GlobalVariables.reductionsModifyAttributStack)
             codegen.IndentExactly()
-               .Append(GlobalSettings.AttributeStack.Value)
-               .Append(".Remove(")
-               .Append(GlobalSettings.AttributeStack.Value)
-               .Append(".Count - ")
-               .Append(GlobalSettings.NameOfAttributeStackInitialCountVariable.Value)
-               .AppendLine(");");
+               .AppendFormat(
+               GlobalSettings.AttributeStackResetInstructionFormat.Value,
+                  GlobalSettings.AttributeStack.Value,
+                  GlobalSettings.AttributeStackNameOfInitialCountVariable.Value
+               )
+               .AppendLine();
 
          // generate additional instruction
          if (!String.IsNullOrEmpty(GlobalSettings.ErrorHaltInstruction.Value))
