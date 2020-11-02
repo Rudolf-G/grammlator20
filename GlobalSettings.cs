@@ -184,6 +184,30 @@ namespace grammlator {
          = new StringSetting("TerminalSymbolDefaultName", "*default terminal symbol*", InternalSettings,
             @"Grammlator will create a terminal symbol with this name if the source does not declare any terminal symbol");
 
+      internal static readonly StringSetting StateStackPeekMethodFormat
+         = new StringSetting("StateStackPeekMethodFormat", "{0}.Peek()", InternalSettings,
+             @"to be used with 1 argument: the name of the state stack");
+
+      internal static readonly StringSetting StateStackPushInstructionFormat
+         = new StringSetting("StateStackPushInstructionFormat", "{0}.Push();", InternalSettings,
+            @"to be used with 1 argument: the name of the state stack");
+
+      internal static readonly StringSetting StateStackRemoveInstructionFormat
+         = new StringSetting("StateStackRemoveInstructionFormat", "{0}.Remove({1});", InternalSettings,
+            @"to be used with 2 arguments: the name of the state stack and the number of elements to remove.");
+
+      internal static readonly StringSetting StateStackResetInstructionFormat
+         = new StringSetting("StateStackResetInstructionFormat", "{0}.Remove({0}.Count - _StateStackInitialCount);",
+            InternalSettings,
+            @"to be used with 1 argument: the name of the state stack.");
+
+      internal static StringSetting NameOfStateStackInitialCountVariable
+   = new StringSetting("NameOfStateStackInitialCountVariable", "_StateStackInitialCount", InternalSettings,
+@"This variable is declared and used in the generated code to store the initial size of
+the state stack (if a state stack is used in the generated code).
+A typical value is ""StateStackInitialCount"".
+When this setting is changed then StateStackResetInstructionFormat must be adapted !");
+
       /*** Settings which can be modified by the user ***/
 
       // TODO expect '.' to be part of TerminalSymbolEnum !!!
@@ -203,9 +227,9 @@ Typical usage: ""MyClass.MyEnum"" if the enum defining the terminal symbols is d
    and a copy with a modified name is used to define the terminal symbols.");
 
       /// <summary>
-      /// <see cref="InputComparisionArgument"/> is used as variable name or method call in generated code
+      /// <see cref="InputExpression"/> is used as variable name or method call in generated code
       /// </summary>
-      internal static StringSetting InputComparisionArgument
+      internal static StringSetting InputExpression
          = new StringSetting("InputExpression", "PeekSymbol()", VisibleSettings,
 @"This expression (a peek function call, a variable name,...) will be used in the generated comparisions.
 If it is a variable name it has to be assigned in the InputAssignInstruction.
@@ -376,12 +400,6 @@ If the prefix is the empty string, then no constant is generated
 and the empty string is used as argument in the call of the ErrorHandler.
 Then instead (if GenerateComments is true) the description of the state is generated as a comment.
 ");
-
-      internal static StringSetting NameOfStateStackInitialCountVariable
-         = new StringSetting("NameOfStateStackInitialCountVariable", "_StateStackInitialCount", VisibleSettings,
-@"This variable is declared and used in the generated code to store the initial size of
-the state stack (if a state stack is used in the generated code).
-A typical value is ""StateStackInitialCount"".");
 
       internal static StringSetting NameOfAttributeStackInitialCountVariable
          = new StringSetting("NameOfAttributeStackInitialCountVariable", "_AttributeStackInitialCount", VisibleSettings,

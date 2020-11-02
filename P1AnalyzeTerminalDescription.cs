@@ -429,7 +429,7 @@ State22:
 
 EndWithError:
   // This point is reached after an input error has been found
-  _s.Discard(_s.Count - _StateStackInitialCount);
+  _s.Remove(_s.Count - _StateStackInitialCount);
   return false;
 
 EndOfGeneratedCode:

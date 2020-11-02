@@ -379,7 +379,7 @@ namespace grammlator {
                    );
 
                // remove 
-               StackOfActionsWithFollow.Discard(PushCount);
+               StackOfActionsWithFollow.Remove(PushCount);
             }
             else
             {

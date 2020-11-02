@@ -986,7 +986,7 @@ State2:
      {
      if (ErrorHandler(2, StateDescription2, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State2;
         };
      goto EndWithError;
@@ -1019,7 +1019,7 @@ AcceptBranch17:
 Reduce8:
   /* sAdjust: -1
    * OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, OptionalSemikolonOrEnum;◄ */
-  _s.Pop();
+  _s.Remove(1);
 Reduce2:
   /* DeclarationOfTerminalSymbols= OptionalDeclarationOfTerminalSymbols;◄ */
 
@@ -1093,11 +1093,11 @@ Branch5:
 Reduce69:
   /* sAdjust: -1
    * GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "=", outerDefinitions;◄ */
-  _s.Pop();
+  _s.Remove(1);
 Reduce65:
   /* sAdjust: -1, aAdjust: -2
    * GrammarRuleList= GrammarRuleList, GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes);◄ */
-  _s.Pop();
+  _s.Remove(1);
 
   EndOfGrammarRuleRecognized(
      SymbolAtLeftSide: _a.PeekRef(-1)._Symbol
@@ -1116,14 +1116,14 @@ State65:
      // Reduce63:
      /* sAdjust: -2
       * GrammlatorGrammar= OptionalGrammlatorSettings, DeclarationOfTerminalSymbols, GrammarRuleList, TerminatorAtEndOfGrammar;◄ */
-     _s.Discard(2);
+     _s.Remove(2);
      goto EndOfGeneratedCode;
      }
   if (ParserInput != LexerResult.Name && ParserInput != LexerResult.LexerString)
      {
      if (ErrorHandler(65, StateDescription65, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State65;
         };
      goto EndWithError;
@@ -1254,7 +1254,7 @@ Branch2:
      {
      /* sAdjust: -2
       * SequenceOfElements= SequenceOfElements, ","?, Element;◄ */
-     _s.Discard(2);
+     _s.Remove(2);
      goto Branch2;
      }
   case 6:
@@ -1317,7 +1317,7 @@ Reduce27:
   /* sAdjust: -1
    * outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithoutSemantics, ";";◄
    * or: outerLastDefinitionOfSequence= SequenceOfElements, EndOfDefinitionWithSemantics, ";"?;◄ */
-  _s.Pop();
+  _s.Remove(1);
   // Branch6:
   switch (_s.Peek())
   {
@@ -1333,7 +1333,7 @@ Reduce27:
 Reduce13:
   /* sAdjust: -1
    * FirstGrammarRule= "*=", outerDefinitions;◄ */
-  _s.Pop();
+  _s.Remove(1);
 
   FirstGrammarRuleRecognized();
 
@@ -1372,7 +1372,7 @@ AcceptReduce32:
   // Reduce32:
   /* sAdjust: -1
    * CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ")";◄ */
-  _s.Pop();
+  _s.Remove(1);
 
   CSvoidMethodRecognized(
      voidMethod: out _a.PeekRef(0)._VoidMethodClass,
@@ -1394,7 +1394,7 @@ State33:
   // Reduce38:
   /* sAdjust: -1
    * SemanticAction(VoidMethodClass method)= CSharpStart, CSvoidMethod(VoidMethodClass method), CSharpEnd;◄ */
-  _s.Pop();
+  _s.Remove(1);
 Branch8:
   switch (_s.Peek())
   {
@@ -1421,7 +1421,7 @@ Branch8:
       * EndOfDefinitionWithSemantics= SemanticAction(VoidMethodClass method);◄
       * then: NestedDefinitionList= NestedDefinitionList, "|", Definition;◄
       * or: Definition= SequenceOfElements, EndOfDefinition;◄ */
-     _s.Pop();
+     _s.Remove(1);
 
      EndOfDefinitionWithMethodRecognized(
         method: _a.PeekRef(0)._VoidMethodClass
@@ -1462,7 +1462,7 @@ Branch8:
   // Reduce23:
   /* sAdjust: -1, aAdjust: -3
    * EndOfDefinitionWithSemantics= PriorityDeclaration(Int64 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method);◄ */
-  _s.Pop();
+  _s.Remove(1);
 
   EndOfDefinitionWithPriorityAndMethodRecognized(
      constPriority: _a.PeekRef(-2)._Int64,
@@ -1510,7 +1510,7 @@ AcceptReduce42:
   // Reduce42:
   /* sAdjust: -1
    * CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ")";◄ */
-  _s.Pop();
+  _s.Remove(1);
 
   CSintMethodRecognized(
      intMethod: out _a.PeekRef(0)._IntMethodClass,
@@ -1550,7 +1550,7 @@ State44:
 Reduce43:
   /* sAdjust: -1, aAdjust: 1
    * PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)= "??", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, "??"?;◄ */
-  _s.Pop();
+  _s.Remove(1);
   _a.Allocate();
 
   DynamicPriorityRecognized(
@@ -1647,7 +1647,7 @@ State49:
 
   if (ErrorHandler(49, StateDescription49, ParserInput))
      {
-     _s.Pop();
+     _s.Remove(1);
      goto State49;
      };
   goto EndWithError;
@@ -1665,7 +1665,7 @@ Reduce49:
 Reduce48:
   /* sAdjust: -1, aAdjust: -6
    * NestedElement(Symbol Symbol)= SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes), NestedGrammarRule(Symbol NestedSymbol, Int32 NumberOfAttributes);◄ */
-  _s.Pop();
+  _s.Remove(1);
 
   EndOfNestedGrammarRuleRecognized(
      Symbol: out _a.PeekRef(-6)._Symbol,
@@ -1703,7 +1703,7 @@ State64:
   // Reduce62:
   /* sAdjust: -1
    * SimpleElement(Symbol Symbol)= "(", NestedElement(Symbol Symbol), ")";◄ */
-  _s.Pop();
+  _s.Remove(1);
   goto State11;
 
 Reduce51:
@@ -1749,7 +1749,7 @@ State54:
       * EndOfDefinitionWithoutSemantics= ;◄
       * then: NestedDefinitionList= NestedDefinitionList, "|", Definition;◄
       * or: Definition= SequenceOfElements, EndOfDefinition;◄ */
-     _s.Pop();
+     _s.Remove(1);
 
      EndOfDefinitionWithoutSemanticsRecognized();
 
@@ -1761,7 +1761,7 @@ State54:
 HandleError54:
   if (ErrorHandler(54, StateDescription54, ParserInput))
      {
-     _s.Pop();
+     _s.Remove(1);
      goto State54;
      };
   goto EndWithError;
@@ -1770,7 +1770,7 @@ Reduce53:
   /* sAdjust: -1
    * NestedDefinitionList= NestedDefinitionList, "|", Definition;◄
    * or: Definition= SequenceOfElements, EndOfDefinition;◄ */
-  _s.Pop();
+  _s.Remove(1);
 Branch13:
   switch (_s.Peek())
   {
@@ -1801,7 +1801,7 @@ State58:
 Reduce57:
   /* sAdjust: -1
    * NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions;◄ */
-  _s.Pop();
+  _s.Remove(1);
   goto Reduce48;
 
 Reduce82:
@@ -1875,7 +1875,7 @@ Reduce88:
    * CSEnumMember= OptionalDescriptionAttribute(String description), Name(UnifiedString enumElementString), OptionalEnumElementNumber(Int64 enumNumber);◄
    * then: CSEnumMemberList= ResetEnumDefaults, CSEnumMember;◄
    * or: CSEnumMemberList= CSEnumMemberList, Comma, CSEnumMember;◄ */
-  _s.Pop();
+  _s.Remove(1);
 
   EnumElementRecognized(
      description: _a.PeekRef(-2)._String,
@@ -1972,7 +1972,7 @@ Reduce6:
   // Reduce9:
   /* sAdjust: -2
    * TerminalSymbolsList= TerminalSymbolsList, "|", TerminalSymbol;◄ */
-  _s.Discard(2);
+  _s.Remove(2);
 State7:
   const String StateDescription7 =
        "OptionalDeclarationOfTerminalSymbols= TerminalSymbolsList, ►OptionalSemikolonOrEnum;\r\n"
@@ -1995,7 +1995,7 @@ State7:
      {
      if (ErrorHandler(7, StateDescription7, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State7;
         };
      goto EndWithError;
@@ -2047,7 +2047,7 @@ State8:
      {
      if (ErrorHandler(8, StateDescription8, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State8;
         };
      goto EndWithError;
@@ -2097,7 +2097,7 @@ Branch3:
      /* sAdjust: -2, aAdjust: -1
       * Element= RepeatedElement(Symbol Symbol);◄
       * then: SequenceOfElements= SequenceOfElements, ","?, Element;◄ */
-     _s.Discard(2);
+     _s.Remove(2);
 
      ElementVariantRecognized(
         Symbol: _a.PeekRef(0)._Symbol
@@ -2177,7 +2177,7 @@ State16:
      {
      if (ErrorHandler(16, StateDescription16, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State16;
         };
      goto EndWithError;
@@ -2202,7 +2202,7 @@ State20:
      {
      if (ErrorHandler(20, StateDescription20, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State20;
         };
      goto EndWithError;
@@ -2227,7 +2227,7 @@ State22:
      {
      if (ErrorHandler(22, StateDescription22, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State22;
         };
      goto EndWithError;
@@ -2294,7 +2294,7 @@ State25:
      {
      if (ErrorHandler(25, StateDescription25, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State25;
         };
      goto EndWithError;
@@ -2331,7 +2331,7 @@ State28:
      {
      if (ErrorHandler(28, StateDescription28, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State28;
         };
      goto EndWithError;
@@ -2391,7 +2391,7 @@ Branch9:
      {
      /* sAdjust: -1
       * formalParameters= formalParameters, Comma, formalParameter;◄ */
-     _s.Pop();
+     _s.Remove(1);
      goto Branch9;
      }
   /*case 2:
@@ -2555,7 +2555,7 @@ State40:
      {
      if (ErrorHandler(40, StateDescription40, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State40;
         };
      goto EndWithError;
@@ -2647,7 +2647,7 @@ State38:
      {
      if (ErrorHandler(38, StateDescription38, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State38;
         };
      goto EndWithError;
@@ -2754,7 +2754,7 @@ State51:
      {
      if (ErrorHandler(51, StateDescription51, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State51;
         };
      goto EndWithError;
@@ -2780,7 +2780,7 @@ State52:
   // Reduce52:
   /* sAdjust: -1
    * NestedDefinitions= EndOfDefinition, "|", NestedDefinitionList;◄ */
-  _s.Pop();
+  _s.Remove(1);
   // Branch12:
   if (_s.Peek() == 6)
      goto Reduce49;
@@ -2803,7 +2803,7 @@ State53:
      {
      if (ErrorHandler(53, StateDescription53, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State53;
         };
      goto EndWithError;
@@ -2867,7 +2867,7 @@ State56:
 
   if (ErrorHandler(56, StateDescription56, ParserInput))
      {
-     _s.Pop();
+     _s.Remove(1);
      goto State56;
      };
   goto EndWithError;
@@ -2933,7 +2933,7 @@ State60:
   // Reduce60:
   /* sAdjust: -1
    * RepeatedElement(Symbol Symbol)= "{", NestedElement(Symbol Symbol), "}";◄ */
-  _s.Pop();
+  _s.Remove(1);
 
   RepeatGroupRecognized(
      Symbol: ref _a.PeekRef(0)._Symbol
@@ -2963,7 +2963,7 @@ State62:
   // Reduce61:
   /* sAdjust: -1
    * RepeatedElement(Symbol Symbol)= "[", NestedElement(Symbol Symbol), "]";◄ */
-  _s.Pop();
+  _s.Remove(1);
 
   OptionGroupRecognized(
      Symbol: ref _a.PeekRef(0)._Symbol
@@ -3030,7 +3030,7 @@ State70:
 HandleError70:
   if (ErrorHandler(70, StateDescription70, ParserInput))
      {
-     _s.Pop();
+     _s.Remove(1);
      goto State70;
      };
   goto EndWithError;
@@ -3142,13 +3142,13 @@ Branch15:
      {
      /* sAdjust: -1
       * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes);◄ */
-     _s.Pop();
+     _s.Remove(1);
      goto Branch14;
      }
   // Reduce78:
   /* sAdjust: -1
    * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes);◄ */
-  _s.Pop();
+  _s.Remove(1);
   goto State3;
 
 State73:
@@ -3186,7 +3186,7 @@ Branch16:
      {
      /* sAdjust: -1, aAdjust: -1
       * "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)= Attribut(Int32 numberBeforeGroup), Comma, "Attributes)"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup);◄ */
-     _s.Pop();
+     _s.Remove(1);
 
      AnotherAttributeOfGroup(
         numberOfAttributesOfGroup: out _a.PeekRef(-2)._Int32,
@@ -3202,7 +3202,7 @@ Branch16:
   // Reduce73:
   /* sAdjust: -1, aAdjust: -1
    * "(Attributes)"(Int32 numberOfAttributes)= "(", "Attributes)"(Int32 numberOfAttributes, Int32 smallestNumber);◄ */
-  _s.Pop();
+  _s.Remove(1);
   _a.Remove();
   goto Branch15;
 
@@ -3215,7 +3215,7 @@ State74:
      {
      if (ErrorHandler(74, StateDescription74, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State74;
         };
      goto EndWithError;
@@ -3290,7 +3290,7 @@ State76:
      {
      if (ErrorHandler(76, StateDescription76, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State76;
         };
      goto EndWithError;
@@ -3306,7 +3306,7 @@ State76:
 Reduce77:
   /* sAdjust: -1, aAdjust: 1
    * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name);◄ */
-  _s.Pop();
+  _s.Remove(1);
   _a.Allocate();
 
   NameWithoutAttributes(
@@ -3355,7 +3355,7 @@ State80:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(UnifiedString name), ":", Number(Int64 value), ";";◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
-  _s.Discard(2);
+  _s.Remove(2);
 
   SetGrammlatorInt32Setting(
      name: _a.PeekRef(-1)._UnifiedString,
@@ -3381,7 +3381,7 @@ State78:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(UnifiedString name), ":", LexerString(UnifiedString value), ";";◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
-  _s.Discard(2);
+  _s.Remove(2);
 
   SetGrammlatorStringSetting(
      name: _a.PeekRef(-1)._UnifiedString,
@@ -3407,7 +3407,7 @@ State79:
   /* sAdjust: -2, aAdjust: -2
    * GrammlatorSetting= Name(UnifiedString name), ":", Name(UnifiedString value), ";";◄
    * then: OptionalGrammlatorSettings= OptionalGrammlatorSettings, GrammlatorSetting;◄ */
-  _s.Discard(2);
+  _s.Remove(2);
 
   SetGrammlatorNameSetting(
      name: _a.PeekRef(-1)._UnifiedString,
@@ -3582,7 +3582,7 @@ State95:
      {
      if (ErrorHandler(95, StateDescription95, ParserInput))
         {
-        _s.Pop();
+        _s.Remove(1);
         goto State95;
         };
      goto EndWithError;
@@ -3698,13 +3698,13 @@ State100:
 Reduce24:
   /* sAdjust: -1
    * outerDefinitions= EndOfDefinition, "|", outerDefinitionList;◄ */
-  _s.Pop();
+  _s.Remove(1);
   goto Branch5;
 
 Reduce28:
   /* sAdjust: -2
    * outerDefinitionList= SequenceOfElements, EndOfDefinition, "|", outerDefinitionList;◄ */
-  _s.Discard(2);
+  _s.Remove(2);
   // Branch7:
   switch (_s.Peek())
   {
@@ -3722,7 +3722,7 @@ Reduce28:
 HandleError10:
   if (ErrorHandler(10, StateDescription10, ParserInput))
      {
-     _s.Pop();
+     _s.Remove(1);
      goto State10;
      };
   goto EndWithError;
@@ -3730,14 +3730,14 @@ HandleError10:
 HandleError18:
   if (ErrorHandler(18, StateDescription18, ParserInput))
      {
-     _s.Pop();
+     _s.Remove(1);
      goto State18;
      };
   goto EndWithError;
 
 EndWithError:
   // This point is reached after an input error has been found
-  _s.Discard(_s.Count - _StateStackInitialCount);
+  _s.Remove(_s.Count - _StateStackInitialCount);
   _a.Remove(_a.Count - _AttributeStackInitialCount);
 
 EndOfGeneratedCode:

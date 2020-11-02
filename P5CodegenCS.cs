@@ -131,14 +131,14 @@ namespace grammlator {
                   Append("(")
                      .Append(GlobalSettings.TerminalSymbolEnum.Value)
                      .Append(" flags) => ((")
-                     .Append(GlobalSettings.InputComparisionArgument.Value) // "PeekSymbol()"
+                     .Append(GlobalSettings.InputExpression.Value) // "PeekSymbol()"
                      .AppendLine(") & flags) != 0;");
                }
                else
                {
                   // generate e.g. "(Int64 flags) => (1L << (Int32)((PeekSymbol()) - 0) & flags) != 0;
                   Append("(Int64 flags) => (1L << (Int32)((")
-                  .Append(GlobalSettings.InputComparisionArgument.Value) // "PeekSymbol()"
+                  .Append(GlobalSettings.InputExpression.Value) // "PeekSymbol()"
                   .Append(')');
                   if (Offset != 0)
                      Append('-')
@@ -254,10 +254,17 @@ namespace grammlator {
          return this;
       }
 
-      public void AppendLine(Char c)
+      public P5CodegenCS AppendLine(Char c)
       {
          CodeLine.Append(c);
          AppendLine();
+         return this;
+      }
+
+      public P5CodegenCS AppendFormat(String format, params object?[] args)
+      {
+         CodeLine.AppendFormat(format, args);
+         return this;
       }
 
       public P5CodegenCS AppendWithOptionalLinebreak(Char c)
@@ -603,28 +610,18 @@ namespace grammlator {
          return this;
       }
 
-      public void GenerateAttributeStackAdjustment(Int32 AttributkellerKorrektur)
+      public void GenerateAttributeStackAdjustment(Int32 adjustment)
       {
-         if (AttributkellerKorrektur == 1)
-         {
-            IndentAndAppend(AttributeAccessPrefix);
+         IndentExactly();
+         Append(AttributeAccessPrefix);
+         if (adjustment == 1)
             Append("Allocate(); ");
-         }
-         else if (AttributkellerKorrektur >= 1)
-         {
-            IndentAndAppend(AttributeAccessPrefix);
-            Append("Allocate(", AttributkellerKorrektur, "); ");
-         }
-         else if (AttributkellerKorrektur == -1)
-         {
-            IndentAndAppend(AttributeAccessPrefix);
+         else if (adjustment >= 1)
+            Append("Allocate(", adjustment, "); ");
+         else if (adjustment == -1)
             Append("Remove(); ");
-         }
          else
-         {
-            IndentAndAppend(AttributeAccessPrefix);
-            Append("Remove(", -AttributkellerKorrektur, "); ");
-         }
+            Append("Remove(", -adjustment, "); ");
       }
 
       /// <summary>
