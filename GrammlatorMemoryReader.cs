@@ -89,14 +89,12 @@ namespace grammlator {
       public SpanReaderWithCharacterAndLineCounter(ReadOnlyMemory<Char> source)
          {
          Source = source;
-         SourceRemainder = source;
          Position = 0;
          LineNumber = -1;
          EoLLength = -1;
          }
 
       public ReadOnlyMemory<Char> Source { get; private set; }
-      public ReadOnlyMemory<Char> SourceRemainder { get; private set; }
 
       /// <summary>
       /// Number of the last read line, initial value == -1
@@ -117,7 +115,6 @@ namespace grammlator {
       /// Finds the end of the line
       /// </summary>
       /// <returns>Returns a slice of Source starting at Position and ending after the next '\r', '\n' or '\r''\n' or end of Source. Sets Position to the next character after the line. </returns>
-
       public ReadOnlyMemory<Char> ReadLine()
          {
 

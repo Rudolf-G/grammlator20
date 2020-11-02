@@ -354,8 +354,8 @@ is broken.");
 @"This string is used as prefix to the names of terminals to declare flag constants.
 The initial value ""_f"" will avoid conflicts with other names.");
 
-      internal static StringSetting NameOfCSharpDebugAssertMethod
-         = new StringSetting("NameOfCSharpDebugAssertMethod", "Debug.Assert", VisibleSettings,
+      internal static StringSetting NameOfAssertMethod
+         = new StringSetting("NameOfAssertMethod", "Debug.Assert", VisibleSettings,
 @"If defined then ""Debug.Assert(...)"" instructions will be generated.
 These assertions are less intended to debug the code but primarily to comment the code.");
 

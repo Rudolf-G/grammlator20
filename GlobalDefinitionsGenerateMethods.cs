@@ -1034,11 +1034,11 @@ namespace grammlator {
       private static void GenerateCommentAtEndOfSwitch(P5CodegenCS codegen, Int32 IndexOf1stPossibleTerminal, Int32 IndexOfLastPossibleTerminal, 
          Int32 LeadingCount, Int32 TrailingCount, ParserAction Action1Generate, ParserAction Action2Generate, Boolean ActionsSwapped)
       {
-         if (GlobalSettings.NameOfCSharpDebugAssertMethod.Value == "")
+         if (GlobalSettings.NameOfAssertMethod.Value == "")
             return;
          codegen.IndentExactly();
          codegen
-            .Append(GlobalSettings.NameOfCSharpDebugAssertMethod.Value).
+            .Append(GlobalSettings.NameOfAssertMethod.Value).
             Append('(');
          if (Action1Generate == Action2Generate)
          {
@@ -1179,11 +1179,11 @@ namespace grammlator {
 
       private static void GenerateConditionAsComment(P5CodegenCS codegen, BitArray condition, Boolean checkingForbiddenTerminals)
       {
-         if (GlobalSettings.NameOfCSharpDebugAssertMethod.Value == "")
+         if (GlobalSettings.NameOfAssertMethod.Value == "")
             return;
          codegen
             .IndentExactly()
-            .AppendWithOptionalLinebreak(GlobalSettings.NameOfCSharpDebugAssertMethod.Value)
+            .AppendWithOptionalLinebreak(GlobalSettings.NameOfAssertMethod.Value)
             .Append('(')
             .IncrementIndentationLevel();
          // codegen.Indent(nestingLevel + 1);
@@ -1896,6 +1896,7 @@ namespace grammlator {
             Is1stTrueFlag = false;
 
             codegen
+               .Append(GlobalSettings.PrefixOfFlagConstants.Value)
                .AppendWithOptionalLinebreak(t.FlagName);
          }
 

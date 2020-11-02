@@ -78,17 +78,18 @@ namespace grammlator {
             Flags = terminal.EnumValue | Flags;
          }
 
-         if (!UseTerminalValuesAsFlags)
+         if (UseTerminalValuesAsFlags)
+         {
+            // 
+            GlobalSettings.PrefixOfFlagConstants.Value = GlobalSettings.TerminalSymbolEnum.Value + '.';
+         }
+         else
          {
             // Clear Check if Flag-Tests can be used in generated code
             Int64 MinValue = GlobalVariables.TerminalSymbols[0].EnumValue;
             Int64 MaxValue = GlobalVariables.TerminalSymbols[^1].EnumValue;
             if (MaxValue - MinValue > 63)
                GlobalSettings.NameOfFlagTestMethod.Value = "";
-         }
-         else
-         {
-            GlobalSettings.PrefixOfFlagConstants.Value = GlobalSettings.TerminalSymbolEnum.Value + '.';
          }
 
          // Generate the code for the parsers first action and the sequence of actions reached from this action without goto

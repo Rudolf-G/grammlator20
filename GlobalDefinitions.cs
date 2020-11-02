@@ -820,6 +820,12 @@ namespace grammlator {
       internal Int64 EnumValue;
       internal Int64 Weight;
       internal Boolean IsUsedInIsIn = false;
+
+      /// <summary>
+      /// If the identifier contains special characters (other than letter or digit) the <see cref="FlagName"/>
+      /// consists of the value of the terminal symbol followed by all letters and digits of the identifier ignoring
+      /// all other characters. Else it is equal to the identifier.
+      /// </summary>
       internal String FlagName { get; private set; }
 
       internal override String SymboltypeString => "terminal symbol";
@@ -844,17 +850,20 @@ namespace grammlator {
       /// Construct a unique identifier to be used for the flag representation of the terminal symbol
       /// </summary>
       /// <param name="value"></param>
-      /// <param name="NameAsString"></param>
+      /// <param name="identifier"></param>
       /// <returns></returns>
-      private static String MakeFlagIdentifier(Int64 value, String NameAsString)
+      private static String MakeFlagIdentifier(Int64 value, String identifier)
       {
          FlagNameBuilder.Clear(); // .Append(GlobalSettings.PrefixOfFlagConstants);
-         foreach (char c in NameAsString)
+         foreach (char c in identifier)
             if (char.IsLetter(c) || char.IsDigit(c))
                FlagNameBuilder.Append(c);
-         if (FlagNameBuilder.Length < NameAsString.Length) // special characters have been removed, make it unique
-            FlagNameBuilder.Insert(0, value); // the 1st char of a name will not be a character
-         FlagNameBuilder.Insert(0, GlobalSettings.PrefixOfFlagConstants);
+         
+         if (FlagNameBuilder.Length == identifier.Length)
+            return identifier; // no characters removed: return identifier
+
+         // special characters have been removed, make it unique
+         FlagNameBuilder.Insert(0, value); // use unique number, keep the shortened identifier to make it readable
          return FlagNameBuilder.ToString();
       }
    }

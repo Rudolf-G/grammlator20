@@ -106,6 +106,7 @@ namespace grammlator {
                      String Identifier = t.Identifier;
                      IndentExactly();
                      Append("const Int64 ")
+                        .Append(GlobalSettings.PrefixOfFlagConstants.Value)
                         .Append(t.FlagName) // "fb"
                         .Append(" = 1L << (Int32)(")
                         .AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, Identifier); // LexerResult.CSharpEnd
@@ -405,7 +406,7 @@ namespace grammlator {
       {
          SetCol(IndentationPosition());
          return this;
-      }            
+      }
 
       /// <summary>
       /// Indent to maximum of actual lineposition and new indentation position

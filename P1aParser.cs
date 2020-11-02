@@ -22,17 +22,17 @@ namespace grammlator {
    //| LineLengthLimit:                   150;
    //| GenerateSmallStateStackNumbers:    true;
    //| NameOfFlagTestMethod:             "_is";
-   //| NameOfCSharpDebugAssertMethod:    "Debug.Assert";    
+   //| NameOfAssertMethod:    "Debug.Assert";    
    //| GenerateComments:                  true;    
    //|     
-   //| // Terminal symbols and their probabilty to appear in input:
+   //| // Terminal symbols and their probability to appear in input:
 
    /// <summary>
    /// LexerResult defines the output of the lexer, which is assigned to Symbol to be used by the parser
    /// The elements of LexerResult are ordered such that grammlator can
    /// generate efficient code for the conditions of the parsers actions 
    /// </summary>
-   public enum LexerResult {
+   public enum LexerResult: Byte {
       [Description("DefiningSymbol() %19")]
       DefiningSymbol, // =
       [Description("Colon() %35")]
@@ -44,7 +44,7 @@ namespace grammlator {
       [Description("Number(Int64 value)")]
       Number,
       StarEqual,      // "*=", added by the lexer
-      MinusEqual,     // "-=", addeed by the lexer
+      MinusEqual,     // "-=", added by the lexer
       Questionmark,   // part of "??"
       Asterisk,       // Part of "*="
       Plus,           // +
@@ -941,7 +941,7 @@ namespace grammlator {
          LexerResult ParserInput;
          LastTerminalValue = -1;
   /* ************************ end of code written by programmer ******************** */
-#region grammlator generated 31 Okt 2020 (grammlator file version/date 2020.10.30.0/30 Okt 2020)
+#region grammlator generated 31 Okt 2020 (grammlator file version/date 2020.10.30.0/31 Okt 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fDefiningSymbol = 1L << (Int32)(LexerResult.DefiningSymbol);
@@ -3743,7 +3743,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 31 Okt 2020 (grammlator file version/date 2020.10.30.0/30 Okt 2020)
+#endregion grammlator generated 31 Okt 2020 (grammlator file version/date 2020.10.30.0/31 Okt 2020)
 
       }
    }

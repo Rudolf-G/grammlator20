@@ -27,7 +27,7 @@ namespace grammlator {
    /// <summary>
    /// This enum defines the characters and character groups recognized by InputClassifier and used by Lexer.
    /// </summary>
-   public enum ClassifierResult {
+   public enum ClassifierResult: byte {
       // The values of this enum elements are used as indexes in 
       //   const String MyDisplay = "=,|;-+:%*([{)]}#xx?x/x\"xx"; see ClassifierResultExtensions
       // The attribute of each terminal is the position in the input stream
@@ -93,7 +93,7 @@ namespace grammlator {
       Digit   // as part of names and numbers
    };
    //|
-   #endregion grammar
+   #endregion grammar part 1: lexer settings
 
    public static class ClassifierResultExtensions {
       public static String MyToString(this ClassifierResult cr)
@@ -486,10 +486,10 @@ namespace grammlator {
       //| Number(Int64 number)=
       //|    Digit(Int32 index)
       private void Digit(out Int64 number, Int32 index)
-          => number = Source.Span[index] - '0';
+          => number = Source.Span[index] & 0xF;
       //|    | Number(Int64 number), Digit(Int32 index)
       private void DigitNumberNew(ref Int64 number, Int32 index)
-          => number = (number * 10) + (Source.Span[index] - '0');
+          => number = (number * 10) + (Source.Span[index] & 0xF);
       #endregion grammar
 
 #pragma warning disable CA1502 // Avoid excessive complexity
