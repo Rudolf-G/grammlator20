@@ -158,7 +158,7 @@ namespace grammlator {
       {
          LexerTextPos = inputClassifier.CurrentPosition;
          Accepted = true;
-         _a.CopyAndRemoveFrom(AttributesOfSymbol);
+         _a.CopyAndRemoveFrom(_AttributesOfSymbol);
       }
 
       /// <summary>
@@ -170,13 +170,13 @@ namespace grammlator {
          if (!Accepted)
             return Symbol;
          Accepted = false;
-         Debug.Assert(AttributesOfSymbol.Count == 0); // must have been cleared by AcceptSymbol
+         Debug.Assert(_AttributesOfSymbol.Count == 0); // must have been cleared by AcceptSymbol
          // the position of the first character of the next symbol the lexer will find,
          //    might be incremented after skipping whitespace and comments
 
          try
          {
-            Debug.Assert(AttributesOfSymbol.Count == 0); // TODO Check : after syntax errors?
+            Debug.Assert(_AttributesOfSymbol.Count == 0); // TODO Check : after syntax errors?
             EvaluateInput(); // stores the attributes in AttributesOfSymbol
          }
          catch (ApplicationException)
@@ -499,7 +499,7 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated 30 Okt 2020 (grammlator file version/date 2020.10.26.0/30 Okt 2020)
+#region grammlator generated 3 Nov 2020 (grammlator file version/date 2020.10.30.0/3 Nov 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fCSharpStart = 1L << (Int32)(ClassifierResult.CSharpStart);
   const Int64 _fCSharpEnd = 1L << (Int32)(ClassifierResult.CSharpEnd);
@@ -930,9 +930,9 @@ Reduce2:
   _a.Remove(1);
   goto EndOfGeneratedCode;
 
-ApplyStartsymbolDefinition2:
-  // Halt: a definition of the startsymbol with 1 attributes has been recognized.
-AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
+      ApplyStartsymbolDefinition2:
+         // Halt: a definition of the startsymbol with 1 attributes has been recognized.
+         _AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
   goto EndOfGeneratedCode;
 
 EndWithError:
@@ -942,7 +942,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 30 Okt 2020 (grammlator file version/date 2020.10.26.0/30 Okt 2020)
+#endregion grammlator generated 3 Nov 2020 (grammlator file version/date 2020.10.30.0/3 Nov 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

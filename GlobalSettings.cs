@@ -407,8 +407,8 @@ A typical value is ""_s"", which is defined in grammlatorRuntime.cs.");
              @"to be used with 2 arguments: the name of the state stack and the condition");
 
       internal static readonly StringSetting StateStackPushInstructionFormat
-         = new StringSetting("StateStackPushInstructionFormat", "{0}.Push();", InternalSettings,
-            @"to be used with 1 argument: the name of the state stack");
+         = new StringSetting("StateStackPushInstructionFormat", "{0}.Push({1});", InternalSettings,
+            @"to be used with 2 argument: the name of the state stack and the value to push");
 
       internal static readonly StringSetting StateStackRemoveInstructionFormat
          = new StringSetting("StateStackRemoveInstructionFormat", "{0}.Remove({1});", InternalSettings,
@@ -446,7 +446,7 @@ A typical value is ""_a"", which is defined in grammlatorRuntime.cs.");
 
       internal static StringSetting AttributesCopyAndRemoveInstructionFormat
          = new StringSetting("AttributesCopyAndRemoveInstructionFormat",
-            "{0}.CopyAndRemoveFrom({1}, {2})", VisibleSettings,
+            "{0}.CopyAndRemoveFrom({1}, {2});", VisibleSettings,
 @"This instruction is used to move n attribute values from one stack
 to another stack. This format is used with 3 arguments:
 (0) the destination stack, (1) the source stack, (2) the number of arguments");

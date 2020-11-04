@@ -642,7 +642,7 @@ namespace grammlator {
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
          accept = false;
-         codegen.GenerateStateStackPushWithOptionalLinebreak(this.StateStackNumber);
+         codegen.GenerateStateStackPush(this.StateStackNumber);
          return this.NextAction;
       }
    }
@@ -712,12 +712,11 @@ namespace grammlator {
 
          codegen.Indent();
 
-         // generate push to the state stack if necessary, generate comment im moved to actions
+         // generate push to the state stack if necessary, generate a comment if push has been moved to actions
          if (StateStackNumber >= 0)
-            codegen.GenerateStateStackPushWithOptionalLinebreak(StateStackNumber);
+            codegen.GenerateStateStackPush(StateStackNumber);
          else if (StateStackNumber <= -2)
             codegen.AppendLine("// *Push(" + (-StateStackNumber - 2).ToString() + ')');
-
 
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
          // This is prepared  by shortening chains in phase 4 und implemented by the following.
@@ -824,9 +823,10 @@ namespace grammlator {
          if (LastAction is TerminalTransition || LastAction is LookaheadAction)
             nextAction = LastAction.NextAction; // TOCHECK must nextAction.Calls be reduced by 1 ??
 
+         // Generate condition as comment, but only if not trivial and if more than 1 action 
+         // (else it would duplicate the condition generated at the start of the state)
          BitArray suppressedCondition = LastAction.TerminalSymbols;
-         if (nextAction != null && suppressedCondition != null
-            && !suppressedCondition.All())
+         if (Actions.Count > 1 && nextAction != null && !suppressedCondition.All())
          {
             GenerateConditionAsComment(codegen, suppressedCondition,
                nextAction is ErrorhandlingAction || nextAction is ErrorHaltAction);
@@ -1894,13 +1894,14 @@ namespace grammlator {
                   .Append('(');
             }
             else
-               codegen.AppendWithOptionalLinebreak(" | ");
+               codegen.Append(' ').AppendOptionalLinebreak().Append("| ");
 
             Is1stTrueFlag = false;
 
             codegen
                .Append(GlobalSettings.PrefixOfFlagConstants.Value)
-               .AppendWithOptionalLinebreak(t.FlagName);
+               .Append(t.FlagName)
+               .AppendOptionalLinebreak();
          }
 
          codegen.DecrementIndentationLevel();

@@ -170,13 +170,12 @@ namespace grammlator {
          return null;
       }
 
-      public void GenerateStateStackPushWithOptionalLinebreak(Int32 valueToPush)
+      public void GenerateStateStackPush(Int32 valueToPush)
       {
          IndentExactly();
-         Append(GlobalSettings.StateStack.Value);
-         AppendWithOptionalLinebreak(".Push(");
-         Append(valueToPush);
-         Append("); ");
+         AppendFormat(GlobalSettings.StateStackPushInstructionFormat.Value,
+            GlobalSettings.StateStack.Value,
+            valueToPush);
       }
 
       /// <summary>
