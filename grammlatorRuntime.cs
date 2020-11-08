@@ -83,9 +83,11 @@ namespace GrammlatorRuntime {
       }
 
       /// <summary>
-      /// <para>When <see cref="Accepted"/> is false, then calls to <see cref="PeekSymbol"/> do nothing and </para>
+      /// <para>When <see cref="Accepted"/> is false, then calls to <see cref="PeekSymbol"/> return the last symbol
+      /// and do nothing else and </para>
       /// <para>calls to <see cref="AcceptSymbol"/> push all the attributes of Symbol from a local stack to the attribute stack and set accepted to true.</para>
-      /// <para>Else calls to <see cref="AcceptSymbol"/> do nothing and calls to <see cref="PeekSymbol"/> retrieve the next symbol and set accepted to false. </para>
+      /// <para>Else calls to <see cref="AcceptSymbol"/> move the input one element ahead and
+      /// do nothing else and calls to <see cref="PeekSymbol"/> retrieve the next symbol and set accepted to false. </para>
       /// </summary>
       public Boolean Accepted {
          get; // may be evaluated in semantic methods before accessing context
@@ -102,13 +104,15 @@ namespace GrammlatorRuntime {
 
       /// <summary>
       /// Sets <see cref="Accepted"/>=true, copies the <see cref="_AttributesOfSymbol"/> to the attribute stack
-      /// andthen clears <see cref="_AttributesOfSymbol"/>. 
-      /// Has no effect, if accepted==true.
+      /// and then clears <see cref="_AttributesOfSymbol"/>. 
+      /// <para>It may happen that  AcceptSymbol() is called without any PeekSymbol() after the last call
+      /// of AcceptSymbol(). Because this second AcceptSymbol() must accept the next symbol it calls
+      /// the missing PeekSymbol() first.</para>
       /// </summary>
       public virtual void AcceptSymbol()
       {
-         //if (Accepted)
-         //   return;
+         if (Accepted) // skip one symbol
+            PeekSymbol(); // move to the next the symbol and set accepted to false
          Accepted = true;
          _a.CopyAndRemoveFrom(_AttributesOfSymbol);
       }

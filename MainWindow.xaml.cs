@@ -25,15 +25,14 @@ namespace grammlator {
          FocusTextBox += HandleFocusTextBox;
          OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
 
-         string SaveDirectory = SaveSourceOrResultDialog.InitialDirectory;
          // do not offer the directory containing the assembly as default initial directory
-         if (SaveDirectory == GlobalVariables.AssemblyFullPath)
+         string CurrentDirectory = Directory.GetCurrentDirectory();
+         string AssemblyDirectory = Path.GetDirectoryName(GlobalVariables.AssemblyFullPath);
+         if (CurrentDirectory == AssemblyDirectory)
+         {  // use instead the MyDocuments folder 
             SaveSourceOrResultDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-         string OpenSourceDirectory = OpenSourceFileDialog.InitialDirectory;
-         // do not offer the directory containing the assembly as default initial directory
-         if (OpenSourceDirectory == GlobalVariables.AssemblyFullPath)
             OpenSourceFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+         }
 
          MainUserInterfaceMethods.SetExampleMenus(MenuItemDisplayExample, this, "GrammlatorExamples.zip");
       }
@@ -336,7 +335,7 @@ namespace grammlator {
                Delimiter = "";
 
             InfoBuilder
-               .Append ("//| ")
+               .Append("//| ")
                .Append(s.Name).Append(": ")
                .Append(Delimiter).Append(s.InitialValueAsString).Append(Delimiter)
                .AppendLine(";");
