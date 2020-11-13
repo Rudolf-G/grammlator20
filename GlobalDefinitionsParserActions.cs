@@ -70,11 +70,6 @@ namespace grammlator {
                                       // IComparable<ParserAction>, // implements: Int32 CompareTo([AllowNull] T other);
       IUniqueIndex  // implements: Int32 IdNumber {get;}
       {
-      // bei Ableitung von IComparer<>  statt von IComparable<> wäre notwendig:
-      // internal override int Compare(cAktion Aktion1, cAktion Aktion2) {
-      //    return Aktion1.CompareTo(Aktion2);
-      //    }
-
       /// <summary>
       /// The <see cref="ParserActionType"/>  is used for AppendToSB (...) and for comparisions
       /// </summary>

@@ -27,7 +27,7 @@ namespace grammlator {
 
          // do not offer the directory containing the assembly as default initial directory
          string CurrentDirectory = Directory.GetCurrentDirectory();
-         string AssemblyDirectory = Path.GetDirectoryName(GlobalVariables.AssemblyFullPath);
+         string? AssemblyDirectory = Path.GetDirectoryName(GlobalVariables.AssemblyFullPath);
          if (CurrentDirectory == AssemblyDirectory)
          {  // use instead the MyDocuments folder 
             SaveSourceOrResultDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);

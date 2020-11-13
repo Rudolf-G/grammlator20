@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
-namespace grammlator {
-   internal partial class P5GenerateCode {
+namespace grammlator
+{
+    internal partial class P5GenerateCode {
       public static void MakeInstanceAndExecute(P5CodegenCS Codegen)
          => new P5GenerateCode(Codegen).Execute();
 

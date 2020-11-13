@@ -2,10 +2,10 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections;
-using System.Text;
 
-namespace grammlator {
-   internal partial class P1aParser {
+namespace grammlator
+{
+    internal partial class P1aParser {
       /* In phase 1 the grammar is read and all information is stored
        * in SymbolDictionary,  g.NumberOfTerminalSymbols,  g.NumberOfNonterminalSymbols ...
        * and g.Startsymbol which references terminal and nonterminal symbols ...
@@ -40,7 +40,7 @@ namespace grammlator {
       /// Stores the StringIndexes of all elements of the last C# enum.
       /// Is the empty list, if an enum with no elements has been recognized. 
       /// </summary>
-      private readonly List<Int32> EnumNames = new List<Int32>();
+      private readonly List<UnifiedString> EnumNames = new List<UnifiedString>();
 
       /// <summary>
       /// <see cref="EnumValues"/>[i] is the value of <see cref="EnumNames"/>[i]
@@ -102,7 +102,7 @@ namespace grammlator {
 
 
          return;
-      }      
+      }
 
       private void EvaluateEnumElement(String description, UnifiedString enumElementName, Int64 enumElementValue)
       {
@@ -133,7 +133,7 @@ namespace grammlator {
                };
          }
 
-         EnumNames.Add(enumElementName.Index);
+         EnumNames.Add(enumElementName);
          EnumValues.Add(enumElementValue);
       }
 
@@ -144,7 +144,11 @@ namespace grammlator {
          var Values = new Symbol[SymbolDictionary.Count];
          SymbolDictionary.Keys.CopyTo(Keys, 0);
          SymbolDictionary.Values.CopyTo(Values, 0);
-         Array.Sort<Symbol, UnifiedString>(Values, Keys, new EnumComparer());
+         Array.Sort<Symbol, UnifiedString>(
+            Values,
+            Keys,
+            new EnumComparer()
+            );
          SymbolDictionary.Clear();
          for (int i = 0; i < Values.Length; i++)
          {
@@ -152,6 +156,12 @@ namespace grammlator {
             (Values[i] as TerminalSymbol)!.SymbolNumber = i;
          }
       }
+
+      class EnumComparer : Comparer<Symbol> {
+         public override int Compare(Symbol? s1, Symbol? s2)
+            => (int)((s1 as TerminalSymbol)!.EnumValue - (s2 as TerminalSymbol)!.EnumValue);
+      }
+
 
       private void ErrorIfMissingEnumElements(out Boolean error, out Boolean ascending)
       {
@@ -161,26 +171,34 @@ namespace grammlator {
             return; // no enum
 
          Int64 LastEnumValue = Int64.MinValue;
-         foreach (var terminal in SymbolDictionary)
+         foreach (var terminalEntry in SymbolDictionary)
          {
-            var TerminalStringIndex = terminal.Key.Index;
-            Int32 IndexOfEnumElement = EnumNames.FindIndex
-               (enumStringIndex => enumStringIndex == TerminalStringIndex);
+            UnifiedString TerminalUString = terminalEntry.Key;
+            Int32 IndexOfEnumElement
+               = EnumNames.FindIndex(enumUString => enumUString == TerminalUString);
+
             if (IndexOfEnumElement < 0)
             {
                error = true;
-               String name = new UnifiedString(TerminalStringIndex).ToString();
                P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-                  @$"The name ""{name}"" in the terminal definition does not occur in the enum.");
+                  @$"The name ""{TerminalUString}"" in the terminal definition does not occur in the enum.");
+               return;
             }
-            else
+
+            Int64 EnumValue = EnumValues[IndexOfEnumElement];
+            TerminalSymbol t= (TerminalSymbol)terminalEntry.Value;
+
+            if (t.EnumValue != EnumValue)
             {
-               Int64 EnumValue = EnumValues[IndexOfEnumElement];
-               (terminal.Value as TerminalSymbol)!.EnumValue = EnumValue;
-               if (EnumValue < LastEnumValue)
-                  ascending = false; // have to resort the terminal symbols (if no error)
-               LastEnumValue = EnumValue;
+               error = true;
+               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+                  @$"The name ""{TerminalUString}"" The terminal definition and the enum assign different values.");
             }
+
+            t.EnumValue = EnumValue;
+            if (EnumValue < LastEnumValue)
+               ascending = false; // have to resort the terminal symbols (if no error)
+            LastEnumValue = EnumValue;
          }
       }
 

@@ -3,36 +3,35 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Collections;
-using System.Runtime.Intrinsics;
-using System.Windows.Markup;
 using System.ComponentModel;
 
-namespace grammlator {
+namespace grammlator
+{
 
-   #region grammar grammlator settings and terminal definitions
-   //| // grammlator settings:
-   //| TerminalSymbolEnum:               "LexerResult";
-   //| InputExpression:                  "ParserInput";
-   //| InputAssignInstruction:           "ParserInput = Lexer.PeekSymbol();";
-   //| InputAcceptInstruction:           "Lexer.AcceptSymbol();";
-   //| PrefixOfStateDescriptionConstant: "StateDescription";
-   //| NameOfErrorHandlerMethod:         "ErrorHandler";
-   //| GenerateSwitchStartingLevel:       5;
-   //| GenerateFlagTestStartingLevel:     4;
-   //| LineLengthLimit:                   150;
-   //| GenerateSmallStateStackNumbers:    true;
-   //| NameOfFlagTestMethod:             "_is";
-   //| NameOfAssertMethod:    "Debug.Assert";    
-   //| GenerateComments:                  true;    
-   //|     
-   //| // Terminal symbols and their probability to appear in input:
+    #region grammar grammlator settings and terminal definitions
+    //| // grammlator settings:
+    //| TerminalSymbolEnum:               "LexerResult";
+    //| InputExpression:                  "ParserInput";
+    //| InputAssignInstruction:           "ParserInput = Lexer.PeekSymbol();";
+    //| InputAcceptInstruction:           "Lexer.AcceptSymbol();";
+    //| PrefixOfStateDescriptionConstant: "StateDescription";
+    //| NameOfErrorHandlerMethod:         "ErrorHandler";
+    //| GenerateSwitchStartingLevel:       5;
+    //| GenerateFlagTestStartingLevel:     4;
+    //| LineLengthLimit:                   150;
+    //| GenerateSmallStateStackNumbers:    true;
+    //| NameOfFlagTestMethod:             "_is";
+    //| NameOfAssertMethod:    "Debug.Assert";    
+    //| GenerateComments:                  true;    
+    //|     
+    //| // Terminal symbols and their probability to appear in input:
 
-   /// <summary>
-   /// LexerResult defines the output of the lexer, which is assigned to Symbol to be used by the parser
-   /// The elements of LexerResult are ordered such that grammlator can
-   /// generate efficient code for the conditions of the parsers actions 
-   /// </summary>
-   public enum LexerResult: Byte {
+    /// <summary>
+    /// LexerResult defines the output of the lexer, which is assigned to Symbol to be used by the parser
+    /// The elements of LexerResult are ordered such that grammlator can
+    /// generate efficient code for the conditions of the parsers actions 
+    /// </summary>
+    public enum LexerResult: Byte {
       [Description("DefiningSymbol() %19")]
       DefiningSymbol, // =
       [Description("Colon() %35")]
@@ -353,9 +352,10 @@ namespace grammlator {
 
          // Use the name of the enum only if not defined by settings in the source
          // because it may be "CopyOfxxx"
-         // An empty enum remains possible if no C# enum is defined
          if (GlobalSettings.TerminalSymbolEnum.Value == "")
             GlobalSettings.TerminalSymbolEnum.Value = EnumName.ToString();
+
+         // GlobalSettings.TerminalSymbolEnum.Value my be "" if no C# enum is defined
 
          // Find missig enum elements
          ErrorIfMissingEnumElements(out Boolean error, out Boolean ascending);
@@ -374,16 +374,7 @@ namespace grammlator {
          EnumName = new UnifiedString();
          ;
       }
-
-      class EnumComparer : IComparer<Symbol> {
-         public int Compare(Symbol? s1, Symbol? s2)
-         {
-            return
-               (int)((s1 as TerminalSymbol)!.EnumValue - (s2 as TerminalSymbol)!.EnumValue);
-
-         }
-      }
-
+       
       //|
       //| OptionalDeclarationOfTerminalSymbols=
       //|      OptionalSemikolonOrEnum
@@ -411,7 +402,7 @@ namespace grammlator {
       //|   | "=", Number(Int64 value)
       private void OptionalValueAssignment(Int64 value) => LastTerminalValue = value;
 
-      //|  ExtendedName (UnifiedString name)=
+      //|  NameOrString (UnifiedString name)=
       //|       Name(UnifiedString name)
       //|     | LexerString(UnifiedString name)
 
@@ -602,8 +593,8 @@ namespace grammlator {
       private static void EmptySemanticAction(out VoidMethodClass? method) => method = null;
 
       //|  "Name(Attributes)" (UnifiedString name, Int32 NumberOfAttributes)=
-      //|       ExtendedName(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes)
-      //|     | ExtendedName(UnifiedString name) ??-10?? // low priority: if "(" follows then assume that attributes follow
+      //|       NameOrString(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes)
+      //|     | NameOrString(UnifiedString name) ??-10?? // low priority: if "(" follows then assume that attributes follow
       private static void NameWithoutAttributes(out Int32 NumberOfAttributes) => NumberOfAttributes = 0;
 
       //|  outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)=
@@ -618,7 +609,7 @@ namespace grammlator {
 
       //| SequenceOfElements=
       //|      Element
-      //|    | SequenceOfElements, ","?, Element  // allow to omit the "," (but not between an ExtendedName without attributes and a grouped definition)
+      //|    | SequenceOfElements, ","?, Element  // allow to omit the "," (but not between an NameOrString without attributes and a grouped definition)
 
       //| Element=
       //|    RepeatedElement(Symbol Symbol)
@@ -941,7 +932,7 @@ namespace grammlator {
          LexerResult ParserInput;
          LastTerminalValue = -1;
   /* ************************ end of code written by programmer ******************** */
-#region grammlator generated 31 Okt 2020 (grammlator file version/date 2020.10.30.0/31 Okt 2020)
+#region grammlator generated 9 Nov 2020 (grammlator file version/date 2020.10.30.0/9 Nov 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fDefiningSymbol = 1L << (Int32)(LexerResult.DefiningSymbol);
@@ -1133,8 +1124,8 @@ AcceptState71:
   Lexer.AcceptSymbol();
 State71:
   const String StateDescription71 =
-       "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), ►\"(Attributes)\"(Int32 NumberOfAttributes);\r\n"
-     + "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name)●;";
+       "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= NameOrString(UnifiedString name), ►\"(Attributes)\"(Int32 NumberOfAttributes);\r\n"
+     + "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= NameOrString(UnifiedString name)●;";
   // *Push(0)
   ParserInput = Lexer.PeekSymbol();
   if (ParserInput == LexerResult.GroupStart)
@@ -1155,7 +1146,7 @@ State71:
   Debug.Assert(!_is(_fColon | _fCSharpEnd | _fError | _fMinus | _fNumber | _fNumberSign | _fGroupStart));
   // Reduce70:
   /* aAdjust: 1
-   * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name);◄ */
+   * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= NameOrString(UnifiedString name);◄ */
   _a.Allocate(1);
 
   NameWithoutAttributes(
@@ -2303,7 +2294,6 @@ State25:
   // State26:
   /* CSvoidMethod(VoidMethodClass voidMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ►")"; */
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
-  Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce32;
 
 State27:
@@ -2563,7 +2553,6 @@ State40:
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   // State41:
   /* CSintMethod(IntMethodClass intMethod)= CSMethodProperties(MethodClass method), "(", formalParameters?, ►")"; */
-  Debug.Assert(ParserInput == LexerResult.GroupEnd);
   Debug.Assert(ParserInput == LexerResult.GroupEnd);
   goto AcceptReduce42;
 
@@ -3141,13 +3130,13 @@ Branch15:
      // Reduce71:
      {
      /* sAdjust: -1
-      * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes);◄ */
+      * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= NameOrString(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes);◄ */
      _s.Remove(1);
      goto Branch14;
      }
   // Reduce78:
   /* sAdjust: -1
-   * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes);◄ */
+   * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= NameOrString(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes);◄ */
   _s.Remove(1);
   goto State3;
 
@@ -3252,8 +3241,8 @@ State76:
        "GrammlatorSetting= Name(UnifiedString name), ►\":\", LexerString(UnifiedString value), \";\";\r\n"
      + "GrammlatorSetting= Name(UnifiedString name), ►\":\", Number(Int64 value), \";\";\r\n"
      + "GrammlatorSetting= Name(UnifiedString name), ►\":\", Name(UnifiedString value), \";\";\r\n"
-     + "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name), ►\"(Attributes)\"(Int32 NumberOfAttributes);\r\n"
-     + "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name)●;";
+     + "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= NameOrString(UnifiedString name), ►\"(Attributes)\"(Int32 NumberOfAttributes);\r\n"
+     + "\"Name(Attributes)\"(UnifiedString name, Int32 NumberOfAttributes)= NameOrString(UnifiedString name)●;";
   _s.Push(1);
   ParserInput = Lexer.PeekSymbol();
   switch (ParserInput)
@@ -3305,7 +3294,7 @@ State76:
 
 Reduce77:
   /* sAdjust: -1, aAdjust: 1
-   * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= ExtendedName(UnifiedString name);◄ */
+   * "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)= NameOrString(UnifiedString name);◄ */
   _s.Remove(1);
   _a.Allocate(1);
 
@@ -3743,7 +3732,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 31 Okt 2020 (grammlator file version/date 2020.10.30.0/31 Okt 2020)
+#endregion grammlator generated 9 Nov 2020 (grammlator file version/date 2020.10.30.0/9 Nov 2020)
 
       }
    }

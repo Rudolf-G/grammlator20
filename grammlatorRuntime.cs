@@ -97,10 +97,12 @@ namespace GrammlatorRuntime {
       /// <summary>
       /// Returns a local stack with the attributes of Symbol (if any). It is empty if accepted == true.
       /// </summary>
+#pragma warning disable IDE1006 // Benennungsstile
       protected StackOfMultiTypeElements _AttributesOfSymbol {
          get;
          // private set{ _AttributesOfSymbol = value; }
       } = new StackOfMultiTypeElements(10);
+#pragma warning restore IDE1006 // Benennungsstile
 
       /// <summary>
       /// Sets <see cref="Accepted"/>=true, copies the <see cref="_AttributesOfSymbol"/> to the attribute stack
