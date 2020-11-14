@@ -42,8 +42,8 @@ namespace grammlator {
             Assembly ThisAssembly = typeof(GlobalVariables).Assembly;
             AssemblyName AssemblyName = ThisAssembly.GetName();
             AssemblyFullPath = ThisAssembly.Location;
-            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(AssemblyFullPath);
-            String FileVersion = fvi.FileVersion;
+            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(AssemblyFullPath)!;
+            String FileVersion = fvi.FileVersion!;
             String FileWrittenDate =
                System.IO.File.GetLastWriteTime(AssemblyFullPath)
                .ToString("d MMM yyyy");

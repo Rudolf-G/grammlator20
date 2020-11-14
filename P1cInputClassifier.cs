@@ -226,11 +226,10 @@ namespace grammlator {
             return ClassifierResult.WhiteSpace;
          if (Char.IsLetter(c))
             return ClassifierResult.Letter;
-         if (Char.IsDigit(c))
+         if (c >= '0' && c <= '9')
             return ClassifierResult.Digit;
 
-         return c switch
-         {
+         return c switch {
             '=' => ClassifierResult.DefiningSymbol,
             ',' => ClassifierResult.Comma, // ,
             '|' => ClassifierResult.DefinitionSeparatorSymbol, // |
@@ -259,7 +258,7 @@ namespace grammlator {
 
             // The following characters are interpreted as letters in additon to all characters of the class char.IsLetter(c)
             '\\' => ClassifierResult.Letter, // Backslash (escape symbol of unicode sequences \u006) // TODO translate unicode escape sequences to characters
-            '\'' => ClassifierResult.Letter,  // Apostrophe
+            '\'' => ClassifierResult.Apostrophe,  // Apostrophe
             '_' => ClassifierResult.Letter, // Underline
             '.' => ClassifierResult.Letter,  // Point
             _ => ClassifierResult.OtherCharacter

@@ -42,8 +42,8 @@ namespace grammlator {
             String ZipPath = AppContext.BaseDirectory + "GrammlatorExamples.zip";
             if (!File.Exists(ZipPath))
                return;
-            using ZipArchive archive = ZipFile.OpenRead(ZipPath);
-            ZipArchiveEntry entry = archive.GetEntry(entryName);
+            using ZipArchive archive = ZipFile.OpenRead(ZipPath)!;
+            ZipArchiveEntry entry = archive.GetEntry(entryName)!;
             using var reader = new StreamReader(entry.Open());
             box.Text = reader.ReadToEnd();
          }

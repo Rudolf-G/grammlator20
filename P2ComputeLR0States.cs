@@ -289,7 +289,7 @@ namespace grammlator {
             TerminalTransition existingTransition =
                 ActionsOfActualState
                 .OfType<TerminalTransition>()
-                .FirstOrDefault(transition => transition.NextAction == nextAction);
+                .FirstOrDefault(transition => transition.NextAction == nextAction)!;
 
             if (existingTransition == null)
             {

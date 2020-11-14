@@ -1164,7 +1164,9 @@ namespace grammlator {
           *        else a is a candidate to be replaced by a separate PushState(value, a) ParserAction 
           *           increment addedPushStateCounter
           *   b) evaluate the statistics (removedPopCounter-addedPushStateCounter+1>=0)
-          *      and if approriate do the modifications
+          *      and if approriate do the modifications.
+          *      Modifications of ErrorHalt actions can be ommited because they
+          *      will reset the stack.
           *      
           * TODO may be done later: replace the restrictions "a pops ... and a is called only once" 
           *      by some less restrictive condition, follow chains of ParserActions, consider splitting reduce actions
@@ -1189,21 +1191,19 @@ namespace grammlator {
                   break;
                }
 
-               var n = c.NextAction;
-               if (n.StateStackAdjustment >= 1 &&
-                  n.AcceptCalls <= 1 && n.Calls == 1)
+               var cNext = c.NextAction;
+               if (cNext.StateStackAdjustment >= 1 &&
+                  cNext.AcceptCalls <= 1 && cNext.Calls == 1)
                {
-                  if (n.StateStackAdjustment == 1)
+                  if (cNext.StateStackAdjustment == 1)
                      removedPopCounter++;
                }
-               else
+               else if (!(cNext.ParserActionType==ParserActionEnum.isErrorhaltAction))
                   addedPushStateCounter++;
             }
 
-            if (removedPopCounter > 0 && (removedPopCounter - addedPushStateCounter + 1) >= 0)
+            if (removedPopCounter > 0 && (removedPopCounter + 1) >= addedPushStateCounter)
                MoveStateStackPushOperation(State);
-
-
          }
       }
 
@@ -1217,14 +1217,14 @@ namespace grammlator {
             if (cNext.StateStackAdjustment >= 1 &&
                cNext.AcceptCalls <= 1 && cNext.Calls == 1)
             {
-               // Combine with cNext
+               // Only called from c: combine with cNext
                cNext.StateStackAdjustment--;
             }
-            else
+            else if (!(cNext.ParserActionType == ParserActionEnum.isErrorhaltAction))
             {
                // Insert PushStateAction
                var pAction = new PushStateAction
-                  (GlobalVariables.ListOfAllPushStateActions.Count, state.StateStackNumber, cNext);
+                  (idNumber: GlobalVariables.ListOfAllPushStateActions.Count, state.StateStackNumber, cNext);
                GlobalVariables.ListOfAllPushStateActions.Add(pAction);
 
                pAction.Calls = 1;

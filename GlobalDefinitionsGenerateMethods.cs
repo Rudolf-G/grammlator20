@@ -1422,10 +1422,13 @@ namespace grammlator {
           *    if IsSpecialLastBlock(): "Symbol < StartOfBlock"
           */
 
-         if (blockList.Count == 0)
+         if (blockList.Count <= 1)
          {
-            // no relevant symbol
-            codegen.AppendWithOptionalLinebreak("true"); // "false" would also be ok
+            Debug.Assert(false, "all true or false condition should not occur");
+            if (blockList.Count == 0 || blockList[0].BlockType)
+               codegen.AppendWithOptionalLinebreak("true");
+            else
+               codegen.AppendWithOptionalLinebreak("false");
             return;
          }
 
@@ -1591,10 +1594,13 @@ namespace grammlator {
           *    if IsSpecialLastBlock(): "Symbol >= StartOfBlock": only if ... (see below)
           */
 
-         if (blockList.Count == 0)
+         if (blockList.Count <= 1)
          {
-            // no relevant symbol, should not occur
-            codegen.AppendWithOptionalLinebreak("true"); // "false" would also be ok
+            Debug.Assert(false, "all true or false condition should not occur");
+            if (blockList.Count==0 || blockList[0].BlockType)
+               codegen.AppendWithOptionalLinebreak("true");
+            else
+               codegen.AppendWithOptionalLinebreak("false");
             return;
          }
 

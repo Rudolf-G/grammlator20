@@ -47,9 +47,7 @@ namespace grammlator {
       /// <summary>
       /// make constructor private
       /// </summary>
-      private P3ComputeLALR1()
-      {
-      }
+      private P3ComputeLALR1() { }
 
       /// <summary>
       /// <para>For each <see cref="NonterminalTransition"/> compute the direct read set of terminal symbols
@@ -109,9 +107,14 @@ namespace grammlator {
                default: // case null:
                {
                   // The nonterminal transition leads to a halt action.
-                  // All terminal symbols may follow.
+                  // All terminal symbols may follow !
                   Debug.Assert(NonterminalTransition.NextAction == GlobalVariables.ListOfAllHaltActions[0]);
                   Debug.Assert(((NonterminalTransition)NonterminalTransition).InputSymbol.Identifier == "*Startsymbol");
+
+                  /* TODO   mark lookahead sets which look beyond the startsymbol
+                   * e.g by adding a field to nonterminal transitions (and reductions and ...) 
+                   * and use this flag in conflict analysis 
+                   * */                  
                   NonterminalTransition.TerminalSymbols.Or(GlobalVariables.AllTerminalSymbols);
                   break;
                }
@@ -428,7 +431,7 @@ namespace grammlator {
          // den nü mit dem gegebenen Eingabesymbol suchen
          NonterminalTransition TransitionY =
              stateReachedByReduction.Actions.OfType<NonterminalTransition>().
-             FirstOrDefault(a => a.InputSymbol == inputSymbol);
+             FirstOrDefault(a => a.InputSymbol == inputSymbol)!;
 
          if (TransitionY == null)
          {
