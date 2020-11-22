@@ -828,6 +828,24 @@ namespace grammlator {
       /// </summary>
       internal String FlagName { get; private set; }
 
+      private String? _NameToGenerate;
+      internal String NameToGenerate {
+         // Lazy evaluation because GlobalSettings.TerminalSymbolEnum may not yet be
+         // assigned at the time when the declaration of the terminal in grammlator source
+         // is evaluated (an enum my follow)
+         get {
+            if (_NameToGenerate == null)
+            {
+               if (GlobalSettings.TerminalSymbolEnum.Value == GlobalSettings.TerminalSymbolUndefinedValue
+                  || GlobalSettings.TerminalSymbolEnum.Value == "")
+                  _NameToGenerate = Identifier;
+               else
+                  _NameToGenerate = GlobalSettings.TerminalSymbolEnum.Value + '.' + Identifier;
+            }
+            return _NameToGenerate;
+         }
+      }
+
       internal override String SymboltypeString => "terminal symbol";
 
       internal override EmptyComputationResultEnum ContainsAnEmptyDefinition()
@@ -858,7 +876,7 @@ namespace grammlator {
          foreach (char c in identifier)
             if (char.IsLetter(c) || char.IsDigit(c))
                FlagNameBuilder.Append(c);
-         
+
          if (FlagNameBuilder.Length == identifier.Length)
             return identifier; // no characters removed: return identifier
 

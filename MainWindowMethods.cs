@@ -38,12 +38,13 @@ namespace grammlator {
 
       internal struct StatusStruct {
          StatusFlags Status;
-         Action FlagChanged;
+         Action? FlagChanged;
 
          internal void SetAction(Action flagChanged)
          {
             FlagChanged = flagChanged;
          }
+
          internal StatusStruct(Action flagChanged)
          {
             FlagChanged = flagChanged;

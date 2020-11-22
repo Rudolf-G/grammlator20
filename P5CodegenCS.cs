@@ -101,13 +101,12 @@ namespace grammlator {
                   if (!useTerminalValuesAsFlags)
                   {
                      // generate e.g. "const Int64 _fb = 1L << (Int32)(LexerResult.CSharpEnd-12);"
-                     String Identifier = t.Identifier;
                      IndentExactly();
                      Append("const Int64 ")
                         .Append(GlobalSettings.PrefixOfFlagConstants.Value)
                         .Append(t.FlagName) // "fb"
                         .Append(" = 1L << (Int32)(")
-                        .AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, Identifier); // LexerResult.CSharpEnd
+                        .Append(t.NameToGenerate);
                      if (Offset != 0)
                         Append('-')
                         .Append(Offset.ToString());
@@ -355,21 +354,6 @@ namespace grammlator {
       public P5CodegenCS AppendLine()
       {
          OutputAndClearCodeLine();
-         return this;
-      }
-
-      public P5CodegenCS AppendWithPrefix(String Prefix, String s)
-      {
-         if (!String.IsNullOrEmpty(Prefix))
-         {
-            Append(Prefix);
-            Append('.');
-            Append(s);
-         }
-         else
-         {
-            Append(s);
-         }
          return this;
       }
 

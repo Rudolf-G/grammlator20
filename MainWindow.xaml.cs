@@ -25,14 +25,10 @@ namespace grammlator {
          FocusTextBox += HandleFocusTextBox;
          OnFocusTextBox(new FocusTextBoxEventArgs(SourceTextBox));
 
-         // do not offer the directory containing the assembly as default initial directory
-         string CurrentDirectory = Directory.GetCurrentDirectory();
-         string? AssemblyDirectory = Path.GetDirectoryName(GlobalVariables.AssemblyFullPath);
-         if (CurrentDirectory == AssemblyDirectory)
-         {  // use instead the MyDocuments folder 
-            SaveSourceOrResultDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            OpenSourceFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-         }
+         // Set InitialDirectory to avoid the directory containing the assembly as default initial directory
+         string RecentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Recent);
+         SaveSourceOrResultDialog.InitialDirectory = RecentDirectory;
+         OpenSourceFileDialog.InitialDirectory = RecentDirectory;
 
          MainUserInterfaceMethods.SetExampleMenus(MenuItemDisplayExample, this, "GrammlatorExamples.zip");
       }

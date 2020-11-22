@@ -250,21 +250,20 @@ namespace grammlator
       //|  ")" = GroupEnd; "]" = OptionEnd; "}" = RepeatEnd; "?" = Questionmark;
       //|  "-=" = MinusEqual; "??" = DoubleQuestionmark  /* see below "*=" = StarEqual ... */ 
 
-      //| GrammlatorGrammar=
-      //|     OptionalGrammlatorSettings, 
+      //| GrammlatorGrammar
+      //| =   OptionalGrammlatorSettings, 
       //|     DeclarationOfTerminalSymbols,
       //|     GrammarRuleList,
-      //|     TerminatorAtEndOfGrammar
+      //|     TerminatorAtEndOfGrammar;
+      //|
+      //| TerminatorAtEndOfGrammar= NumberSign;
+      //|
+      //| OptionalGrammlatorSettings
+      //| = /* empty */
+      //| | OptionalGrammlatorSettings, GrammlatorSetting
 
-      //| TerminatorAtEndOfGrammar=
-      //|      NumberSign
-
-      //| OptionalGrammlatorSettings=
-      //|      /* empty */
-      //|    | OptionalGrammlatorSettings, GrammlatorSetting
-
-      //| GrammlatorSetting=
-      //|    Name(UnifiedString name), ":", LexerString(UnifiedString value), ";"
+      //| GrammlatorSetting
+      //| = Name(UnifiedString name), ":", LexerString(UnifiedString value), ";"
       private void SetGrammlatorStringSetting(UnifiedString name, UnifiedString value)
       {
          String NewValue = value.ToString();
@@ -305,7 +304,7 @@ namespace grammlator
       }
 
 
-      //|   | Name(UnifiedString name), ":", Number(Int64 value), ";"
+      //| | Name(UnifiedString name), ":", Number(Int64 value), ";"
       private void SetGrammlatorInt32Setting(UnifiedString name, Int64 value)
       {
          String NameToLower = name.ToString().ToLower(); // TODO avoid new string by better comparer
@@ -332,15 +331,15 @@ namespace grammlator
          }
          return;
       }
-      //|   | Name(UnifiedString name), ":", Name(UnifiedString value), ";"
+      //| | Name(UnifiedString name), ":", Name(UnifiedString value), ";"
       private void SetGrammlatorNameSetting(UnifiedString name, UnifiedString value)
          => SetGrammlatorStringSetting(
             name,
             value.ToString()
             );
 
-      //| DeclarationOfTerminalSymbols=
-      //|   OptionalDeclarationOfTerminalSymbols
+      //| DeclarationOfTerminalSymbols
+      //| = OptionalDeclarationOfTerminalSymbols
       private void CompareTerminalDeclarationsWithEnum()
       {
          if (EnumName.Index == 0)
@@ -351,9 +350,8 @@ namespace grammlator
             P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Warning,
 @$"{DictCountBeforeEnum} terminals are defined in grammlator lines. The enum defines {NewTerminalsDeclaredInEnum} additional elements.");
 
-         // Use the name of the enum only if not defined by settings in the source
-         // because it may be "CopyOfxxx"
-         if (GlobalSettings.TerminalSymbolEnum.Value == "")
+         // Use the name of the enum if not defined by settings in the source
+         if (GlobalSettings.TerminalSymbolEnum.Value == GlobalSettings.TerminalSymbolUndefinedValue)
             GlobalSettings.TerminalSymbolEnum.Value = EnumName.ToString();
 
          // GlobalSettings.TerminalSymbolEnum.Value my be "" if no C# enum is defined
@@ -377,39 +375,40 @@ namespace grammlator
       }
        
       //|
-      //| OptionalDeclarationOfTerminalSymbols=
-      //|      OptionalSemikolonOrEnum
-      //|    | TerminalSymbolsList, OptionalSemikolonOrEnum
+      //| OptionalDeclarationOfTerminalSymbols
+      //| = OptionalSemikolonOrEnum
+      //| | TerminalSymbolsList, OptionalSemikolonOrEnum
 
-      //|  TerminalSymbolsList=
-      //|     TerminalSymbol
-      //|     | TerminalSymbolsList, "|", TerminalSymbol
+      //| TerminalSymbolsList
+      //| = TerminalSymbol
+      //| | TerminalSymbolsList, "|", TerminalSymbol
 
-      //|  TerminalSymbol=
-      //|      "Name(Attributes)"(UnifiedString name, Int32 numberOfAttributes), OptionalValue(Int64 value), OptionalWeight(Int64 weight)
+      //|  TerminalSymbol
+      //|  = "Name(Attributes)"
+      //|       (UnifiedString name, Int32 numberOfAttributes), OptionalValue(Int64 value), OptionalWeight(Int64 weight)
       private void TerminalSymbol(UnifiedString name, Int32 numberOfAttributes, Int64 value, Int64 weight)
              => TerminalSymbolDeclaration(name, numberOfAttributes, value, weight);
 
-      //|  OptionalWeight(Int64 weight)=
-      //|      /* empty */
+      //| OptionalWeight(Int64 weight)
+      //| = /* empty */
       private static void OptionalDefaultWeight(out Int64 weight)
          => weight = GlobalSettings.TerminalDefaultWeight.Value;
-      //|     | "%", Number(Int64 weight)
+      //|| "%", Number(Int64 weight)
 
-      //| OptionalValue(Int64 value)=
-      //|    /* empty */
+      //| OptionalValue(Int64 value)
+      //| = /* empty */
       private void OptionalValueDefault(out Int64 value) => value = ++LastTerminalValue;
       Int64 LastTerminalValue = -1;
-      //|   | "=", Number(Int64 value)
+      //| | "=", Number(Int64 value)
       private void OptionalValueAssignment(Int64 value) => LastTerminalValue = value;
 
-      //|  NameOrString (UnifiedString name)=
-      //|       Name(UnifiedString name)
-      //|     | LexerString(UnifiedString name)
-
-      //|  GrammarRuleList=
-      //|     FirstGrammarRule
-      //|     | GrammarRuleList, GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)
+      //| NameOrString (UnifiedString name)
+      //| = Name(UnifiedString name)
+      //| | LexerString(UnifiedString name);
+      //|
+      //| GrammarRuleList
+      //| = FirstGrammarRule
+      //| | GrammarRuleList, GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)
       private void EndOfGrammarRuleRecognized(Symbol SymbolAtLeftSide)
       {
          EvaluateGrammarRule(SymbolAtLeftSide);
@@ -420,8 +419,8 @@ namespace grammlator
          AttributeCounter = 0;
       }
 
-      //|  FirstGrammarRule=
-      //|     "*=", outerDefinitions
+      //| FirstGrammarRule
+      //| = "*=", outerDefinitions
       private void FirstGrammarRuleRecognized()
       {
          EvaluateDefinitionsOftheStartsymbol();
@@ -430,17 +429,17 @@ namespace grammlator
          OptimizeTrivialDefinitions = OptimizeTrivialDefinitionsBackup;
       }
 
-      //| OptionalSemikolonOrEnum= // at end of terminal definitions
-      //|    /* empty */
-      //|    | ";"
-      //|    | EnumOrEmptyCode
+      //| OptionalSemikolonOrEnum // at end of terminal definitions
+      //| = /* empty */
+      //| | ";"
+      //| | EnumOrEmptyCode
 
-      //| EnumOrEmptyCode=
-      //|       CSharpStart,  CSEnumDeclaration, CSharpEnd
-      //|    |  CSharpStart, CSharpEnd
+      //| EnumOrEmptyCode
+      //| = CSharpStart,  CSEnumDeclaration, CSharpEnd
+      //| | CSharpStart, CSharpEnd
 
-      //|  "*="=
-      //|     StarEqual
+      //| "*="
+      //| = StarEqual
       private void StartOfFirstGrammarRule()
       {
          /* If no terminal symbol has been defined then define a default terminal symbol.
@@ -464,13 +463,13 @@ namespace grammlator
 
       private Boolean OptimizeTrivialDefinitionsBackup;
 
-      //|  GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)=
-      //|      outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "=", outerDefinitions
-      //|     | outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "-=" ListOfExcludedTerminalSymbols, ";"
+      //| GrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)
+      //| = outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "=", outerDefinitions
+      //| | outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), "-=" ListOfExcludedTerminalSymbols, ";"
       private void EndOfListOfExcludedTerminalSymbols() => EvaluateExcludedTerminalSymbols(ExcludedTerminalSymbols!);
 
-      //| ListOfExcludedTerminalSymbols=
-      //|      Name(UnifiedString terminalName)
+      //| ListOfExcludedTerminalSymbols
+      //| = Name(UnifiedString terminalName)
       private void FirstExcludedTerminalSymbol(UnifiedString terminalName)
       {
          if (ExcludedTerminalSymbols == null || ExcludedTerminalSymbols.Length != GlobalVariables.NumberOfTerminalSymbols)
@@ -481,7 +480,7 @@ namespace grammlator
 
       private BitArray? ExcludedTerminalSymbols;
 
-      //|     | ListOfExcludedTerminalSymbols, "|", Name(UnifiedString name)
+      //| | ListOfExcludedTerminalSymbols, "|", Name(UnifiedString name)
       private void OneMoreExcludedTerminalSymbol(UnifiedString name)
       {
          if (!SymbolDictionary.TryGetValue(name, out Symbol? Symbol))
@@ -501,164 +500,163 @@ namespace grammlator
          ExcludedTerminalSymbols!.Set(Symbol.SymbolNumber, true);
       }
 
-      //| NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)= /* Usage see siehe NestedElement */
-      //|      NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions
-      //|     | NestedDefinitions
+      //| NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes) /* Usage see siehe NestedElement */
+      //| = NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes), NestedDefinitions
+      //| | NestedDefinitions
       private void NestedGrammarRuleWithEmptyLeftside(out Symbol SymbolAtLeftSide, out Int32 NumberOfAttributes)
       {
          SymbolAtLeftSide = NonterminalSymbolDefinition(MakeNewNameStringIndex("Local"), 0);
          NumberOfAttributes = 0;
       }
 
-      //| NestedDefinitions= // never ends with ";"
-      //|      EndOfDefinition // empty sequence as single definition
-      //|    | EndOfDefinition, "|", NestedDefinitionList // empty sequence only as first definition
-      //|    | NestedDefinitionList // no empty sequence in definitions
+      //| NestedDefinitions // never ends with ";"
+      //| = EndOfDefinition // empty sequence as single definition
+      //| | EndOfDefinition, "|", NestedDefinitionList // empty sequence only as first definition
+      //| | NestedDefinitionList // no empty sequence in definitions
 
-      //| NestedDefinitionList=  
-      //|    Definition
-      //|    | NestedDefinitionList, "|", Definition
+      //| NestedDefinitionList 
+      //| = Definition
+      //| | NestedDefinitionList, "|", Definition
 
-      //| Definition=
-      //|    SequenceOfElements, EndOfDefinition
+      //| Definition
+      //| = SequenceOfElements, EndOfDefinition
 
-      //| EndOfDefinition=
-      //|      EndOfDefinitionWithSemantics 
-      //|    | EndOfDefinitionWithoutSemantics
+      //| EndOfDefinition
+      //| = EndOfDefinitionWithSemantics 
+      //| | EndOfDefinitionWithoutSemantics
 
-      //| outerDefinitions=            
-      //|      EndOfDefinitionWithoutSemantics, ";"  // empty sequence only in first definition
-      //|    | EndOfDefinitionWithSemantics, ";"?    // empty sequence
-      //|    | EndOfDefinition, "|", outerDefinitionList // empty sequence only as first definition
-      //|    | outerDefinitionList       
+      //| outerDefinitions           
+      //| = EndOfDefinitionWithoutSemantics, ";"  // empty sequence only in first definition
+      //| | EndOfDefinitionWithSemantics, ";"?    // empty sequence
+      //| | EndOfDefinition, "|", outerDefinitionList // empty sequence only as first definition
+      //| | outerDefinitionList       
 
-      //| outerDefinitionList=  // if no semantics then must end with terminator symbol
-      //|    SequenceOfElements, EndOfDefinition, "|", outerDefinitionList
-      //|    | outerLastDefinitionOfSequence
+      //| outerDefinitionList  // if no semantics then must end with terminator symbol
+      //| = SequenceOfElements, EndOfDefinition, "|", outerDefinitionList
+      //| | outerLastDefinitionOfSequence
 
-      //| outerLastDefinitionOfSequence=
-      //|    SequenceOfElements, EndOfDefinitionWithoutSemantics, ";"
-      //|  | SequenceOfElements, EndOfDefinitionWithSemantics, ";"?  // optional ";" after semantics / codelines
+      //| outerLastDefinitionOfSequence
+      //| = SequenceOfElements, EndOfDefinitionWithoutSemantics, ";"
+      //| | SequenceOfElements, EndOfDefinitionWithSemantics, ";"?  // optional ";" after semantics / codelines
 
-      //| EndOfDefinitionWithoutSemantics=
-      //|    /* empty */
+      //| EndOfDefinitionWithoutSemantics
+      //| = /* empty */
       private void EndOfDefinitionWithoutSemanticsRecognized()
       {
          EvaluateDefinition(constantPriority: 0, priorityFunction: null, semanticMethod: null, OptimizeTrivialDefinitions);
          AttributeCounter = AttributeNumberAtStartOfDefinition;
       }
 
-      //| EndOfDefinitionWithSemantics=
-      //|    PriorityDeclaration(Int64 constPriority, IntMethodClass dynPriority)
+      //| EndOfDefinitionWithSemantics
+      //| = PriorityDeclaration(Int64 constPriority, IntMethodClass dynPriority)
       private void EndOfDefinitionWithPriorityRecognized(Int64 constPriority, IntMethodClass? dynPriority)
       {
          EvaluateDefinition(constantPriority: constPriority, priorityFunction: dynPriority, semanticMethod: null, OptimizeTrivialDefinitions);
          AttributeCounter = AttributeNumberAtStartOfDefinition;
       }
 
-      //|    | SemanticAction(VoidMethodClass method)
+      //| | SemanticAction(VoidMethodClass method)
       private void EndOfDefinitionWithMethodRecognized(VoidMethodClass? method)
       {
          EvaluateDefinition(constantPriority: 0, priorityFunction: null, semanticMethod: method, OptimizeTrivialDefinitions);
          AttributeCounter = AttributeNumberAtStartOfDefinition;
       }
 
-      //|    | PriorityDeclaration(Int64 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method)
+      //| | PriorityDeclaration(Int64 constPriority, IntMethodClass dynPriority), SemanticAction(VoidMethodClass method)
       private void EndOfDefinitionWithPriorityAndMethodRecognized(Int64 constPriority, IntMethodClass? dynPriority, VoidMethodClass? method)
       {
          EvaluateDefinition(constPriority, dynPriority, method, OptimizeTrivialDefinitions);
          AttributeCounter = AttributeNumberAtStartOfDefinition;
       }
 
-      //| PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)=
-      //|      "??", signedNumber(Int64 constPriority), "??"
+      //| PriorityDeclaration(Int64 constPriority, IntMethodClass dynamicPriority)
+      //| = "??", signedNumber(Int64 constPriority), "??"
       private static void ConstantPriorityGiven(out IntMethodClass? dynamicPriority) => dynamicPriority = null;
 
-      //|    | "??",  // TODO lookahead to be used by dynamic priotity method? "Name(Attributes)"(String Name, Int32 NumberOfAttributes), 
-      //|        CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, "??"?
+      //| | "??", CSharpStart, CSintMethod(IntMethodClass intMethod), CSharpEnd, "??"?
       private static void DynamicPriorityRecognized(out Int64 constPriority, out IntMethodClass? dynamicPriority, IntMethodClass? intMethod)
       {
          constPriority = 0;
          dynamicPriority = intMethod;
       }
 
-      //|  signedNumber(Int64 value)=
-      //|     Number (Int64 value)
-      //|     | "+", Number (Int64 value)
-      //|     | "-", Number (Int64 value)
+      //| signedNumber(Int64 value)
+      //| = Number (Int64 value)
+      //| | "+", Number (Int64 value)
+      //| | "-", Number (Int64 value)
       private static void NegateNumber(ref Int64 value) => value = -value;
 
-      //|  SemanticAction(VoidMethodClass method)=
-      //|       CSharpStart, CSvoidMethod(VoidMethodClass method), CSharpEnd
-      //|     | CSharpStart, CSharpEnd
+      //| SemanticAction(VoidMethodClass method)
+      //| = CSharpStart, CSvoidMethod(VoidMethodClass method), CSharpEnd
+      //| | CSharpStart, CSharpEnd
       private static void EmptySemanticAction(out VoidMethodClass? method) => method = null;
 
-      //|  "Name(Attributes)" (UnifiedString name, Int32 NumberOfAttributes)=
-      //|       NameOrString(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes)
-      //|     | NameOrString(UnifiedString name) ??-10?? // low priority: if "(" follows then assume that attributes follow
+      //| "Name(Attributes)" (UnifiedString name, Int32 NumberOfAttributes)
+      //| = NameOrString(UnifiedString name), "(Attributes)"(Int32 NumberOfAttributes)
+      //| | NameOrString(UnifiedString name) ??-10?? // low priority: if "(" follows then assume that attributes follow
       private static void NameWithoutAttributes(out Int32 NumberOfAttributes) => NumberOfAttributes = 0;
 
-      //|  outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)=
-      //|     "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)
+      //| outerLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)
+      //| = "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)
       private void LeftSideOfOuterProduction(out Symbol SymbolAtLeftSide, UnifiedString name, Int32 NumberOfAttributes)
           => SymbolAtLeftSide = NonterminalSymbolDefinition(name, NumberOfAttributes);
 
-      //|  NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)=
-      //|        "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes), "="
+      //| NestedLeftSide(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes)
+      //| ="Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes), "="
       private void LeftSideOfNestedProduction(out Symbol SymbolAtLeftSide, UnifiedString name, Int32 NumberOfAttributes)
           => SymbolAtLeftSide = NonterminalSymbolDefinition(name, NumberOfAttributes); // same as LeftSideOfOuterProduction();
 
-      //| SequenceOfElements=
-      //|      Element
-      //|    | SequenceOfElements, ","?, Element  // allow to omit the "," (but not between an NameOrString without attributes and a grouped definition)
+      //| SequenceOfElements
+      //| = Element
+      //| | SequenceOfElements, ","?, Element  // allow to omit the "," (but not between an NameOrString without attributes and a grouped definition)
 
-      //| Element=
-      //|    RepeatedElement(Symbol Symbol)
+      //| Element
+      //| = RepeatedElement(Symbol Symbol)
       private void ElementVariantRecognized(Symbol Symbol)
       {
          NumberOfElements++;
          ActualListOfElements.Add(Symbol);
       }
 
-      //| RepeatedElement(Symbol Symbol)=
-      //|       SimpleElement(Symbol Symbol)
-      //|    | "{", NestedElement(Symbol Symbol), "}"
+      //| RepeatedElement(Symbol Symbol)
+      //| = SimpleElement(Symbol Symbol)
+      //| | "{", NestedElement(Symbol Symbol), "}"
       private void RepeatGroupRecognized(ref Symbol Symbol)
           => Symbol = MakeGrammarRule(Symbol, TypeOfGrammarRule.repeat0lr);
 
-      //|    | "[", NestedElement(Symbol Symbol), "]"
+      //| | "[", NestedElement(Symbol Symbol), "]"
       private void OptionGroupRecognized(ref Symbol Symbol)
           => Symbol = MakeGrammarRule(Symbol, TypeOfGrammarRule.optional);
-      //|    | SimpleElement(Symbol Symbol), "?"
+      //| | SimpleElement(Symbol Symbol), "?"
       private void OptionalElementRecognized(ref Symbol Symbol)
           => Symbol = MakeGrammarRule(Symbol, TypeOfGrammarRule.optional);
 
-      //|    | SimpleElement(Symbol Symbol), "+"
+      //| | SimpleElement(Symbol Symbol), "+"
       private void Repeat1lrRecognized(ref Symbol Symbol)
           => Symbol = MakeGrammarRule(Symbol, TypeOfGrammarRule.repeat1lr);
 
-      //|    | SimpleElement(Symbol Symbol), "+", "+"
+      //| | SimpleElement(Symbol Symbol), "+", "+"
       private void Repeat1rrRecognized(ref Symbol Symbol)
           => Symbol = MakeGrammarRule(Symbol, TypeOfGrammarRule.repeat1rr);
 
-      //|    | SimpleElement(Symbol Symbol), "*"
+      //| | SimpleElement(Symbol Symbol), "*"
       private void Repeat0lrRecognized(ref Symbol Symbol)
           => Symbol = MakeGrammarRule(Symbol, TypeOfGrammarRule.repeat0lr);
 
-      //|    | SimpleElement(Symbol Symbol), "*", "*"
+      //| | SimpleElement(Symbol Symbol), "*", "*"
       private void Repeat0rrRecognized(ref Symbol Symbol)
           => Symbol = MakeGrammarRule(Symbol, TypeOfGrammarRule.repeat0rr);
 
-      //| SimpleElement(Symbol Symbol)=
-      //|      "(", NestedElement(Symbol Symbol), ")"
-      //|    | "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)
+      //| SimpleElement(Symbol Symbol)
+      //| = "(", NestedElement(Symbol Symbol), ")"
+      //| | "Name(Attributes)"(UnifiedString name, Int32 NumberOfAttributes)
       private void FoundSymbolnameInRightSide(out Symbol Symbol, UnifiedString name, Int32 NumberOfAttributes)
           => Symbol = EvaluateSymbolnameFoundInRightSide(name, NumberOfAttributes);
 
-      //|  NestedElement(Symbol Symbol)=
-      //|       SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions,
-      //|               Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes)
-      //|       , NestedGrammarRule(Symbol NestedSymbol, Int32 NumberOfAttributes)
+      //| NestedElement(Symbol Symbol)
+      //| = SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions
+      //|    , Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes)
+      //|    , NestedGrammarRule(Symbol NestedSymbol, Int32 NumberOfAttributes)
       private void EndOfNestedGrammarRuleRecognized(out Symbol Symbol, Symbol NestedSymbol,
           Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes
           )
@@ -679,8 +677,10 @@ namespace grammlator
          Symbol = NestedSymbol;
       }
 
-      //| SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions, Int32 SavedNumberOfTrivialDefinitions,
-      //|               Int32 SavedNumberOfElements, Int32 SavedNumberOfSymbolAttributes)=
+      //| SaveVariables(Int32 SavedAttributeNumberAtStartOfDefinition, Int32 SavedNumberOfDefinitions
+      //|            , Int32 SavedNumberOfTrivialDefinitions, Int32 SavedNumberOfElements
+      //|            , Int32 SavedNumberOfSymbolAttributes)
+      //| =
       private void SaveVariablesToAttributes(
           out Int32 SavedAttributeNumberAtStartOfDefinition, out Int32 SavedNumberOfDefinitions, out Int32 SavedNumberOfTrivialDefinitions,
           out Int32 SavedNumberOfElements, out Int32 SavedNumberOfSymbolAttributes
@@ -705,8 +705,8 @@ namespace grammlator
          NestingLevel++; // start of nested production
       }
 
-      //|  Attribut(Int32 number)=
-      //|    Name(UnifiedString typeString), Name(UnifiedString nameString)
+      //| Attribut(Int32 number)
+      //| = Name(UnifiedString typeString), Name(UnifiedString nameString)
       private void AttributeTypeAndName(out Int32 number, UnifiedString typeString, UnifiedString nameString)
       {
          AttributeCounter++;
@@ -714,8 +714,8 @@ namespace grammlator
          number = AttributeCounter;
       }
 
-      //|  "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)=
-      //|     Attribut(Int32 numberBeforeGroup), Comma, "Attributes)"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup) /* Rekursion */
+      //| "Attributes)"(Int32 numberOfAttributesOfGroup, Int32 smallestNumber)
+      //| = Attribut(Int32 numberBeforeGroup), Comma, "Attributes)"(Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup) /* Rekursion */
       private static void AnotherAttributeOfGroup(out Int32 numberOfAttributesOfGroup, out Int32 smallestNumber, Int32 numberBeforeGroup, Int32 numberOfAttributesOfRightGroup, Int32 smallestNumberOfRightGroup)
       {
          if (numberBeforeGroup != smallestNumberOfRightGroup - 1)
@@ -727,18 +727,18 @@ namespace grammlator
          smallestNumber = numberBeforeGroup;
       }
 
-      //|     | Attribut(Int32 number), ")"
+      //| | Attribut(Int32 number), ")"
       private static void FirstAttributeOfGroup(out Int32 numberOfAttributesOfGroup, out Int32 smallestNumber, Int32 number)
       {
          smallestNumber = number;
          numberOfAttributesOfGroup = 1;
       }
 
-      //| "(Attributes)" (Int32 numberOfAttributes)=
-      //|     "(", ")"
+      //| "(Attributes)" (Int32 numberOfAttributes)
+      //| = "(", ")"
       private static void EmptyListOfAttributes(out Int32 numberOfAttributes) => numberOfAttributes = 0;
 
-      //|     | "(", "Attributes)" (Int32 numberOfAttributes, Int32 smallestNumber)
+      //| | "(", "Attributes)" (Int32 numberOfAttributes, Int32 smallestNumber)
 
       //| /* ------------------------------- simplified CSharp grammar ------------------- */
       //|
@@ -763,8 +763,8 @@ namespace grammlator
       }
 
       //| /* The same definition as for CSvoidMethod is used for CSintMethod, but different semantics */
-      //| CSintMethod(IntMethodClass intMethod)=
-      //|    CSMethodProperties(MethodClass method), "(", formalParameters?, ")"
+      //| CSintMethod(IntMethodClass intMethod)
+      //| = CSMethodProperties(MethodClass method), "(", formalParameters?, ")"
       private void CSintMethodRecognized(out IntMethodClass? intMethod, MethodClass? method)
       {
          if (method is IntMethodClass iMethod)
@@ -838,8 +838,8 @@ namespace grammlator
       private void FormalParameterWithModifierNullableTypeAndName(UnifiedString ParameterModifierOptString, UnifiedString typeString, UnifiedString nameString)
           => FormalParameter(ParameterModifierOptString, typeString, nameString);
 
-      //| CSEnumDeclaration=
-      //|    CSEnumProperties, optionalBaseType, CSEnumMembers
+      //| CSEnumDeclaration
+      //| = CSEnumProperties, optionalBaseType, CSEnumMembers
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
       private void CSEnumRecognized()
@@ -848,10 +848,10 @@ namespace grammlator
          Lexer.SkipToEndOfCSLines(); // allows some unchecked code after the enum
       }
 
-      //| CSEnumProperties=
-      //|    Name(UnifiedString modifier1StringIndex), Name(UnifiedString modifier2StringIndex), Name(UnifiedString enumStringIndex), CSEnumName
-      //|    | Name(UnifiedString modifierStringIndex), Name(UnifiedString enumStringIndex), CSEnumName
-      //|    | Name(UnifiedString enumStringIndex), CSEnumName
+      //| CSEnumProperties
+      //| = Name(UnifiedString modifier1StringIndex), Name(UnifiedString modifier2StringIndex), Name(UnifiedString enumStringIndex), CSEnumName
+      //| | Name(UnifiedString modifierStringIndex), Name(UnifiedString enumStringIndex), CSEnumName
+      //| | Name(UnifiedString enumStringIndex), CSEnumName
 
       //| CSEnumName= Name(UnifiedString nameString)
       private void EnumNameRecognized(UnifiedString nameString)
@@ -861,26 +861,26 @@ namespace grammlator
       }
       int DictCountBeforeEnum = 0;
 
-      //| optionalBaseType=
-      //|    /* empty */
-      //|    | ":", Name(UnifiedString Ignored);
+      //| optionalBaseType
+      //| = /* empty */
+      //| | ":", Name(UnifiedString Ignored);
       //|
-      //| CSEnumMembers=
-      //|    "{", "}"
+      //| CSEnumMembers
+      //| = "{", "}"
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
       private void EmptyEnumRecognized()
       {
          ResetEnumDefaults();
       }
-      //|    | "{", CSEnumMemberList, "}"
+      //| | "{", CSEnumMemberList, "}"
 
-      //| CSEnumMemberList=
-      //|    ResetEnumDefaults, CSEnumMember
-      //|    | CSEnumMemberList, Comma, CSEnumMember
+      //| CSEnumMemberList
+      //| = ResetEnumDefaults, CSEnumMember
+      //| | CSEnumMemberList, Comma, CSEnumMember
 
-      //| CSEnumMember=
-      //|    OptionalDescriptionAttribute(String description), Name(UnifiedString enumElementString), OptionalEnumElementNumber(Int64 enumNumber)
+      //| CSEnumMember
+      //| = OptionalDescriptionAttribute(String description), Name(UnifiedString enumElementString), OptionalEnumElementNumber(Int64 enumNumber)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
       private void EnumElementRecognized(String description, UnifiedString enumElementString, Int64 enumNumber)
@@ -888,8 +888,8 @@ namespace grammlator
          EvaluateEnumElement(description, enumElementString, enumNumber);
       }
 
-      //| OptionalEnumElementNumber(Int64 enumNumber)=
-      //|   /* empty */
+      //| OptionalEnumElementNumber(Int64 enumNumber)
+      //| = /* empty */
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
       private void NoEnumElementNumber(out Int64 enumNumber)
@@ -897,7 +897,7 @@ namespace grammlator
          Int64 NextValue = EnumValues.Count <= 0 ? 0 : EnumValues[^1] + 1;
          enumNumber = NextValue;
       }
-      //|   | "=", Number(Int64 enumNumber);
+      //| | "=", Number(Int64 enumNumber);
       //|
       //| ResetEnumDefaults= /*empty*/
       private void ResetEnumDefaults()
@@ -906,15 +906,15 @@ namespace grammlator
          EnumValues.Clear();
       }
       //|
-      //| OptionalDescriptionAttribute(String description)=
-      //|      /* empty */ 
+      //| OptionalDescriptionAttribute(String description)
+      //| = /* empty */ 
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
       private void NoDescriptionAttribute(out String description)
       {
          description = "";
       }
-      //|    | "[", Name(UnifiedString attributeIdentifier) , "(", LexerString(UnifiedString descriptionString), ")", "]"
+      //| | "[", Name(UnifiedString attributeIdentifier) , "(", LexerString(UnifiedString descriptionString), ")", "]"
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
       private void DescriptionAttribute(out String description, UnifiedString attributeIdentifier, UnifiedString descriptionString)
@@ -965,7 +965,7 @@ namespace grammlator
          LexerResult ParserInput;
          LastTerminalValue = -1;
   /* ************************ end of code written by programmer ******************** */
-#region grammlator generated 14 Nov. 2020 (grammlator file version/date 2020.11.09.0/14 Nov. 2020)
+#region grammlator generated 22 Nov. 2020 (grammlator file version/date 2020.11.09.0/22 Nov. 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fDefiningSymbol = 1L << (Int32)(LexerResult.DefiningSymbol);
@@ -3916,7 +3916,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 14 Nov. 2020 (grammlator file version/date 2020.11.09.0/14 Nov. 2020)
+#endregion grammlator generated 22 Nov. 2020 (grammlator file version/date 2020.11.09.0/22 Nov. 2020)
 
       }
    }

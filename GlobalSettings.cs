@@ -192,17 +192,21 @@ namespace grammlator {
 
       /*** Terminal and Input Settings ***/
 
+      internal const string TerminalSymbolUndefinedValue= "\uFFFF";
+
       /// <summary>
       /// <see cref="TerminalSymbolEnum.Value"/> (e.g. "LexerResult") is used to generated code
       ///  (e.g. "if (Symbol != LexerResult.Name)...;"
       /// </summary>
       internal static StringSetting TerminalSymbolEnum
-         = new StringSetting("TerminalSymbolEnum", "", VisibleSettings,
-@"Typically this is """" and grammlator uses the name of the C# enum which defines the terminal symbols.
-This name will be combined in the generated code with the names of the terminal symbols using
-the dot syntax ""enum.member"".
+         = new StringSetting("TerminalSymbolEnum", TerminalSymbolUndefinedValue, VisibleSettings,
+@"The initial value is a special character which denotes that this value is undefined.
+If defined and not equal """", this name will be combined in the generated code with the names
+of the terminal symbols using the dot syntax ""enum.member"".
+In special cases it will be used as the type of the enum elements.
 Only in very special applications there is no explicit enum and TerminalSymbolEnum is """".
-If an explicit enum is used to define the terminals and this setting is not """", then TerminalSymbolEnum is used.
+If an explicit enum is used to define the terminals and this setting is the special initial value,
+then TerminalSymbolEnum is used.
 Typical usage: ""MyClass.MyEnum"" if the enum defining the terminal symbols is defined in another file
    and a copy with a modified name is used to define the terminal symbols.");
 

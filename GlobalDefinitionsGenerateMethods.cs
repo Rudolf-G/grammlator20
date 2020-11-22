@@ -885,12 +885,9 @@ namespace grammlator {
                IsDefaultAction = true;
 
                // generate first part of comment "// <= xxx"
-               codegen.IndentExactly();
-               codegen.Append("// <= ");
-               codegen.AppendWithPrefix(
-                   GlobalSettings.TerminalSymbolEnum.Value,
-                   GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal + LeadingCount - 1].Identifier
-                   );
+               codegen.IndentExactly()
+                 .Append("// <= ")
+                 .Append(GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal + LeadingCount - 1].NameToGenerate);
             }
 
             // Special case: default action if Terminals contains the last possible terminal
@@ -903,21 +900,18 @@ namespace grammlator {
                IsDefaultAction = true;
 
                // generate first part of comment "// >= yyy"
-               codegen.IndentExactly();
-               codegen.Append("// >= ");
-               codegen.AppendWithPrefix(
-                   GlobalSettings.TerminalSymbolEnum.Value,
-                   GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].Identifier
-                   );
+               codegen.IndentExactly()
+                  .Append("// >= ")
+                  .Append(GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].NameToGenerate);
             }
 
             if (IsDefaultAction)
             {
                // generate second part of comment ": goto aaa; // see end of switch"
-               codegen.Append(": ");
-               codegen.Append("goto ");
-               codegen.Append(P5CodegenCS.GotoLabel(ThisAction));
-               codegen.Append("; // see end of switch");
+               codegen.Append(": ")
+                  .Append("goto ")
+                  .Append(P5CodegenCS.GotoLabel(ThisAction))
+                  .Append("; // see end of switch");
             }
 
             // if remaining terminal symbols, for each generate "case xxx:"
@@ -926,13 +920,10 @@ namespace grammlator {
             {
                CreatedCase = true;
                // generate "case TerminalSymbol: " 
-               codegen.IndentExactly();
-               codegen.Append("case ");
-               codegen.AppendWithPrefix(
-                   GlobalSettings.TerminalSymbolEnum.Value,
-                   GlobalVariables.TerminalSymbols[TerminalIndex].Identifier
-                   );
-               codegen.Append(":");
+               codegen.IndentExactly()
+                  .Append("case ")
+                  .Append(GlobalVariables.TerminalSymbols[TerminalIndex].NameToGenerate)
+                  .Append(":");
 
                TerminalIndex = Terminals.FindNextTrue(TerminalIndex);
             }
@@ -1005,18 +996,12 @@ namespace grammlator {
                ActionsSwapped = true;
 
                codegen.Append(" >= ")
-               .AppendWithPrefix(
-                   GlobalSettings.TerminalSymbolEnum.Value,
-                   GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].Identifier
-                   );
+                  .Append(GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].NameToGenerate);
             }
             else
             {
-               codegen.Append(" <= ");
-               codegen.AppendWithPrefix(
-                   GlobalSettings.TerminalSymbolEnum.Value,
-                   GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal + LeadingCount - 1].Identifier
-                   );
+               codegen.Append(" <= ")
+                  .Append(GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal + LeadingCount - 1].NameToGenerate);
             }
 
             codegen.Append(") ");
@@ -1045,40 +1030,28 @@ namespace grammlator {
             Append('(');
          if (Action1Generate == Action2Generate)
          {
-            codegen.Append(GlobalSettings.InputExpression.Value);
-            codegen.Append(" <= ");
-            codegen.AppendWithPrefix(
-                GlobalSettings.TerminalSymbolEnum.Value,
-                GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal + LeadingCount - 1].Identifier
-                );
-            codegen.Append(" || ");
-            codegen.Append(GlobalSettings.InputExpression.Value);
-            codegen.Append(" >= ");
-            codegen.AppendWithPrefix(
-                GlobalSettings.TerminalSymbolEnum.Value,
-                GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].Identifier
-                );
+            codegen.Append(GlobalSettings.InputExpression.Value)
+               .Append(" <= ")
+               .Append(GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal + LeadingCount - 1].NameToGenerate)
+               .Append(" || ")
+               .Append(GlobalSettings.InputExpression.Value)
+               .Append(" >= ")
+               .Append(GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].NameToGenerate);
          }
          else if (ActionsSwapped)
          {
-            codegen.Append(GlobalSettings.InputExpression.Value);
-            codegen.Append(" <= ");
-            codegen.AppendWithPrefix(
-                GlobalSettings.TerminalSymbolEnum.Value,
-                GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal + LeadingCount - 1].Identifier
-                );
+            codegen.Append(GlobalSettings.InputExpression.Value)
+               .Append(" <= ")
+               .Append(GlobalVariables.TerminalSymbols[IndexOf1stPossibleTerminal + LeadingCount - 1].NameToGenerate);
          }
          else
          {
-            codegen.Append(GlobalSettings.InputExpression.Value);
-            codegen.Append(" >= ");
-            codegen.AppendWithPrefix(
-                GlobalSettings.TerminalSymbolEnum.Value,
-                GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].Identifier
-                );
+            codegen.Append(GlobalSettings.InputExpression.Value)
+               .Append(" >= ")
+               .Append(GlobalVariables.TerminalSymbols[IndexOfLastPossibleTerminal - TrailingCount + 1].NameToGenerate);
          }
-         codegen.AppendLine(");");
-         codegen.AppendLine("");
+         codegen.AppendLine(");")
+            .AppendLine("");
       }
 
       /// <summary>
@@ -1473,9 +1446,9 @@ namespace grammlator {
          if (blockIndex == 1 && !checkingForbiddenTerminals && !GlobalSettings.InputPeekChecksBounds.Value)
          {
             // Simulate block -1 and generate exclusion of preceding values   "Symbol > EndOfBlock && ..." 
-            String firstTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(0).Identifier;
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " > ");
-            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, firstTerminalSymbol);
+            TerminalSymbol firstTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(0);
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " > ")
+               .Append(firstTerminalSymbol.NameToGenerate);
             is1stCondition = false;
          }
          else // blockIndex == 0 !
@@ -1492,9 +1465,9 @@ namespace grammlator {
                return;
             }
 
-            String endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd).Identifier;
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " >= ");
-            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
+            TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd);
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " >= ")
+               .Append(endTerminalSymbol.NameToGenerate);
 
             blockIndex += 2; // special case has been handled here, start the loop below with next block of same type 
             is1stCondition = false;
@@ -1507,41 +1480,41 @@ namespace grammlator {
             block = blockList[blockIndex];
             Debug.Assert(!block.BlockType);
 
-            String startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockStart).Identifier;
-            String endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd).Identifier;
+            TerminalSymbol startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockStart);
+            TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd);
 
             if (!is1stCondition)
             {
                // concatenate code for not the first block etc. with " && " 
-               codegen.AppendLineAndIndent();
-               codegen.Append("&& ");
+               codegen.AppendLineAndIndent()
+                  .Append("&& ");
             }
             is1stCondition = false;
 
             if (IsSpecialLastBlockOf0s())
             {
                // generate "Symbol > EndOfBlock" 
-               codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " < ");
-               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
+               codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " < ")
+                  .Append(startTerminalSymbol.NameToGenerate);
             }
             else
                switch (block.RelevantBitsCount)
                {
                case 1: // generate: check of unequality of one allowed symbol
                {
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " != ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " != ")
+                     .Append(startTerminalSymbol.NameToGenerate);
                   break;
                }
                case 2: // generate: check of two forbidden symbols
                {
                   // compare two symbols: same complexity as test of interval but better readability
                   // no parantheses necessary
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " != ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
-                  codegen.Append(" && ");
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " != ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " != ")
+                     .Append(startTerminalSymbol.NameToGenerate)
+                     .Append(" && ")
+                     .AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " != ")
+                     .Append(endTerminalSymbol.NameToGenerate);
                   break;
                }
                default:// generate: check a sequence of three or more allowed symbols
@@ -1549,11 +1522,11 @@ namespace grammlator {
                   // generate: test closed interval of three or more symbols
                   if (useParentheses)
                      codegen.Append('(');
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " < ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
-                  codegen.Append(" || ");
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " > ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " < ")
+                     .Append(startTerminalSymbol.NameToGenerate)
+                     .Append(" || ")
+                     .AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " > ")
+                     .Append(endTerminalSymbol.NameToGenerate);
                   if (useParentheses)
                      codegen.Append(')');
                   break;
@@ -1572,9 +1545,8 @@ namespace grammlator {
                codegen.AppendLineAndIndent();
                codegen.Append("&& ");
             }
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " <= ");
-            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value,
-               GlobalVariables.GetTerminalSymbolByIndex(blockList[^1].BlockEnd).Identifier);
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " <= ")
+               .Append(GlobalVariables.GetTerminalSymbolByIndex(blockList[^1].BlockEnd).NameToGenerate);
          }
       }
 
@@ -1597,7 +1569,7 @@ namespace grammlator {
          if (blockList.Count <= 1)
          {
             Debug.Assert(false, "all true or false condition should not occur");
-            if (blockList.Count==0 || blockList[0].BlockType)
+            if (blockList.Count == 0 || blockList[0].BlockType)
                codegen.AppendWithOptionalLinebreak("true");
             else
                codegen.AppendWithOptionalLinebreak("false");
@@ -1655,9 +1627,9 @@ namespace grammlator {
          if (blockIndex == 1 && checkingForbiddenTerminals && !GlobalSettings.InputPeekChecksBounds.Value)
          {
             // Simulate block -1 and generate test of preceding values  "Symbol < 1st terminal symbol"
-            String firstTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(0).Identifier;
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " < ");
-            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, firstTerminalSymbol);
+            TerminalSymbol firstTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(0);
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " < ")
+               .Append(firstTerminalSymbol.NameToGenerate);
             is1stCondition = false;
          }
          else // blockIndex == 0 !
@@ -1673,8 +1645,8 @@ namespace grammlator {
             }
 
             TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd);
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " <= ");
-            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol.Identifier);
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " <= ")
+               .Append(endTerminalSymbol.NameToGenerate);
 
             is1stCondition = false;
             blockIndex += 2; // special case has been handled here, start the loop below with next block of same type 
@@ -1687,8 +1659,8 @@ namespace grammlator {
             block = blockList[blockIndex];
             Debug.Assert(block.BlockType);
 
-            String startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockStart).Identifier;
-            String endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd).Identifier;
+            TerminalSymbol startTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockStart);
+            TerminalSymbol endTerminalSymbol = GlobalVariables.GetTerminalSymbolByIndex(block.BlockEnd);
 
             if (!is1stCondition)
             {
@@ -1701,27 +1673,27 @@ namespace grammlator {
             if (IsSpecialLastBlockOf1s(blockIndex))
             {
                // generate "Symbol >= StartOfBlock"
-               codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " >= ");
-               codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
+               codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " >= ")
+                  .Append(startTerminalSymbol.NameToGenerate);
             }
             else
                switch (block.RelevantBitsCount)
                {
                case 1: // generate: check of equality of one allowed symbol
                {
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " == ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " == ").
+                     Append(startTerminalSymbol.NameToGenerate);
                   break;
                }
                case 2: // generate: check of two allowed symbols
                {
                   // compare two symbols: same complexity as test of interval but better readability
                   // no parantheses necessary
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " == ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
-                  codegen.Append(" || ");
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " == ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " == ")
+                     .Append(startTerminalSymbol.NameToGenerate)
+                     .Append(" || ")
+                     .AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " == ")
+                     .Append(endTerminalSymbol.NameToGenerate);
                   break;
                }
 
@@ -1730,11 +1702,11 @@ namespace grammlator {
                   // generate: test closed interval of three or more symbols
                   if (useParentheses)
                      codegen.Append('(');
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " >= ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, startTerminalSymbol);
-                  codegen.Append(" && ");
-                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " <= ");
-                  codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, endTerminalSymbol);
+                  codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " >= ")
+                     .Append(startTerminalSymbol.NameToGenerate)
+                     .Append(" && ")
+                     .AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " <= ")
+                     .Append(endTerminalSymbol.NameToGenerate);
                   if (useParentheses)
                      codegen.Append(')');
                   break;
@@ -1753,9 +1725,8 @@ namespace grammlator {
                codegen.AppendLineAndIndent();
                codegen.Append("|| ");
             }
-            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " > ");
-            codegen.AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value,
-               GlobalVariables.GetTerminalSymbolByIndex(blockList[^1].BlockEnd).Identifier);
+            codegen.AppendWithOptionalLinebreak(GlobalSettings.InputExpression.Value, " > ")
+               .Append(GlobalVariables.GetTerminalSymbolByIndex(blockList[^1].BlockEnd).NameToGenerate);
          }
       }
 
@@ -1863,13 +1834,13 @@ namespace grammlator {
             }
 
             codegen
-            .Append(GlobalSettings.InputExpression.Value)
-            .Append(op1)
-            .AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, GlobalVariables.GetTerminalSymbolByIndex(first).Identifier)
-            .Append(op2)
-            .Append((GlobalSettings.InputExpression.Value))
-            .Append(op3)
-            .AppendWithPrefix(GlobalSettings.TerminalSymbolEnum.Value, GlobalVariables.GetTerminalSymbolByIndex(last).Identifier);
+               .Append(GlobalSettings.InputExpression.Value)
+               .Append(op1)
+               .Append(GlobalVariables.GetTerminalSymbolByIndex(first).NameToGenerate)
+               .Append(op2)
+               .Append((GlobalSettings.InputExpression.Value))
+               .Append(op3)
+               .Append(GlobalVariables.GetTerminalSymbolByIndex(last).NameToGenerate);
             // op2 will be appended if at least one Flag is tested
             first++;
             last--;

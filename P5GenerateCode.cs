@@ -64,7 +64,9 @@ namespace grammlator
 
          // Check if the enum values of all terminal symbols can be used as flags
          Int64 Flags = 0;
-         UseTerminalValuesAsFlags = true;
+         UseTerminalValuesAsFlags = // the code generated to handle flags uses the TerminalSymbolEnum 
+            GlobalSettings.TerminalSymbolEnum.Value !=  GlobalSettings.TerminalSymbolUndefinedValue
+            && GlobalSettings.TerminalSymbolEnum.Value != "";
          foreach (TerminalSymbol terminal in GlobalVariables.TerminalSymbols)
          {
             if (terminal.EnumValue == 0 || (terminal.EnumValue & Flags) != 0)
@@ -77,13 +79,10 @@ namespace grammlator
          }
 
          if (UseTerminalValuesAsFlags)
-         {
-            // 
             GlobalSettings.PrefixOfFlagConstants.Value = GlobalSettings.TerminalSymbolEnum.Value + '.';
-         }
          else
          {
-            // Clear Check if Flag-Tests can be used in generated code
+            // Clear GlobalSettings.NameOfFlagTestMethod.Value if Flag-Tests can not be used in generated code
             Int64 MinValue = GlobalVariables.TerminalSymbols[0].EnumValue;
             Int64 MaxValue = GlobalVariables.TerminalSymbols[^1].EnumValue;
             if (MaxValue - MinValue > 63)

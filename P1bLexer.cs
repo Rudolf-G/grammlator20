@@ -361,52 +361,53 @@ namespace grammlator {
       //|   | Gap, StartsymbolCSharpStart
       //|   | Gap, StartsymbolCSharpEnd
 
-      //| StartsymbolNumber(Int64 value)=
-      //|    Number(Int64 value) ?? -1 ?? /* low priority makes this definition greedy */
+      //| StartsymbolNumber(Int64 value)
+      //| = Number(Int64 value) ?? -1 ?? /* low priority makes this definition greedy */
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignNumberToSymbol() => Symbol = LexerResult.Number;
 
-      //| StartsymbolString(UnifiedString lexerString)=
-      //|    String(UnifiedString lexerString)
+      //| StartsymbolString(UnifiedString lexerString)
+      //| = String(UnifiedString lexerString)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignStringToStartsymbol() => Symbol = LexerResult.LexerString;
 
-      //| StartsymbolStarEqual=
-      //|    Asterisk(Int32 i1), DefiningSymbol(Int32 i2)
+      //| StartsymbolStarEqual
+      //| = Asterisk(Int32 i1), DefiningSymbol(Int32 i2)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignStarEqual() => Symbol = LexerResult.StarEqual;
 
-      //| StartsymbolMinusEqual=
-      //|    Minus(Int32 i1), DefiningSymbol(Int32 i2)
+      //| StartsymbolMinusEqual
+      //| = Minus(Int32 i1), DefiningSymbol(Int32 i2)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignMinusEqual() => Symbol = LexerResult.MinusEqual;
 
-      //| StartsymbolDoubleQuestionmark=
-      //|    Questionmark(Int32 i1), Questionmark(Int32 i2)
+      //| StartsymbolDoubleQuestionmark
+      //| = Questionmark(Int32 i1), Questionmark(Int32 i2)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignDoubleQuestionmarkToSymbol() => Symbol = LexerResult.DoubleQuestionmark;
 
-      //| Gap= GapString
+      //| Gap
+      //| = GapString
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AdvanceTextPos() => LexerTextPos = inputClassifier.CurrentPosition;
 
-      //| GapString=
-      //|      /*empty */
-      //|    | Gap, WhiteSpace(Int32 i)
-      //|    | Gap, Comment;
+      //| GapString
+      //| = /*empty */
+      //| | Gap, WhiteSpace(Int32 i)
+      //| | Gap, Comment;
       //|
-      //| CharacterToPassOn=
-      //|    OneCharacterToPassOn(Int32 index)
+      //| CharacterToPassOn
+      //| = OneCharacterToPassOn(Int32 index)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void TranslateCharToLexerResult(Int32 index)
          => Symbol = CharToLexerResult[Source.Span[index]];
 
-      //| OneCharacterToPassOn(Int32 i)=
-      //|    DefiningSymbol(Int32 i)     | Comma(Int32 i)         | DefinitionSeparatorSymbol(Int32 i) | Questionmark(Int32 i) ??-202??
-      //|    | TerminatorSymbol(Int32 i) | Minus(Int32 i)??-200?? | Plus(Int32 i)                      | Colon (Int32 i)
-      //|    | Asterisk(Int32 i)??-201?? | GroupStart(Int32 i)    | OptionStart(Int32 i)               | RepeatStart(Int32 i)
-      //|    | GroupEnd(Int32 i)         | OptionEnd(Int32 i)     | RepeatEnd(Int32 i)                 | NumberSign(Int32 i)
-      //|    | Percent(Int32 i)
+      //| OneCharacterToPassOn(Int32 i)
+      //| = DefiningSymbol(Int32 i)     | Comma(Int32 i)         | DefinitionSeparatorSymbol(Int32 i) | Questionmark(Int32 i) ??-202??
+      //| | TerminatorSymbol(Int32 i) | Minus(Int32 i)??-200?? | Plus(Int32 i)                      | Colon (Int32 i)
+      //| | Asterisk(Int32 i)??-201?? | GroupStart(Int32 i)    | OptionStart(Int32 i)               | RepeatStart(Int32 i)
+      //| | GroupEnd(Int32 i)         | OptionEnd(Int32 i)     | RepeatEnd(Int32 i)                 | NumberSign(Int32 i)
+      //| | Percent(Int32 i)
 
       //|    StartsymbolCSharpStart = CSharpStart(Int32 i)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -421,21 +422,21 @@ namespace grammlator {
       //| /* Define optional String representations of some terminal symbols for better readability of the following grammar */
       //| "/"(Int32 i) = Slash(Int32 i); "*"(Int32 i) = Asterisk(Int32 i)
 
-      //| Comment=
-      //|    "/"(Int32 i1), "*"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, "/"(Int32 iEnd)
-      //|    | "/"(Int32 i1), "/"(Int32 i2) /* ignore remainder of line */
+      //| Comment
+      //| = "/"(Int32 i1), "*"(Int32 i2), CommentcharacterSequenceEndingWithAsterisk, "/"(Int32 iEnd)
+      //| | "/"(Int32 i1), "/"(Int32 i2) /* ignore remainder of line */
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void SingleLineComment() => inputClassifier.IgnoreAllCharactersUntilEndOfLine();
 
-      //| CommentcharacterSequenceEndingWithAsterisk=
-      //|   "*"(Int32 i)
-      //|    | CommentcharacterSequenceNotEndingWithAsterisk, "*"(Int32 i)
-      //|    | CommentcharacterSequenceEndingWithAsterisk, "*"(Int32 i) // ending with more asterisks
+      //| CommentcharacterSequenceEndingWithAsterisk
+      //| = "*"(Int32 i)
+      //| | CommentcharacterSequenceNotEndingWithAsterisk, "*"(Int32 i)
+      //| | CommentcharacterSequenceEndingWithAsterisk, "*"(Int32 i) // ending with more asterisks
 
-      //| CommentcharacterSequenceNotEndingWithAsterisk=
-      //|   "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i)
-      //|   | CommentcharacterSequenceNotEndingWithAsterisk, "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i)
-      //|   | CommentcharacterSequenceEndingWithAsterisk, anyCharacterExceptAsteriskAndSlash(Int32 i)
+      //| CommentcharacterSequenceNotEndingWithAsterisk
+      //| = "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i)
+      //| | CommentcharacterSequenceNotEndingWithAsterisk, "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 i)
+      //| | CommentcharacterSequenceEndingWithAsterisk, anyCharacterExceptAsteriskAndSlash(Int32 i)
 
       //| "anyCharacter-*-CSharpStart-CSharpEnd"(Int32 index)-= /* and except CSharpStart and CSharpEnd */
       //|    Asterisk | CSharpStart | CSharpEnd;
@@ -448,13 +449,13 @@ namespace grammlator {
       //| anyCharacterExceptApostrophe(Int32 index)-= /* and except CSharpStart and CSharpEnd */
       //|   Apostrophe | CSharpStart | CSharpEnd;
       //|
-      //| Name(UnifiedString unifiedString)=
-      //|    SequenceOfLettersOrDigits ??-11?? /* low priority makes this definition greedy */
+      //| Name(UnifiedString unifiedString)
+      //| = SequenceOfLettersOrDigits ??-11?? /* low priority makes this definition greedy */
       private void GetNameFromSource(out UnifiedString unifiedString)
          => unifiedString = new UnifiedString(Source[Name1stIndex..(NameLastIndex + 1)]);
 
-      //| SequenceOfLettersOrDigits=
-      //|    Letter(Int32  index)
+      //| SequenceOfLettersOrDigits
+      //| = Letter(Int32  index)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void Found1stLetterOfName(Int32 index)
       {
@@ -464,7 +465,7 @@ namespace grammlator {
 
       private Int32 Name1stIndex, NameLastIndex;
 
-      //|    | SequenceOfLettersOrDigits, LetterOrDigit(Int32 index) ??-12??
+      //| | SequenceOfLettersOrDigits, LetterOrDigit(Int32 index) ??-12??
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AddCharToName(Int32 index)
          => NameLastIndex = index;
@@ -499,7 +500,6 @@ namespace grammlator {
          ;
       }
       readonly StringBuilder StringCharacterSequence = new StringBuilder(128);
-
       //| | StringCharacterSequence, anyCharacterExceptQuotationmark(Int32 index)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void StringAppendCharacter(Int32 index)
