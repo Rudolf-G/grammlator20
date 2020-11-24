@@ -128,7 +128,7 @@ namespace grammlator {
 
          ListOfAllPriorityBranchActions.Clear();
          ListOfAllPriorityBranchActions.Capacity = InitialCapacityOfListOfAllPriorityBranchActions;
-      }      
+      }
 
       internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage {
          get; private set;
@@ -180,6 +180,11 @@ namespace grammlator {
       /// Used to get terminal symbols by its SymbolNumber
       /// </summary>
       internal static TerminalSymbol[] TerminalSymbols;
+
+      /// <summary>
+      /// Assigned and used in P5. Is set if the terminal symbols can be used as flags else is reset.
+      /// </summary>
+      internal static Boolean TerminalSymbolsAreFlags = false;
 
       /// <summary>
       /// Called once after phase1 is finished.

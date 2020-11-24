@@ -1130,9 +1130,8 @@ namespace grammlator {
 
          if (Complexity > GlobalSettings.GenerateFlagTestStartingLevel.Value * 100 - 50
             // 350 allows e.g. 2 comparisions and 1 logical operator
-            && GlobalSettings.NameOfFlagTestMethod.Value != ""
-            && GlobalVariables.NumberOfTerminalSymbols <= 63
-            // TODO correct condition: the value of each enum element must be >= 0  and  <=63
+            && (GlobalSettings.NameOfFlagTestMethod.Value != ""
+                || GlobalVariables.TerminalSymbolsAreFlags)
             )
          {
             GenerateIsIn(codegen, condition, relevant, checkingForbiddenTerminals);
@@ -1860,33 +1859,60 @@ namespace grammlator {
 
             if (Is1stTrueFlag)
             {
-
-               codegen.Append(op2); // "" or " || " or " && "
-
-               if (inverse)
-                  codegen.Append("!");
-
-               codegen
-                  .Append(GlobalSettings.NameOfFlagTestMethod.Value)
-                  .Append('(');
+               GenerateFlagTestPart1(codegen, inverse, op2);
             }
             else
                codegen.Append(' ').AppendOptionalLinebreak().Append("| ");
 
             Is1stTrueFlag = false;
 
-            codegen
-               .Append(GlobalSettings.PrefixOfFlagConstants.Value)
-               .Append(t.FlagName)
-               .AppendOptionalLinebreak();
+            if (GlobalVariables.TerminalSymbolsAreFlags)
+               codegen.Append(t.NameToGenerate);
+            else
+               codegen
+                  .Append(GlobalSettings.PrefixOfFlagConstants.Value)
+                  .Append(t.FlagName);
+
+            codegen.AppendOptionalLinebreak();
          }
 
          codegen.DecrementIndentationLevel();
 
          if (!Is1stTrueFlag)
-            codegen.Append(')');
+            GenerateFlagTestPart2(codegen);
       }
 
+      private static void GenerateFlagTestPart1(P5CodegenCS codegen, Boolean inverse, String op2)
+      {
+         codegen.Append(op2); // "" or " || " or " && "
+
+         if (GlobalVariables.TerminalSymbolsAreFlags)
+         {
+            if (inverse)
+               codegen.Append("0 == (");
+            else
+               codegen.Append("0 != (");
+            codegen.Append(GlobalSettings.InputExpression.Value)
+               .Append(" & (");
+         }
+         else
+         {
+            // generate optional "!" and then "_is("
+            if (inverse)
+               codegen.Append("!");
+            codegen
+               .Append(GlobalSettings.NameOfFlagTestMethod.Value)
+               .Append('(');
+         }
+      }
+
+      private static void GenerateFlagTestPart2(P5CodegenCS codegen)
+      {
+         if (GlobalVariables.TerminalSymbolsAreFlags)
+            codegen.Append("))");
+         else
+            codegen.Append(")");
+      }
    }
 
 }

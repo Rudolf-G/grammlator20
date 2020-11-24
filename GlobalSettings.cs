@@ -192,24 +192,6 @@ namespace grammlator {
 
       /*** Terminal and Input Settings ***/
 
-      internal const string TerminalSymbolUndefinedValue= "\uFFFF";
-
-      /// <summary>
-      /// <see cref="TerminalSymbolEnum.Value"/> (e.g. "LexerResult") is used to generated code
-      ///  (e.g. "if (Symbol != LexerResult.Name)...;"
-      /// </summary>
-      internal static StringSetting TerminalSymbolEnum
-         = new StringSetting("TerminalSymbolEnum", TerminalSymbolUndefinedValue, VisibleSettings,
-@"The initial value is a special character which denotes that this value is undefined.
-If defined and not equal """", this name will be combined in the generated code with the names
-of the terminal symbols using the dot syntax ""enum.member"".
-In special cases it will be used as the type of the enum elements.
-Only in very special applications there is no explicit enum and TerminalSymbolEnum is """".
-If an explicit enum is used to define the terminals and this setting is the special initial value,
-then TerminalSymbolEnum is used.
-Typical usage: ""MyClass.MyEnum"" if the enum defining the terminal symbols is defined in another file
-   and a copy with a modified name is used to define the terminal symbols.");
-
       /// <summary>
       /// <see cref="InputExpression"/> is used as variable name or method call in generated code
       /// </summary>
@@ -253,6 +235,36 @@ Example: ""AcceptSymbol();""  or ""_ = MyReader.Read();""
          This method has to be declared somewhere in the context. 
 ");
 
+      internal static Int64Setting TerminalDefaultWeight
+         = new Int64Setting("TerminalDefaultWeight", 20, VisibleSettings,
+@"The default weight assigned to a terminal symbol. Terminals with a high weight
+tend to be checked earlier in generated sequences of conditions.");
+
+      internal static StringSetting TerminalDefaultAttributes
+         = new StringSetting("TerminalDefaultAttributes", "", InternalSettings,
+@"These attributes are provided for terminal declarations with no specification of attributes.
+Example: ""(char c)""");
+
+      // TODO implement TerminalDefaultAttributes
+
+      internal const string TerminalSymbolUndefinedValue = "\uFFFF";
+
+      /// <summary>
+      /// <see cref="TerminalSymbolEnum.Value"/> (e.g. "LexerResult") is used to generated code
+      ///  (e.g. "if (Symbol != LexerResult.Name)...;"
+      /// </summary>
+      internal static StringSetting TerminalSymbolEnum
+         = new StringSetting("TerminalSymbolEnum", TerminalSymbolUndefinedValue, VisibleSettings,
+@"The initial value is a special character which denotes that this value is undefined.
+If defined and not equal """", this name will be combined in the generated code with the names
+of the terminal symbols using the dot syntax ""enum.member"".
+In special cases it will be used as the type of the enum elements.
+Only in very special applications there is no explicit enum and TerminalSymbolEnum is """".
+If an explicit enum is used to define the terminals and this setting is the special initial value,
+then TerminalSymbolEnum is used.
+Typical usage: ""MyClass.MyEnum"" if the enum defining the terminal symbols is defined in another file
+   and a copy with a modified name is used to define the terminal symbols.");
+
       /// <summary>
       /// <see cref="NameOfErrorHandlerMethod"/> is used to generate code
       /// </summary>
@@ -275,18 +287,6 @@ It is executed after the optional NameOfTheErrorHandlerMethod has been called
  nd returned false (or if there is no NameOfTheErrorHandlerMethod defined)
 just before the jump to the end of generated code.
 Examples: """" or ""return false;""");
-
-      internal static Int64Setting TerminalDefaultWeight
-         = new Int64Setting("TerminalDefaultWeight", 20, VisibleSettings,
-@"The default weight assigned to a terminal symbol. Terminals with a high weight
-tend to be checked earlier in generated conditions.");
-
-      internal static StringSetting TerminalDefaultAttributes
-         = new StringSetting("TerminalDefaultAttributes", "", InternalSettings,
-@"These attributes are provided for terminal declarations with no specification of attributes.
-They are specified in an explict terminal declaration by using a ':'. Example: ""a(char c):""");
-
-      // TODO implement TerminalDefaultAttributes
 
       internal static BooleanSetting GenerateSmallStateStackNumbers
         = new BooleanSetting("GenerateSmallStateStackNumbers", true, VisibleSettings,
@@ -329,18 +329,17 @@ CompareToFlagTestBorder then a test of flags will be generated.
 A typical value is ""3"".");
 
       /// <summary>
-      /// e.g. "_Is(#)". Will be set to "" if an enum is found and the maximum value of an element is &gt;63
+      /// e.g. "_Is(#)". Will be set to "" if the span of the values of the terminal symbols is &gt;63
+      /// or if the values of the terminal symbols can be used as flags directly
       /// </summary>
       internal static StringSetting NameOfFlagTestMethod
          = new StringSetting("NameOfFlagTestMethod", "_is", settingList: VisibleSettings,
-@"The name of the boolean method which implements the flag test.
+@"The name of the boolean method which implements the flag test if the values of the 
+terminals symbols are not flags (2,4, 8, ...).
 If this name is """" then grammlator will not generate and use
 this method and the flag constants representing terminal symbols.
 It should only be a string value, e.g. the preset value ""_is"", if
-the values of the terminal symbols are flags (1, 2, 4, ...) or the
-difference between the largest and the smallest value of a terminal symbol is <=63 and
-if the input can be only values explicitely defined in the terminal enum
-but no additional values of the enum base type.
+the difference between the largest and the smallest value of a terminal symbol is <=63.
 Grammlator will reset this pattern to """" if it recognizes that the above condition
 is broken.");
 

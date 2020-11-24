@@ -28,7 +28,7 @@ namespace grammlator {
    /// <summary>
    /// This enum defines the characters and character groups recognized by InputClassifier and used by Lexer.
    /// </summary>
-   public enum ClassifierResult: byte {
+   public enum ClassifierResult : byte {
       // The values of this enum elements are used as indexes in 
       //   const String MyDisplay = "=,|;-+:%*([{)]}#xx?x/x\"xx"; see ClassifierResultExtensions
       // The attribute of each terminal is the position in the input stream
@@ -349,52 +349,52 @@ namespace grammlator {
       //|
       //| // Declaration of the startsymbol: the attributes of the definitions are used as attributes of the generated symbols
       //| *= 
-      //|     Gap, CharacterToPassOn
-      //|   | Gap, Name(UnifiedString unifiedString) 
+      //|     Trivia, CharacterToPassOn
+      //|   | Trivia, Name(UnifiedString unifiedString) 
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignNameToSymbol() => Symbol = LexerResult.Name;
-      //|   | Gap, StartsymbolNumber (Int64 value)
-      //|   | Gap, StartsymbolString(UnifiedString lexerString)
-      //|   | Gap, StartsymbolDoubleQuestionmark
-      //|   | Gap, StartsymbolStarEqual
-      //|   | Gap, StartsymbolMinusEqual
-      //|   | Gap, StartsymbolCSharpStart
-      //|   | Gap, StartsymbolCSharpEnd
-
+      //|   | Trivia, StartsymbolNumber (Int64 value)
+      //|   | Trivia, StartsymbolString(UnifiedString lexerString)
+      //|   | Trivia, StartsymbolDoubleQuestionmark
+      //|   | Trivia, StartsymbolStarEqual
+      //|   | Trivia, StartsymbolMinusEqual
+      //|   | Trivia, StartsymbolCSharpStart
+      //|   | Trivia, StartsymbolCSharpEnd;
+      //|
       //| StartsymbolNumber(Int64 value)
       //| = Number(Int64 value) ?? -1 ?? /* low priority makes this definition greedy */
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignNumberToSymbol() => Symbol = LexerResult.Number;
-
+      //|
       //| StartsymbolString(UnifiedString lexerString)
       //| = String(UnifiedString lexerString)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignStringToStartsymbol() => Symbol = LexerResult.LexerString;
-
+      //|
       //| StartsymbolStarEqual
       //| = Asterisk(Int32 i1), DefiningSymbol(Int32 i2)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignStarEqual() => Symbol = LexerResult.StarEqual;
-
+      //|
       //| StartsymbolMinusEqual
       //| = Minus(Int32 i1), DefiningSymbol(Int32 i2)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignMinusEqual() => Symbol = LexerResult.MinusEqual;
-
+      //|
       //| StartsymbolDoubleQuestionmark
       //| = Questionmark(Int32 i1), Questionmark(Int32 i2)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AssignDoubleQuestionmarkToSymbol() => Symbol = LexerResult.DoubleQuestionmark;
-
-      //| Gap
-      //| = GapString
+      //|
+      //| Trivia
+      //| = TriviaString
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       private void AdvanceTextPos() => LexerTextPos = inputClassifier.CurrentPosition;
-
-      //| GapString
+      //|
+      //| TriviaString
       //| = /*empty */
-      //| | Gap, WhiteSpace(Int32 i)
-      //| | Gap, Comment;
+      //| | Trivia, WhiteSpace(Int32 i)
+      //| | Trivia, Comment;
       //|
       //| CharacterToPassOn
       //| = OneCharacterToPassOn(Int32 index)
@@ -476,8 +476,9 @@ namespace grammlator {
       //| CharLiteral(UnifiedString charString)
       //| = Apostrophe(Int32 i1), anyCharacterExceptApostrophe(Int32 i2), Apostrophe(Int32 i3)
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      private void CharLiteral(out UnifiedString charString, Int32 i2){
-         StringCharacterSequence.Clear().Append('\'').Append(Source.Span[i2]).Append('\'');
+      private void CharLiteral(out UnifiedString charString, Int32 i2, Int32 i3)
+      {
+         StringCharacterSequence.Clear().Append('\'').Append(Source.Span[i2..i3]).Append('\'');
          charString = new UnifiedString(StringCharacterSequence.ToString());
       }
       //| 
@@ -530,7 +531,7 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated 14 Nov 2020 (grammlator file version/date 2020.11.09.0/13 Nov 2020)
+#region grammlator generated 23 Nov. 2020 (grammlator file version/date 2020.11.09.0/22 Nov. 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
   const Int64 _fCSharpStart = 1L << (Int32)(ClassifierResult.CSharpStart);
   const Int64 _fCSharpEnd = 1L << (Int32)(ClassifierResult.CSharpEnd);
@@ -541,23 +542,23 @@ namespace grammlator {
   Boolean _is(Int64 flags) => (1L << (Int32)((LexerInput)) & flags) != 0;
 
 Reduce1:
-  /* Gap= GapString;◄ */
+  /* Trivia= TriviaString;◄ */
 
   AdvanceTextPos();
 
 State2:
   const String StateDescription2 =
-       "*Startsymbol= Gap, ►CharacterToPassOn;\r\n"
-     + "*Startsymbol= Gap, ►Name(UnifiedString unifiedString);\r\n"
-     + "*Startsymbol= Gap, ►StartsymbolNumber(Int64 value);\r\n"
-     + "*Startsymbol= Gap, ►StartsymbolString(UnifiedString lexerString);\r\n"
-     + "*Startsymbol= Gap, ►StartsymbolDoubleQuestionmark;\r\n"
-     + "*Startsymbol= Gap, ►StartsymbolStarEqual;\r\n"
-     + "*Startsymbol= Gap, ►StartsymbolMinusEqual;\r\n"
-     + "*Startsymbol= Gap, ►StartsymbolCSharpStart;\r\n"
-     + "*Startsymbol= Gap, ►StartsymbolCSharpEnd;\r\n"
-     + "GapString= Gap, ►WhiteSpace(Int32 i);\r\n"
-     + "GapString= Gap, ►Comment;";
+       "*Startsymbol= Trivia, ►CharacterToPassOn;\r\n"
+     + "*Startsymbol= Trivia, ►Name(UnifiedString unifiedString);\r\n"
+     + "*Startsymbol= Trivia, ►StartsymbolNumber(Int64 value);\r\n"
+     + "*Startsymbol= Trivia, ►StartsymbolString(UnifiedString lexerString);\r\n"
+     + "*Startsymbol= Trivia, ►StartsymbolDoubleQuestionmark;\r\n"
+     + "*Startsymbol= Trivia, ►StartsymbolStarEqual;\r\n"
+     + "*Startsymbol= Trivia, ►StartsymbolMinusEqual;\r\n"
+     + "*Startsymbol= Trivia, ►StartsymbolCSharpStart;\r\n"
+     + "*Startsymbol= Trivia, ►StartsymbolCSharpEnd;\r\n"
+     + "TriviaString= Trivia, ►WhiteSpace(Int32 i);\r\n"
+     + "TriviaString= Trivia, ►Comment;";
   LexerInput = inputClassifier.PeekSymbol();
   switch (LexerInput)
   {
@@ -660,7 +661,7 @@ State2:
      inputClassifier.AcceptSymbol();
      // Reduce6:
      /* aAdjust: -1
-      * GapString= Gap, WhiteSpace(Int32 i);◄ */
+      * TriviaString= Trivia, WhiteSpace(Int32 i);◄ */
      _a.Remove(1);
      goto Reduce1;
      }
@@ -722,8 +723,8 @@ State8:
      // Reduce25:
      {
      /* StartsymbolNumber(Int64 value)= Number(Int64 value);◄
-      * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
-      * or: *Startsymbol= Gap, StartsymbolString(UnifiedString lexerString);◄ */
+      * then: *Startsymbol= Trivia, StartsymbolNumber(Int64 value);◄
+      * or: *Startsymbol= Trivia, StartsymbolString(UnifiedString lexerString);◄ */
 
      AssignNumberToSymbol();
 
@@ -745,8 +746,8 @@ State8:
 
 Reduce18:
   /* StartsymbolString(UnifiedString lexerString)= String(UnifiedString lexerString);◄
-   * then: *Startsymbol= Gap, StartsymbolNumber(Int64 value);◄
-   * or: *Startsymbol= Gap, StartsymbolString(UnifiedString lexerString);◄ */
+   * then: *Startsymbol= Trivia, StartsymbolNumber(Int64 value);◄
+   * or: *Startsymbol= Trivia, StartsymbolString(UnifiedString lexerString);◄ */
 
   AssignStringToStartsymbol();
 
@@ -902,7 +903,7 @@ State7:
         );
 
      // Reduce10:
-     /* *Startsymbol= Gap, Name(UnifiedString unifiedString);◄ */
+     /* *Startsymbol= Trivia, Name(UnifiedString unifiedString);◄ */
 
      AssignNameToSymbol();
 
@@ -951,7 +952,8 @@ State10:
 
   CharLiteral(
      charString: out _a.PeekRefClear(-2)._UnifiedString,
-     i2: _a.PeekRef(-1)._Int32
+     i2: _a.PeekRef(-1)._Int32,
+     i3: _a.PeekRef(0)._Int32
      );
 
   _a.Remove(2);
@@ -1015,7 +1017,7 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 14 Nov 2020 (grammlator file version/date 2020.11.09.0/13 Nov 2020)
+#endregion grammlator generated 23 Nov. 2020 (grammlator file version/date 2020.11.09.0/22 Nov. 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }

@@ -11,11 +11,11 @@ namespace grammlator {
    internal class P5CodegenCS {
       public P5CodegenCS(StringBuilder resultbuilder)
       {
-         ResultBuilder = resultbuilder;
          // Code is constructed in Codebuilder
          // then definitions are appended to ResultBuilder
          // then CodeBuilder is appended to Resultbuilder
          CodeBuilder = new StringBuilder(20000);
+         ResultBuilder = resultbuilder;
       }
 
       private readonly StringBuilder ResultBuilder;
@@ -88,34 +88,30 @@ namespace grammlator {
 
          if (GlobalSettings.NameOfFlagTestMethod.Value != "")
          {
-            Int64 Offset = useTerminalValuesAsFlags
-               ? 0  // not used
-               : MaxValue <= 63 ? 0 : MinValue; // if possible use Offset==0
-            Boolean IsInFunctionHastoBeGenerated = false;
+            Int64 Offset =  MinValue>=0 && MaxValue <= 63 ? 0 : MinValue; // if possible use Offset==0
 
+            // Has any flag test been generated?
+            Boolean IsInFunctionHasBeenUsed = false;
             foreach (TerminalSymbol t in GlobalVariables.TerminalSymbols)
             {
                if (t.IsUsedInIsIn)
                {
-                  IsInFunctionHastoBeGenerated = true; // 
-                  if (!useTerminalValuesAsFlags)
-                  {
-                     // generate e.g. "const Int64 _fb = 1L << (Int32)(LexerResult.CSharpEnd-12);"
-                     IndentExactly();
-                     Append("const Int64 ")
-                        .Append(GlobalSettings.PrefixOfFlagConstants.Value)
-                        .Append(t.FlagName) // "fb"
-                        .Append(" = 1L << (Int32)(")
-                        .Append(t.NameToGenerate);
-                     if (Offset != 0)
-                        Append('-')
-                        .Append(Offset.ToString());
-                     AppendLine(");"); // ");"
-                  }
+                  IsInFunctionHasBeenUsed = true; // 
+                                                       // generate e.g. "const Int64 _fb = 1L << (Int32)(LexerResult.CSharpEnd-12);"
+                  IndentExactly();
+                  Append("const Int64 ")
+                     .Append(GlobalSettings.PrefixOfFlagConstants.Value)
+                     .Append(t.FlagName) // "fb"
+                     .Append(" = 1L << (Int32)(")
+                     .Append(t.NameToGenerate);
+                  if (Offset != 0)
+                     Append('-')
+                     .Append(Offset.ToString());
+                  AppendLine(");"); // ");"
                }
             }
 
-            if (IsInFunctionHastoBeGenerated)
+            if (IsInFunctionHasBeenUsed)
             {
                // generate e.g. "Boolean _IsIn"
                IndentExactly().
