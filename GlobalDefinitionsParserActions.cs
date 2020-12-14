@@ -868,11 +868,11 @@ namespace grammlator {
 
          Debug.Assert(!(NextAction is NonterminalTransition));
 
-         if (NextAction == GlobalVariables.TheEndOfGeneratedCodeAction
+         if (NextAction == GlobalVariables.EndOfGeneratedCodeInstance
             && StateStackAdjustment == 0
             && AttributeStackAdjustment == 0
             && SemanticMethod == null)
-            return GlobalVariables.TheEndOfGeneratedCodeAction;
+            return GlobalVariables.EndOfGeneratedCodeInstance;
 
          SimplifyRecursionCount++;
 
@@ -1391,7 +1391,7 @@ namespace grammlator {
       /// <param name="idNumber"></param>
       /// <param name="state"></param>
       internal ErrorhandlingAction(BitArray lookAhead, Int32 idNumber, ParserState state)
-         : base(lookAhead, GlobalVariables.TheOnlyOneErrorHaltAction)
+         : base(lookAhead, GlobalVariables.ErrorHaltInstance)
       {
          this.IdNumber = idNumber;
          GlobalVariables.ListOfAllErrorhandlingActions.Add(this);
@@ -1424,7 +1424,7 @@ namespace grammlator {
       /// </summary>
       /// <param name="IdNumber">unique number >= 0</param>
       /// <param name="AttributestackAdjustement">=0</param>
-      internal HaltAction(Int32 IdNumber, Int32 AttributestackAdjustement) : base(GlobalVariables.TheEndOfGeneratedCodeAction)
+      internal HaltAction(Int32 IdNumber, Int32 AttributestackAdjustement) : base(GlobalVariables.EndOfGeneratedCodeInstance)
       {
          Debug.Assert(AttributestackAdjustement >= 0, $"{nameof(AttributestackAdjustement)} must be >= 0");
          this.AttributestackAdjustment = AttributestackAdjustement;
@@ -1451,12 +1451,13 @@ namespace grammlator {
    }
 
    /// <summary>
-   /// There is only one instance of this class: <see cref="GlobalVariables.TheOnlyOneErrorHaltAction"/>,
+   /// There is only one instance of this class: <see cref="GlobalVariables.ErrorHaltInstance"/>,
    /// which is referenced by <see cref="ErrorhandlingAction"/>s.
-   /// This action typically calls a user method, resets the stack pointers and jumps to the end of gnerated code
+   /// This action typically calls a user method, resets the stack pointers and jumps to the end of generated code
    /// </summary>
    internal sealed partial class ErrorHaltAction : ParserActionWithNextAction {
-      internal ErrorHaltAction() : base(GlobalVariables.TheEndOfGeneratedCodeAction) { }
+      internal ErrorHaltAction() : base(GlobalVariables.EndOfGeneratedCodeInstance) { }
+
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isErrorhaltAction;
 
       internal override StringBuilder AppendToSB(StringBuilder sb)
@@ -1491,11 +1492,14 @@ namespace grammlator {
    }
 
    /// <summary>
-   /// There is only one instance of this class: <see cref="GlobalVariables.TheOnlyOneErrorHaltAction"/>,
+   /// There is only one instance of this class: <see cref="GlobalVariables.EndOfGeneratedCodeInstance"/>,
    /// which is referenced by <see cref="ErrorhandlingAction"/>s.
    /// This action typically calls a user method, resets the stack pointers and jumps to the end of gnerated code
    /// </summary>
    internal sealed partial class EndOfGeneratedCodeAction : ParserAction {
+
+      internal EndOfGeneratedCodeAction() { }
+
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isEndOfGeneratedCode;
 
       internal override StringBuilder AppendToSB(StringBuilder sb)

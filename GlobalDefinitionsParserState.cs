@@ -599,7 +599,7 @@ namespace grammlator {
             e = new LookaheadAction(
                number: GlobalVariables.NumberOfActions++,
                lookAheadSet: new BitArray(allowedSymbols).Not(),
-               nextAction: GlobalVariables.TheOnlyOneErrorHaltAction
+               nextAction: GlobalVariables.ErrorHaltInstance
                );
          }
 

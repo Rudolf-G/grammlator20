@@ -50,12 +50,12 @@ namespace grammlator {
          }
 
          // Check if the AttributeStack has to be reset here, because all xxx.Calls will be reset to 0
-         Boolean CodeContainsErrorHalt = GlobalVariables.TheOnlyOneErrorHaltAction.Calls > 0;
+         Boolean CodeContainsErrorHalt = GlobalVariables.ErrorHaltInstance.Calls > 0;
 
          // Prevent special actions from being generated somewhere inside the generated code.
          // They will be gnerated at the end of the generated code (see below).
-         GlobalVariables.TheEndOfGeneratedCodeAction.Calls = -GlobalVariables.TheEndOfGeneratedCodeAction.Calls;
-         GlobalVariables.TheOnlyOneErrorHaltAction.Calls = -GlobalVariables.TheOnlyOneErrorHaltAction.Calls;
+         GlobalVariables.EndOfGeneratedCodeInstance.Calls = -GlobalVariables.EndOfGeneratedCodeInstance.Calls;
+         GlobalVariables.ErrorHaltInstance.Calls = -GlobalVariables.ErrorHaltInstance.Calls;
 
          // Check if the enum values of all terminal symbols can be used as flags
          GlobalVariables.TerminalSymbolsAreFlags = true;
@@ -99,18 +99,18 @@ namespace grammlator {
          GenerateCodeWithLabels(1);
 
          // Allow the special actions (see above) to be generated and generate them
-         GlobalVariables.TheOnlyOneErrorHaltAction.Calls = -GlobalVariables.TheOnlyOneErrorHaltAction.Calls;
-         GlobalVariables.TheEndOfGeneratedCodeAction.Calls = -GlobalVariables.TheEndOfGeneratedCodeAction.Calls;
-         if (GlobalVariables.TheOnlyOneErrorHaltAction.Calls > 0)
+         GlobalVariables.ErrorHaltInstance.Calls = -GlobalVariables.ErrorHaltInstance.Calls;
+         GlobalVariables.EndOfGeneratedCodeInstance.Calls = -GlobalVariables.EndOfGeneratedCodeInstance.Calls;
+         if (GlobalVariables.ErrorHaltInstance.Calls > 0)
          {
             GenerateCodeSequence(Codegen,
-               GlobalVariables.TheOnlyOneErrorHaltAction, GlobalVariables.TheOnlyOneErrorHaltAction.AcceptCalls > 0,
+               GlobalVariables.ErrorHaltInstance, GlobalVariables.ErrorHaltInstance.AcceptCalls > 0,
                labelMustBeGenerated: true);
          }
-         if (GlobalVariables.TheEndOfGeneratedCodeAction.Calls > 0)
+         if (GlobalVariables.EndOfGeneratedCodeInstance.Calls > 0)
          {
             GenerateCodeSequence(Codegen,
-               GlobalVariables.TheEndOfGeneratedCodeAction, GlobalVariables.TheEndOfGeneratedCodeAction.AcceptCalls > 0,
+               GlobalVariables.EndOfGeneratedCodeInstance, GlobalVariables.EndOfGeneratedCodeInstance.AcceptCalls > 0,
                labelMustBeGenerated: true);
          }
 
@@ -388,7 +388,7 @@ namespace grammlator {
          if (codegen.IndentationLevel == 0)
             codegen.AppendLine(' ');
 
-      } // private ... CodefolgeErzeugen(...)
+      } //  ... GenerateCodeSequence(...)
 
       /// <summary>
       /// Generates code for all not yet generated actions with Calls &gt; <paramref name="MinimumOfCalls"/>"/>

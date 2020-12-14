@@ -50,7 +50,7 @@ namespace GrammlatorConsoleExample {
          }
 
 #region grammlator generated
-// This lines
+// These lines
 // are replaced by grammlator
 #endregion grammlator generated
 

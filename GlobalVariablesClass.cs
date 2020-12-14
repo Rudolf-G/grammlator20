@@ -202,7 +202,7 @@ namespace grammlator {
                TerminalSymbols[terminal.SymbolNumber] = terminal;
          }
 #if DEBUG
-         for (int i=1; i<TerminalSymbols.Length; i++)
+         for (int i = 1; i < TerminalSymbols.Length; i++)
          {
             Debug.Assert(TerminalSymbols[i].EnumValue > TerminalSymbols[i - 1].EnumValue);
          }
@@ -232,17 +232,9 @@ namespace grammlator {
          get; set;
       }
 
-      /// <summary>
-      /// Referenced by actions of type <see cref="ErrorhandlingAction"/>.
-      /// Assigned to actions in phase 4, used in phase 5
-      /// </summary>
-      internal static readonly ErrorHaltAction TheOnlyOneErrorHaltAction = new ErrorHaltAction();
+      internal static EndOfGeneratedCodeAction EndOfGeneratedCodeInstance { get; } = new EndOfGeneratedCodeAction();
 
-      /// <summary>
-      /// Referenced by actions of type <see cref="HaltAction"/> and <see cref="ErrorHaltAction"/>.
-      /// Assigned to actions in phase 4, used in phase 5
-      /// </summary>
-      internal static readonly EndOfGeneratedCodeAction TheEndOfGeneratedCodeAction = new EndOfGeneratedCodeAction();
+      internal static ErrorHaltAction ErrorHaltInstance { get; } = new ErrorHaltAction();
 
       /// <summary>
       /// List of all parser states, each one defined by its core items 

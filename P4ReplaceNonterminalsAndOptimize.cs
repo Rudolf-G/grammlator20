@@ -599,7 +599,7 @@ namespace grammlator {
 
             if (Definition.AttributestackAdjustment == 0 && GlobalVariables.ListOfAllStates[0].StateStackNumber < 0)
             {
-               newReduceAction.NextAction = GlobalVariables.TheEndOfGeneratedCodeAction;
+               newReduceAction.NextAction = GlobalVariables.EndOfGeneratedCodeInstance;
             }
             else
             {

@@ -12,7 +12,7 @@ namespace grammlator {
       public P5CodegenCS(StringBuilder resultbuilder)
       {
          // Code is constructed in Codebuilder
-         // then definitions are appended to ResultBuilder
+         // then depending on generated code definitions are appended to ResultBuilder
          // then CodeBuilder is appended to Resultbuilder
          CodeBuilder = new StringBuilder(20000);
          ResultBuilder = resultbuilder;
@@ -88,7 +88,7 @@ namespace grammlator {
 
          if (GlobalSettings.NameOfFlagTestMethod.Value != "")
          {
-            Int64 Offset =  MinValue>=0 && MaxValue <= 63 ? 0 : MinValue; // if possible use Offset==0
+            Int64 Offset = MinValue >= 0 && MaxValue <= 63 ? 0 : MinValue; // if possible use Offset==0
 
             // Has any flag test been generated?
             Boolean IsInFunctionHasBeenUsed = false;
@@ -96,48 +96,52 @@ namespace grammlator {
             {
                if (t.IsUsedInIsIn)
                {
-                  IsInFunctionHasBeenUsed = true; // 
-                                                       // generate e.g. "const Int64 _fb = 1L << (Int32)(LexerResult.CSharpEnd-12);"
+                  IsInFunctionHasBeenUsed = true;
+
+                  // generate e.g. "const Int64 _fb = 1L << (Int32)(LexerResult.CSharpEnd-12);"
+
+
                   IndentExactly();
                   Append("const Int64 ")
                      .Append(GlobalSettings.PrefixOfFlagConstants.Value)
-                     .Append(t.FlagName) // "fb"
-                     .Append(" = 1L << (Int32)(")
-                     .Append(t.NameToGenerate);
-                  if (Offset != 0)
-                     Append('-')
-                     .Append(Offset.ToString());
-                  AppendLine(");"); // ");"
+                     .Append(t.FlagName)
+                     .Append(" = 1L << (Int32)");
+                  if (Offset == 0)
+                     Append(t.NameToGenerate);
+                  else if (Offset > 0)
+                     Append('(')
+                        .Append(t.NameToGenerate)
+                        .Append('-')
+                        .Append(Offset)
+                        .Append(')');
+                  else // Offset < 0
+                     Append('(')
+                        .Append(t.NameToGenerate)
+                        .Append('+')
+                        .Append(-Offset)
+                        .Append(')');
+                  AppendLine(';');
                }
             }
 
             if (IsInFunctionHasBeenUsed)
             {
+               Debug.Assert(!GlobalVariables.TerminalSymbolsAreFlags);
+
                // generate e.g. "Boolean _IsIn"
                IndentExactly().
                Append("Boolean ");
                Append(GlobalSettings.NameOfFlagTestMethod.Value);
 
-               if (useTerminalValuesAsFlags)
-               {
-                  // generate e.g. "(ThreeLetters flags) => ((PeekSymbol()) & flags) != 0;"
-                  Append("(")
-                     .Append(GlobalSettings.TerminalSymbolEnum.Value)
-                     .Append(" flags) => ((")
-                     .Append(GlobalSettings.InputExpression.Value) // "PeekSymbol()"
-                     .AppendLine(") & flags) != 0;");
-               }
-               else
-               {
-                  // generate e.g. "(Int64 flags) => (1L << (Int32)((PeekSymbol()) - 0) & flags) != 0;
-                  Append("(Int64 flags) => (1L << (Int32)((")
-                  .Append(GlobalSettings.InputExpression.Value) // "PeekSymbol()"
-                  .Append(')');
-                  if (Offset != 0)
-                     Append('-')
-                     .Append(Offset.ToString());
-                  AppendLine(") & flags) != 0;");
-               }
+               // generate e.g. "(Int64 flags) => (1L << (Int32)((PeekSymbol()) - 0) & flags) != 0;
+               // GlobalSettings.InputExpression.Value in  parentheses to allow expressions with low priority operands
+               Append("(Int64 flags) => (1L << (Int32)((")
+               .Append(GlobalSettings.InputExpression.Value) // "(PeekSymbol())" added parentheses
+               .Append(')');
+               if (Offset != 0)
+                  Append('-')
+                  .Append(Offset.ToString());
+               AppendLine(") & flags) != 0;");
             }
          }
 
@@ -304,7 +308,7 @@ namespace grammlator {
          CodeLine.Append(i);
          return this;
       }
-            
+
       public P5CodegenCS AppendOptionalLinebreak()
       {
          if (LineLength > 10 && (LineLength + 5) >= LineLengthLimit)

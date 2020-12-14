@@ -965,25 +965,25 @@ namespace grammlator
          LexerResult ParserInput;
          LastTerminalValue = -1;
   /* ************************ end of code written by programmer ******************** */
-#region grammlator generated 22 Nov. 2020 (grammlator file version/date 2020.11.09.0/22 Nov. 2020)
+#region grammlator generated 13 Dez. 2020 (grammlator file version/date 2020.11.09.0/13 Dez. 2020)
   Int32 _StateStackInitialCount = _s.Count;
   Int32 _AttributeStackInitialCount = _a.Count;
-  const Int64 _fDefiningSymbol = 1L << (Int32)(LexerResult.DefiningSymbol);
-  const Int64 _fColon = 1L << (Int32)(LexerResult.Colon);
-  const Int64 _fPercent = 1L << (Int32)(LexerResult.Percent);
-  const Int64 _fCSharpEnd = 1L << (Int32)(LexerResult.CSharpEnd);
-  const Int64 _fError = 1L << (Int32)(LexerResult.Error);
-  const Int64 _fMinus = 1L << (Int32)(LexerResult.Minus);
-  const Int64 _fNumber = 1L << (Int32)(LexerResult.Number);
-  const Int64 _fStarEqual = 1L << (Int32)(LexerResult.StarEqual);
-  const Int64 _fMinusEqual = 1L << (Int32)(LexerResult.MinusEqual);
-  const Int64 _fNumberSign = 1L << (Int32)(LexerResult.NumberSign);
-  const Int64 _fGroupStart = 1L << (Int32)(LexerResult.GroupStart);
-  const Int64 _fCSharpStart = 1L << (Int32)(LexerResult.CSharpStart);
-  const Int64 _fName = 1L << (Int32)(LexerResult.Name);
-  const Int64 _fLexerString = 1L << (Int32)(LexerResult.LexerString);
-  const Int64 _fDefinitionSeparatorSymbol = 1L << (Int32)(LexerResult.DefinitionSeparatorSymbol);
-  const Int64 _fTerminatorSymbol = 1L << (Int32)(LexerResult.TerminatorSymbol);
+  const Int64 _fDefiningSymbol = 1L << (Int32)LexerResult.DefiningSymbol;
+  const Int64 _fColon = 1L << (Int32)LexerResult.Colon;
+  const Int64 _fPercent = 1L << (Int32)LexerResult.Percent;
+  const Int64 _fCSharpEnd = 1L << (Int32)LexerResult.CSharpEnd;
+  const Int64 _fError = 1L << (Int32)LexerResult.Error;
+  const Int64 _fMinus = 1L << (Int32)LexerResult.Minus;
+  const Int64 _fNumber = 1L << (Int32)LexerResult.Number;
+  const Int64 _fStarEqual = 1L << (Int32)LexerResult.StarEqual;
+  const Int64 _fMinusEqual = 1L << (Int32)LexerResult.MinusEqual;
+  const Int64 _fNumberSign = 1L << (Int32)LexerResult.NumberSign;
+  const Int64 _fGroupStart = 1L << (Int32)LexerResult.GroupStart;
+  const Int64 _fCSharpStart = 1L << (Int32)LexerResult.CSharpStart;
+  const Int64 _fName = 1L << (Int32)LexerResult.Name;
+  const Int64 _fLexerString = 1L << (Int32)LexerResult.LexerString;
+  const Int64 _fDefinitionSeparatorSymbol = 1L << (Int32)LexerResult.DefinitionSeparatorSymbol;
+  const Int64 _fTerminatorSymbol = 1L << (Int32)LexerResult.TerminatorSymbol;
   Boolean _is(Int64 flags) => (1L << (Int32)((ParserInput)) & flags) != 0;
 
 State2:
@@ -3912,11 +3912,10 @@ EndWithError:
   // This point is reached after an input error has been found
   _s.Remove(_s.Count - _StateStackInitialCount);
   _a.Remove(_a.Count - _AttributeStackInitialCount);
-
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 22 Nov. 2020 (grammlator file version/date 2020.11.09.0/22 Nov. 2020)
+#endregion grammlator generated 13 Dez. 2020 (grammlator file version/date 2020.11.09.0/13 Dez. 2020)
 
       }
    }

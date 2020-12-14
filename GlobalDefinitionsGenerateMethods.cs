@@ -626,7 +626,7 @@ namespace grammlator {
             codegen.IndentAndAppendLine(GlobalSettings.ErrorHaltInstruction.Value);
 
          accept = false;
-         return GlobalVariables.TheOnlyOneErrorHaltAction.NextAction;
+         return GlobalVariables.ErrorHaltInstance.NextAction;
       }
    }
 
@@ -634,7 +634,8 @@ namespace grammlator {
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
          accept = false;
-         return codegen.GenerateEndOfCodeAction();
+         codegen.Indent().AppendLine(';');
+         return null;
       }
    }
 

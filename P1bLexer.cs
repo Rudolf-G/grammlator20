@@ -531,14 +531,14 @@ namespace grammlator {
          ClassifierResult LexerInput;
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
-#region grammlator generated 23 Nov. 2020 (grammlator file version/date 2020.11.09.0/22 Nov. 2020)
+#region grammlator generated 13 Dez. 2020 (grammlator file version/date 2020.11.09.0/13 Dez. 2020)
   Int32 _AttributeStackInitialCount = _a.Count;
-  const Int64 _fCSharpStart = 1L << (Int32)(ClassifierResult.CSharpStart);
-  const Int64 _fCSharpEnd = 1L << (Int32)(ClassifierResult.CSharpEnd);
-  const Int64 _fAsterisk = 1L << (Int32)(ClassifierResult.Asterisk);
-  const Int64 _fSlash = 1L << (Int32)(ClassifierResult.Slash);
-  const Int64 _fQuotationmark = 1L << (Int32)(ClassifierResult.Quotationmark);
-  const Int64 _fApostrophe = 1L << (Int32)(ClassifierResult.Apostrophe);
+  const Int64 _fCSharpStart = 1L << (Int32)ClassifierResult.CSharpStart;
+  const Int64 _fCSharpEnd = 1L << (Int32)ClassifierResult.CSharpEnd;
+  const Int64 _fAsterisk = 1L << (Int32)ClassifierResult.Asterisk;
+  const Int64 _fSlash = 1L << (Int32)ClassifierResult.Slash;
+  const Int64 _fQuotationmark = 1L << (Int32)ClassifierResult.Quotationmark;
+  const Int64 _fApostrophe = 1L << (Int32)ClassifierResult.Apostrophe;
   Boolean _is(Int64 flags) => (1L << (Int32)((LexerInput)) & flags) != 0;
 
 Reduce1:
@@ -1013,11 +1013,10 @@ Reduce2:
 EndWithError:
   // This point is reached after an input error has been found
   _a.Remove(_a.Count - _AttributeStackInitialCount);
-
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 23 Nov. 2020 (grammlator file version/date 2020.11.09.0/22 Nov. 2020)
+#endregion grammlator generated 13 Dez. 2020 (grammlator file version/date 2020.11.09.0/13 Dez. 2020)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       }
    }
