@@ -456,9 +456,7 @@ namespace grammlator
          GlobalVariables.DefineArrayTerminalSymbolByIndex(SymbolDictionary);
          OptimizeTrivialDefinitionsBackup = OptimizeTrivialDefinitions;
          OptimizeTrivialDefinitions = false; // must be disabled while evaluating the definitions of the startsymbol
-         SymbolDictionary.Add(
-            new UnifiedString(GlobalVariables.Startsymbol.Identifier),
-            GlobalVariables.Startsymbol);
+         SymbolDictionary.Add(GlobalVariables.Startsymbol.Identifier, GlobalVariables.Startsymbol);
       }
 
       private Boolean OptimizeTrivialDefinitionsBackup;

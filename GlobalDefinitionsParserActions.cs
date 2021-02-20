@@ -1148,7 +1148,7 @@ namespace grammlator {
       internal override StringBuilder AppendToSB(StringBuilder sb)
       {
          sb.Append("if nonterminal == ")
-           .AppendLine(InputSymbol.Identifier)
+           .AppendLine(InputSymbol.Identifier.ToString())
            .Append("    then: ");
          if (NextAction == null)
             sb.Append("no action (halt)");

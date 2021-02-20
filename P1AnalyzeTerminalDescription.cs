@@ -96,15 +96,13 @@ namespace grammlator {
 
             ReadOnlyMemory<char> TerminalIdentifierMemory = description[IdentifierFirstPos..(IdentifierLastPos + 1)];
             UnifiedString TerminalString = new UnifiedString(TerminalIdentifierMemory);
-            string TerminalIdentifier = TerminalString.ToString();
             TerminalHasBeenDefined = SymbolDictionary.TryGetValue(TerminalString, out Symbol? s);
             if (TerminalHasBeenDefined)
                Terminal = (TerminalSymbol)s!;
             else
             {
                SymbolDictionary[TerminalString] =
-                  new TerminalSymbol(TerminalIdentifier, textPos, value: SymbolDictionary.Count) {
-                     SymbolNumber = SymbolDictionary.Count,
+                  new TerminalSymbol(TerminalString, textPos, symbolNumber: SymbolDictionary.Count, enumValue: SymbolDictionary.Count) {
                      Weight = Weight
                      //,
                      //AttributetypeStringIndexList = TypeStringIndexes,
@@ -508,9 +506,8 @@ EndOfGeneratedCode:
                NameStringIndexes[i] = new UnifiedString(ArgumentNames[i]);
             }
             SymbolDictionary[enumElementUString] =
-               t = new TerminalSymbol(EnumElementIdentifier, Lexer.LexerTextPos, value: enumElementValue) {
+               t = new TerminalSymbol(enumElementUString, Lexer.LexerTextPos, symbolNumber: SymbolDictionary.Count, enumValue: enumElementValue) {
                   Weight = GlobalSettings.TerminalDefaultWeight.Value,
-                  SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStrings = TypeStringIndexes,
                   AttributenameStrings = NameStringIndexes
                };

@@ -3,9 +3,8 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections;
 
-namespace grammlator
-{
-    internal partial class P1aParser {
+namespace grammlator {
+   internal partial class P1aParser {
       /* In phase 1 the grammar is read and all information is stored
        * in SymbolDictionary,  g.NumberOfTerminalSymbols,  g.NumberOfNonterminalSymbols ...
        * and g.Startsymbol which references terminal and nonterminal symbols ...
@@ -83,12 +82,9 @@ namespace grammlator
          }
          else
          {
-            String NameAsString = Name.ToString();
-
             SymbolDictionary[Name] =
-               new TerminalSymbol(NameAsString, Lexer.LexerTextPos, value) {
+               new TerminalSymbol(Name, Lexer.LexerTextPos, symbolNumber: SymbolDictionary.Count, value) {
                   Weight = weight,
-                  SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStrings = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
                   AttributenameStrings = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(numberOfAttributes)
                };
@@ -123,11 +119,9 @@ namespace grammlator
             // There is no terminal with the same name as the enum element
             // Declare a corresponding terminal
             Int32 NumberOfAttributes = 0;
-            String NameAsString = enumElementName.ToString();
             SymbolDictionary[enumElementName] =
-               new TerminalSymbol(NameAsString, Lexer.LexerTextPos, value: enumElementValue) {
+               new TerminalSymbol(enumElementName, Lexer.LexerTextPos, symbolNumber: SymbolDictionary.Count, enumValue: enumElementValue) {
                   Weight = GlobalSettings.TerminalDefaultWeight.Value,
-                  SymbolNumber = SymbolDictionary.Count,
                   AttributetypeStrings = ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(NumberOfAttributes),
                   AttributenameStrings = ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(NumberOfAttributes)
                };
@@ -186,7 +180,7 @@ namespace grammlator
             }
 
             Int64 EnumValue = EnumValues[IndexOfEnumElement];
-            TerminalSymbol t= (TerminalSymbol)terminalEntry.Value;
+            TerminalSymbol t = (TerminalSymbol)terminalEntry.Value;
 
             if (t.EnumValue != EnumValue)
             {
@@ -270,7 +264,7 @@ namespace grammlator
             // The nonterminal symbol has not yet been used (Symbol == null)
             // or there has been an error and we proceed as if it has been a new nonterminal symbol
             // TOCHECK proceed with a modified  symbolname ???
-            ns = new NonterminalSymbol(symbolName.ToString(),
+            ns = new NonterminalSymbol(symbolName,
                Lexer.LexerTextPos,
                symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
                attributetypeStringList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(numberOfAttributes),
@@ -321,7 +315,7 @@ namespace grammlator
          else
          {
             // New symbol: create instance
-            symbol = new NonterminalSymbol(name.ToString(),
+            symbol = new NonterminalSymbol(name,
                   Lexer.LexerTextPos,
                   symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
                   attributetypeStringList:
@@ -457,8 +451,7 @@ namespace grammlator
       ///<returns>new name</returns>
       private static UnifiedString MakeNewName(TypeOfGrammarRule type, String nameOfSymbol)
       {
-         String Postfix = type switch
-         {
+         String Postfix = type switch {
             TypeOfGrammarRule.optional => "?",
             TypeOfGrammarRule.repeat0lr => "*",
             TypeOfGrammarRule.repeat0rr => "**",
@@ -492,7 +485,7 @@ namespace grammlator
           */
 
          // Create (synthetic) name of new nonterminal symbol by adding postfix to existing name
-         UnifiedString NewName = MakeNewName(type, existingSymbol.Identifier);
+         UnifiedString NewName = MakeNewName(type, existingSymbol.Identifier.ToString());
 
          // use existing (synthetic) symbol / definition if name already has been defined
          if (!SymbolDictionary.TryGetValue(NewName, out Symbol? MadeSymbol))
@@ -511,11 +504,11 @@ namespace grammlator
             TypeOfGrammarRule type,
             UnifiedString newNname)
       {
-         var newSymbol = new NonterminalSymbol(newNname.ToString(),
+         var newSymbol = new NonterminalSymbol(newNname,
             Lexer.LexerTextPos,
             symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
-            attributetypeStringList: ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
-            attributenameStringList: ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0)
+            attributetypeStringList: Array.Empty<UnifiedString>(), //ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
+            attributenameStringList: Array.Empty<UnifiedString>()  // ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0)
             );
 
          SymbolDictionary[newNname] = newSymbol;

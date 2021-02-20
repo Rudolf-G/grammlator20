@@ -23,7 +23,7 @@ namespace grammlator {
 
       static GlobalVariables()
       {
-         Startsymbol = new NonterminalSymbol("*Startsymbol",
+         Startsymbol = new NonterminalSymbol(new UnifiedString("*Startsymbol"),
             position: 0,
             symbolNumber: 0,
             attributetypeStringList: Array.Empty<UnifiedString>(),
@@ -91,7 +91,7 @@ namespace grammlator {
          OutputMessageAndPosition = outputMessageAndPosition;
          NumberOfTerminalSymbols = 0;
          NumberOfNonterminalSymbols = 0;
-         Startsymbol = new NonterminalSymbol("*Startsymbol",
+         Startsymbol = new NonterminalSymbol(new UnifiedString("*Startsymbol"),
             position: 0,
             symbolNumber: 0,
             attributetypeStringList: Array.Empty<UnifiedString>(),

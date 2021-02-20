@@ -109,7 +109,7 @@ namespace grammlator {
                   // The nonterminal transition leads to a halt action.
                   // All terminal symbols may follow !
                   Debug.Assert(NonterminalTransition.NextAction == GlobalVariables.ListOfAllHaltActions[0]);
-                  Debug.Assert(((NonterminalTransition)NonterminalTransition).InputSymbol.Identifier == "*Startsymbol");
+                  Debug.Assert((NonterminalTransition).InputSymbol.Identifier.ToString() == "*Startsymbol");
 
                   /* TODO   mark lookahead sets which look beyond the startsymbol
                    * e.g by adding a field to nonterminal transitions (and reductions and ...) 

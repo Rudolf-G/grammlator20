@@ -236,8 +236,13 @@ namespace grammlator {
       /// <summary>
       /// The type of the attribute e.g."Int32"
       /// </summary>
-      internal UnifiedString TypeString;
-      internal UnifiedString NameString;
+      internal readonly UnifiedString TypeString;
+      internal readonly UnifiedString NameString;
+
+      /// <summary>
+      /// the first attribute of an outer production and of each of its definitions has position 1
+      /// </summary>
+      internal readonly Int32 PositionInProduction;
 
       /// <summary>
       /// true if the attribute occurs as attribute of the defined nonterminal (in the left side of a definition), default is false
@@ -250,17 +255,12 @@ namespace grammlator {
       internal Int32 Level;
 
       /// <summary>
-      /// the first attribute of an outer production and of each of its definitions has position 1
-      /// </summary>
-      internal Int32 PositionInProduction;
-
-      /// <summary>
       /// There are different possibilities how left and right side attributes can overlay
       /// (reference the same position in the attriobute stack). In some cases the right side
       /// attribute must be copied and cleared when accessed so that no unused reference may
       /// remain in the attribute stack
       /// </summary>
-      internal enum OverlayEnum {
+      internal enum OverlayEnum: Byte {
          /// <summary>
          /// Attribute in the right side not overlaying  or overlaying with same type and different name.
          /// <para>May not be used or may be associated to a formal value or in parameter.</para>
@@ -326,12 +326,13 @@ namespace grammlator {
       {
          TypeString = typeString;
          NameString = nameString;
-         LeftSide = false; // has to be added later (as soon as the left side is recognized)
-         Level = level;
          PositionInProduction = positionInProduction;
+         LeftSide = false; // has to be added later (as soon as the left side is recognized)
+         Level = level; // may be changed if in left side within parentheses
          OverlayType = OverlayEnum.inAttribute;
          Implementation = ParameterImplementation.NotAssigned;
       }
+      
    }
 
    /// <summary>
@@ -346,15 +347,6 @@ namespace grammlator {
       /// <param name="level">the level of parenthesis (lowest level is level 0)</param>
       /// <param name="positionInProduction">first attribute of left side has position 1, 1st attribute of right side equally has position 1</param>
 
-      internal Int32 Add(UnifiedString typeString, UnifiedString nameString, Int32 level, Int32 positionInProduction)
-      {
-         Debug.Assert(Count == 0 || level >= this[Count - 1].Level, "Level nicht aufsteigend.");
-         // if (!(this.Count == 0 || level >= this[this.Count - 1].Level)) throw new Exception("Leveltest: Fehler");
-
-         Add(new AttributeStruct(typeString, nameString, level, positionInProduction));
-         return Count;
-      }
-
       /// <summary>
       /// removes  the given number of elements (>=0) from the end of the list of attributes
       /// </summary>
@@ -363,18 +355,6 @@ namespace grammlator {
       {
          if (numberOfElementsToRemove > 0)
             RemoveRange(Count - numberOfElementsToRemove, numberOfElementsToRemove);
-      }
-
-      internal void Append(StringBuilder sb)
-      {
-         Boolean isFirstElement = true;
-         foreach (AttributeStruct p in this)
-         {
-            if (!isFirstElement)
-               sb.Append(", ");
-            p.Append(sb);
-            isFirstElement = false;
-         }
       }
 
       /// <summary>
@@ -417,7 +397,7 @@ namespace grammlator {
    /// depending on the type of the formal parameter (value, in, out, ref)
    /// and the overlay of left and right side attributes.
    /// </summary>
-   internal enum ParameterImplementation {
+   internal enum ParameterImplementation: Byte {
       /// <summary>
       ///  This default value is assigned to a formal parameter until grammlator associates this parameter to an attribute.
       ///  Parameters which can not be assigned to attributes are an error in the grammlator input.
@@ -637,16 +617,17 @@ namespace grammlator {
 
    internal abstract class Symbol {
 
-      internal Symbol(String identifier, Int32 position)
+      internal Symbol(UnifiedString identifier, Int32 position, Int32 symbolNumber)
       {
          this.Identifier = identifier;
          this.FirstPosition = position;
+         this.SymbolNumber = symbolNumber;
          this.AttributetypeStrings = Array.Empty<UnifiedString>();
          this.AttributenameStrings = Array.Empty<UnifiedString>();
       }
 
       internal Symbol(
-            String identifier,
+            UnifiedString identifier,
             Int32 position,
             Int32 symbolNumber,
             UnifiedString[] attributetypeStringList)
@@ -659,7 +640,7 @@ namespace grammlator {
       }
 
       internal Symbol(
-            String identifier,
+            UnifiedString identifier,
             Int32 position,
             Int32 symbolNumber,
             UnifiedString[] attributetypeStringIndexList,
@@ -673,11 +654,11 @@ namespace grammlator {
          this.AttributenameStrings = attributenameStringIndexList;
       }
 
-      internal readonly String Identifier;
+      internal readonly UnifiedString Identifier;
 
       public readonly Int32 FirstPosition;
 
-      public override String ToString() => Identifier;
+      public override String ToString() => Identifier.ToString();
 
       protected EmptyComputationResultEnum _EmptyComputationResult;
 
@@ -810,12 +791,14 @@ namespace grammlator {
    }
 
    internal sealed class TerminalSymbol : Symbol {
-      internal TerminalSymbol(String identifier, Int32 Position, Int64 value) : base(identifier, Position)
+      internal TerminalSymbol(UnifiedString identifier, Int32 Position, Int32 symbolNumber, Int64 enumValue) 
+         : base(identifier, Position, symbolNumber)
       {
-         EnumValue = value;
+         EnumValue = enumValue;
          _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;  // Terminal symbols are never empty
-         FlagName = MakeFlagIdentifier(EnumValue, identifier);
+         FlagName = MakeFlagIdentifier(EnumValue, identifier.ToString());
       }
+
 
       internal Int64 EnumValue;
       internal Int64 Weight;
@@ -838,7 +821,7 @@ namespace grammlator {
             {
                if (GlobalSettings.TerminalSymbolEnum.Value == GlobalSettings.TerminalSymbolUndefinedValue
                   || GlobalSettings.TerminalSymbolEnum.Value == "")
-                  _NameToGenerate = Identifier;
+                  _NameToGenerate = Identifier.ToString();
                else
                   _NameToGenerate = GlobalSettings.TerminalSymbolEnum.Value + '.' + Identifier;
             }
@@ -889,7 +872,7 @@ namespace grammlator {
    internal sealed class NonterminalSymbol : Symbol {
 
       internal NonterminalSymbol(
-            String identifier,
+            UnifiedString identifier,
             Int32 position,
             Int32 symbolNumber,
             UnifiedString[] attributetypeStringList
@@ -903,7 +886,7 @@ namespace grammlator {
       }
 
       internal NonterminalSymbol(
-            String identifier,
+            UnifiedString identifier,
             Int32 position,
             Int32 symbolNumber,
             UnifiedString[] attributetypeStringList,
@@ -916,7 +899,7 @@ namespace grammlator {
       }
 
       internal NonterminalSymbol(
-      String identifier,
+      UnifiedString identifier,
       Int32 position,
       Int32 symbolNumber,
       UnifiedString[] attributetypeStringList,
@@ -1085,11 +1068,11 @@ namespace grammlator {
    }
 
    /// <summary>
-   /// <see cref="UnifiedString"/> is a record type which stores strings in a static directory
+   /// <see cref="UnifiedString"/> is a readonly record type which stores strings in a static directory
    /// and identifies each string by a unique index. To get the string use ToString().
-   /// The comparision of strings by "==" is the comparision of the integer value.
+   /// The comparision of unified strings by "==" is the comparision of the integer value.
    /// </summary>
-   internal struct UnifiedString {
+   internal readonly struct UnifiedString {
       /// <summary>
       /// All <see cref="UnifiedString"/>s which represent the same string have the same <see cref="Index"/>.
       /// The <see cref="Index"/> of "" is 0;
@@ -1152,6 +1135,9 @@ namespace grammlator {
       {
          return x.Index != y.Index;
       }
+
+      public static implicit operator string(UnifiedString u) => u.ToString();
+      public static explicit operator UnifiedString(string s) => new UnifiedString(s);
 
    }
 }

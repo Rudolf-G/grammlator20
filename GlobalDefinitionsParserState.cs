@@ -707,7 +707,7 @@ namespace grammlator {
       internal readonly Int32 ElementNr;
       internal Symbol InputSymbol; // == EmptySymbol if enditem
 
-      static readonly Symbol EmptySymbol = new TerminalSymbol("", 0, 0);
+      static readonly Symbol EmptySymbol = new TerminalSymbol(new UnifiedString(0), 0, 0, 0);
       /// <summary>
       /// Constructor returns a new item with definition, elementNr
       /// and InputSymbol==definition.Elements[elementNr] or InputSymbol==null for enditem
