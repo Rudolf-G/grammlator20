@@ -123,7 +123,7 @@ namespace grammlator {
 
          LineNumber++;
 
-         ReadOnlySpan<Char> Remainder = Source.Span.Slice(Position);
+         ReadOnlySpan<Char> Remainder = Source.Span[Position..];
 
          // Find end of line
          Int32 eolIndex = Remainder.IndexOfAny<Char>('\r', '\n');

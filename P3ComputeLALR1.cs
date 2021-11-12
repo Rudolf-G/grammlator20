@@ -70,7 +70,7 @@ internal class P3ComputeLALR1
             laOrNonterminalTansition.TerminalSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
             laOrNonterminalTansition.Codenumber = 0; // initial value for DIGRAPH algorithm
 
-            if (!(laOrNonterminalTansition is NonterminalTransition NonterminalTransition))
+            if (laOrNonterminalTansition is not NonterminalTransition NonterminalTransition)
                continue;
 
             switch (NonterminalTransition.NextAction)
@@ -128,7 +128,7 @@ internal class P3ComputeLALR1
    /// <summary>
    /// Stack of nonterminal transitions used in ComputeReadSets by Traverse
    /// </summary>
-   private readonly Stack<NonterminalTransition> StackOfNonterminalTransitions = new Stack<NonterminalTransition>(126);
+   private readonly Stack<NonterminalTransition> StackOfNonterminalTransitions = new(126);
 
    /// <summary>
    /// For each nonterminal transition of any state compute the terminal symbols 
@@ -156,7 +156,7 @@ internal class P3ComputeLALR1
    /// <param name="actualTransition">the transition to evaluate</param>
    private void Traverse(NonterminalTransition actualTransition)
    {
-      if (!(actualTransition.NextAction is ParserState nextState))
+      if (actualTransition.NextAction is not ParserState nextState)
          return;
 
       // A nextState is reached by the actualTransition.
@@ -230,7 +230,7 @@ internal class P3ComputeLALR1
    /// When finally an included action y is found alle the relations x Includes y are added
    /// </summary>
    private readonly Stack<LookaheadOrNonterminalTransition> StackOfActionsWithFollow
-      = new Stack<LookaheadOrNonterminalTransition>(126);
+      = new(126);
 
    /// <summary>
    /// Compute the sets of <see cref="TerminalSymbol"/>s which may follow

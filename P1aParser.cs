@@ -209,7 +209,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    /// <summary>
    /// Contains all (perhaps nested) Definitions which are not yet assigned to a nonterminal symbol
    /// </summary>
-   private readonly ListOfDefinitions ActualListOfNontrivialDefinitions = new ListOfDefinitions(100);
+   private readonly ListOfDefinitions ActualListOfNontrivialDefinitions = new(100);
 
    /// <summary>
    /// Number of the trival definitions of the actual (nested) production &lt;= ActualListOfTrivialDefinitions.Count
@@ -220,7 +220,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    /// Contains all (perhaps nested) trivial definitions which are not yet assigned to a nonterminal symbol.
    /// A trivial definition contains 1 element, no condition, no action and the same number of attributes as the left side.
    /// </summary>
-   private readonly ListOfSymbols ActualListOfTrivialDefinitions = new ListOfSymbols(100);
+   private readonly ListOfSymbols ActualListOfTrivialDefinitions = new(100);
 
    /// <summary>
    /// Number of the elements of the actual definition less or equal ActualListOfElements.Count
@@ -230,7 +230,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    /// <summary>
    /// Contains all elements of the actual (perhaps nested) definition.
    /// </summary>
-   private readonly ListOfSymbols ActualListOfElements = new ListOfSymbols(100);
+   private readonly ListOfSymbols ActualListOfElements = new(100);
    #endregion declaration of fields
 
    /// <summary>
@@ -910,7 +910,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    //| = /* empty */ 
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-   private void NoDescriptionAttribute(out String description)
+   private static void NoDescriptionAttribute(out String description)
    {
       description = "";
    }

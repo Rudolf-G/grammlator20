@@ -24,7 +24,7 @@ internal class P5CodegenCS
    /// <summary>
    /// a StringBuilder to store parts of the generated code until it is output 
    /// </summary>
-   private readonly StringBuilder CodeLine = new StringBuilder();
+   private readonly StringBuilder CodeLine = new();
 
    private readonly Int32 LineLengthLimit = (Int32)GlobalSettings.OutputLineLengthLimit.Value;
    // TOCHECK can more generated lines be shortened to LineLengthLimit?
@@ -407,7 +407,7 @@ internal class P5CodegenCS
    {
       // DecrementIndentationLevel();
       IndentExactly();
-      CodeLine.Append("}");
+      CodeLine.Append('}');
       if (!String.IsNullOrEmpty(comment))
          Append(" // ").
             Append(comment);

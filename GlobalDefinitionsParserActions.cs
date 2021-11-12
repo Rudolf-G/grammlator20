@@ -86,7 +86,7 @@ namespace grammlator {
       public virtual Int32 CompareTo(ParserAction? other)
       {
          if (other == null)
-            throw new ArgumentNullException($"CompareTo({nameof(other)}) is null");
+            throw new ArgumentNullException(nameof(other));
 
          Int32 result = (Int32)this.ParserActionType - (Int32)other.ParserActionType;
          if (result != 0)
@@ -104,7 +104,7 @@ namespace grammlator {
             return true;
 
          return
-            !(a1 is null) && !(a2 is null)
+            a1 is not null && a2 is not null
             && a1.ParserActionType == a2.ParserActionType && a1.IdNumber == a2.IdNumber;
       }
 
@@ -300,7 +300,7 @@ namespace grammlator {
       public override Int32 CompareTo(ParserAction? other)
       {
          if (other == null)
-            throw new ArgumentNullException($"CompareTo({nameof(other)})");
+            throw new ArgumentNullException(nameof(other));
 
          Int32 result;
 
@@ -646,7 +646,7 @@ namespace grammlator {
 
             if (branchCase.BranchcaseAction is LookaheadOrNonterminalTransition LaOrNt)
             {
-               if (!(LaOrNt.NextAction is Definition))
+               if (LaOrNt.NextAction is not Definition)
                   branchCase.BranchcaseAction = LaOrNt.NextAction;
             };
 
@@ -724,7 +724,7 @@ namespace grammlator {
       /// <param name="longer"></param>
       /// <param name="shorter"></param>
       /// <returns></returns>
-      private CompareResult Containing(BranchcasesList longer, BranchcasesList shorter)
+      private static CompareResult Containing(BranchcasesList longer, BranchcasesList shorter)
       {
          Debug.Assert(longer.Count >= shorter.Count);
 
@@ -862,11 +862,11 @@ namespace grammlator {
 
          while (NextAction is LookaheadOrNonterminalTransition LaOrNt)
          {
-            if (!(LaOrNt.NextAction is Definition))
+            if (LaOrNt.NextAction is not Definition)
                NextAction = LaOrNt.NextAction; // may be again a nonterminal transition
          }
 
-         Debug.Assert(!(NextAction is NonterminalTransition));
+         Debug.Assert(NextAction is not NonterminalTransition);
 
          if (NextAction == GlobalVariables.EndOfGeneratedCodeInstance
             && StateStackAdjustment == 0
@@ -1113,7 +1113,7 @@ namespace grammlator {
       }
 
       private static readonly HashSet<NonterminalTransition>
-         emptyHashSet = new HashSet<NonterminalTransition>(0);
+         emptyHashSet = new(0);
 
       internal HashSet<NonterminalTransition> Includes {
          get; set;
@@ -1532,7 +1532,7 @@ namespace grammlator {
       {
          sb.Append(P5CodegenCS.GotoLabel(this, false)).
             Append("(push value: ").
-            Append(StateStackNumber.ToString()).
+            Append(StateStackNumber).
             AppendLine(") ");
          base.AppendToSB(sb);
          return sb;
@@ -1542,7 +1542,7 @@ namespace grammlator {
       {
          sb.Append(P5CodegenCS.GotoLabel(this, false)).
             Append(" (push value: ").
-            Append(StateStackNumber.ToString()).
+            Append(StateStackNumber).
             AppendLine(")");
 
          return base.AppendShortToSB(sb);

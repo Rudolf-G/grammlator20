@@ -29,7 +29,7 @@ internal partial class P1aParser
    /// </summary>
    private Boolean OptimizeTrivialDefinitions = true;
 
-   private static readonly ListOfDefinitions EmptyListOfNontrivialDefinitions = new ListOfDefinitions(0);
+   private static readonly ListOfDefinitions EmptyListOfNontrivialDefinitions = new(0);
 
    public class ListOfSymbols : List<Symbol>
    {
@@ -42,18 +42,18 @@ internal partial class P1aParser
    /// Stores the StringIndexes of all elements of the last C# enum.
    /// Is the empty list, if an enum with no elements has been recognized. 
    /// </summary>
-   private readonly List<UnifiedString> EnumNames = new List<UnifiedString>();
+   private readonly List<UnifiedString> EnumNames = new();
 
    /// <summary>
    /// <see cref="EnumValues"/>[i] is the value of <see cref="EnumNames"/>[i]
    /// </summary>
-   private readonly List<Int64> EnumValues = new List<Int64>();
+   private readonly List<Int64> EnumValues = new();
 
    /// <summary>
    /// The StringIndex of the name of the last enum the parser found in the source.
    /// <see cref="EnumName"/>.Index is 0 if an optional enum has been empty.
    /// </summary>
-   public UnifiedString EnumName = new UnifiedString();
+   public UnifiedString EnumName = new();
 
    // TODO test all error messages
    private void CreateParserErrorMessage(String message)
@@ -107,8 +107,8 @@ internal partial class P1aParser
    private void EvaluateEnumElement(String description, UnifiedString enumElementName, Int64 enumElementValue)
    {
       ReadOnlySpan<char> Description = description.AsSpan();
-      List<String> ArgumentTypes = new List<string>(20);
-      List<String> ArgumentNames = new List<string>(20);
+      List<String> ArgumentTypes = new(20);
+      List<String> ArgumentNames = new(20);
       if (Description != "")
       {
          if (!EvalDescription(enumElementName, Description, ArgumentTypes, ArgumentNames, enumElementValue))
@@ -370,7 +370,7 @@ internal partial class P1aParser
    private void EvaluateGrammarRule(Symbol Symbol)
    {
       // The symbol must have been defined (in the left side or by MakeGrammarRule)
-      if (!(Symbol is NonterminalSymbol nt))
+      if (Symbol is not NonterminalSymbol nt)
       {
          P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Abort,
               $"Error in program {nameof(EvaluateGrammarRule)}: Symbol as NonterminalSymbol is null."
@@ -447,7 +447,7 @@ internal partial class P1aParser
    /// <param name="prefix"></param>
    ///<returns>new name</returns>
    private UnifiedString MakeNewNameStringIndex(String prefix)
-      => new UnifiedString($"({prefix}{++CountOfGeneratedNames})");
+      => new($"({prefix}{++CountOfGeneratedNames})");
 
    ///<summary>
    /// Generates an internal name by adding a postfix to a symbols name
@@ -721,7 +721,7 @@ internal partial class P1aParser
    /// When the end of a definition is recognized the attributes of the definition are evaluated
    /// and removed, the attributes of the left side remain.
    /// </summary>
-   private readonly ListOfAttributes ListOfAttributesOfGrammarRule = new ListOfAttributes();
+   private readonly ListOfAttributes ListOfAttributesOfGrammarRule = new();
 
    /// <summary>
    /// Check attribute and add attribute to TemporaryListOfAttributes;
@@ -882,13 +882,14 @@ internal partial class P1aParser
 
    // lokale Variablenvereinbarungen
 
-   public List<MethodParameterStruct> LastFormalParameterList = new List<MethodParameterStruct>();
+   public List<MethodParameterStruct> LastFormalParameterList = new();
 
    // Methoden:       
    /// <summary>
    /// List of string containing all legal method properties of C#, e.g. "new", "public", ... 
    /// </summary>
-   private static readonly List<String> CSharpMethodProperties = new List<String> {
+   private static readonly List<String> CSharpMethodProperties = new()
+   {
                 "", "new",
                 "public", "protected", "internal", "private",
                 "static", "sealed", "virtual"

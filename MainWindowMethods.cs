@@ -17,17 +17,17 @@ public partial class MainWindow
    String SourceFilename = String.Empty;
 
    private readonly StringBuilder
-      Resultbuilder = new StringBuilder(100_000),
-      Log = new StringBuilder(2_000);
+      Resultbuilder = new(100_000),
+      Log = new(2_000);
 
    const Int32 ListboxDistanceAtRight = 35; // used to avoid horizontal scrollbar in Listbox
    private const Int32 errorLimit = 15; // TODO allow user to set the errorLimit
    private Int32 warnings, errors, firstErrorIndex;
    private Boolean aborted;
 
-   private readonly List<Int32> ErrorPositions = new List<Int32>();
+   private readonly List<Int32> ErrorPositions = new();
 
-   readonly Stopwatch Watch = new Stopwatch();
+   readonly Stopwatch Watch = new();
 
    [Flags]
    internal enum StatusFlags
@@ -216,7 +216,7 @@ public partial class MainWindow
    private static void AppendLine(StringBuilder sb, String s1, String s2)
       => sb.Append(s1).AppendLine(s2);
 
-   readonly FontFamily StandardFont = new FontFamily("Consolas");
+   readonly FontFamily StandardFont = new("Consolas");
 
    private void AddErrorBox(String text, Int32 position, Boolean bold = false)
    {
@@ -485,7 +485,7 @@ public partial class MainWindow
 
          if (eol1Index >= 0)
          {
-            s1Line = s1Remain.Slice(0, eol1Index); // without trailing '\r'
+            s1Line = s1Remain[..eol1Index]; // without trailing '\r'
             s1Remain = s1Remain[(s1Line.Length + 1)..]; // skip line and trailing '\r'
          }
          else
@@ -496,7 +496,7 @@ public partial class MainWindow
 
          if (eol2Index >= 0)
          {
-            s2Line = s2Remain.Slice(0, eol2Index); // without trailing '\r'
+            s2Line = s2Remain[..eol2Index]; // without trailing '\r'
             s2Remain = s2Remain[(s2Line.Length + 1)..]; // skip line and trailing '\r'
          }
          else
@@ -540,7 +540,7 @@ public partial class MainWindow
 
    private void TextBoxUndo(object sender, RoutedEventArgs e)
    {
-      if (!(sender is TextBox box))
+      if (sender is not TextBox box)
          return;
 
       if (box.CanUndo == true)
@@ -551,7 +551,7 @@ public partial class MainWindow
 
    private void TextBoxRedo(object sender, RoutedEventArgs e)
    {
-      if (!(sender is TextBox box))
+      if (sender is not TextBox box)
          return;
 
       if (box.CanRedo == true)
@@ -562,7 +562,7 @@ public partial class MainWindow
 
    private void TextBoxSelectAll(object sender, RoutedEventArgs e)
    {
-      if (!(sender is TextBox box))
+      if (sender is not TextBox box)
          return;
 
       box.SelectAll();

@@ -28,12 +28,11 @@ namespace grammlator {
             Info[i].RepresentativeID = i; // and element i being its own representative
             }
          }
-       
+
       /// <summary>
       /// The <see cref="ElementDescriptor"/> consists of the index of the next element in the same class
       /// and the index of an element which represents the class.
       /// </summary>
-      [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes")]
       protected struct ElementDescriptor {
          internal Int32 NextElementID;    // index of next element 
          internal Int32 RepresentativeID; // index of representative element of the class

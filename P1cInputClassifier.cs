@@ -223,7 +223,7 @@ internal class P1cInputClassifier : IGrammlatorInput<ClassifierResult>
    /// </summary>
    /// <param name="c"></param>
    /// <returns></returns>
-   private ClassifierResult GetResultFromChar(char c)
+   private static ClassifierResult GetResultFromChar(char c)
    {
       if (Char.IsWhiteSpace(c))
          return ClassifierResult.WhiteSpace;

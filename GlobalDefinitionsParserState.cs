@@ -12,9 +12,9 @@ namespace grammlator {
    internal sealed partial class ParserState : ParserAction, IELementOfPartition {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isParserState;
 
-      internal ItemList CoreItems = new ItemList();
+      internal ItemList CoreItems = new();
 
-      private static readonly ListOfParserActions emptyListOfParserActions = new ListOfParserActions(0);
+      private static readonly ListOfParserActions emptyListOfParserActions = new(0);
 
       /// <summary>
       /// <list type="table">
@@ -33,7 +33,7 @@ namespace grammlator {
       /// </summary>
       internal ListOfParserActions Actions = emptyListOfParserActions;
 
-      private static readonly List<ParserState> emptyPredecessorList = new List<ParserState>(0);
+      private static readonly List<ParserState> emptyPredecessorList = new(0);
 
       /// <summary>
       /// Is computed in phase 2 and used in phase 3 and 4
@@ -409,7 +409,7 @@ namespace grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
-         BitArray thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Length);
+         BitArray thisActionsConflictSymbols = new(subsetOfConflictSymbols.Length);
 
          // action might be removed from State.Actions inside the following loop.
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
@@ -421,7 +421,7 @@ namespace grammlator {
          for (Int32 IndexOfAction = 0; IndexOfAction < State!.Actions!.Count; IndexOfAction++)
          {
             ParserAction action = State.Actions[IndexOfAction];
-            if (action is NonterminalTransition || !(action is ConditionalAction conditionalAction))
+            if (action is NonterminalTransition || action is not ConditionalAction conditionalAction)
                continue;
 
             BitArray symbolsOfThisAction = conditionalAction.TerminalSymbols;
@@ -506,7 +506,7 @@ namespace grammlator {
          // determine action symbols and priority and determine the action with the highest priority
          for (Int32 IndexOfAction = 0; IndexOfAction < this.Actions!.Count; IndexOfAction++)
          {
-            if (!(this.Actions[IndexOfAction] is ConditionalAction action)
+            if (this.Actions[IndexOfAction] is not ConditionalAction action
                || (this.Actions[IndexOfAction] is NonterminalTransition))
                continue;
 
@@ -573,7 +573,7 @@ namespace grammlator {
 
          foreach (ConditionalAction conditionalAction in Actions.OfType<ConditionalAction>())
          {
-            Debug.Assert(!(conditionalAction is NonterminalTransition));
+            Debug.Assert(conditionalAction is not NonterminalTransition);
             allowedSymbols.Or(conditionalAction.TerminalSymbols);
             counter++;
          }
@@ -670,10 +670,10 @@ namespace grammlator {
          if (IndexOfSingleAction >= 0
             && Actions[IndexOfSingleAction] is LookaheadAction laAction
             // exactly one lookahead action
-            && !(laAction.NextAction is Definition)
+            && laAction.NextAction is not Definition
             )
          {
-            Debug.Assert(!(laAction.NextAction is NonterminalTransition));
+            Debug.Assert(laAction.NextAction is not NonterminalTransition);
 
 
 
@@ -724,7 +724,7 @@ namespace grammlator {
       }
 
       internal ItemStruct NewItemWithAdvancedMarker()
-          => new ItemStruct(this.SymbolDefinition, this.ElementNr + 1);
+          => new(this.SymbolDefinition, this.ElementNr + 1);
 
       /// <summary>
       /// Constructor returns a new start item with definiton, elementNr==0 and InputSymbol==Alternative.Elements[0] or InputSymbol==null for empty definition

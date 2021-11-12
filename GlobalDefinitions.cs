@@ -46,7 +46,7 @@ namespace grammlator {
       /// <param name="message"></param>
       /// <param name="innerException"></param>
       public ErrorInSourcedataException(Int32 position, String message, Exception innerException)
-          : base(String.Format("{0} in source position {1}}.", message, position + 1), innerException) => Position = position;
+          : base(String.Format("{0} in source position {1}.", message, position + 1), innerException) => Position = position;
 
       /// <summary>
       /// Exception caused by some unknown inner exception
@@ -210,9 +210,6 @@ namespace grammlator {
       }
 
 #pragma warning disable IDE0051 // Nicht verwendete private Member entfernen
-#pragma warning disable IDE0060 // Nicht verwendete private Member entfernen
-#pragma warning disable RCS1163 // Unused parameter.
-#pragma warning disable RCS1213 // Remove unused member declaration.
       /// <summary>
       /// This method hides base.Add(int Key, HashSet&lt;cAktionZustand&gt; hashSet) to prevent bugs
       /// </summary>
@@ -226,9 +223,6 @@ namespace grammlator {
          throw new ErrorInGrammlatorProgramException
              ($"SymmetricRelation<>.Add({keyIsIgnored}, {hashSetIsIgnored} must not be called.");
       }
-#pragma warning restore RCS1213 // Remove unused member declaration.
-#pragma warning restore RCS1163 // Unused parameter.
-#pragma warning disable IDE0060 // Nicht verwendete private Member entfernen
 #pragma warning restore IDE0051 // Nicht verwendete private Member entfernen
    }
 
@@ -576,7 +570,7 @@ namespace grammlator {
                sb.Append(separator);
             }
             if (Elementzähler == Markierung)
-               sb.Append("►");
+               sb.Append('►');
             sb.Append(s.Identifier);
 
             if (s.NumberOfAttributes > 0)
@@ -846,7 +840,7 @@ namespace grammlator {
             sb.Append(", is not used  in any definition");
       }
 
-      static readonly StringBuilder FlagNameBuilder = new StringBuilder(50);
+      static readonly StringBuilder FlagNameBuilder = new(50);
       /// <summary>
       /// Construct a unique identifier to be used for the flag representation of the terminal symbol
       /// </summary>
@@ -925,7 +919,7 @@ namespace grammlator {
 
       internal override String SymboltypeString => "nonterminal symbol";
       internal ListOfDefinitions NontrivialDefinitionsList;
-      private static readonly ListOfDefinitions EmptyDefinitionsList = new ListOfDefinitions(0);
+      private static readonly ListOfDefinitions EmptyDefinitionsList = new(0);
       internal Symbol[] TrivalDefinitionsArray;
 
       /// <summary>
@@ -1079,9 +1073,9 @@ namespace grammlator {
       /// </summary>
       internal readonly Int32 Index;
 
-      private static readonly List<String> UnifiedStrings = new List<String>(1000) { "" };
+      private static readonly List<String> UnifiedStrings = new(1000) { "" };
       private static readonly Dictionary<ReadOnlyMemory<Char>, Int32> MemoryToIndexDictionary
-         = new Dictionary<ReadOnlyMemory<Char>, Int32>(1000, new MemoryComparer()) { { "".AsMemory(), 0 } };
+         = new(1000, new MemoryComparer()) { { "".AsMemory(), 0 } };
       internal static void Reset()
       {
          MemoryToIndexDictionary.Clear();
@@ -1137,7 +1131,7 @@ namespace grammlator {
       }
 
       public static implicit operator string(UnifiedString u) => u.ToString();
-      public static explicit operator UnifiedString(string s) => new UnifiedString(s);
+      public static explicit operator UnifiedString(string s) => new(s);
 
    }
 }

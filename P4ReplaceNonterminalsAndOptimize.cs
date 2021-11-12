@@ -51,7 +51,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       P4bShortenChainsOfActionsDeleteNonterminalTransitions();
 
       // Now  ListOfAllStates[0] is definitely assigned and GlobalVariables.Startaction may be defined and used
-      p4.P4cRemoveNotLongerUsedActionsFromStates(); // TOCHECK second call needed ??
+      P4cRemoveNotLongerUsedActionsFromStates(); // TOCHECK second call needed ??
 
       // For each Parseraction compute the number of AcceptCalls and Calls
       GlobalVariables.Startaction.CountUsage(Accept: false);
@@ -59,10 +59,10 @@ internal class P4ReplaceNonterminalsAndOptimize
       // 
       p4.P4ePropagateLookAheadTerminals();
 
-      p4.P4fAddErrorhandlingActionsAndComputeComplexityOfStates();
+      P4fAddErrorhandlingActionsAndComputeComplexityOfStates();
 
       // Move push operations from states to actions if this reduces the number of those operations
-      p4.P4gMoveStateStackPushOperations();
+      P4gMoveStateStackPushOperations();
    }
 
    /// <summary>
@@ -179,9 +179,9 @@ internal class P4ReplaceNonterminalsAndOptimize
    /// </summary>
    List<ParserState>
       StatesOfThisLevel =
-          new List<ParserState>(GlobalVariables.ListOfAllStates.Count),
+          new(GlobalVariables.ListOfAllStates.Count),
       StatesOfNextLevel =
-          new List<ParserState>(GlobalVariables.ListOfAllStates.Count);
+          new(GlobalVariables.ListOfAllStates.Count);
 
    /// <summary>
    /// Start with <paramref name="StateToStartFrom"/> and walk <paramref name="Depth"/> levels
@@ -269,7 +269,7 @@ internal class P4ReplaceNonterminalsAndOptimize
                              DefinitionToReplace: definition,
                              Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1)
                          )!;
-                     Debug.Assert(!(actionWithNextAction.NextAction is Definition)); // ??????????????
+                     Debug.Assert(actionWithNextAction.NextAction is not Definition); // ??????????????
                                                                                      // actionWithNextAction.NextAction may be NonterminalTransition;
 
                      break;
@@ -358,7 +358,7 @@ internal class P4ReplaceNonterminalsAndOptimize
                     : FindOrConstructBranch(SortedListOfBranchcases);
 
             // Debug.Assert(!(NextAction is NonterminalTransition)); // ??????????
-            Debug.Assert(!(NextAction is Definition)); // ???????
+            Debug.Assert(NextAction is not Definition); // ???????
 
             StatesOfThisLevel.Clear();
 
@@ -472,7 +472,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       ParserState State1 = StatesAcceptingThisSymbol[0];
       ParserAction Action1 = State1.ActionCausedBy(inputSymbol).Simplify();
 
-      Debug.Assert(!(Action1 is LookaheadAction l) || !(l.NextAction is NonterminalTransition));
+      Debug.Assert(Action1 is not LookaheadAction l || l.NextAction is not NonterminalTransition);
 
       // Add the first case
       AddCase(ListOfCases, State1.StateStackNumber, Action1);
@@ -492,9 +492,9 @@ internal class P4ReplaceNonterminalsAndOptimize
          else
             ActionI = NT.NextAction.Simplify();
 
-         Debug.Assert(!(ActionI is Definition));
+         Debug.Assert(ActionI is not Definition);
 
-         Debug.Assert(!(ActionI is LookaheadAction la) || !(la.NextAction is NonterminalTransition));
+         Debug.Assert(ActionI is not LookaheadAction la || la.NextAction is not NonterminalTransition);
 
          AddCase(ListOfCases, StateI.StateStackNumber, ActionI);
 
@@ -551,7 +551,7 @@ internal class P4ReplaceNonterminalsAndOptimize
                   a2AsNonterminalTransition.NextAction);
    }
 
-   private static readonly StringBuilder reduceStringBuilder = new StringBuilder(80);
+   private static readonly StringBuilder reduceStringBuilder = new(80);
 
    /// <summary>
    /// Constructs a <see cref="ReduceAction"/> with special handling of the Startsymbol.
@@ -579,7 +579,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       reduceStringBuilder.Clear();
 
       // construct reduceAction
-      ReduceAction newReduceAction = new ReduceAction(NextActionOfReduce)
+      ReduceAction newReduceAction = new(NextActionOfReduce)
       {
          IdNumber = GlobalVariables.ListOfAllReductions.Count,// starting with 0
          Description = description,
@@ -698,7 +698,7 @@ internal class P4ReplaceNonterminalsAndOptimize
          && existingReduceAction.SemanticMethod == newReduceAction.SemanticMethod
          && existingReduceAction.AttributeStackAdjustment == newReduceAction.AttributeStackAdjustment
          && existingReduceAction.NextAction == newReduceAction.NextAction
-         && !(existingReduceAction.NextAction is Definition)
+         && existingReduceAction.NextAction is not Definition
          )
          {   //found 
             return existingReduceAction;
@@ -714,7 +714,7 @@ internal class P4ReplaceNonterminalsAndOptimize
    /// <param name="Reduction"></param>
    private static void SimplifyChainOfReductions(ReduceAction Reduction)
    {
-      if (!(Reduction.NextAction is ReduceAction nextReduction))
+      if (Reduction.NextAction is not ReduceAction nextReduction)
          return;
 
       // The NextAction of Reduction is also a ReduceAction, both may be combined
@@ -897,7 +897,7 @@ internal class P4ReplaceNonterminalsAndOptimize
 
          for (Int32 ActionIndex = 0; ActionIndex < State.Actions.Count; ActionIndex++)
          {
-            if (!(State.Actions[ActionIndex] is ParserActionWithNextAction ActionWithNextAction))
+            if (State.Actions[ActionIndex] is not ParserActionWithNextAction ActionWithNextAction)
                continue; // no chain
 
             if (ActionWithNextAction is NonterminalTransition)
@@ -914,7 +914,7 @@ internal class P4ReplaceNonterminalsAndOptimize
             {
                for (Int32 ActionToCompareIndex = 0; ActionToCompareIndex < ActionIndex; ActionToCompareIndex++)
                {
-                  if (!(State.Actions[ActionToCompareIndex] is TerminalTransition ActionToCompare))
+                  if (State.Actions[ActionToCompareIndex] is not TerminalTransition ActionToCompare)
                      continue;
 
                   if (ActionToCompare.NextAction == ActionAsTerminalTransition.NextAction)
@@ -949,7 +949,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       GlobalVariables.Startaction = GlobalVariables.Startaction.Simplify();
    }
 
-   private void P4cRemoveNotLongerUsedActionsFromStates()
+   private static void P4cRemoveNotLongerUsedActionsFromStates()
    {
       // for each state
       foreach (ParserState State in GlobalVariables.ListOfAllStates)
@@ -1043,13 +1043,13 @@ internal class P4ReplaceNonterminalsAndOptimize
             case NonterminalTransition _: // has already been removed
             case DeletedParserAction _:
             default:
-               throw new ArgumentException();
+               throw new ArgumentException(nameof(action));
          }
       }
    }
 
    Int32 PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
-   readonly BitArray test = new BitArray(GlobalVariables.AllTerminalSymbols.Count);
+   readonly BitArray test = new(GlobalVariables.AllTerminalSymbols.Count);
 
    private void Propagate(ParserAction? action, BitArray terminals)
    {
@@ -1108,14 +1108,15 @@ internal class P4ReplaceNonterminalsAndOptimize
          case NonterminalTransition _: // has already been removed
          case DeletedParserAction _:
          default:
-            throw new ArgumentException();
+            throw new ArgumentException("unknow ParserAction", nameof(action));
+            ;
       }
 
       PropagateRecursionDepth--;
       return;
    }
 
-   private void P4fAddErrorhandlingActionsAndComputeComplexityOfStates()
+   private static void P4fAddErrorhandlingActionsAndComputeComplexityOfStates()
    {
       foreach (ParserState State in GlobalVariables.ListOfAllStates)
       {
@@ -1156,7 +1157,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       }
    }
 
-   private void P4gMoveStateStackPushOperations()
+   private static void P4gMoveStateStackPushOperations()
    {
       /* Concept:
        * If possible move the push(p) from states into reduce actions and combine with pop() actions
@@ -1187,7 +1188,7 @@ internal class P4ReplaceNonterminalsAndOptimize
          for (Int32 ActionIndex = 0; ActionIndex < State.Actions.Count; ActionIndex++)
          {
             ParserAction a = State.Actions[ActionIndex];
-            if (!(a is ConditionalAction c) || a is PrioritySelectAction)
+            if (a is not ConditionalAction c || a is PrioritySelectAction)
             {
                // do not apply this optimization to states which contain other actions than conditional actions
                // or which contain PrioritySelectActions (see MoveStateStackPush(...))
@@ -1211,7 +1212,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       }
    }
 
-   private void MoveStateStackPushOperation(ParserState state)
+   private static void MoveStateStackPushOperation(ParserState state)
    {
       for (Int32 ActionIndex = 0; ActionIndex < state.Actions.Count; ActionIndex++)
       {

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
 using GrammlatorRuntime;
 
 namespace grammlator;
+
+// The terminal descriptions are analysed EvalDescription (handwritten code)
+// The grammar driven implementation (method Analyze) is not yet tested or used
 
 internal partial class P1aParser
 {
@@ -38,8 +40,8 @@ internal partial class P1aParser
       long Weight = GlobalSettings.TerminalDefaultWeight.Value;
       TerminalSymbol? Terminal = null;
       Boolean TerminalHasBeenDefined = false;
-      List<ReadOnlyMemory<char>> AttributeTypes = new List<ReadOnlyMemory<char>>(20);
-      List<ReadOnlyMemory<char>> AttributeIdentifiers = new List<ReadOnlyMemory<char>>(20);
+      List<ReadOnlyMemory<char>> AttributeTypes = new(20);
+      List<ReadOnlyMemory<char>> AttributeIdentifiers = new(20);
       var _s = new Stack<int>(50); // using GrammlatorRuntime !!!
 
       E Peek()
@@ -98,7 +100,7 @@ internal partial class P1aParser
 
 
          ReadOnlyMemory<char> TerminalIdentifierMemory = description[IdentifierFirstPos..(IdentifierLastPos + 1)];
-         UnifiedString TerminalString = new UnifiedString(TerminalIdentifierMemory);
+         UnifiedString TerminalString = new(TerminalIdentifierMemory);
          TerminalHasBeenDefined = SymbolDictionary.TryGetValue(TerminalString, out Symbol? s);
          if (TerminalHasBeenDefined)
             Terminal = (TerminalSymbol)s!;
@@ -154,9 +156,13 @@ internal partial class P1aParser
          => AttributeTypes.Add(description[IdentifierFirstPos..(IdentifierLastPos + 1)]);
 
       //|
-      //| OptionalWeight= /* empty */ ??-20?? | Percent, Digits ??-21??
+      //| OptionalWeight= /* empty */ ??-20??
+      //| | Percent, Digits ??-21??
       void ReAssignWeight()
-         => long.TryParse(description[NumberFirstPos..(NumberLastPos + 1)].Span, out Terminal!.Weight);
+      {
+         if (!long.TryParse(description[NumberFirstPos..(NumberLastPos + 1)].Span, out Terminal!.Weight))
+            ;
+      }
       //|
       #endregion grammar
       #region grammlator generated 26 Okt 2020 (grammlator file version/date 2020.10.18.0/26 Okt 2020)

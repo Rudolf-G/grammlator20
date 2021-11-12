@@ -1118,7 +1118,7 @@ namespace grammlator {
          /// <summary>
          /// list of blocks of symbols inside TerminalSymbols to be reused in <see cref="P5GenerateCode"/>
          /// </summary>
-         List<BlockOfEqualBits> blockList = new List<BlockOfEqualBits>(GlobalVariables.NumberOfTerminalSymbols);
+         List<BlockOfEqualBits> blockList = new(GlobalVariables.NumberOfTerminalSymbols);
 
          if (blockList.Capacity != condition.Count)
             blockList.Capacity = condition.Count;

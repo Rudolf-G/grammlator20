@@ -47,7 +47,7 @@ public partial class MainWindow : Window
 
    const String fileFilter = "cs files (*.cs)|*.cs|All files (*.*)|*.*";
 
-   readonly OpenFileDialog OpenSourceFileDialog = new OpenFileDialog()
+   readonly OpenFileDialog OpenSourceFileDialog = new()
    {
       AddExtension = false,
       ReadOnlyChecked = true,
@@ -55,7 +55,7 @@ public partial class MainWindow : Window
       Filter = fileFilter
    };
 
-   readonly SaveFileDialog SaveSourceOrResultDialog = new SaveFileDialog()
+   readonly SaveFileDialog SaveSourceOrResultDialog = new()
    {
       AddExtension = false,
       FilterIndex = 2,
@@ -304,7 +304,7 @@ public partial class MainWindow : Window
 
    private void DisplaySettings_Click(Object sender, RoutedEventArgs e)
    {
-      StringBuilder InfoBuilder = new StringBuilder(1000);
+      StringBuilder InfoBuilder = new(1000);
       String Delimiter;
 
       InfoBuilder.AppendLine("The grammlator settings are:").AppendLine();
@@ -327,7 +327,7 @@ public partial class MainWindow : Window
       OnFocusTextBox(new FocusTextBoxEventArgs(InfoTextBox));
    }
 
-   private readonly StringBuilder InfoBuilder = new StringBuilder(1000);
+   private readonly StringBuilder InfoBuilder = new(1000);
    private void MenuItemDisplaySettingsCompact_Click(Object sender, RoutedEventArgs e)
    {
       String Delimiter;
@@ -437,7 +437,7 @@ public partial class MainWindow : Window
 
    private void ListBox_SizeChanged(Object sender, SizeChangedEventArgs _)
    { // Adjust Width of contained TextBox (may be contained in a ListBoxItem)
-      if (!(sender is ListBox lb))
+      if (sender is not ListBox lb)
          return;
 
       foreach (Object? o in lb.Items)

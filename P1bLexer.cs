@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace grammlator;
-#pragma warning disable CS1591 // Fehlender XML-Kommentar für öffentlich sichtbaren Typ oder Element
 
 #region grammar part 1: lexer settings
 //| /* ---- Start of Lex1 grammar as control structure  ---- */
@@ -213,7 +212,7 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
       ;
    }
 
-   private readonly StringBuilder NameBuilder = new StringBuilder(30);
+   private readonly StringBuilder NameBuilder = new(30);
 
    private readonly LexerResult[] CharToLexerResult = new LexerResult[]
    {
@@ -492,7 +491,7 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    private void GetStringIndex(out UnifiedString lexerString)
    {
-      lexerString = new UnifiedString(StringCharacterSequence.Append("\"").ToString());
+      lexerString = new UnifiedString(StringCharacterSequence.Append('"').ToString());
       StringCharacterSequence.Clear();
    }
    //|
@@ -501,10 +500,10 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    private void StringStart()
    {
-      StringCharacterSequence.Clear().Append("\"");
+      StringCharacterSequence.Clear().Append('"');
       ;
    }
-   readonly StringBuilder StringCharacterSequence = new StringBuilder(128);
+   readonly StringBuilder StringCharacterSequence = new(128);
    //| | StringCharacterSequence, anyCharacterExceptQuotationmark(Int32 index)
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    private void StringAppendCharacter(Int32 index)
@@ -514,7 +513,7 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
    //| | StringCharacterSequence, Quotationmark(Int32 i1), Quotationmark(Int32 i2) 
    private void StringAppendQuotationmark()
    {
-      StringCharacterSequence.Append("\"");
+      StringCharacterSequence.Append('"');
    }
 
    //| Number(Int64 number)
@@ -534,7 +533,6 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
    {
       ClassifierResult LexerInput;
 
-#pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
       #region grammlator generated 13 Dez. 2020 (grammlator file version/date 2020.11.09.0/13 Dez. 2020)
       Int32 _AttributeStackInitialCount = _a.Count;
       const Int64 _fCSharpStart = 1L << (Int32)ClassifierResult.CSharpStart;
@@ -1021,6 +1019,5 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
       ;
 
       #endregion grammlator generated 13 Dez. 2020 (grammlator file version/date 2020.11.09.0/13 Dez. 2020)
-#pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
    }
 }

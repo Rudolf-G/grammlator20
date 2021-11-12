@@ -258,9 +258,9 @@ namespace grammlator {
          // result == 0  a will not happen if a != b
          // result > 0  sort order will be b then a
 
-         if (!(a is ConditionalAction ActionA))
+         if (a is not ConditionalAction ActionA)
             return (b == null) ? 0 : 1;
-         if (!(b is ConditionalAction ActionB))
+         if (b is not ConditionalAction ActionB)
             return -1;
 
          Single PositionA = Position(ActionA);
@@ -300,9 +300,9 @@ namespace grammlator {
       /// <returns></returns>
       internal static Int32 CompareIndexOfFirstTrueElement(ParserAction a, ParserAction b)
       {
-         if (!(a is ConditionalAction ActionA))
+         if (a is not ConditionalAction ActionA)
             return (b == null) ? 0 : 1;
-         if (!(b is ConditionalAction ActionB))
+         if (b is not ConditionalAction ActionB)
             return -1;
 
          Int32 First1 = ActionA.TerminalSymbols.IndexOfFirstTrueElement();
@@ -343,7 +343,6 @@ namespace grammlator {
       /// <param name="accept"></param>
       /// <param name="labelMustBeGenerated"></param>
       /// 
-      [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "e")]
       static internal void GenerateCodeSequence(P5CodegenCS codegen, ParserAction actionToGenerate, Boolean accept, Boolean labelMustBeGenerated)
       {
          ParserAction? ActionToGenerate = actionToGenerate;

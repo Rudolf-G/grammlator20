@@ -36,9 +36,9 @@ public sealed class P2ComputeLR0States
    {
    }
 
-   private readonly ListOfParserActions ActionsOfActualState = new ListOfParserActions(100);
+   private readonly ListOfParserActions ActionsOfActualState = new(100);
 
-   private readonly BitArray EmptyLookAheadSet = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
+   private readonly BitArray EmptyLookAheadSet = new(GlobalVariables.NumberOfTerminalSymbols);
 
    private void ComputeLR0StatesAndActions()
    {

@@ -317,17 +317,13 @@ namespace GrammlatorRuntime {
    /// </summary>
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes")]
    [StructLayout(LayoutKind.Explicit)]
-#pragma warning disable CA1708 // Identifiers should differ by more than case
    public partial struct MultiTypeStruct // may be extended by "partial" declarations
-#pragma warning restore CA1708 // Identifiers should differ by more than case
-    {
+   {
       /* It is possible, to overlap fields with different object types.
        * Not all errors caused by different overlapping object-types are recognized by the C# compiler or the C# runtime system.
        * Storing an object in one field and accessing the object by an other typed object field 
        * will result in very hard to recognize errors in the behaviour of the program.
        */
-#pragma warning disable CA1051 // Do not declare visible instance fields
-#pragma warning disable CS1591 // Fehledes XML-Kommentar für öffentlich sichtbaren Typ oder Element
       [FieldOffset(0)]
       public Object _object; // object types
 
@@ -393,9 +389,6 @@ namespace GrammlatorRuntime {
 
       [FieldOffset(8)]
       public UInt16 _UInt16;
-
-#pragma warning restore CS1591 // Fehledes XML-Kommentar für öffentlich sichtbaren Typ oder Element
-#pragma warning restore CA1051 // Do not declare visible instance fields
    }
 
    /// <summary>
@@ -406,7 +399,6 @@ namespace GrammlatorRuntime {
       /// Constructor
       /// </summary>
       /// <param name="initialCapacity">must be >= 0. Ff not specified, an implemenation specific value will be used</param>
-      [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
       public StackOfMultiTypeElements(Int32 initialCapacity)
       {
          if (initialCapacity < 0)
@@ -422,7 +414,7 @@ namespace GrammlatorRuntime {
       {
       }
 
-      private static readonly MultiTypeStruct MultiTypeStructDefault = new MultiTypeStruct();
+      private static readonly MultiTypeStruct MultiTypeStructDefault = new();
 
       // For each type identifier used in the grammar there must be a corresponding field in the MultiTypeStruct.
       // The identifier of the corresponding field of a type starts with the character '_' followed by the identifier of the type.

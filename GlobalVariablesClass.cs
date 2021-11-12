@@ -57,9 +57,9 @@ namespace grammlator {
                .Append(AssemblyName.Name)
                .Append(" file version/date ")
                .Append(FileVersion)
-               .Append("/")
+               .Append('/')
                .Append(FileWrittenDate)
-               .Append(")")
+               .Append(')')
                .ToString();
          }
       }
@@ -216,7 +216,7 @@ namespace grammlator {
       /// <returns>instance of the terminal symbol</returns>
       internal static TerminalSymbol GetTerminalSymbolByIndex(Int32 index) => TerminalSymbols[index];
 
-      internal readonly static BitArray EmptyBitarray = new BitArray(0);
+      internal readonly static BitArray EmptyBitarray = new(0);
 
       /// <summary>
       /// A set of terminal symbols containing all terminal symbols
@@ -240,51 +240,51 @@ namespace grammlator {
       /// List of all parser states, each one defined by its core items 
       /// (only the first state contains items with element number 0).
       /// </summary>
-      internal static readonly List<ParserState> ListOfAllStates = new List<ParserState>(InitialCapacityOfListOfAllStates);
+      internal static readonly List<ParserState> ListOfAllStates = new(InitialCapacityOfListOfAllStates);
 
       /// <summary>
       /// Defined and used in phase 4, used in phase 5
       /// </summary>
-      internal static readonly List<ReduceAction> ListOfAllReductions = new List<ReduceAction>(InitialCapacityOfListOfAllReductions);
+      internal static readonly List<ReduceAction> ListOfAllReductions = new(InitialCapacityOfListOfAllReductions);
 
       /// <summary>
       /// Defined and used in phase 4, used in phase 5
       /// </summary>
-      internal static readonly List<BranchAction> ListOfAllBranchActions = new List<BranchAction>(InitialCapacityOfListOfAllBranchActions);
+      internal static readonly List<BranchAction> ListOfAllBranchActions = new(InitialCapacityOfListOfAllBranchActions);
 
       /// <summary>
       /// Defined and used in phase 4, used in phase 5
       /// </summary>
       internal static readonly List<PrioritySelectAction> ListOfAllPrioritySelectActions
-         = new List<PrioritySelectAction>(InitialCapacityOfListOfAllPrioritySelectActions);
+         = new(InitialCapacityOfListOfAllPrioritySelectActions);
 
       /// <summary>
       /// Defined and used in phase 4, used in phase 5
       /// </summary>
       internal static readonly List<PriorityBranchAction> ListOfAllPriorityBranchActions
-         = new List<PriorityBranchAction>(InitialCapacityOfListOfAllPriorityBranchActions);
+         = new(InitialCapacityOfListOfAllPriorityBranchActions);
 
       /// <summary>
       /// Defined in phase 3, used in phase 5
       /// </summary>
-      internal static readonly List<ErrorhandlingAction> ListOfAllErrorhandlingActions = new List<ErrorhandlingAction>(InitialCapacityOfListOfAllStates);
+      internal static readonly List<ErrorhandlingAction> ListOfAllErrorhandlingActions = new(InitialCapacityOfListOfAllStates);
 
       /// <summary>
       /// <see cref="ListOfAllHaltActions"/>[0] is defined for use as initial <see cref="HaltAction"/>,
       /// all other entries are defined and used in phase 4 and used in phase 5.
       /// </summary>
       internal static readonly List<HaltAction> ListOfAllHaltActions
-         = new List<HaltAction>(InitialCapacityOfListOfAllHaltActions);
+         = new(InitialCapacityOfListOfAllHaltActions);
 
       internal static readonly List<PushStateAction> ListOfAllPushStateActions
-         = new List<PushStateAction>(InitialCapacityOfListOfAllPushStateActions);
+         = new(InitialCapacityOfListOfAllPushStateActions);
 
       /// <summary>
       /// used in <see cref="P5GenerateCode"/> and <see cref="HaltAction.Generate(P5CodegenCS, out Boolean)"/>
       /// </summary>
       internal static Boolean reductionsModifyAttributStack;
 
-      static readonly DefaultObjectPoolProvider objectPoolProvider = new DefaultObjectPoolProvider();
+      static readonly DefaultObjectPoolProvider objectPoolProvider = new();
       internal static ObjectPool<StringBuilder> stringBuilderPool = objectPoolProvider.CreateStringBuilderPool();
    } // class GlobalVariables
 }

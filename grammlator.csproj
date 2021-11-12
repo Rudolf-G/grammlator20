@@ -14,7 +14,7 @@
     <PackageLicenseExpression>Without warranty</PackageLicenseExpression>
     <Copyright>Dr. Rudolf Gardill</Copyright>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <NeutralLanguage></NeutralLanguage>
+    <NeutralLanguage>en-001</NeutralLanguage>
     <Nullable>enable</Nullable>
     <Win32Resource />
   </PropertyGroup>

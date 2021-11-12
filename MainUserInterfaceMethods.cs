@@ -28,8 +28,10 @@ namespace grammlator {
          foreach (ZipArchiveEntry entry in archive.Entries)
          {
             String entryName = entry.Name;
-            var newSubMenu = new MenuItem();
-            newSubMenu.Header = entryName;
+            var newSubMenu = new MenuItem
+            {
+               Header = entryName
+            };
             newSubMenu.Click += new System.Windows.RoutedEventHandler(mainWindow.MenuItemDisplayExample_Click);
             topMenu.Items.Add(newSubMenu);
          }

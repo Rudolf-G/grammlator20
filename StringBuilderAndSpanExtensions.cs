@@ -159,7 +159,7 @@ internal static class SpanExtensions
       {
          result = thisSpan.IndexBehindSeparators(result);
 
-         if (!thisSpan.Slice(result).StartsWith(markers[i]))
+         if (!thisSpan[result..].StartsWith(markers[i]))
             return -1;
 
          result += markers[i].Length;
