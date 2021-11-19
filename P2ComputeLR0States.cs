@@ -79,7 +79,7 @@ public sealed class P2ComputeLR0States
          //    else copy it to ListOfNotAnEnditemOfActualState
          foreach (ItemStruct CoreItem in ActualState.CoreItems)
          {
-            if (CoreItem.ElementNr >= CoreItem.SymbolDefinition.Elements.Length)
+            if (CoreItem.MarkerPosition >= CoreItem.SymbolDefinition.Elements.Length)
             {   // enditem: add reduce action to ActionsOfActualState
                ActionsOfActualState.Add(
                   new LookaheadAction(
@@ -131,7 +131,8 @@ public sealed class P2ComputeLR0States
 
             ItemStruct Item = ListOfNotAnEnditemLOfActualState[IndexOfItem];
             if (Item.InputSymbol is NonterminalSymbol nonterminal && !DoNotProcessNonterminalSymbolAgain[nonterminal.SymbolNumber])
-               DuplicateItemForTrivialDefinitions(nonterminal, Item, ListOfNotAnEnditemLOfActualState, DoNotProcessNonterminalSymbolAgain);
+               DuplicateItemForTrivialDefinitions(nonterminal, Item, 
+                  ListOfNotAnEnditemLOfActualState, DoNotProcessNonterminalSymbolAgain);
          }
 
          ComputeFollowStatesAndTransitions(ListOfNotAnEnditemLOfActualState, IndexOfActualState);
@@ -206,7 +207,8 @@ public sealed class P2ComputeLR0States
             Debug.Assert(!ListOfNotAnEnditemOfActualState[ItemIndex].IsEnditem); // because the item has an input symbol
 
             ItemStruct ItemWithAdvancedMarker =
-                ListOfNotAnEnditemOfActualState[ItemIndex].NewItemWithAdvancedMarker();
+               // new ItemStruct(ListOfNotAnEnditemOfActualState[ItemIndex]) { ElementNr = 1};
+               ListOfNotAnEnditemOfActualState[ItemIndex].NewItemWithAdvancedMarker();
 
             ItemsOfNewState.Add(ItemWithAdvancedMarker);
             ItemIndex++;
@@ -225,7 +227,7 @@ public sealed class P2ComputeLR0States
          {
             ItemStruct NewStatesItem = ItemsOfNewState[0];
 
-            if (NewStatesItem.ElementNr >= NewStatesItem.SymbolDefinition.Elements.Length)
+            if (NewStatesItem.MarkerPosition >= NewStatesItem.SymbolDefinition.Elements.Length)
             {
                // it is a enditem
                AddTransitionToActionsOfActualState(InputSymbolToEvaluate, nextAction: NewStatesItem.SymbolDefinition);
@@ -330,19 +332,20 @@ public sealed class P2ComputeLR0States
       // duplicate item, using each trivial definition of the marked symbol as InputSymbol of the duplicated item
       foreach (Symbol trivialDefinition in MarkedSymbol.TrivalDefinitionsArray)
       {
-         Item.InputSymbol = trivialDefinition; // ok because item is a struct and not a class
+
+         ItemStruct modifiedItem = Item with { InputSymbol = trivialDefinition };
 
          if (trivialDefinition is NonterminalSymbol nonterminalReplacement)
          {
             if (!doNotProcessNonterminalSymbolAgain[nonterminalReplacement.SymbolNumber])
             {
-               ListOfNotAnEnditemLOfActualState.Add(Item);
-               DuplicateItemForTrivialDefinitions(nonterminalReplacement, Item, ListOfNotAnEnditemLOfActualState, doNotProcessNonterminalSymbolAgain);
+               ListOfNotAnEnditemLOfActualState.Add(modifiedItem);
+               DuplicateItemForTrivialDefinitions(nonterminalReplacement, modifiedItem, ListOfNotAnEnditemLOfActualState, doNotProcessNonterminalSymbolAgain);
             }
          }
          else
          {
-            ListOfNotAnEnditemLOfActualState.Add(Item);
+            ListOfNotAnEnditemLOfActualState.Add(modifiedItem);
          }
       }
 

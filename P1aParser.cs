@@ -258,7 +258,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    //|     GrammarRuleList,
    //|     TerminatorAtEndOfGrammar;
    //|
-   //| TerminatorAtEndOfGrammar= NumberSign;
+   //| TerminatorAtEndOfGrammar= NumberSign; // the 1st char of "#region grammlator generated"
    //|
    //| OptionalGrammlatorSettings
    //| = /* empty */
@@ -395,7 +395,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    //| = /* empty */
    private static void OptionalDefaultWeight(out Int64 weight)
       => weight = GlobalSettings.TerminalDefaultWeight.Value;
-   //|| "%", Number(Int64 weight)
+   //| | "%", Number(Int64 weight)
 
    //| OptionalValue(Int64 value)
    //| = /* empty */

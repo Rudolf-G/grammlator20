@@ -8,6 +8,25 @@ using System.Windows.Xps;
 
 namespace grammlator;
 
+/* The input classifier uses a SpanReader as input and a grammlator StackOfMultiTypeElements as grammlator attribute stack.
+ * It implements the methods PeekSymbol() and AcceptSymbol() fetching line spans from the input as needed.
+ * It copies the input lines to the output.
+ * It ignores
+ *    lines which are not between "#region grammlator grammar" and "endregion grammar", 
+ *    unicode-separators at the beginning of a line and following the grammar line markers "//|",
+ *    empty lines, C# comment lines and C# pragma lines (special handling see below) and
+ *    #region and #endregion lines (special handling of "#region grammlator .." and "#endregion grammlator ...". 
+ *    
+ * It synthesizes CSharpStart and CSharpEnd symbols between lines starting with grammar line markers and other lines.
+ * In doing so it interpretes empty lines, C# comment lines and C# pragma lines as empty CS code lines.
+ * 
+ * The input classifier calls  GlobalVariables.OutputMessageAndPosition(...) when it detects a not expected 
+ *    end of source or a not expected 
+ *    "region grammlator" not followed by "generated". * 
+ * 
+ * */
+
+
 /// <summary>
 /// Grammlator syntaxchecker Level 0: input for lexical analysis Lex1
 /// </summary>
@@ -318,9 +337,7 @@ internal class P1cInputClassifier : IGrammlatorInput<ClassifierResult>
 
          CurrentColumn = newPosition;
          // start interpreting after the GrammarlineMarker and white space
-         while (CurrentColumn < InputSpan.Length && Char.IsSeparator(InputSpan[CurrentColumn]))
-            CurrentColumn++;
-         // CurrentColumn = InputLine.Span.IndexBehindSeparators(CurrentColumn);
+         CurrentColumn = InputLine.Span.IndexBehindSeparators(CurrentColumn);
          if (CurrentColumn >= InputLineLengthWithoutEol)
             return ' '; // do not ignore line so that switching between CSharp and Grammar lines can be handled 
          return InputSpan[CurrentColumn];
@@ -345,7 +362,9 @@ internal class P1cInputClassifier : IGrammlatorInput<ClassifierResult>
          CurrentColumn, GlobalSettings.RegionEnd.Value, GlobalSettings.RegionGrammarMarker.Value) > -1
          )
       {
-      // skip to "region grammar" or "#region grammlator generated", error message if end of file
+      // found "endregion grammar .."
+      // skip to "region grammar" or "#region grammlator generated",
+      // output error message if end of file
       SkipToNextRegion:
          // a) skip all text to position behind "region"
          Int32 StartOfMarkedLine = SourceReader.ReadAndCopyUntilMarkedLineFound(null,
@@ -420,7 +439,7 @@ internal class P1cInputClassifier : IGrammlatorInput<ClassifierResult>
 
    /// <summary>
    /// Skips all input lines which are not grammar lines
-   /// and sets the next noty yet accepted symbol to <see cref="ClassifierResult.CSharpEnd"/>
+   /// and sets the next not yet accepted symbol to <see cref="ClassifierResult.CSharpEnd"/>
    /// </summary>
    public void SkipToEndOfCSLines()
    {

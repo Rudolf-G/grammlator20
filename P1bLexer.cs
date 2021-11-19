@@ -406,7 +406,7 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
       => Symbol = CharToLexerResult[Source.Span[index]];
 
    //| OneCharacterToPassOn(Int32 i)
-   //| = DefiningSymbol(Int32 i)     | Comma(Int32 i)         | DefinitionSeparatorSymbol(Int32 i) | Questionmark(Int32 i) ??-202??
+   //| = DefiningSymbol(Int32 i)   | Comma(Int32 i)         | DefinitionSeparatorSymbol(Int32 i) | Questionmark(Int32 i) ??-202??
    //| | TerminatorSymbol(Int32 i) | Minus(Int32 i)??-200?? | Plus(Int32 i)                      | Colon (Int32 i)
    //| | Asterisk(Int32 i)??-201?? | GroupStart(Int32 i)    | OptionStart(Int32 i)               | RepeatStart(Int32 i)
    //| | GroupEnd(Int32 i)         | OptionEnd(Int32 i)     | RepeatEnd(Int32 i)                 | NumberSign(Int32 i)
@@ -525,6 +525,8 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    private void DigitNumberNew(ref Int64 number, Int32 index)
        => number = (number * 10) + (Source.Span[index] & 0xF);
+
+
    #endregion grammar
 
 #pragma warning disable CA1502 // Avoid excessive complexity

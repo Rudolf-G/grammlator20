@@ -699,13 +699,14 @@ namespace grammlator {
 
    /// <summary>
    /// The ItemStruct includes an additional field InputSymbol to make the special handling of trivial definitions possible.
-   /// First the InputSymbol is the marked symbol. Then the item is copied for all trivial definitions of the marked symbol
+   /// First the InputSymbol is the marked symbol.
+   /// Then the item is copied for all trivial definitions of the marked symbol
    /// and each trivial definition (symbol) is used as InputSymbol
    /// </summary>
-   public struct ItemStruct {
+   public readonly record struct ItemStruct {
       internal readonly Definition SymbolDefinition;
-      internal readonly Int32 ElementNr;
-      internal Symbol InputSymbol; // == EmptySymbol if enditem
+      internal readonly Int32 MarkerPosition;
+      internal Symbol InputSymbol { get; init; } // == EmptySymbol if enditem
 
       static readonly Symbol EmptySymbol = new TerminalSymbol(new UnifiedString(0), 0, 0, 0);
       /// <summary>
@@ -713,18 +714,18 @@ namespace grammlator {
       /// and InputSymbol==definition.Elements[elementNr] or InputSymbol==null for enditem
       /// </summary>
       /// <param name="definition"></param>
-      /// <param name="elementNr"></param>
-      internal ItemStruct(Definition definition, Int32 elementNr)
+      /// <param name="markerPosition"></param>
+      private ItemStruct(Definition definition, Int32 markerPosition)
       {
          this.SymbolDefinition = definition;
-         this.ElementNr = elementNr;
+         this.MarkerPosition = markerPosition;
          this.InputSymbol =
-            elementNr < definition.Elements.Length
-             ? definition.Elements[elementNr] : EmptySymbol;
+            markerPosition < definition.Elements.Length
+             ? definition.Elements[markerPosition] : EmptySymbol;
       }
 
       internal ItemStruct NewItemWithAdvancedMarker()
-          => new(this.SymbolDefinition, this.ElementNr + 1);
+          => new(this.SymbolDefinition, this.MarkerPosition + 1);
 
       /// <summary>
       /// Constructor returns a new start item with definiton, elementNr==0 and InputSymbol==Alternative.Elements[0] or InputSymbol==null for empty definition
@@ -732,57 +733,56 @@ namespace grammlator {
       /// <param name="definition"></param>
       internal ItemStruct(Definition definition) : this(definition, 0) { }
 
-      internal Boolean IsEnditem => this.ElementNr == this.SymbolDefinition.Elements.Length;
+      internal Boolean IsEnditem => this.MarkerPosition == this.SymbolDefinition.Elements.Length;
 
-      // GetHashcode see https://msdn.microsoft.com/de-de/library/system.object.gethashcode%28v=vs.110%29.aspx
-      /// <summary>
-      /// gets xor of SymbolDefinition.GetHashCode and ElementNr
-      /// </summary>
-      /// <returns>HashCode</returns>
-      public override Int32 GetHashCode()
-         => SymbolDefinition.GetHashCode() ^ ElementNr ^ InputSymbol?.GetHashCode() ?? 0;
+      //// GetHashcode see https://msdn.microsoft.com/de-de/library/system.object.gethashcode%28v=vs.110%29.aspx
+      ///// <summary>
+      ///// gets xor of SymbolDefinition.GetHashCode and ElementNr
+      ///// </summary>
+      ///// <returns>HashCode</returns>
+      //public override Int32 GetHashCode()
+      //   => SymbolDefinition.GetHashCode() ^ MarkerPosition ^ InputSymbol?.GetHashCode() ?? 0;
 
-      // Überladen von Equals und der Operatoren   == und != für sItem
-      /// <summary>
-      ///  compares xxx.SymbolDefinition and then xxx.ElementNr
-      /// </summary>
-      /// <param name="obj"></param>
-      /// <returns>true if equal</returns>
-      public override Boolean Equals(Object? obj) =>
-          // schneller als der Default
-          // siehe https://msdn.microsoft.com/de-de/library/2dts52z7%28v=vs.110%29.aspx
-          obj is ItemStruct other
-              && other.SymbolDefinition == this.SymbolDefinition
-              && other.ElementNr == this.ElementNr
-              && other.InputSymbol == this.InputSymbol;
+      //// Überladen von Equals und der Operatoren   == und != für sItem
+      ///// <summary>
+      /////  compares xxx.SymbolDefinition and then xxx.ElementNr
+      ///// </summary>
+      ///// <param name="obj"></param>
+      ///// <returns>true if equal</returns>
+      //public override Boolean Equals(Object? obj) =>
+      //    // schneller als der Default
+      //    // siehe https://msdn.microsoft.com/de-de/library/2dts52z7%28v=vs.110%29.aspx
+      //    obj is ItemStruct other
+      //        && other.SymbolDefinition == this.SymbolDefinition
+      //        && other.ElementNr == this.ElementNr
+      //        && other.InputSymbol == this.InputSymbol;
 
-      /// <summary>
-      /// compares xxx.SymbolDefinition and then xxx.ElementNr
-      /// </summary>
-      /// <param name="leftArgument"></param>
-      /// <param name="rightArgument"></param>
-      /// <returns>true if equal</returns>
-      public static Boolean operator ==(ItemStruct leftArgument, ItemStruct rightArgument)
-      {
-         return leftArgument.SymbolDefinition == rightArgument.SymbolDefinition
-             && leftArgument.ElementNr == rightArgument.ElementNr
-             && leftArgument.InputSymbol == rightArgument.InputSymbol;
-      }
+      ///// <summary>
+      ///// compares xxx.SymbolDefinition and then xxx.ElementNr
+      ///// </summary>
+      ///// <param name="leftArgument"></param>
+      ///// <param name="rightArgument"></param>
+      ///// <returns>true if equal</returns>
+      //public static Boolean operator ==(ItemStruct leftArgument, ItemStruct rightArgument)
+      //{
+      //   return leftArgument.SymbolDefinition == rightArgument.SymbolDefinition
+      //       && leftArgument.ElementNr == rightArgument.ElementNr
+      //       && leftArgument.InputSymbol == rightArgument.InputSymbol;
+      //}
 
-      /// <summary>
-      ///  compares xxx.SymbolDefinition and then xxx.ElementNr
-      /// </summary>
-      /// <param name="leftArgument"></param>
-      /// <param name="rightArgument"></param>
-      /// <returns>true if not equal</returns>
-      public static Boolean operator !=(ItemStruct leftArgument, ItemStruct rightArgument)
-      {
-         return leftArgument.SymbolDefinition != rightArgument.SymbolDefinition
-             || leftArgument.ElementNr != rightArgument.ElementNr;
-      }
+      ///// <summary>
+      /////  compares xxx.SymbolDefinition and then xxx.ElementNr
+      ///// </summary>
+      ///// <param name="leftArgument"></param>
+      ///// <param name="rightArgument"></param>
+      ///// <returns>true if not equal</returns>
+      //public static Boolean operator !=(ItemStruct leftArgument, ItemStruct rightArgument)
+      //{
+      //   return leftArgument.SymbolDefinition != rightArgument.SymbolDefinition
+      //       || leftArgument.ElementNr != rightArgument.ElementNr;
+      //}
 
-      // Mit IComparable ist die Default-Sortierreihenfolge für Sort() etc. implementiert
-      // siehe https://msdn.microsoft.com/en-us/library/system.icomparable.compareto%28v=vs.110%29.aspx
+      // We use two different comparisions to sort items !
 
       /// <summary>
       /// Compares SymbolDefinition.DefinedSymbol.SymbolNumber, then SymbolDefinition.IdNumber, 
@@ -805,9 +805,9 @@ namespace grammlator {
             return -1;
          if (this.SymbolDefinition.IdNumber > other.SymbolDefinition.IdNumber)
             return +1;
-         if (this.ElementNr < other.ElementNr)
+         if (this.MarkerPosition < other.MarkerPosition)
             return -1;
-         if (this.ElementNr > other.ElementNr)
+         if (this.MarkerPosition > other.MarkerPosition)
             return +1;
          Debug.Assert(this.SymbolDefinition.DefinedSymbol!.SymbolNumber == other.SymbolDefinition.DefinedSymbol!.SymbolNumber);
          if (this.SymbolDefinition.IdNumber < other.SymbolDefinition.IdNumber)
@@ -858,9 +858,9 @@ namespace grammlator {
          if (this.SymbolDefinition.IdNumber > item.SymbolDefinition.IdNumber)
             return +1;
 
-         if (this.ElementNr < item.ElementNr)
+         if (this.MarkerPosition < item.MarkerPosition)
             return -1;
-         if (this.ElementNr > item.ElementNr)
+         if (this.MarkerPosition > item.MarkerPosition)
             return +11;
 
          return 0;
@@ -884,7 +884,7 @@ namespace grammlator {
          for (Int32 i = 0; i < this.Count; i++)
          {
             if ((this[i].SymbolDefinition != other[i].SymbolDefinition)
-                || (this[i].ElementNr != other[i].ElementNr))
+                || (this[i].MarkerPosition != other[i].MarkerPosition))
             {
                return false;
             }
@@ -903,7 +903,7 @@ namespace grammlator {
 
             Definition d = Item.SymbolDefinition;
             d.DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
-            d.ElementsToStringbuilder(sb, Item.ElementNr);
+            d.ElementsToStringbuilder(sb, Item.MarkerPosition);
          }
       }
 
@@ -913,7 +913,7 @@ namespace grammlator {
          {
             Definition d = Item.SymbolDefinition;
             d.DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
-            d.AppendToSB(sb, Item.ElementNr);
+            d.AppendToSB(sb, Item.MarkerPosition);
             sb.AppendLine();
          }
          return sb;
