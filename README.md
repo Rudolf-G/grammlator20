@@ -30,5 +30,4 @@ State of the implementation of grammlator:
 * There is a collection of simple examples:
   - https://github.com/Rudolf-G/GrammlatorExamples
   - https://github.com/Rudolf-G/grammlator-example-FormulaCalculator
-* As a more complex example a C# lexer is in work (no, it is not intended to replace the Visual Studio C# lexer)
-* If there is any public interest in this work documentation will be added.
+

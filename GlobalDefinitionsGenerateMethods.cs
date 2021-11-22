@@ -717,7 +717,10 @@ namespace grammlator {
          if (StateStackNumber >= 0)
             codegen.GenerateStateStackPush(StateStackNumber);
          else if (StateStackNumber <= -2)
+         {
+            codegen.IndentExactly();
             codegen.AppendLine("// *Push(" + (-StateStackNumber - 2).ToString() + ')');
+         }
 
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
          // This is prepared  by shortening chains in phase 4 und implemented by the following.

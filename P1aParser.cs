@@ -38,8 +38,11 @@ public enum LexerResult : Byte
    [Description("Colon() %35")]
    Colon,          // :
    Percent,        // %
+
    CSharpEnd,      // represents the change from CSharp lines to grammlator lines
+  
    Error,          // Error is the result if some input could not be assigned to any other LexerResult
+
    Minus,          // Part of "-="
    [Description("Number(Int64 value)")]
    Number,
@@ -56,10 +59,11 @@ public enum LexerResult : Byte
    [Description(@"OptionStart() %35 ""[""")]
    OptionStart,
    [Description(@"RepeatStart() %35 ""{"" ")]
-   RepeatStart, // these are the characters ( [ {
+   RepeatStart,
 
    DoubleQuestionmark,
    [Description(@"CSharpStart() %19")]
+
    CSharpStart, // represents the change from grammlator lines to CSharp lines
 
    GroupEnd, RepeatEnd, OptionEnd,  // these are the characters ) ] } #
@@ -70,7 +74,7 @@ public enum LexerResult : Byte
    LexerString,
 
    [Description(@"DefinitionSeparatorSymbol() %45 ""|"" ")]
-   DefinitionSeparatorSymbol, // |
+   DefinitionSeparatorSymbol,
    [Description(@"TerminatorSymbol() %42 "";"" ")]
    TerminatorSymbol
 };

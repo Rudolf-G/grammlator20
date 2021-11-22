@@ -53,7 +53,7 @@ namespace grammlator {
          Boolean CodeContainsErrorHalt = GlobalVariables.ErrorHaltInstance.Calls > 0;
 
          // Prevent special actions from being generated somewhere inside the generated code.
-         // They will be gnerated at the end of the generated code (see below).
+         // They will be generated at the end of the generated code (see below).
          GlobalVariables.EndOfGeneratedCodeInstance.Calls = -GlobalVariables.EndOfGeneratedCodeInstance.Calls;
          GlobalVariables.ErrorHaltInstance.Calls = -GlobalVariables.ErrorHaltInstance.Calls;
 
