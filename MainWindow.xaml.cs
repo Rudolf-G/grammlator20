@@ -244,7 +244,7 @@ public partial class MainWindow : Window
       if (!AllowReplaceSourceBoxTextIfChanged(StatusFlags.SourceTextChanged, "The source textbox has been edited and not yet saved!"))
          return;
 
-      if (LoadSourcefile())
+      if (ClearResultsAndReadFileToSourceTextbox(SourceFilename))
          Translate();
    }
 
@@ -263,7 +263,7 @@ public partial class MainWindow : Window
       if (result != true)
          return false; // canceled by user
 
-      return ClearResultsAndReadFileToSourceTextbox(); // and set ActualStatus
+      return ClearResultsAndReadFileToSourceTextbox(OpenSourceFileDialog.FileName); // and set ActualStatus
    }
 
    private void CompareIgnoringSeparators_Click(Object _1, RoutedEventArgs _2)

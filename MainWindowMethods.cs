@@ -316,15 +316,15 @@ public partial class MainWindow
 
    }
 
-   private Boolean ClearResultsAndReadFileToSourceTextbox()
+   private Boolean ClearResultsAndReadFileToSourceTextbox(string fileName)
    {
       ClearAllResultsAndErrorBoxes();
 
       Boolean success = true;
       try
       {
-         SourceTextBox.Text = File.ReadAllText(OpenSourceFileDialog.FileName);
-         SourceFilename = OpenSourceFileDialog.FileName;
+         SourceTextBox.Text = File.ReadAllText(fileName);
+         SourceFilename = fileName;
 
          ActualStatus.SetFlags(StatusFlags.SourceHasFilename | StatusFlags.SourceNotEmpty, true);
          ActualStatus.SetFlags(
