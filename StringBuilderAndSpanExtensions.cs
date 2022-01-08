@@ -104,16 +104,11 @@ internal static class SpanExtensions
       if (thisSpan == null || position + pattern.Length > thisSpan.Length)
          return false;
 
-      Int32 sPosition = position;
+      Int32 sPosition = position;     
 
-      for (Int32 pPosition = 0; pPosition < pattern.Length; pPosition++)
-      {
-         if (thisSpan[sPosition] != pattern[pPosition])
-            return false; // Position unchanged
-         sPosition++;
-      }
-
-      position = sPosition;
+      if (!thisSpan[position..].StartsWith(pattern))
+         return false;
+      position += pattern.Length;
       return true;
    }
 
@@ -122,25 +117,24 @@ internal static class SpanExtensions
    /// Does not allocate temporary string variables in the .NET heap.
    /// </summary>
    /// <param name="thisSpan">the Span to be checked</param>
-   /// <param name="markers">The strings to be checkd for</param>
+   /// <param name="keywords">The strings to be checkd for</param>
    /// <returns>true if all markers have been found</returns>      
-   internal static Boolean StartsWith(this ReadOnlySpan<char> thisSpan, params String[] markers)
+   internal static Boolean StartsWithKeywordSequence(this ReadOnlySpan<char> thisSpan, params String[] keywords)
    {
-      Boolean foundAllMarkers = true;
+      Boolean foundAllKeywords = true;
       Int32 column = 0;
-      foreach (String marker in markers)
+      foreach (String keyword in keywords)
       {
-         if (!thisSpan.SkipSeparator(ref column).StartsWithAndSkip(ref column, marker))
+         if (!thisSpan.SkipSeparator(ref column)[column..].StartsWith(keyword))
          {
-            foundAllMarkers = false;
+            foundAllKeywords = false;
             break;
          }
 
-         if (!foundAllMarkers)
-            break;
+         column+=keyword.Length;
       }
 
-      return foundAllMarkers;
+      return foundAllKeywords;
    }
 
    /// <summary>
@@ -175,7 +169,7 @@ internal static class SpanExtensions
       return;
    }
 
-   internal static Boolean IsCharacter(this ReadOnlySpan<Char> thisSpan, ref int position, char c)
+   internal static Boolean TestAndSkipCharacter(this ReadOnlySpan<Char> thisSpan, ref int position, char c)
    {
       if (position >= thisSpan.Length || thisSpan[position] != c)
          return false;

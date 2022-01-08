@@ -10,7 +10,6 @@ namespace grammlator;
 
 /* The input classifier uses a SpanReader as input and a grammlator StackOfMultiTypeElements as grammlator attribute stack.
  * It implements the methods PeekSymbol() and AcceptSymbol() fetching line spans from the input as needed.
- * It copies the input lines to the output.
  * It ignores
  *    lines which are not between "#region grammlator grammar" and "endregion grammar", 
  *    unicode-separators at the beginning of a line and following the grammar line markers "//|",

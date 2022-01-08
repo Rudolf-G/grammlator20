@@ -1,171 +1,174 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+
 using GrammlatorRuntime;
 
 namespace grammlator;
 
-// The terminal descriptions are analysed EvalDescription (handwritten code)
+// The terminal descriptions are analysed by EvalDescription (handwritten code)
 // The grammar driven implementation (method Analyze) is not yet tested or used
 
 internal partial class P1aParser
 {
 
-   #region grammar
-   //|
-   //| // Grammlator settings
-   //| TerminalSymbolEnum:            "E";
-   //| InputExpression:               "Peek()";
-   //| InputAcceptInstruction:        "Accepted = true;";
-   //| ErrorHaltInstruction:          "return false;";
-   //| GenerateFlagTestStartingLevel:  2;
-   //| NameOfFlagTestMethod:          "_is";
-   //|
-   //| // Terminal definitions:
-   enum E
-   {
-      Space = 1, Letter = 2, Digit = 4, QuotationMark = 8, OpenParenthesis = 16,
-      CloseParenthesis = 32, Percent = 64, Comma = 128, Other = 512, EOL = 1024
-   };
+    #region grammar
+    //|
+    //| // Grammlator settings
+    //| TerminalSymbolEnum:            "E";
+    //| InputExpression:               "Peek()";
+    //| InputAcceptInstruction:        "Accepted = true;";
+    //| ErrorHaltInstruction:          "return false;";
+    //| GenerateFlagTestStartingLevel:  2;
+    //| NameOfFlagTestMethod:          "_is";
+    //|
+    //| // Terminal definitions:
+    enum E
+    {
+        Space = 1, Letter = 2, Digit = 4, QuotationMark = 8, OpenParenthesis = 16,
+        CloseParenthesis = 32, Percent = 64, Comma = 128, Other = 512, EOL = 1024
+    };
 
-   #endregion grammar
-   private Boolean Analyze(ReadOnlyMemory<char> description, int textPos)
-   {
-      int i = -1; // Index of the last accepted char
-      Boolean Accepted = true;
-      int NumberFirstPos = 0;
-      int NumberLastPos = 0;
-      int IdentifierFirstPos = 0;
-      int IdentifierLastPos = 0;
-      long Weight = GlobalSettings.TerminalDefaultWeight.Value;
-      TerminalSymbol? Terminal = null;
-      Boolean TerminalHasBeenDefined = false;
-      List<ReadOnlyMemory<char>> AttributeTypes = new(20);
-      List<ReadOnlyMemory<char>> AttributeIdentifiers = new(20);
-      var _s = new Stack<int>(50); // using GrammlatorRuntime !!!
+    #endregion grammar
+    private Boolean Analyze(ReadOnlyMemory<char> description, int textPos)
+    {
+        int i = -1; // Index of the last accepted char
+        Boolean Accepted = true;
+        int NumberFirstPos = 0;
+        int NumberLastPos = 0;
+        int IdentifierFirstPos = 0;
+        int IdentifierLastPos = 0;
+        long Weight = GlobalSettings.TerminalDefaultWeight.Value;
+        TerminalSymbol? Terminal = null;
+        Boolean TerminalHasBeenDefined = false;
+        List<ReadOnlyMemory<char>> AttributeTypes = new(20);
+        List<ReadOnlyMemory<char>> AttributeIdentifiers = new(20);
+        var _s = new Stack<int>(50); // using GrammlatorRuntime !!!
 
-      E Peek()
-      {
-         if (Accepted)
-            i++;
-         if (i + 1 >= description.Length)
-            return E.EOL;
-         if (char.IsLetter(description.Span[i + 1]))
-            return E.Letter;
-         if (char.IsWhiteSpace(description.Span[i + 1]))
-            return E.Space;
-         if (description.Span[i + 1] >= '0' && description.Span[i + 1] <= '9')
-            return E.Digit;
-         return description.Span[i + 1] switch
-         {
-            '(' => E.OpenParenthesis,
-            ')' => E.CloseParenthesis,
-            '"' => E.QuotationMark,
-            '%' => E.Percent,
-            ',' => E.Comma,
-            _ => E.Other
-         };
-      }
-
-      #region grammar
-      //|
-      //| *= QuotationMark, Space*,
-      //|    TerminalIdentifier, Space*,
-      //|    OpenParenthesis, Space*,
-      //|    Attributes?,
-      //|    CloseParenthesis, Space*
-      //|    OptionalWeight
-      void AssignAttributes()
-      {
-         if (!TerminalHasBeenDefined)
-         {
-            var TypeStrings = new UnifiedString[AttributeTypes.Count];
-            var NameStrings = new UnifiedString[AttributeIdentifiers.Count];
-            for (int i = 0; i < AttributeTypes.Count; i++)
+        E Peek()
+        {
+            if (Accepted)
+                i++;
+            Accepted = false;
+            if (i + 1 >= description.Length)
+                return E.EOL;
+            if (char.IsLetter(description.Span[i + 1]))
+                return E.Letter;
+            if (char.IsWhiteSpace(description.Span[i + 1]))
+                return E.Space;
+            if (description.Span[i + 1] >= '0' && description.Span[i + 1] <= '9')
+                return E.Digit;
+            return description.Span[i + 1] switch
             {
-               TypeStrings[i] = new UnifiedString(AttributeTypes[i]);
-               NameStrings[i] = new UnifiedString(AttributeIdentifiers[i]);
+                '(' => E.OpenParenthesis,
+                ')' => E.CloseParenthesis,
+                '"' => E.QuotationMark,
+                '%' => E.Percent,
+                ',' => E.Comma,
+                _ => E.Other
+            };
+        }
+
+        #region grammar
+        //|
+        //| *= QuotationMark, Space*,
+        //|    TerminalIdentifier, Space*,
+        //|    OpenParenthesis, Space*,
+        //|    Attributes?,
+        //|    CloseParenthesis, Space*
+        //|    OptionalWeight
+        void AssignAttributes()
+        {
+            if (!TerminalHasBeenDefined)
+            {
+                var TypeStrings = new UnifiedString[AttributeTypes.Count];
+                var NameStrings = new UnifiedString[AttributeIdentifiers.Count];
+                for (int i = 0; i < AttributeTypes.Count; i++)
+                {
+                    TypeStrings[i] = new UnifiedString(AttributeTypes[i]);
+                    NameStrings[i] = new UnifiedString(AttributeIdentifiers[i]);
+                }
+                Terminal!.AttributetypeStrings = TypeStrings;
+                Terminal!.AttributenameStrings = NameStrings;
             }
-            Terminal!.AttributetypeStrings = TypeStrings;
-            Terminal!.AttributenameStrings = NameStrings;
-         }
-      }
+        }
 
-      //|
-      //| TerminalIdentifier= Identifier
-      void TerminalIdentifier()
-      {
+        //|
+        //| TerminalIdentifier= Identifier
+        void TerminalIdentifier()
+        {
 
-         Debug.Assert(false, "implementation not yet complete: value ... ?");
+            Debug.Assert(false, "implementation not yet complete: value ... ?");
 
 
-         ReadOnlyMemory<char> TerminalIdentifierMemory = description[IdentifierFirstPos..(IdentifierLastPos + 1)];
-         UnifiedString TerminalString = new(TerminalIdentifierMemory);
-         TerminalHasBeenDefined = SymbolDictionary.TryGetValue(TerminalString, out Symbol? s);
-         if (TerminalHasBeenDefined)
-            Terminal = (TerminalSymbol)s!;
-         else
-         {
-            SymbolDictionary[TerminalString] =
-               new TerminalSymbol(TerminalString, textPos, symbolNumber: SymbolDictionary.Count, enumValue: SymbolDictionary.Count)
-               {
-                  Weight = Weight
-                     //,
-                     //AttributetypeStringIndexList = TypeStringIndexes,
-                     //AttributenameStringIndexList = NameStringIndexes
-                  };
-         }
-      }
+            ReadOnlyMemory<char> TerminalIdentifierMemory = description[IdentifierFirstPos..(IdentifierLastPos + 1)];
+            UnifiedString TerminalString = new(TerminalIdentifierMemory);
+            TerminalHasBeenDefined = SymbolDictionary.TryGetValue(TerminalString, out Symbol? s);
+            if (TerminalHasBeenDefined)
+                Terminal = (TerminalSymbol)s!;
+            else
+            {
+                SymbolDictionary[TerminalString] =
+                   new TerminalSymbol(TerminalString, textPos, symbolNumber: SymbolDictionary.Count, enumValue: SymbolDictionary.Count)
+                   {
+                       Weight = Weight
+                   //,
+                   //AttributetypeStringIndexList = TypeStringIndexes,
+                   //AttributenameStringIndexList = NameStringIndexes
+               };
+            }
+        }
 
-      //|
-      //| Identifier=
-      //|    Letter ??-1??
-      void IdentifierFirstChar()
-      {
-         IdentifierFirstPos = i;
-         IdentifierLastPos = i;
-      }
-      //|   | Identifier, (LetterOrDigit= Letter | Digit ) 
-      void IdentifierNextChar() => IdentifierLastPos = i;
-      //|
-      //| 
-      //|
-      //| Digits=
-      //|    Digit ??-2??
-      void FirstDigit()
-      {
-         NumberFirstPos = i;
-         NumberLastPos = i;
-      }
-      //|   | Digits, Digit
-      void NextDigit() => NumberLastPos = i;
+        //|
+        //| Identifier=
+        //|    Letter ??-1??
+        void IdentifierFirstChar()
+        {
+            IdentifierFirstPos = i;
+            IdentifierLastPos = i;
+        }
+        //|   | Identifier, (LetterOrDigit= Letter | Digit ) 
+        void IdentifierNextChar() => IdentifierLastPos = i;
+        //|
+        //| 
+        //|
+        //| Digits=
+        //|    Digit ??-2??
+        void FirstDigit()
+        {
+            NumberFirstPos = i;
+            NumberLastPos = i;
+        }
+        //|   | Digits, Digit
+        void NextDigit() => NumberLastPos = i;
 
-      //|
-      //| Attributes=
-      //|   Attribute, Space*
-      //|   | Attributes, Comma, Space*, Attribute, Space*;
-      //|
-      //| Attribute=
-      //|   AttributeType, Space*, Identifier
-      void AddAtributeIdentifier()
-         => AttributeIdentifiers.Add(description[IdentifierFirstPos..(IdentifierLastPos + 1)]);
+        //|
+        //| Attributes=
+        //|   Attribute, Space*
+        //|   | Attributes, Comma, Space*, Attribute, Space*;
+        //|
+        //| Attribute=
+        //|   AttributeType, Space*, Identifier
+        void AddAtributeIdentifier()
+           => AttributeIdentifiers.Add(description[IdentifierFirstPos..(IdentifierLastPos + 1)]);
 
-      //|
-      //| AttributeType= Identifier ??-10??
-      void AddAttributeType()
-         => AttributeTypes.Add(description[IdentifierFirstPos..(IdentifierLastPos + 1)]);
+        //|
+        //| AttributeType= Identifier ??-10??
+        void AddAttributeType()
+           => AttributeTypes.Add(description[IdentifierFirstPos..(IdentifierLastPos + 1)]);
 
-      //|
-      //| OptionalWeight= /* empty */ ??-20??
-      //| | Percent, Digits ??-21??
-      void ReAssignWeight()
-      {
-         if (!long.TryParse(description[NumberFirstPos..(NumberLastPos + 1)].Span, out Terminal!.Weight))
-            ;
-      }
-      //|
-      #endregion grammar
-#region grammlator generated 22 Nov. 2021 (grammlator file version/date 2020.11.09.0/22 Nov. 2021)
+        //|
+        //| OptionalWeight= /* empty */ ??-20??
+        //| | Percent, Digits ??-21??
+        void ReAssignWeight()
+        {
+            if (!long.TryParse(description[NumberFirstPos..(NumberLastPos + 1)].Span, out Terminal!.Weight))
+                ;
+        }
+        //|
+        #endregion grammar
+#region grammlator generated 8 Jan. 2022 (grammlator file version/date 2020.11.09.0/8 Jan. 2022)
   Int32 _StateStackInitialCount = _s.Count;
 
   // State1:
@@ -441,96 +444,106 @@ EndWithError:
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated 22 Nov. 2021 (grammlator file version/date 2020.11.09.0/22 Nov. 2021)
-      return true;
-   }
+#endregion grammlator generated 8 Jan. 2022 (grammlator file version/date 2020.11.09.0/8 Jan. 2022)
+        return true;
+    }
 
-   private Boolean EvalDescription(UnifiedString enumElementUString, ReadOnlySpan<Char> Description, List<String> ArgumentTypes, List<String> ArgumentNames, Int64 enumElementValue)
-   {
-      // expect "EnumElementIdentifier" "(" typeIdentifier  argumentidentifier , ...")"
-      String EnumElementIdentifier = enumElementUString.ToString();
-      Int32 Position = 0;
+    private Boolean EvalDescription(UnifiedString enumElementUString, ReadOnlySpan<Char> Description, List<String> ArgumentTypes, List<String> ArgumentNames, Int64 enumElementValue)
+    {
+        // expect "enumElementUString" "(" typeIdentifier  argumentidentifier , ...")"
+        Int32 Position = 0;
 
-      if (!(Description[Position++] == '"'))
-         return false;
-      if (Description.Length < 2 || !(Description[^1] == '"')) // "" is used as end marker => do not need to check Position>=description.length
-         return false;
-      Description.SkipWhiteSpace(ref Position);
-      if (!Description.StartsWithAndSkip(ref Position, EnumElementIdentifier))
-         return false;
-
-      Description.SkipWhiteSpace(ref Position);
-      if (!(Description[Position++] == '('))
-         return false;
-
-      Boolean Is1st = true;
-      Description.SkipWhiteSpace(ref Position);
-
-      while (Description[Position] != ')')
-      {
-         if (!Is1st)
-         {
-            if (Description[Position++] != ',')
-               return false;
-            Description.SkipWhiteSpace(ref Position);
-         }
-         Is1st = false;
-         if (!Description.IsIdentifier(ref Position, out ReadOnlySpan<char> ArgumentType))
+        // Check leading and trailing '"'
+        if (!(Description[Position++] == '"'))
             return false;
-         Description.SkipWhiteSpace(ref Position);
-
-         if (!Description.IsIdentifier(ref Position, out ReadOnlySpan<char> ArgumentName))
+        if (Description.Length < 2 || !(Description[^1] == '"')) // "" is used as end marker => do not need to check Position>=description.length
             return false;
 
-         ArgumentTypes.Add(ArgumentType.ToString());
-         ArgumentNames.Add(ArgumentName.ToString());
+        Description.SkipWhiteSpace(ref Position);
 
-         Description.SkipWhiteSpace(ref Position);
-      }
+        // Check if description starts with the name of the terminal symbol
+        if (!Description[Position..].StartsWith(enumElementUString))
+            return false;
+        Position += enumElementUString.Length;
 
-      Position++; // Skip ')'
-      Description.SkipWhiteSpace(ref Position);
+        Description.SkipWhiteSpace(ref Position);
 
-      // *************************
-      TerminalSymbol t;
-      if (SymbolDictionary.TryGetValue(enumElementUString, out Symbol? s))
-      {
-         t = (s as TerminalSymbol)!;
-         for (int i = 0; i < ArgumentTypes.Count; i++)
-            if (t.AttributetypeStrings[i].ToString() != ArgumentTypes[i])
+        // Check if '(' follows
+        if (!(Description[Position++] == '('))
+            return false;
+
+        Description.SkipWhiteSpace(ref Position);
+
+        // Evaluate comma separated list of type and name of argument of terminal symbol
+        Boolean Is1st = true;
+        while (Description[Position] != ')')
+        {
+            if (!Is1st)
             {
-               String TypeIofT = t.AttributetypeStrings[i].ToString();
-               P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
-@$"Error in enum: the terminal symbol {EnumElementIdentifier} has already been defined with a different argumenttype {TypeIofT} / {ArgumentTypes[i]} ");
+                if (Description[Position++] != ',')
+                    return false;
+                Description.SkipWhiteSpace(ref Position);
             }
-      }
-      else
-      {
-         var TypeStringIndexes = new UnifiedString[ArgumentTypes.Count];
-         var NameStringIndexes = new UnifiedString[ArgumentNames.Count];
-         for (int i = 0; i < ArgumentTypes.Count; i++)
-         {
-            TypeStringIndexes[i] = new UnifiedString(ArgumentTypes[i]);
-            NameStringIndexes[i] = new UnifiedString(ArgumentNames[i]);
-         }
-         SymbolDictionary[enumElementUString] =
-            t = new TerminalSymbol(enumElementUString, Lexer.LexerTextPos, symbolNumber: SymbolDictionary.Count, enumValue: enumElementValue)
+            Is1st = false;
+
+            // Get type of argument
+            if (!Description.IsIdentifier(ref Position, out ReadOnlySpan<char> ArgumentType))
+                return false;
+            Description.SkipWhiteSpace(ref Position);
+
+            // Get name of argument
+            if (!Description.IsIdentifier(ref Position, out ReadOnlySpan<char> ArgumentName))
+                return false;
+
+            ArgumentTypes.Add(ArgumentType.ToString());
+            ArgumentNames.Add(ArgumentName.ToString());
+
+            Description.SkipWhiteSpace(ref Position);
+        }
+
+        Position++; // Skip ')'
+        Description.SkipWhiteSpace(ref Position);
+
+        // *************************
+        TerminalSymbol t;
+        if (SymbolDictionary.TryGetValue(enumElementUString, out Symbol? s))
+        {
+            t = (s as TerminalSymbol)!;
+            for (int i = 0; i < ArgumentTypes.Count; i++)
+                if (t.AttributetypeStrings[i].ToString() != ArgumentTypes[i])
+                {
+                    String TypeIofT = t.AttributetypeStrings[i].ToString();
+                    P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+     @$"Error in enum: the terminal symbol {enumElementUString} has already been defined with a different argumenttype {TypeIofT} / {ArgumentTypes[i]} ");
+                }
+        }
+        else
+        {
+            var TypeStringIndexes = new UnifiedString[ArgumentTypes.Count];
+            var NameStringIndexes = new UnifiedString[ArgumentNames.Count];
+            for (int i = 0; i < ArgumentTypes.Count; i++)
             {
-               Weight = GlobalSettings.TerminalDefaultWeight.Value,
-               AttributetypeStrings = TypeStringIndexes,
-               AttributenameStrings = NameStringIndexes
-            };
-      }
+                TypeStringIndexes[i] = new UnifiedString(ArgumentTypes[i]);
+                NameStringIndexes[i] = new UnifiedString(ArgumentNames[i]);
+            }
+            SymbolDictionary[enumElementUString] =
+               t = new TerminalSymbol(enumElementUString, Lexer.LexerTextPos, symbolNumber: SymbolDictionary.Count, enumValue: enumElementValue)
+               {
+                   Weight = GlobalSettings.TerminalDefaultWeight.Value,
+                   AttributetypeStrings = TypeStringIndexes,
+                   AttributenameStrings = NameStringIndexes
+               };
+        }
 
-      // Optional weight
-      Int64 Weight = GlobalSettings.TerminalDefaultWeight.Value;
-      if (Description.IsCharacter(ref Position, '%'))
-      {
-         Description.SkipWhiteSpace(ref Position);
-         Description.IsInt64(ref Position, out t.Weight);
-      }
+        // Optional weight: '%' followed by number
+        Int64 Weight = GlobalSettings.TerminalDefaultWeight.Value;
+        if (Description.TestAndSkipCharacter(ref Position, '%'))
+        {
+            Description.SkipWhiteSpace(ref Position);
+            Description.IsInt64(ref Position, out t.Weight);
+        }
 
-      return true;
-   }
+        return true;
+    }
 
 }

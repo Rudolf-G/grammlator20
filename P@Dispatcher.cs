@@ -55,7 +55,8 @@ internal static class Phases1to5
 
       // ----- Copy input up to and including line starting with "#region grammar"
       Int32 StartOfGrammlatorLines =
-         SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, true, true, RegionBegin.Value, RegionGrammarMarker.Value);
+         SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, copy: true, copyLineWithMarkers: true,
+            RegionBegin.Value, RegionGrammarMarker.Value);
       if (StartOfGrammlatorLines >= 0)
       {
          Int32 StartOfRegion = StartOfGrammlatorLines
@@ -101,8 +102,9 @@ internal static class Phases1to5
          );
 
       // Skip generated part
-      Int32 EndOfGeneratedCode = SourceReader.ReadAndCopyUntilMarkedLineFound(Resultbuilder, false, false,
-         RegionEnd.Value, RegionGrammlatorMarker.Value, RegionGeneratedMarker.Value);
+      Int32 EndOfGeneratedCode = SourceReader.ReadAndCopyUntilMarkedLineFound(
+         Resultbuilder, copy: false, copyLineWithMarkers: false, RegionEnd.Value, RegionGrammlatorMarker.Value,
+         RegionGeneratedMarker.Value);
       if (EndOfGeneratedCode >= 0)
       {
          Int32 StartOfEndRegion = EndOfGeneratedCode

@@ -521,6 +521,7 @@ public partial class MainWindow
             continue; // lines are equal
 
          // Test if special lines and allow them to differ after the keywords
+         
          if (s1LineTrimmed.StartsWith(GlobalSettings.RegionBegin.Value)
              && s2LineTrimmed.StartsWith(GlobalSettings.RegionBegin.Value))
          {

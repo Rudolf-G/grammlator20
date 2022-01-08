@@ -21,13 +21,13 @@ namespace grammlator;
 //| LineLengthLimit:                   150;
 //| GenerateSmallStateStackNumbers:    true;
 //| NameOfFlagTestMethod:             "_is";
-//| NameOfAssertMethod:    "Debug.Assert";    
+//| NameOfAssertMethod:               "Debug.Assert";    
 //| GenerateComments:                  true;    
 //|     
-//| // Terminal symbols and their probability to appear in input:
+//| // Terminal symbols (LexerResult) and their probability to appear in input:
 
 /// <summary>
-/// LexerResult defines the output of the lexer, which is assigned to Symbol to be used by the parser
+/// LexerResult defines the output of the lexer, which is assigned to Symbol to be used by the parser.
 /// The elements of LexerResult are ordered such that grammlator can
 /// generate efficient code for the conditions of the parsers actions 
 /// </summary>
@@ -82,10 +82,16 @@ public enum LexerResult : Byte
 
 public static class LexerResultExtensions
 {
+   /// <summary>
+   /// Map a LexerResult to a string 
+   /// </summary>
+   /// <param name="lr"></param>
+   /// <returns></returns>
    public static String LexerResultToString(this LexerResult lr)
    {
       const String MyDisplay
-         = "=:%xx-xxx?*+,#([{\u2047x)}]xx|;"; // \u2047 is "??" as one character
+         = "=:%xx-xxx?*+,#([{\u2047x)}]xx|;"; 
+      // \u2047 is "??" as one character "double question mark"; 'x' denotes special handling (below)
 
       Debug.Assert(lr != LexerResult.Error);
       if ((Int32)lr >= MyDisplay.Length)
@@ -97,14 +103,16 @@ public static class LexerResultExtensions
          return result.ToString();
       String s = lr switch
       {
+         LexerResult.CSharpEnd  => "End of C# Code",
+         LexerResult.Error      => "(Unknown lexer result)",
+         // LexerResult.Number  => "Number",
+         LexerResult.StarEqual  => "*=",
          LexerResult.MinusEqual => "-=",
          LexerResult.DoubleQuestionmark => "??",
-         LexerResult.StarEqual => "*=",
-         LexerResult.LexerString => "string",
-         LexerResult.Name => "name",
          LexerResult.CSharpStart => "C# code",
-         LexerResult.CSharpEnd => "end of C# Code",
-         _ => lr.ToString(),
+         // LexerResult.Name     => "Name",
+         LexerResult.LexerString => "String",
+         _ => lr.ToString(), // Number, Name 
       };
       return s;
    }

@@ -1113,6 +1113,8 @@ namespace grammlator {
       /// <returns></returns>
       public override String ToString() => UnifiedStrings[Index];
 
+      public int Length => UnifiedStrings[Index].Length;
+
       public Boolean IsEmpty { get { return Index == 0; } }
 
       public override bool Equals(object? obj)
@@ -1130,7 +1132,8 @@ namespace grammlator {
          return x.Index != y.Index;
       }
 
-      public static implicit operator string(UnifiedString u) => u.ToString();
+      public static implicit operator string(UnifiedString u) => UnifiedStrings[u.Index];
+      public static implicit operator ReadOnlySpan<char>(UnifiedString u) => UnifiedStrings[u.Index].AsSpan();
       public static explicit operator UnifiedString(string s) => new(s);
 
    }
