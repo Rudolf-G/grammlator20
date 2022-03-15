@@ -1023,8 +1023,8 @@ namespace grammlator {
       /// <returns></returns>
       private Int32 ComplexityOfBitsequence()
       {
-         /* Bestimmt die Zahl der Abfragen, die Bedingung_erzeugen generieren würde,
-            wenn alle Symbole relevant wären  
+         /* Counts the number of comparisions which would be generated 
+          * if all symbols would be relevant
          */
          Int32 result = 0;
          Boolean ActualValue = TerminalSymbols[0];
@@ -1037,16 +1037,16 @@ namespace grammlator {
             /* We have an already analyzed sequence of values == BaseValue
              * then the ActualValue
              * then the NextValue
-             * If all are equal no comparision is neede
+             * If all are equal no comparision has to be generated
              */
             if (ActualValue != BaseValue)
             {
-               // different values: a comparision is needed
-               result++; // = oder >= Abfrage notwendig bzw. <> oder <=
+               // different values: a comparision has to be generated
+               result++; 
                if (NextValue != BaseValue)
                {
-                  // The next value is equal the actual value: a >= or <= comparision is sufficient
-                  BaseValue = NextValue; // new checks are needed not befor the value changes
+                  // The next value is equal to the actual value: a >= or <= comparision is sufficient
+                  BaseValue = NextValue; // new checks are needed not before the value changes
                }
                // else the BaseValue is correct (equal to the NextValue)
                // one comparision with the actual value will be sufficient

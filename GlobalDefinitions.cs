@@ -134,7 +134,7 @@ namespace grammlator {
        where T : IUniqueIndex {
       internal SymmetricRelation(Int32 size) : base(size / 4)
       {
-         // try a quarter of the size (if needed, dictionary will be expanded)
+         // try a quarter of size (if needed, dictionary will be expanded)
          // the full size will be needed, if the implementation uses an array
       }
 

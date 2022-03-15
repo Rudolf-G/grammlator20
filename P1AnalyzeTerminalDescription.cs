@@ -123,25 +123,25 @@ internal partial class P1aParser
         //|
         //| Identifier=
         //|    Letter ??-1??
-        void IdentifierFirstChar()
+        void SetIdentifierFirstAndLastPos()
         {
             IdentifierFirstPos = i;
             IdentifierLastPos = i;
         }
         //|   | Identifier, (LetterOrDigit= Letter | Digit ) 
-        void IdentifierNextChar() => IdentifierLastPos = i;
+        void UpdateIdentifierLastPos() => IdentifierLastPos = i;
         //|
         //| 
         //|
         //| Digits=
         //|    Digit ??-2??
-        void FirstDigit()
+        void SetNumberFirstAndLastPos()
         {
             NumberFirstPos = i;
             NumberLastPos = i;
         }
         //|   | Digits, Digit
-        void NextDigit() => NumberLastPos = i;
+        void UpdateNumberLastPos() => NumberLastPos = i;
 
         //|
         //| Attributes=
@@ -190,7 +190,7 @@ AcceptState3:
   // Reduce1:
   /* Identifier= Letter;◄ */
 
-  IdentifierFirstChar();
+  SetIdentifierFirstAndLastPos();
 
 State4:
   /* TerminalIdentifier= Identifier●;
@@ -211,14 +211,14 @@ State4:
   // Reduce3:
   /* Identifier= Identifier, LetterOrDigit;◄ */
 
-  IdentifierNextChar();
+  UpdateIdentifierLastPos();
 
   goto State4;
 
 Reduce5:
   /* Identifier= Letter;◄ */
 
-  IdentifierFirstChar();
+  SetIdentifierFirstAndLastPos();
 
 State14:
   /* Identifier= Identifier, ►LetterOrDigit;
@@ -239,7 +239,7 @@ State14:
   // Reduce10:
   /* Identifier= Identifier, LetterOrDigit;◄ */
 
-  IdentifierNextChar();
+  UpdateIdentifierLastPos();
 
   goto State14;
 
@@ -295,7 +295,7 @@ State10:
   // Reduce6:
   /* Identifier= Letter;◄ */
 
-  IdentifierFirstChar();
+  SetIdentifierFirstAndLastPos();
 
 State11:
   /* Identifier= Identifier, ►LetterOrDigit;
@@ -306,7 +306,7 @@ State11:
      // Reduce8:
      /* Identifier= Identifier, LetterOrDigit;◄ */
 
-     IdentifierNextChar();
+     UpdateIdentifierLastPos();
 
      goto State11;
      }
@@ -365,7 +365,7 @@ AcceptState17:
      // Reduce12:
      /* Digits= Digit;◄ */
 
-     FirstDigit();
+     SetNumberFirstAndLastPos();
 
      goto State19;
      }
@@ -414,7 +414,7 @@ State19:
   // Reduce14:
   /* Digits= Digits, Digit;◄ */
 
-  NextDigit();
+  UpdateNumberLastPos();
 
   goto State19;
 

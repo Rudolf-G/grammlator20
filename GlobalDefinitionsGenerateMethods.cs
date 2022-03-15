@@ -291,7 +291,7 @@ namespace grammlator {
    internal sealed partial class ReduceAction : ParserActionWithNextAction {
       internal override ParserAction? Generate(P5CodegenCS codegen, out Boolean accept)
       {
-         // Generate description
+         // generate description
          if (GlobalSettings.GenerateComments.Value)
          {
             codegen.IndentExactly();
@@ -325,7 +325,7 @@ namespace grammlator {
                this.StateStackAdjustment);
          }
 
-         // Generate instructions to handle the attribute stack and to call the method
+         // generate instructions to handle the attribute stack and to call the method
 
          if (this.AttributeStackAdjustment != 0 && this.FirstAdjustAttributeStackThenCallMethod)
             codegen.GenerateAttributeStackAdjustment(this.AttributeStackAdjustment);
@@ -345,7 +345,7 @@ namespace grammlator {
             codegen.GenerateAttributeStackAdjustment(this.AttributeStackAdjustment);
          }
 
-         // Gegebenenfalls die Zeile beenden
+         // generate end of line
          if (codegen.LineLength > 0)
             codegen.AppendLine();
 
