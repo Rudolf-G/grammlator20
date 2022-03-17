@@ -66,9 +66,8 @@ namespace grammlator {
    }
 
    internal abstract partial class ParserAction :
-      EqualityComparer<ParserAction>, // implements: public Boolean Equals(ParserAction? a1, ParserAction? a2)
-                                      // IComparable<ParserAction>, // implements: Int32 CompareTo([AllowNull] T other);
-      IUniqueIndex  // implements: Int32 IdNumber {get;}
+      EqualityComparer<ParserAction> //, // implements: public Boolean Equals(ParserAction? a1, ParserAction? a2)
+                                      // IComparable<ParserAction>, // implements: Int32 CompareTo([AllowNull] T other)
       {
       /// <summary>
       /// The <see cref="ParserActionType"/>  is used for AppendToSB (...) and for comparisions

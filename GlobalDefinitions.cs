@@ -118,13 +118,7 @@ namespace grammlator {
       /// </summary>
       IsOrContainsEmptyDefinition
    }
-
-   internal interface IUniqueIndex {
-      Int32 IdNumber {
-         get;
-      }
-   }
-
+   
    internal struct AttributeStruct {
       /// <summary>
       /// The type of the attribute e.g."Int32"
@@ -389,7 +383,7 @@ namespace grammlator {
    /// </summary>
    internal static class ArrayOfSymbolExtensions {
       /// <summary>
-      /// Checks if one of the Symbols ContainsAnEmptyAlternative
+      /// Checks if one of the Symbols ContainsAnEmptyDefinition
       /// </summary>
       /// <param name="SymbolArray"></param>
       /// <returns>
@@ -961,11 +955,11 @@ namespace grammlator {
    }
 
    /// <summary>
-   /// <see cref="UnifiedString"/> is a readonly record type which stores strings in a static directory
+   /// <see cref="UnifiedString"/> is a readonly record struct which stores strings in a static directory
    /// and identifies each string by a unique index. To get the string use ToString().
    /// The comparision of unified strings by "==" is the comparision of the integer value.
    /// </summary>
-   internal readonly struct UnifiedString {
+   internal readonly record struct UnifiedString {
       /// <summary>
       /// All <see cref="UnifiedString"/>s which represent the same string have the same <see cref="Index"/>.
       /// The <see cref="Index"/> of "" is 0;
@@ -1015,21 +1009,6 @@ namespace grammlator {
       public int Length => UnifiedStrings[Index].Length;
 
       public Boolean IsEmpty { get { return Index == 0; } }
-
-      public override bool Equals(object? obj)
-         => obj != null && (obj is UnifiedString objAsUnified) && (objAsUnified.Index == Index);
-
-      public override int GetHashCode() => Index.GetHashCode();
-
-      public static bool operator ==(UnifiedString x, UnifiedString y)
-      {
-         return x.Index == y.Index;
-      }
-
-      public static bool operator !=(UnifiedString x, UnifiedString y)
-      {
-         return x.Index != y.Index;
-      }
 
       public static implicit operator string(UnifiedString u) => UnifiedStrings[u.Index];
       public static implicit operator ReadOnlySpan<char>(UnifiedString u) => UnifiedStrings[u.Index].AsSpan();

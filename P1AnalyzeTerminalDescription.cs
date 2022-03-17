@@ -164,7 +164,9 @@ internal partial class P1aParser
         void ReAssignWeight()
         {
             if (!long.TryParse(description[NumberFirstPos..(NumberLastPos + 1)].Span, out Terminal!.Weight))
-            ;
+            P1OutputMessageAndLexerPosition(MessageTypeOrDestinationEnum.Error,
+               @$"Error in constant: "+ description[NumberFirstPos..(NumberLastPos + 1)]);
+         ;
       }
         //|
         #endregion grammar
