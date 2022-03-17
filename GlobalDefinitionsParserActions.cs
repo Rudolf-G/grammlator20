@@ -131,8 +131,10 @@ namespace grammlator {
 
       /// <summary>
       ///  The number, the parser state pushes on the state stack. Originally only used for ParserStates.
-      ///  Value -1: the state doesn't push a number on the stack.
-      ///  <para> Optimization may move this information to other actions. Then the number x is replaced by (-x-2).</para>
+      ///  <para>Value -1: the state doesn't push a number on the stack (initial value).</para>
+      ///  <para>Standard-Value: IdNumber; Optimized-Value: some smaller value</para>
+      ///  <para> Additional Optimization may move this information to other actions.
+      ///  Then the number x is replaced by (-x-2).</para>
       /// </summary>
       internal Int32 StateStackNumber {
          get; set;

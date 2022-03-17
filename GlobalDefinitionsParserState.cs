@@ -76,7 +76,6 @@ namespace grammlator {
       internal ParserState(Int32 Number, ItemList Items)
       {
          this.CoreItems = new ItemList(Items);
-         this.StateStackNumber = Number; // StateStackNumber >= 0
          this.IdNumber = Number; // IDNumber >= 0
       }
 

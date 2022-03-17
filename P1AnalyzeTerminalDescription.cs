@@ -164,8 +164,8 @@ internal partial class P1aParser
         void ReAssignWeight()
         {
             if (!long.TryParse(description[NumberFirstPos..(NumberLastPos + 1)].Span, out Terminal!.Weight))
-                ;
-        }
+            ;
+      }
         //|
         #endregion grammar
 #region grammlator generated 8 Jan. 2022 (grammlator file version/date 2020.11.09.0/8 Jan. 2022)

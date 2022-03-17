@@ -9,15 +9,15 @@ namespace grammlator;
 
 internal class P4ReplaceNonterminalsAndOptimize
 {
-   /* Phase 4 checks all states and handles alls actions which would cause "apply definition" 
+   /* Phase 4 checks all states and handles all actions which would cause "apply definition" 
     *    (execute semantic method and go back to a state in the state stack, input 
     *     the generated nonterminal symbol and "shift" to the follow state)
     * and replaces each one by an explicit "reduction" which adjusts the state stack
     * and may be followed by a "branch" which uses the value on top
     * of the state stack to decide which is the follow state (or action after optimzation).
-    * It recognizes states which need not to push their number on
-    * the state stack (assigns the number -1), 
-    * tries to assign the same (small) number to different states,
+    * It recognizes states which need to push their number on
+    * the state stack (assigns the states IdNumber), 
+    * then tries to assign the same (small) number to different states,
     * tries to eliminate trivial branches, shorten chains of trivial actions.
     * It adds error actions.
     * When this is finished, nonterminal symbols and their definitions
@@ -73,11 +73,20 @@ internal class P4ReplaceNonterminalsAndOptimize
    {
       SamePredecessorLevelPartitionOfStates
          = new PartitionInfoArray<ParserState>(GlobalVariables.ListOfAllStates);
-      DistinguishableStatesRelation
-          = new SymmetricRelation<ParserState>(GlobalVariables.ListOfAllStates.Count);
+      DistinguishableStatesRelation // a symmetric relation implemented by a set of pairs
+          = new SortedSet<(int SmallerIdNr, int LargerIdNr)>(new SortPairOfStatesBylargerThenBySmaller());
    }
 
-   private readonly SymmetricRelation<ParserState> DistinguishableStatesRelation;
+   public class SortPairOfStatesBylargerThenBySmaller : Comparer<(int smaller, int larger)>
+   {
+      public override int Compare((int smaller, int larger) a, (int smaller, int larger) b)
+      {
+         if (a.larger.CompareTo(b.larger) != 0) return a.larger.CompareTo(b.larger);
+         return a.smaller.CompareTo(b.smaller);
+      }
+   }
+
+   private readonly SortedSet<(int SmallerIdNr, int LargerIdNr)> DistinguishableStatesRelation;
 
    /// <summary>
    /// All states belonging to the same class of <see cref="SamePredecessorLevelPartitionOfStates"/>
@@ -112,8 +121,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       EvaluatePrecedingStates(RelationtypeEnum.ComputeDistinguishableStatesRelation);
 
       // DetermineNotStackingStates using SamePredecessorLevelPartitionOfState and DistinguishableStatesRelation
-      GlobalVariables.NumberOfStatesWithStateStackNumber =
-          GlobalVariables.ListOfAllStates.Count - DetermineNotStackingStates();
+      GlobalVariables.NumberOfStatesWithStateStackNumber = AssignStateStackNumbersAndCountPushingStates();
 
       // Optionally assign small StateStackNumbers
       if (GlobalSettings.GenerateSmallStateStackNumbers.Value)
@@ -270,7 +278,7 @@ internal class P4ReplaceNonterminalsAndOptimize
                              Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1)
                          )!;
                      Debug.Assert(actionWithNextAction.NextAction is not Definition); // ??????????????
-                                                                                     // actionWithNextAction.NextAction may be NonterminalTransition;
+                                                                                      // actionWithNextAction.NextAction may be NonterminalTransition;
 
                      break;
                }
@@ -380,8 +388,8 @@ internal class P4ReplaceNonterminalsAndOptimize
    } // End of EvaluatePredecessors
 
    /// <summary>
-   /// Feststellen, welche der aktuellen Zustände unterschieden werden müssen
-   /// und dies in den Relationen mit ÄhnlichSetzenZu bzw. VerschiedenSetzenZu eintragen
+   /// Check which states have to be distinguished from each other,
+   /// assignCodenumber and set the DistinguishableStatesRelation 
    /// </summary>
    /// <param name="statesWhichAcceptTheNonterminal"></param>
    /// <param name="inputSymbol"></param>
@@ -401,11 +409,15 @@ internal class P4ReplaceNonterminalsAndOptimize
             ParserState State2 = statesWhichAcceptTheNonterminal[state2Index];
             ParserAction Action2 = State2.ActionCausedBy(inputSymbol); //  a nonterminal transition!
 
-            // Step 2: compute the DistinguishableStatesRelation
             if (!ActionsDoTheSame(State1, State2, nextAction1, Action2))
             {
-               DistinguishableStatesRelation.Add(
-                  statesWhichAcceptTheNonterminal[state1Index], State2);
+               // Set each ones Codenumber and add pair to the the DistinguishableStatesRelation
+               State1.StateStackNumber = State1.IdNumber;
+               State2.StateStackNumber = State2.IdNumber;
+               if (State1.IdNumber < State2.IdNumber)
+                  DistinguishableStatesRelation.Add((State1.IdNumber, State2.IdNumber));
+               else
+                  DistinguishableStatesRelation.Add((State2.IdNumber, State1.IdNumber));
             }
          }
       }
@@ -413,13 +425,13 @@ internal class P4ReplaceNonterminalsAndOptimize
 
    /// <summary>
    /// Without optimization each generated state pushes its number on the state stack.
-   /// This method finds states that do not need to push a number on the state stack
-   /// and sets their StateStackNumber to -1
+   /// This method finds all states that have to push a number on the state stack
+   /// and sets their StateStackNumber to the states IdNumber
    /// </summary>
    /// <returns>number of states with StateStackNumber == -1</returns>
-   private Int32 DetermineNotStackingStates()
+   private Int32 AssignStateStackNumbersAndCountPushingStates()
    {
-      Int32 NotPushingStatesCount = 0;
+      Int32 PushingStatesCount = 0;
 
       // for all classes of the SamePredecessorLevelPartitionOfStates
       foreach (ParserState classRepresentative in SamePredecessorLevelPartitionOfStates.ClassRepresentatives)
@@ -428,31 +440,28 @@ internal class P4ReplaceNonterminalsAndOptimize
          Boolean foundPushing = false;
          foreach (ParserState Neighbor in SamePredecessorLevelPartitionOfStates.ElementsOfClass(classRepresentative))
          {
-            if (DistinguishableStatesRelation.ContainsKey(Neighbor.IdNumber))
+            if (Neighbor.StateStackNumber >= 0)
             {
                foundPushing = true;
                break;
             }
          }
 
-         if (foundPushing)
+         if (!foundPushing)
             continue;
 
-         // No member of this class must push a number
-         // Each member of this class does not need to push a value on the state stack
-         // Their StateStackNumbers are set to 0
+         // At least one states of the partitions class  has to push a value on the state stack =>
+         // Each member of this class must push a number.
+         // Each members StateStackNumber ist set to its IdNumber
          foreach (ParserState Neighbor in SamePredecessorLevelPartitionOfStates.ElementsOfClass(classRepresentative))
          {
-            if (Neighbor.StateStackNumber >= 0)
-            {
-               NotPushingStatesCount++;
-               Neighbor.StateStackNumber = -1;
-            }
+            PushingStatesCount++; // count all elements of this class
+            Neighbor.StateStackNumber = Neighbor.IdNumber;
          }
 
       }
 
-      return NotPushingStatesCount;
+      return PushingStatesCount;
    }
 
    /// <summary>
@@ -857,31 +866,32 @@ internal class P4ReplaceNonterminalsAndOptimize
    {
       var AllowedStackNumbers = new Boolean[GlobalVariables.ListOfAllStates.Count];
 
+      // 1st: Set all StateStackNumbers which are >-1 to 0 
       foreach (ParserState ParserState in GlobalVariables.ListOfAllStates
-      .Where((state) => state.StateStackNumber >= 0)
-      )
+      .Where((state) => state.StateStackNumber > 0))
+         ParserState.StateStackNumber = 0;
+
+      // 2nd: In increasing order find a StateStackNumber for each of them
+      // which is not in conflict with numbers of already assigned numbers to distinguishable states
+      foreach (ParserState ParserState in GlobalVariables.ListOfAllStates
+      .Where((state) => state.StateStackNumber >= 0))
       {
-         Int32 StateIdNumber = ParserState.IdNumber;
+         SortedSet<(int SmallerIdNr, int LargerIdNr)> DistinguishableStatesRelationOfParserState =
+            DistinguishableStatesRelation.GetViewBetween
+            ((-1, ParserState.IdNumber), (-1, ParserState.IdNumber+1));
 
-         // Determine which numbers must not be assigned to the state.
-
-         // Start with:  allowed are all numbers from 0 to StateIdNumber.
-         for (Int32 k = 0; k <= StateIdNumber; k++)
+         // Start with: assume all numbers from 0 to the states IdNumber are not in conflict
+         for (Int32 k = 0; k <= ParserState.IdNumber; k++)
             AllowedStackNumbers[k] = true;
 
-         // Numbers which are already assigned to states (having smaller StateIdNumbers)
-         // and which are in relation DistinguishableStatesRelation to the actual state
-         // are not allowed
-         if (DistinguishableStatesRelation.ContainsKey(StateIdNumber))
+         // Remove StateStackNumbers assigned to related states with smaller IdNumber 
+         foreach ((int SmallerIdNr, int LargerIdNr) in DistinguishableStatesRelationOfParserState)
          {
-            foreach (ParserState distinguishableStateWithAssignedNumber
-                in DistinguishableStatesRelation[StateIdNumber].Where((s) => s.IdNumber < StateIdNumber))
-            {
-               AllowedStackNumbers[distinguishableStateWithAssignedNumber.StateStackNumber] = false;
-            }
+            AllowedStackNumbers[GlobalVariables.ListOfAllStates[SmallerIdNr].StateStackNumber] = false;
          }
 
-         ParserState.StateStackNumber = Array.FindIndex(AllowedStackNumbers, (allowed) => allowed);
+         ParserState.StateStackNumber = Array.FindIndex(AllowedStackNumbers, (value) => value);
+
       }
    }
 

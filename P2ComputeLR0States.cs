@@ -150,7 +150,6 @@ public sealed class P2ComputeLR0States
       foreach (ParserState state in GlobalVariables.ListOfAllStates)
       {
          state.IdNumber = NewNumber; // >= 0
-         state.StateStackNumber = NewNumber; // >= 0
          NewNumber++;
       }
    } // end of ComputeLR0StatesAndActions()
