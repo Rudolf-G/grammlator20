@@ -14,10 +14,11 @@
         MaxWidth="2000" MaxHeight="2000" WindowStyle="ThreeDBorderWindow" BorderThickness="1,1,1,1"
         SnapsToDevicePixels="True" ResizeMode="CanResize" SizeToContent="Manual" IsManipulationEnabled="True" RenderTransformOrigin="0.5,0.5">
     <Window.Resources>
-        <ContextMenu x:Key="myMenu" Opened="cmOpened">
+        <ContextMenu x:Key="tbContextMenu" Opened="cmOpened">
             <MenuItem Header="Cut" Name="cmItemCut" Click="ClickCut" />
-            <MenuItem Header="Copy" Name="cmItemCopy" Click="ClickCopy"/>
             <MenuItem Header="Paste" Name="cmItemPaste" Click="ClickPaste"/>
+            <MenuItem Header="Copy" Name="cmItemCopy" Click="ClickCopy"/>
+            <MenuItem Header="Copy All" Name="cmItemCopyAll" Click="ClickCopyAll"/>
             <Separator/>
             <MenuItem Header="Select All" Name="cmItemSelectAll" Click="ClickSelectAll"/>
             <MenuItem Header="Select Current Line" Name="cmItemSelectLine" Click="ClickSelectLine"/>
@@ -26,6 +27,10 @@
             <MenuItem Header="Redo Last Action" Name="cmItemRedo" Click="ClickRedo"/>
             <Separator/>
             <MenuItem Header="Clear All Text" Name="cmItemClear" Click="ClickClear"/>
+        </ContextMenu>
+        <ContextMenu x:Key="tbReadOnlyContextMenu" Opened="cmReadOnlyOpened">
+            <MenuItem Header="Copy" Name="cmroItemCopy" Click="ClickCopy"/>
+            <MenuItem Header="Copy All" Name="cmroItemCopyAll" Click="ClickCopyAll"/>
         </ContextMenu>
     </Window.Resources>
     <Grid x:Name="GrammlatorMainGrid"
@@ -58,58 +63,69 @@
         </GridSplitter>
         <TabControl x:Name="GrammlatorTabControl" Grid.Row="1" Grid.ColumnSpan="1" MinHeight="40" MinWidth="300">
             <TabItem x:Name="TabItemSource" Header="Source">
-                <TextBox x:Name="SourceTextBox" Text="No Source"
+                <TextBox x:Name="SourceTextBox" Text="" 
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True" IsEnabled="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
                          Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="SourceTextBox_MouseEnter" 
                          TextChanged="SourceTextBox_TextChanged"
-                         ContextMenu="{StaticResource myMenu}">
+                         ContextMenu="{StaticResource tbContextMenu}">
                 </TextBox>
             </TabItem>
             <TabItem x:Name="TabItemLog" Header=" Log ">
                 <TextBox x:Name="LogTextBox" Text="Log is empty"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True" IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas"/>
+                         Padding="5,5,5,5" FontFamily="Consolas"
+                         ContextMenu="{StaticResource tbReadOnlyContextMenu}"
+                         />
             </TabItem>
             <TabItem x:Name="TabItemSymbols" Header="Symbols">
                 <TextBox x:Name="SymbolsTextBox" Text="No symbols"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas"/>
+                         Padding="5,5,5,5" FontFamily="Consolas"
+                         ContextMenu="{StaticResource tbReadOnlyContextMenu}"
+                         />
             </TabItem>
             <TabItem x:Name="TabItemConflicts" Header="Conflicts">
                 <TextBox x:Name="ConflictsTextBox" Text="Conflict not yet analyzed"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas"/>
+                         Padding="5,5,5,5" FontFamily="Consolas"
+                         ContextMenu="{StaticResource tbReadOnlyContextMenu}"
+                         />
             </TabItem>
             <TabItem x:Name="TabItemStates1" Header="States 1">
                 <TextBox x:Name="States1TextBox" Text="States not yet analyzed"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas"/>
+                         Padding="5,5,5,5" FontFamily="Consolas"
+                         ContextMenu="{StaticResource tbReadOnlyContextMenu}"
+                         />
             </TabItem>
             <TabItem x:Name="TabItemStates2" Header="States 2">
                 <TextBox x:Name="States2TextBox" Text="States not yet analyzed / optimized"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas" AutomationProperties.HelpText=""/>
+                         Padding="5,5,5,5" FontFamily="Consolas" AutomationProperties.HelpText=""
+                         ContextMenu="{StaticResource tbReadOnlyContextMenu}"
+                         />
             </TabItem>
             <TabItem x:Name="TabItemResult" Header="Result">
                 <TextBox x:Name="ResultTextBox" Text="No result"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="ResultTextBox_MouseEnter"/>
+                         Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="ResultTextBox_MouseEnter"
+                         ContextMenu="{StaticResource tbReadOnlyContextMenu}"
+                         />
             </TabItem>
             <TabItem x:Name="TabItemInfo" Header="Info" HorizontalAlignment="Stretch">
                 <TextBox x:Name="InfoTextBox" Text="No info"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
                          Padding="5,5,5,5" FontFamily="Consolas" 
-                         ContextMenu="{StaticResource myMenu}"
-                         >                
-                </TextBox>
+                         ContextMenu="{StaticResource tbReadOnlyContextMenu}"
+                         />
             </TabItem>
         </TabControl>
         <ListBox Name="GrammlatorListBox" Grid.Row="3" Grid.ColumnSpan="1" SelectionMode="Single" SizeChanged="ListBox_SizeChanged"

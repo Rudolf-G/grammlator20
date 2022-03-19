@@ -541,9 +541,14 @@ public partial class MainWindow
 
    // Textbox context menus
 
+   void ClickCut(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Cut(); }
    void ClickPaste(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Paste(); }
    void ClickCopy(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Copy(); }
-   void ClickCut(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Cut(); }
+   void ClickCopyAll(Object sender, RoutedEventArgs args)
+   {
+      TextBox? tb = GetTextBoxFromParentPlacementTarget(sender);
+      tb?. SelectAll(); tb?.Copy();
+   }
    void ClickSelectAll(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.SelectAll(); }
    void ClickClear(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Clear(); }
    void ClickUndo(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Undo(); }
@@ -584,15 +589,35 @@ public partial class MainWindow
       foreach (var i in cm.Items)
       {
          MenuItem? m = i as MenuItem;
-         switch (m?.Header)
+         switch (m?.Name)
          {
+            case "cmItemCut": m.IsEnabled = !box.IsReadOnly; break;
+            case "cmItemPaste": m.IsEnabled = Clipboard.ContainsText() && !box.IsReadOnly; break;
             case "cmItemCopy": m.IsEnabled = box.SelectedText != ""; break;
-            case "cmItemPaste": m.IsEnabled = Clipboard.ContainsText(); break;
+            // "cmItemCopyAll", "cmItemSelectAll" "cmItemSelectLine" 
+            case "cmItemUndo": m.IsEnabled = box.IsUndoEnabled; break;
+            case "cmItemRedo": m.IsEnabled = box.IsUndoEnabled; break;
+            case "cmItemClear": m.IsEnabled = !box.IsReadOnly; break;
          };
       }
-
-
    }
 
+   void cmReadOnlyOpened(Object sender, RoutedEventArgs args)
+   {
+      ContextMenu? cm = sender as ContextMenu;
+      if (cm == null) return;
 
+      TextBox? box = cm.PlacementTarget as TextBox;
+      if (box == null) return;
+
+      foreach (var i in cm.Items)
+      {
+         MenuItem? m = i as MenuItem;
+         switch (m?.Name)
+         {
+            case "cmroItemCopy": m.IsEnabled = box.SelectedText != ""; break;
+               // "cmroItemCopyAll" 
+         };
+      }
+   }
 }
