@@ -521,7 +521,7 @@ public partial class MainWindow
             continue; // lines are equal
 
          // Test if special lines and allow them to differ after the keywords
-         
+
          if (s1LineTrimmed.StartsWith(GlobalSettings.RegionBegin.Value)
              && s2LineTrimmed.StartsWith(GlobalSettings.RegionBegin.Value))
          {
@@ -538,16 +538,16 @@ public partial class MainWindow
       }
       return s1Remain.Length == 0 && s2Remain.Length == 0;
    }
-   
+
    // Textbox context menus
 
-   void ClickPaste(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Paste(); }
-   void ClickCopy(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Copy(); }
-   void ClickCut(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Cut(); }
-   void ClickSelectAll(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).SelectAll(); }
-   void ClickClear(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Clear(); }
-   void ClickUndo(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Undo(); }
-   void ClickRedo(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Redo(); }
+   void ClickPaste(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Paste(); }
+   void ClickCopy(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Copy(); }
+   void ClickCut(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Cut(); }
+   void ClickSelectAll(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.SelectAll(); }
+   void ClickClear(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Clear(); }
+   void ClickUndo(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Undo(); }
+   void ClickRedo(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Redo(); }
 
    void ClickSelectLine(Object sender, RoutedEventArgs args)
    {
@@ -557,9 +557,9 @@ public partial class MainWindow
       SourceTextBox.Select(lineStartingCharIndex, lineLength);
    }
 
-   TextBox GetTextBoxFromParentName(Object sender)
-   {      
-      return GetTextBoxFromName((((sender as MenuItem)?.Parent) as ContextMenu)?.Name);
+   TextBox? GetTextBoxFromParentPlacementTarget(Object sender)
+   {
+      return (((sender as MenuItem)?.Parent) as ContextMenu)?.PlacementTarget as TextBox;
    }
 
    TextBox GetTextBoxFromName(string? name)
@@ -573,36 +573,26 @@ public partial class MainWindow
       };
    }
 
-   void STBOpened(Object sender, RoutedEventArgs args)
+   void cmOpened(Object sender, RoutedEventArgs args)
    {
-      TextBox box = GetTextBoxFromName((sender as ContextMenu)?.Name);
+      ContextMenu? cm = sender as ContextMenu;
+      if (cm == null) return;
 
-      // Only allow copy/cut if something is selected to copy/cut.
-      if (box.SelectedText == "")
-         STBItemCopy.IsEnabled = STBItemCut.IsEnabled = false;
-      else
-         STBItemCopy.IsEnabled = STBItemCut.IsEnabled = true;
+      TextBox? box = cm.PlacementTarget as TextBox;
+      if (box == null) return;
 
-      // Only allow paste if there is text on the clipboard to paste.
-      if (Clipboard.ContainsText())
-         STBItemPaste.IsEnabled = true;
-      else
-         STBItemPaste.IsEnabled = false;
+      foreach (var i in cm.Items)
+      {
+         MenuItem? m = i as MenuItem;
+         switch (m?.Header)
+         {
+            case "cmItemCopy": m.IsEnabled = box.SelectedText != ""; break;
+            case "cmItemPaste": m.IsEnabled = Clipboard.ContainsText(); break;
+         };
+      }
+
+
    }
-   
-   void ITBOpened(Object sender, RoutedEventArgs args)
-   {
-      // Only allow copy/cut if something is selected to copy/cut.
-      if (InfoTextBox.SelectedText == "")
-         ITBItemCopy.IsEnabled = ITBItemCut.IsEnabled = false;
-      else
-         ITBItemCopy.IsEnabled = ITBItemCut.IsEnabled = true;
 
-      // Only allow paste if there is text on the clipboard to paste.
-      if (Clipboard.ContainsText())
-         ITBItemPaste.IsEnabled = true;
-      else
-         ITBItemPaste.IsEnabled = false;
-   }
 
 }

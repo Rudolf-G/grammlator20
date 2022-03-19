@@ -13,6 +13,21 @@
         Foreground="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" 
         MaxWidth="2000" MaxHeight="2000" WindowStyle="ThreeDBorderWindow" BorderThickness="1,1,1,1"
         SnapsToDevicePixels="True" ResizeMode="CanResize" SizeToContent="Manual" IsManipulationEnabled="True" RenderTransformOrigin="0.5,0.5">
+    <Window.Resources>
+        <ContextMenu x:Key="myMenu" Opened="cmOpened">
+            <MenuItem Header="Cut" Name="cmItemCut" Click="ClickCut" />
+            <MenuItem Header="Copy" Name="cmItemCopy" Click="ClickCopy"/>
+            <MenuItem Header="Paste" Name="cmItemPaste" Click="ClickPaste"/>
+            <Separator/>
+            <MenuItem Header="Select All" Name="cmItemSelectAll" Click="ClickSelectAll"/>
+            <MenuItem Header="Select Current Line" Name="cmItemSelectLine" Click="ClickSelectLine"/>
+            <Separator/>
+            <MenuItem Header="Undo Last Action" Name="cmItemUndo" Click="ClickUndo"/>
+            <MenuItem Header="Redo Last Action" Name="cmItemRedo" Click="ClickRedo"/>
+            <Separator/>
+            <MenuItem Header="Clear All Text" Name="cmItemClear" Click="ClickClear"/>
+        </ContextMenu>
+    </Window.Resources>
     <Grid x:Name="GrammlatorMainGrid"
           UseLayoutRounding="True" MinHeight="175" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
           ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -47,22 +62,8 @@
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True" IsEnabled="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
                          Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="SourceTextBox_MouseEnter" 
-                         TextChanged="SourceTextBox_TextChanged">
-                    <TextBox.ContextMenu>
-                        <ContextMenu Name="STB"  Tag="STB" Opened="STBOpened">
-                            <MenuItem Header="Cut" Name="STBItemCut" Click="ClickCut" />
-                            <MenuItem Header="Copy" Name="STBItemCopy" Click="ClickCopy"/>
-                            <MenuItem Header="Paste" Name="STBItemPaste" Click="ClickPaste"/>
-                            <Separator/>
-                            <MenuItem Header="Select All" Name="STBItemSelectAll" Click="ClickSelectAll"/>
-                            <MenuItem Header="Select Current Line" Name="STBItemSelectLine" Click="ClickSelectLine"/>
-                            <Separator/>
-                            <MenuItem Header="Undo Last Action" Name="STBItemUndo" Click="ClickUndo"/>
-                            <MenuItem Header="Redo Last Action" Name="STBItemRedo" Click="ClickRedo"/>
-                            <Separator/>
-                            <MenuItem Header="Clear All Text" Name="STBItemClear" Click="ClickClear"/>
-                        </ContextMenu>
-                    </TextBox.ContextMenu>
+                         TextChanged="SourceTextBox_TextChanged"
+                         ContextMenu="{StaticResource myMenu}">
                 </TextBox>
             </TabItem>
             <TabItem x:Name="TabItemLog" Header=" Log ">
@@ -105,22 +106,9 @@
                 <TextBox x:Name="InfoTextBox" Text="No info"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas" >
-                <TextBox.ContextMenu>
-                        <ContextMenu Name="ITB"  Tag="ITB" Opened="ITBOpened">
-                        <MenuItem Header="Cut" Name="ITBItemCut" Click="ClickCut" />
-                        <MenuItem Header="Copy" Name="ITBItemCopy" Click="ClickCopy"/>
-                        <MenuItem Header="Paste" Name="ITBItemPaste" Click="ClickPaste"/>
-                        <Separator/>
-                            <MenuItem Header="Select All" Name="ITBItemSelectAll" Click="ClickSelectAll"/>
-                            <MenuItem Header="Select Current Line" Name="ITBItemSelectLine" Click="ClickSelectLine"/>
-                        <Separator/>
-                            <MenuItem Header="Undo Last Action" Name="ITBItemUndo" Click="ClickUndo"/>
-                            <MenuItem Header="Redo Last Action" Name="ITBItemRedo" Click="ClickRedo"/>
-                        <Separator/>
-                            <MenuItem Header="Clear All Text" Name="ITBItemClear" Click="ClickClear"/>
-                    </ContextMenu>
-                </TextBox.ContextMenu>
+                         Padding="5,5,5,5" FontFamily="Consolas" 
+                         ContextMenu="{StaticResource myMenu}"
+                         >                
                 </TextBox>
             </TabItem>
         </TabControl>
