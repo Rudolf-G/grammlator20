@@ -538,37 +538,71 @@ public partial class MainWindow
       }
       return s1Remain.Length == 0 && s2Remain.Length == 0;
    }
+   
+   // Textbox context menus
 
-   private void TextBoxUndo(object sender, RoutedEventArgs e)
+   void ClickPaste(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Paste(); }
+   void ClickCopy(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Copy(); }
+   void ClickCut(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Cut(); }
+   void ClickSelectAll(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).SelectAll(); }
+   void ClickClear(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Clear(); }
+   void ClickUndo(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Undo(); }
+   void ClickRedo(Object sender, RoutedEventArgs args) { GetTextBoxFromParentName(sender).Redo(); }
+
+   void ClickSelectLine(Object sender, RoutedEventArgs args)
    {
-      if (sender is not TextBox box)
-         return;
+      int lineIndex = SourceTextBox.GetLineIndexFromCharacterIndex(SourceTextBox.CaretIndex);
+      int lineStartingCharIndex = SourceTextBox.GetCharacterIndexFromLineIndex(lineIndex);
+      int lineLength = SourceTextBox.GetLineLength(lineIndex);
+      SourceTextBox.Select(lineStartingCharIndex, lineLength);
+   }
 
-      if (box.CanUndo == true)
+   TextBox GetTextBoxFromParentName(Object sender)
+   {      
+      return GetTextBoxFromName((((sender as MenuItem)?.Parent) as ContextMenu)?.Name);
+   }
+
+   TextBox GetTextBoxFromName(string? name)
+   {
+      return name switch
       {
-         box.Undo();
-      }
+         null => throw new ArgumentException("sender is not a MenuItem with Parent"),
+         "ITB" => InfoTextBox,
+         "STB" => SourceTextBox,
+         _ => throw new ArgumentException("unknow tag of MenuItem", name)
+      };
    }
 
-   private void TextBoxRedo(object sender, RoutedEventArgs e)
+   void STBOpened(Object sender, RoutedEventArgs args)
    {
-      if (sender is not TextBox box)
-         return;
+      TextBox box = GetTextBoxFromName((sender as ContextMenu)?.Name);
 
-      if (box.CanRedo == true)
-      {
-         box.Redo();
-      }
+      // Only allow copy/cut if something is selected to copy/cut.
+      if (box.SelectedText == "")
+         STBItemCopy.IsEnabled = STBItemCut.IsEnabled = false;
+      else
+         STBItemCopy.IsEnabled = STBItemCut.IsEnabled = true;
+
+      // Only allow paste if there is text on the clipboard to paste.
+      if (Clipboard.ContainsText())
+         STBItemPaste.IsEnabled = true;
+      else
+         STBItemPaste.IsEnabled = false;
    }
-
-   private void TextBoxSelectAll(object sender, RoutedEventArgs e)
+   
+   void ITBOpened(Object sender, RoutedEventArgs args)
    {
-      if (sender is not TextBox box)
-         return;
+      // Only allow copy/cut if something is selected to copy/cut.
+      if (InfoTextBox.SelectedText == "")
+         ITBItemCopy.IsEnabled = ITBItemCut.IsEnabled = false;
+      else
+         ITBItemCopy.IsEnabled = ITBItemCut.IsEnabled = true;
 
-      box.SelectAll();
+      // Only allow paste if there is text on the clipboard to paste.
+      if (Clipboard.ContainsText())
+         ITBItemPaste.IsEnabled = true;
+      else
+         ITBItemPaste.IsEnabled = false;
    }
-
-
 
 }

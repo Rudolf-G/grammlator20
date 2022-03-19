@@ -47,7 +47,23 @@
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True" IsEnabled="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
                          Padding="5,5,5,5" FontFamily="Consolas" MouseEnter="SourceTextBox_MouseEnter" 
-                         TextChanged="SourceTextBox_TextChanged"/>
+                         TextChanged="SourceTextBox_TextChanged">
+                    <TextBox.ContextMenu>
+                        <ContextMenu Name="STB"  Tag="STB" Opened="STBOpened">
+                            <MenuItem Header="Cut" Name="STBItemCut" Click="ClickCut" />
+                            <MenuItem Header="Copy" Name="STBItemCopy" Click="ClickCopy"/>
+                            <MenuItem Header="Paste" Name="STBItemPaste" Click="ClickPaste"/>
+                            <Separator/>
+                            <MenuItem Header="Select All" Name="STBItemSelectAll" Click="ClickSelectAll"/>
+                            <MenuItem Header="Select Current Line" Name="STBItemSelectLine" Click="ClickSelectLine"/>
+                            <Separator/>
+                            <MenuItem Header="Undo Last Action" Name="STBItemUndo" Click="ClickUndo"/>
+                            <MenuItem Header="Redo Last Action" Name="STBItemRedo" Click="ClickRedo"/>
+                            <Separator/>
+                            <MenuItem Header="Clear All Text" Name="STBItemClear" Click="ClickClear"/>
+                        </ContextMenu>
+                    </TextBox.ContextMenu>
+                </TextBox>
             </TabItem>
             <TabItem x:Name="TabItemLog" Header=" Log ">
                 <TextBox x:Name="LogTextBox" Text="Log is empty"
@@ -89,7 +105,23 @@
                 <TextBox x:Name="InfoTextBox" Text="No info"
                          TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"  IsEnabled="True" IsReadOnly="True"
                          UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Auto"
-                         Padding="5,5,5,5" FontFamily="Consolas" />
+                         Padding="5,5,5,5" FontFamily="Consolas" >
+                <TextBox.ContextMenu>
+                        <ContextMenu Name="ITB"  Tag="ITB" Opened="ITBOpened">
+                        <MenuItem Header="Cut" Name="ITBItemCut" Click="ClickCut" />
+                        <MenuItem Header="Copy" Name="ITBItemCopy" Click="ClickCopy"/>
+                        <MenuItem Header="Paste" Name="ITBItemPaste" Click="ClickPaste"/>
+                        <Separator/>
+                            <MenuItem Header="Select All" Name="ITBItemSelectAll" Click="ClickSelectAll"/>
+                            <MenuItem Header="Select Current Line" Name="ITBItemSelectLine" Click="ClickSelectLine"/>
+                        <Separator/>
+                            <MenuItem Header="Undo Last Action" Name="ITBItemUndo" Click="ClickUndo"/>
+                            <MenuItem Header="Redo Last Action" Name="ITBItemRedo" Click="ClickRedo"/>
+                        <Separator/>
+                            <MenuItem Header="Clear All Text" Name="ITBItemClear" Click="ClickClear"/>
+                    </ContextMenu>
+                </TextBox.ContextMenu>
+                </TextBox>
             </TabItem>
         </TabControl>
         <ListBox Name="GrammlatorListBox" Grid.Row="3" Grid.ColumnSpan="1" SelectionMode="Single" SizeChanged="ListBox_SizeChanged"
@@ -114,7 +146,7 @@
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem x:Name="MenuItemDisplayExample" Header="Display example">
-                    <MenuItem x:Name="GrammlatorConsoleExample" Header="GrammlatorConsoleExample.txt" Click="MenuItemDisplayExample_Click"/>
+                   <MenuItem x:Name="GrammlatorConsoleExample" Header="GrammlatorConsoleExample.txt" Click="MenuItemDisplayExample_Click"/>
                 </MenuItem>
                 <MenuItem x:Name="MenuItemDisplaySettings" Header="Display settings with comments" Click="DisplaySettings_Click"/>
                 <MenuItem x:Name="MenuItemDisplaySettingsCompact" Header="Display settings compact" Click="MenuItemDisplaySettingsCompact_Click"/>
