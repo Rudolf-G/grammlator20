@@ -4,16 +4,20 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace grammlator {
+namespace grammlator
+{
    /// <summary>
    /// Adds the following extensions to BitArray: Assign, Subtract, Empty, All, IsEqualTo, BitsToStringBuilder, IndexOfFirstTrueElement,
    /// IndexOfLastTrueElement, IndexOfFirstAndLastTrueELement, FindTrue, FindFalse, PopulationCount
    /// </summary>
-   public static class BitArrayExtensions {
+   public static class BitArrayExtensions
+   {
 
       // https://de.wikipedia.org/wiki/Boolesche_Funktion#Zweistellige_Funktion 
-      //
 
+      /// <summary>
+      /// mask[0]==1; ... mask[31]==-1
+      /// </summary>
       private static readonly Int32[] mask = new Int32[] {
             0x1, 0x3, 0x7, 0xf,
             0x1f, 0x3f, 0x7f, 0xff,
@@ -29,6 +33,31 @@ namespace grammlator {
       /// Int32[64]=2048 Bits for use in empty and in all
       /// </summary>
       private static readonly Int32[] staticarray = new Int32[64];
+
+      /// <summary>
+      /// Because BitArray dos not provide a method to access the underlying array
+      /// it is copied to an array.
+      /// The used part of this array is returned as ArraySegment.
+      /// The value of unused bits in the last element  of the segment is undefined.
+      /// </summary>
+      /// <param name="bits"></param>
+      /// <returns></returns>
+      private static ArraySegment<Int32> AsArraySegment(this BitArray bits)
+      {
+         if (bits.Count <= 0)
+            return Array.Empty<Int32>();
+
+         // The length of the array
+         Int32 length = (bits.Count - 1) / 32 + 1;
+
+         //  Use staticarray if long enough, else allocate a new array
+         Int32[] a = length <= staticarray.Length ? staticarray : new Int32[length];
+
+         // Copy the elements containing the bits to the array 
+         bits.CopyTo(a, 0);
+
+         return new ArraySegment<Int32>(a, 0, length);
+      }
 
       /// <summary>
       /// some tests
@@ -149,21 +178,17 @@ namespace grammlator {
          if (bits.Count <= 0)
             return true;
 
-         Int32 length = ((bits.Count - 1) / 32) + 1;
-         Int32[] a = staticarray; // try to use staticarray (not thread save!)
-         if (a.Length < length) // staticarray is too short, so accept overhead by new
-            a = new Int32[length];
+         ArraySegment<Int32> a = bits.AsArraySegment();
 
-         bits.CopyTo(a, 0); // beware of undefined state of unused bits 
-         a[length - 1] &= mask[(bits.Count - 1) % 32]; // set unused bits of last used element to 0
+         a[a.Count - 1] &= mask[(bits.Count - 1) % 32]; // set unused bits of last used element to 0
 
-         for (Int32 i = 0; i < length; i++)
+         for (Int32 i = 0; i < a.Count; i++)
             if (a[i] != 0)
                return false;
 
          return true;
       }
-
+            
       /// <summary>
       /// Checks if all bits are 1, true if no bits
       /// </summary>
@@ -183,15 +208,13 @@ namespace grammlator {
          // Optimized by Int-Operations
          if (bits.Count <= 0)
             return true;
-         Int32 length = ((bits.Count - 1) / 32) + 1;
-         Int32[] a = staticarray; // try to use staticarray (not thread save!)
-         if (a.Length < length)
-            a = new Int32[length]; // staticarray is too short, so accept overhead by new
 
-         bits.CopyTo(a, 0); // beware of undefined state of unused bits 
-         a[length - 1] |= ~mask[(bits.Count - 1) % 32]; // set unused bits to 1
+         ArraySegment<Int32> a = bits.AsArraySegment();
 
-         for (Int32 i = 0; i < length; i++)
+         // beware of undefined state of unused bits 
+         a[a.Count - 1] |= ~mask[(bits.Count - 1) % 32]; // set unused bits to 1
+
+         for (Int32 i = 0; i < a.Count; i++)
             if (a[i] != -1)
                return false;
 
@@ -211,9 +234,10 @@ namespace grammlator {
             throw new ArgumentNullException(nameof(rightArgument));
          if (leftArgument == null)
             throw new ArgumentNullException(nameof(leftArgument));
-         // TODO use int array to implement "BitArray IsEqualTo(...)"
+         
          if (leftArgument.Count != rightArgument.Count)
             return false;
+
          for (Int32 i = 0; i < leftArgument.Count; i++)
          {
             if (leftArgument[i] != rightArgument[i])
@@ -492,16 +516,13 @@ namespace grammlator {
          if (bits.Count <= 0)
             return 0;
 
-         Int32 length = ((bits.Count - 1) / 32) + 1;
-         Int32[] a = staticarray; // try to use staticarray (not thread save!)
-         if (a.Length < length) // staticarray is too short, so accept overhead by new
-            a = new Int32[length];
 
-         bits.CopyTo(a, 0); // beware of undefined state of unused bits 
-         a[length - 1] &= mask[(bits.Count - 1) % 32]; // set unused bits to 0
+         ArraySegment<Int32> a = bits.AsArraySegment();
+
+         a[a.Count - 1] &= mask[(bits.Count - 1) % 32]; // set unused bits to 0
 
          Int32 sum = 0;
-         for (Int32 i = 0; i < length; i++)
+         for (Int32 i = 0; i < a.Count; i++)
             sum += PopulationCount(a[i]);
 
          return sum;
