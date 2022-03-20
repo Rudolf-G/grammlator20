@@ -75,6 +75,7 @@ internal class P4ReplaceNonterminalsAndOptimize
          = new PartitionInfoArray<ParserState>(GlobalVariables.ListOfAllStates);
       DistinguishableStatesRelation // a symmetric relation implemented by a set of pairs
           = new SortedSet<(int SmallerIdNr, int LargerIdNr)>(new SortPairOfStatesBylargerThenBySmaller());
+      // SortedSet is easy to use but allocates a node for each entry
    }
 
    public class SortPairOfStatesBylargerThenBySmaller : Comparer<(int smaller, int larger)>
@@ -123,10 +124,10 @@ internal class P4ReplaceNonterminalsAndOptimize
       // DetermineNotStackingStates using SamePredecessorLevelPartitionOfState and DistinguishableStatesRelation
       GlobalVariables.NumberOfStatesWithStateStackNumber = AssignStateStackNumbersAndCountPushingStates();
 
-      // Optionally assign small StateStackNumbers
+      // Optionally replace StateStackNumbers by smaller numbers
       if (GlobalSettings.GenerateSmallStateStackNumbers.Value)
       {
-         AssignStatesSmallStackNumbers();
+         AssignStatesSmallerStackNumbers();
       }
 
       // Compute branches
@@ -309,7 +310,7 @@ internal class P4ReplaceNonterminalsAndOptimize
 
       StatesOfNextLevel.Clear();
 
-      Int32 countOfStateStackNumbersToPop = 0; // used only if RelationtypeEnum.ComputeBranches
+      Int32 countOfStateStackNumbersToPop = 0; // used only if TypeOfEvaluation==RelationtypeEnum.ComputeBranches
 
       // Iterate depth levels
       for (Int32 remainingDepth = Depth; remainingDepth > 0; remainingDepth--)
@@ -318,16 +319,19 @@ internal class P4ReplaceNonterminalsAndOptimize
          foreach (ParserState state in StatesOfThisLevel)
          {
             foreach (ParserState predecessor in state.PredecessorList!)
-            {
-               if (!StatesOfNextLevel.Contains(predecessor)) // linear search!
+            {  // Contains performs a linear search therefore it is an O(n) operation.
+               // Because the list typically is very small BinarySearch, an O(log n) operation, will not be faster
+               if (!StatesOfNextLevel.Contains(predecessor))
                   StatesOfNextLevel.Add(predecessor);
             }
          }
 
          Debug.Assert(StatesOfNextLevel.Count != 0, "Error in phase4: no predecessor)");
 
-         // Either the StateStackNumber of all predecessors is >=0 or of all is <0
+         // After StateStackNumbers have been assigned (!)
+         // either the StateStackNumber of all predecessors is >=0 or of all is <0
          // States with <=0 won't push and are not counted 
+         // if (TypeOfEvaluation == RelationtypeEnum.ComputeBranches && ..
          if (StatesOfThisLevel[0].StateStackNumber >= 0)
          {
             countOfStateStackNumbersToPop++;
@@ -359,16 +363,17 @@ internal class P4ReplaceNonterminalsAndOptimize
             return DefinitionToReplace; // notnull dummy
 
          case RelationtypeEnum.ComputeBranches:
+
             BranchcasesList SortedListOfBranchcases = ConstructListOfBranchcases(StatesOfThisLevel, definedSymbol);
+            StatesOfThisLevel.Clear();
+
             ParserAction NextAction =
                     SortedListOfBranchcases.Count == 1
                     ? SortedListOfBranchcases[0].BranchcaseAction // no branch, single action
                     : FindOrConstructBranch(SortedListOfBranchcases);
 
             // Debug.Assert(!(NextAction is NonterminalTransition)); // ??????????
-            Debug.Assert(NextAction is not Definition); // ???????
-
-            StatesOfThisLevel.Clear();
+            Debug.Assert(NextAction is not Definition); // CHECK assertions ???????
 
             if (DefinitionToReplace.HasNoSemantics() && (countOfStateStackNumbersToPop == 0)
                 && DefinitionToReplace.DefinedSymbol != GlobalVariables.Startsymbol)
@@ -389,7 +394,7 @@ internal class P4ReplaceNonterminalsAndOptimize
 
    /// <summary>
    /// Check which states have to be distinguished from each other,
-   /// assignCodenumber and set the DistinguishableStatesRelation 
+   /// assign StateStackNumber and set the DistinguishableStatesRelation 
    /// </summary>
    /// <param name="statesWhichAcceptTheNonterminal"></param>
    /// <param name="inputSymbol"></param>
@@ -862,7 +867,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       return NewBranch;
    } // end of FindOrConstructBranch
 
-   public void AssignStatesSmallStackNumbers()
+   public void AssignStatesSmallerStackNumbers()
    {
       var AllowedStackNumbers = new Boolean[GlobalVariables.ListOfAllStates.Count];
 
@@ -878,7 +883,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       {
          SortedSet<(int SmallerIdNr, int LargerIdNr)> DistinguishableStatesRelationOfParserState =
             DistinguishableStatesRelation.GetViewBetween
-            ((-1, ParserState.IdNumber), (-1, ParserState.IdNumber+1));
+            ((-1, ParserState.IdNumber), (-1, ParserState.IdNumber + 1));
 
          // Start with: assume all numbers from 0 to the states IdNumber are not in conflict
          for (Int32 k = 0; k <= ParserState.IdNumber; k++)

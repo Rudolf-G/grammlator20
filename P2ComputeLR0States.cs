@@ -131,7 +131,7 @@ public sealed class P2ComputeLR0States
 
             ItemStruct Item = ListOfNotAnEnditemLOfActualState[IndexOfItem];
             if (Item.InputSymbol is NonterminalSymbol nonterminal && !DoNotProcessNonterminalSymbolAgain[nonterminal.SymbolNumber])
-               DuplicateItemForTrivialDefinitions(nonterminal, Item, 
+               DuplicateItemForTrivialDefinitions(nonterminal, Item,
                   ListOfNotAnEnditemLOfActualState, DoNotProcessNonterminalSymbolAgain);
          }
 
@@ -426,33 +426,10 @@ public sealed class P2ComputeLR0States
       // The following declarations and methods are provided to mark states as processed.
       // All processed states are chained together with the anchor LastProcessed.
 
-      var isProcessedChain = new Int32[GlobalVariables.ListOfAllStates.Count];
-      Int32 LastProcessed = -1;
-      Boolean IsProcessed(Int32 s) => isProcessedChain[s] >= 0;
-      void MarkAsProcessed(Int32 s)
-      {
-         Debug.Assert(isProcessedChain[s] < 0);
-         isProcessedChain[s] = LastProcessed;
-         LastProcessed = s;
-      }
-      void ResetIsProcessed()
-      { // unwind the chain and set all entries to -1
-         while (LastProcessed >= 0)
-         {
-            Int32 s = LastProcessed;
-            LastProcessed = isProcessedChain[s];
-            isProcessedChain[s] = -1;
-         }
-      }
-      void InitializeIsProcessed()
-      {
-         for (Int32 i = 0; i < isProcessedChain.Length; i++)
-            isProcessedChain[i] = -1;
-      }
+      BitArray hasBeenAdded = new BitArray(GlobalVariables.ListOfAllStates.Count);
 
       // A) Determine the number of predecessor states for each state.
 
-      InitializeIsProcessed();
       //    For each state
       foreach (ParserState state in GlobalVariables.ListOfAllStates)
       {
@@ -462,14 +439,14 @@ public sealed class P2ComputeLR0States
          foreach (Int32 numberOfSuccessorState in state.Actions.
              OfType<ParserActionWithNextAction>().Select(a => a.NextAction).
              OfType<ParserState>().Select(s => s.IdNumber).
-             Where(IDNummer => !IsProcessed(IDNummer))
+             Where(IDNummer => !hasBeenAdded[IDNummer])
              )
          {
             NumberOfPredecessors[numberOfSuccessorState]++;
-            MarkAsProcessed(numberOfSuccessorState);
+            hasBeenAdded.Set(numberOfSuccessorState, true);
          }
 
-         ResetIsProcessed();
+         hasBeenAdded.SetAll(false);
       }
 
       // B) Assign each state its list of predecessors
@@ -484,14 +461,15 @@ public sealed class P2ComputeLR0States
                  OfType<ParserState>()
                  )
          {
-            if (!IsProcessed(successorState.IdNumber))
+            if (!hasBeenAdded[successorState.IdNumber])
             {
                successorState.PredecessorList.Add(state);
-               MarkAsProcessed(successorState.IdNumber);
+               hasBeenAdded.Set(successorState.IdNumber, true);
             }
          }
 
-         ResetIsProcessed();
+         hasBeenAdded.SetAll(false);
       }
+
    } // end of ComputePredecessorRelation
 } //end of class Phase2 
