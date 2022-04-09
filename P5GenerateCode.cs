@@ -305,8 +305,8 @@ namespace grammlator {
          if (b is not ConditionalAction ActionB)
             return -1;
 
-         Int32 First1 = ActionA.TerminalSymbols.IndexOfFirstTrueElement();
-         Int32 First2 = ActionB.TerminalSymbols.IndexOfFirstTrueElement();
+         Int32 First1 = ActionA.TerminalSymbols.Min();
+         Int32 First2 = ActionB.TerminalSymbols.Min();
 
          if (First1 != First2)
             return First1 - First2;

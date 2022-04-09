@@ -861,8 +861,8 @@ namespace grammlator {
          codegen.Append(")");
          codegen.GenerateBeginOfBlock();
 
-         Int32 IndexOfLastPossibleTerminal = PossibleInputTerminals!.IndexOfLastTrueElement();
-         Int32 IndexOf1stPossibleTerminal = PossibleInputTerminals!.IndexOfFirstTrueElement();
+         Int32 IndexOfLastPossibleTerminal = PossibleInputTerminals!.Max();
+         Int32 IndexOf1stPossibleTerminal = PossibleInputTerminals!.Min();
 
          Int32 LeadingCount = 0, TrailingCount = 0;
          ConditionalAction? LeadingAction = null, TrailingAction = null;
@@ -875,7 +875,7 @@ namespace grammlator {
             var ThisAction = (ConditionalAction)Actions[i];
 
             BitArray Terminals = ThisAction.TerminalSymbols;
-            Int32 TerminalIndex = Terminals.IndexOfFirstTrueElement();
+            Int32 TerminalIndex = Terminals.Min();
             Boolean IsDefaultAction = false;
 
             // Special case: default action if Terminals contains the first possible terminal
@@ -1123,8 +1123,8 @@ namespace grammlator {
          /// </summary>
          List<BlockOfEqualBits> blockList = new(GlobalVariables.NumberOfTerminalSymbols);
 
-         if (blockList.Capacity != condition.Count)
-            blockList.Capacity = condition.Count;
+         if (blockList.Capacity != condition.Length)
+            blockList.Capacity = condition.Length;
 
          // determine consecutive blocks (indexes) of equal values of Condition ignoring not relevant symbols (indexes)
          ComputeBlocklist(condition, relevant, blockList);
@@ -1191,7 +1191,7 @@ namespace grammlator {
           BitArray Relevant,
           List<BlockOfEqualBits> BlockList)
       {
-         (Int32 firstRelevant, Int32 lastRelevant) = Relevant.IndexOfFirstAndLastTrueElement();
+         (Int32 firstRelevant, Int32 lastRelevant) = Relevant.MinAndMax();
 
          if (firstRelevant == -1)
          {
@@ -1752,7 +1752,7 @@ namespace grammlator {
                .DecrementIndentationLevel();
             return;
          }
-         else if (condition.Empty())
+         else if (condition.IsEmpty())
          {
             codegen.AppendWithOptionalLinebreak("false")
                .DecrementIndentationLevel();
@@ -1761,8 +1761,8 @@ namespace grammlator {
 
          Debug.Assert(condition.Length >= 2); // else it would be "true" or "false"
 
-         int first = relevant.IndexOfFirstTrueElement();
-         int last = relevant.IndexOfLastTrueElement();
+         int first = relevant.Min();
+         int last = relevant.Max();
 
          /* consider GlobalSettings.InputElementsAreTerminals
           * There are 2 cases

@@ -65,7 +65,7 @@ internal class P3ComputeLALR1
              in state.Actions.OfType<LookaheadOrNonterminalTransition>())
          {
             // Replace default assignment of parserAction.TerminalSymbols
-            Debug.Assert(laOrNonterminalTansition.TerminalSymbols.Empty());
+            Debug.Assert(laOrNonterminalTansition.TerminalSymbols.IsEmpty());
 
             laOrNonterminalTansition.TerminalSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
             laOrNonterminalTansition.Codenumber = 0; // initial value for DIGRAPH algorithm

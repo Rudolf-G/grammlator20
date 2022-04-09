@@ -1002,7 +1002,7 @@ namespace grammlator {
          Terminalcount = 0;
          SumOfWeights = 0;
 
-         for (Int32 index = 0; index < TerminalSymbols.Count; index++)
+         for (Int32 index = 0; index < TerminalSymbols.Length; index++)
          {
             if (!TerminalSymbols[index])
                continue;
@@ -1032,7 +1032,7 @@ namespace grammlator {
          Boolean BaseValue = ActualValue;
          Boolean NextValue;
 
-         for (Int32 i = 1; i < TerminalSymbols.Count; i++)
+         for (Int32 i = 1; i < TerminalSymbols.Length; i++)
          {
             NextValue = TerminalSymbols[i];
             /* We have an already analyzed sequence of values == BaseValue

@@ -35,7 +35,7 @@ namespace grammlator
       private static readonly Int32[] staticarray = new Int32[64];
 
       /// <summary>
-      /// Because BitArray dos not provide a method to access the underlying array
+      /// Because BitArray does not provide a method to access the underlying array
       /// it is copied to an array.
       /// The used part of this array is returned as ArraySegment.
       /// The value of unused bits in the last element  of the segment is undefined.
@@ -44,11 +44,11 @@ namespace grammlator
       /// <returns></returns>
       private static ArraySegment<Int32> AsArraySegment(this BitArray bits)
       {
-         if (bits.Count <= 0)
+         if (bits.Length <= 0)
             return Array.Empty<Int32>();
 
          // The length of the array
-         Int32 length = (bits.Count - 1) / 32 + 1;
+         Int32 length = (bits.Length - 1) / 32 + 1;
 
          //  Use staticarray if long enough, else allocate a new array
          Int32[] a = length <= staticarray.Length ? staticarray : new Int32[length];
@@ -66,11 +66,11 @@ namespace grammlator
       {
          // tests functions of BitAray which use CopyTo and expect a special order of the returned bits
          var b = new BitArray(0);
-         Debug.Assert(b.Empty());
+         Debug.Assert(b.IsEmpty());
          Debug.Assert(b.All());
          Debug.Assert(b.PopulationCount() == 0);
          b.Not();
-         Debug.Assert(b.Empty());
+         Debug.Assert(b.IsEmpty());
          Debug.Assert(b.All());
          Debug.Assert(b.PopulationCount() == 0);
 
@@ -78,7 +78,7 @@ namespace grammlator
          var ia = new Int32[1];
          b.CopyTo(ia, 0);
          Debug.Assert(ia[0] == 0);
-         Debug.Assert(b.Empty());
+         Debug.Assert(b.IsEmpty());
          Debug.Assert(b.PopulationCount() == 0);
          b.Set(0, true);
          b.CopyTo(ia, 0);
@@ -86,38 +86,38 @@ namespace grammlator
          Debug.Assert(b.All());
          Debug.Assert(b.PopulationCount() == 1);
          b.Not();
-         Debug.Assert(b.Empty());
+         Debug.Assert(b.IsEmpty());
          Debug.Assert(b.PopulationCount() == 0);
          b.SetAll(true);
          Debug.Assert(b.All());
          Debug.Assert(b.PopulationCount() == 1);
 
          b = new BitArray(33);
-         Debug.Assert(b.Empty());
+         Debug.Assert(b.IsEmpty());
          Debug.Assert(b.PopulationCount() == 0);
          b.Not();
          Debug.Assert(b.All());
          Debug.Assert(b.PopulationCount() == 33);
 
          b.Not();
-         Debug.Assert(b.Empty());
+         Debug.Assert(b.IsEmpty());
          Debug.Assert(b.PopulationCount() == 0);
          for (Int32 i = 0; i < 33; i++)
             b[i] = true;
          Debug.Assert(b.All());
          Debug.Assert(b.PopulationCount() == 33);
          b.Not();
-         Debug.Assert(b.Empty());
+         Debug.Assert(b.IsEmpty());
          Debug.Assert(b.PopulationCount() == 0);
          b.Not();
          b[32] = false;
          Debug.Assert(!b.All());
-         Debug.Assert(!b.Empty());
+         Debug.Assert(!b.IsEmpty());
          Debug.Assert(b.PopulationCount() == 32);
 
          b.Not();
          Debug.Assert(!b.All());
-         Debug.Assert(!b.Empty());
+         Debug.Assert(!b.IsEmpty());
          Debug.Assert(b.PopulationCount() == 1);
       }
 
@@ -129,7 +129,7 @@ namespace grammlator
       /// <returns>An array containing the result of the bitwise OR operation, which is a reference to the current BitArray object.</returns>
       /// <exception cref="ArgumentNullException">Thrown if destination or source are null</exception>
       /// <exception cref="ArgumentException">Thrown if source and destination do not have the same length</exception>
-      public static BitArray Assign(this BitArray destination, BitArray source)
+      public static BitArray CopyFrom(this BitArray destination, BitArray source)
       {
          if (destination == null)
             throw new ArgumentNullException(nameof(destination));
@@ -164,7 +164,7 @@ namespace grammlator
       /// <param name="bits"></param>
       /// <returns>true if all Bits are true</returns>
       /// <exception cref="ArgumentNullException"><paramref name="bits"/> is <c>null</c>.</exception>
-      public static Boolean Empty(this BitArray bits)
+      public static Boolean IsEmpty(this BitArray bits)
       {
          if (bits == null)
             throw new ArgumentNullException(nameof(bits));
@@ -175,12 +175,12 @@ namespace grammlator
          //return true;
 
          // Optimized by Int-Operations
-         if (bits.Count <= 0)
+         if (bits.Length <= 0)
             return true;
 
          ArraySegment<Int32> a = bits.AsArraySegment();
 
-         a[a.Count - 1] &= mask[(bits.Count - 1) % 32]; // set unused bits of last used element to 0
+         a[a.Count - 1] &= mask[(bits.Length - 1) % 32]; // set unused bits of last used element to 0
 
          for (Int32 i = 0; i < a.Count; i++)
             if (a[i] != 0)
@@ -206,13 +206,13 @@ namespace grammlator
          //return true;
 
          // Optimized by Int-Operations
-         if (bits.Count <= 0)
+         if (bits.Length <= 0)
             return true;
 
          ArraySegment<Int32> a = bits.AsArraySegment();
 
          // beware of undefined state of unused bits 
-         a[a.Count - 1] |= ~mask[(bits.Count - 1) % 32]; // set unused bits to 1
+         a[a.Count - 1] |= ~mask[(bits.Length - 1) % 32]; // set unused bits to 1
 
          for (Int32 i = 0; i < a.Count; i++)
             if (a[i] != -1)
@@ -235,10 +235,10 @@ namespace grammlator
          if (leftArgument == null)
             throw new ArgumentNullException(nameof(leftArgument));
          
-         if (leftArgument.Count != rightArgument.Count)
+         if (leftArgument.Length != rightArgument.Length)
             return false;
 
-         for (Int32 i = 0; i < leftArgument.Count; i++)
+         for (Int32 i = 0; i < leftArgument.Length; i++)
          {
             if (leftArgument[i] != rightArgument[i])
                return false;
@@ -302,18 +302,18 @@ namespace grammlator
       /// or -1 if no such element exists
       /// </summary>
       /// <param name="bits"></param>
-      public static Int32 IndexOfFirstTrueElement(this BitArray bits)
+      public static Int32 Min(this BitArray bits)
       {
          if (bits == null)
-            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(IndexOfFirstTrueElement)}");
+            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(Min)}");
 
          Int32 i;
-         for (i = 0; i <= bits.Count; i++)
+         for (i = 0; i <= bits.Length; i++)
          {
             if (bits[i])
                return i;
          }
-         return -1;
+         return bits.Length;
       }
 
       /// <summary>
@@ -321,13 +321,13 @@ namespace grammlator
       /// or -1 if no such element exists
       /// </summary>
       /// <param name="bits"></param>
-      public static Int32 IndexOfLastTrueElement(this BitArray bits)
+      public static Int32 Max(this BitArray bits)
       {
          if (bits == null)
-            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(IndexOfLastTrueElement)}");
+            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(Max)}");
 
          Int32 i;
-         for (i = bits.Count - 1; i >= 0; i--)
+         for (i = bits.Length - 1; i >= 0; i--)
          {
             if (bits[i])
                return i;
@@ -339,13 +339,13 @@ namespace grammlator
       /// Returns the Tuple (int IndexOfFirstTrueElement, int IndexOfLastTrueelement) or (-1,-1) if no such element
       /// </summary>
       /// <param name="bits"></param>
-      public static (Int32 IndexOfFirstTrueElement, Int32 IndexOfLastTrueElement) IndexOfFirstAndLastTrueElement(this BitArray bits)
+      public static (Int32 min, Int32 max) MinAndMax(this BitArray bits)
       {
          if (bits == null)
-            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(IndexOfFirstAndLastTrueElement)}");
+            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(MinAndMax)}");
 
          Int32 iLast;
-         for (iLast = bits.Count - 1; iLast >= 0; iLast--)
+         for (iLast = bits.Length - 1; iLast >= 0; iLast--)
          {
             if (bits[iLast])
                break;
@@ -375,7 +375,7 @@ namespace grammlator
          if (++index < 0)
             index = 0;
 
-         while (index < bits.Count && !bits[index])
+         while (index < bits.Length && !bits[index])
          {
             index++;
          }
@@ -398,8 +398,8 @@ namespace grammlator
          if (++index < 0)
             index = 0;
 
-         if (lastIndex >= bits.Count)
-            lastIndex = bits.Count - 1;
+         if (lastIndex >= bits.Length)
+            lastIndex = bits.Length - 1;
 
          while (index <= lastIndex && bits[index])
          {
@@ -420,8 +420,8 @@ namespace grammlator
          if (bits == null)
             throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(FindPrecedingFalse)}");
 
-         if (--index >= bits.Count)
-            index = bits.Count - 1;
+         if (--index >= bits.Length)
+            index = bits.Length - 1;
 
          while (index >= 0 && bits[index])
          {
@@ -513,13 +513,13 @@ namespace grammlator
          if (bits == null)
             throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(PopulationCount)}");
 
-         if (bits.Count <= 0)
+         if (bits.Length <= 0)
             return 0;
 
 
          ArraySegment<Int32> a = bits.AsArraySegment();
 
-         a[a.Count - 1] &= mask[(bits.Count - 1) % 32]; // set unused bits to 0
+         a[a.Count - 1] &= mask[(bits.Length - 1) % 32]; // set unused bits to 0
 
          Int32 sum = 0;
          for (Int32 i = 0; i < a.Count; i++)
