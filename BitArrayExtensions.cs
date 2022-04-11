@@ -251,7 +251,7 @@ namespace grammlator
       /// Stringbuilder <paramref name="Sb"/> using the <paramref name="Delimiter"/>.
       /// There may be given special texts for the case of all bits or no bits set.
       /// </summary>
-      /// <param name="Bits">the Bitarray</param>
+      /// <param name="Bits">the BitArray</param>
       /// <param name="Sb">the Stringbuilder to which the names of the set bits are appended</param>
       /// <param name="BitNames">defines the name of each bit i by BitNames[i].ToString(), may be null</param>
       /// <param name="Delimiter">the delimiter to be used to separate names, default</param>
@@ -302,10 +302,10 @@ namespace grammlator
       /// or -1 if no such element exists
       /// </summary>
       /// <param name="bits"></param>
-      public static Int32 Min(this BitArray bits)
+      public static Int32 First(this BitArray bits)
       {
          if (bits == null)
-            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(Min)}");
+            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(First)}");
 
          Int32 i;
          for (i = 0; i <= bits.Length; i++)
@@ -321,10 +321,10 @@ namespace grammlator
       /// or -1 if no such element exists
       /// </summary>
       /// <param name="bits"></param>
-      public static Int32 Max(this BitArray bits)
+      public static Int32 Last(this BitArray bits)
       {
          if (bits == null)
-            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(Max)}");
+            throw new ArgumentNullException(nameof(bits), $"Null-Argument in call of  {nameof(Last)}");
 
          Int32 i;
          for (i = bits.Length - 1; i >= 0; i--)
@@ -506,7 +506,7 @@ namespace grammlator
       /// <summary>
       /// Computes the number of set bits
       /// </summary>
-      /// <param name="bits">the bitarray whose bits are to be counted</param>
+      /// <param name="bits">the BitArray whose bits are to be counted</param>
       /// <returns>the number of bits with value 1 (true)</returns>
       public static Int32 PopulationCount(this BitArray bits)
       {

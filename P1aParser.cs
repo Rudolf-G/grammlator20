@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using IndexSetNamespace;
 
 namespace grammlator;
 
@@ -40,7 +41,7 @@ public enum LexerResult : Byte
    Percent,        // %
 
    CSharpEnd,      // represents the change from CSharp lines to grammlator lines
-  
+
    Error,          // Error is the result if some input could not be assigned to any other LexerResult
 
    Minus,          // Part of "-="
@@ -90,7 +91,7 @@ public static class LexerResultExtensions
    public static String LexerResultToString(this LexerResult lr)
    {
       const String MyDisplay
-         = "=:%xx-xxx?*+,#([{\u2047x)}]xx|;"; 
+         = "=:%xx-xxx?*+,#([{\u2047x)}]xx|;";
       // \u2047 is "??" as one character "double question mark"; 'x' denotes special handling (below)
 
       Debug.Assert(lr != LexerResult.Error);
@@ -103,10 +104,10 @@ public static class LexerResultExtensions
          return result.ToString();
       String s = lr switch
       {
-         LexerResult.CSharpEnd  => "End of C# Code",
-         LexerResult.Error      => "(Unknown lexer result)",
+         LexerResult.CSharpEnd => "End of C# Code",
+         LexerResult.Error => "(Unknown lexer result)",
          // LexerResult.Number  => "Number",
-         LexerResult.StarEqual  => "*=",
+         LexerResult.StarEqual => "*=",
          LexerResult.MinusEqual => "-=",
          LexerResult.DoubleQuestionmark => "??",
          LexerResult.CSharpStart => "C# code",
@@ -485,12 +486,12 @@ internal sealed partial class P1aParser : GrammlatorApplication
    private void FirstExcludedTerminalSymbol(UnifiedString terminalName)
    {
       if (ExcludedTerminalSymbols == null || ExcludedTerminalSymbols.Length != GlobalVariables.NumberOfTerminalSymbols)
-         ExcludedTerminalSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols);
+         ExcludedTerminalSymbols = IndexSet.New(GlobalVariables.NumberOfTerminalSymbols);
       ExcludedTerminalSymbols.SetAll(false);
       OneMoreExcludedTerminalSymbol(terminalName);
    }
 
-   private BitArray? ExcludedTerminalSymbols;
+   private IndexSet? ExcludedTerminalSymbols;
 
    //| | ListOfExcludedTerminalSymbols, "|", Name(UnifiedString name)
    private void OneMoreExcludedTerminalSymbol(UnifiedString name)

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using IndexSetNamespace;
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,7 +42,7 @@ namespace grammlator {
       /// </summary>
       internal List<ParserState> PredecessorList = emptyPredecessorList;
 
-      internal BitArray? PossibleInputTerminals = null;
+      internal IndexSet? PossibleInputTerminals = null;
 
       /// <summary>
       /// The set of all terminal symbols accepted by terminal transitions of the FollowState
@@ -48,7 +50,7 @@ namespace grammlator {
       /// <para>Is set and used (to avoid recomputation) in P3 AssignTerminalSymbolsAndComputeDirectRead()
       /// for all states which are the NextAction of a nonterminal transition.</para>
       /// </summary>
-      internal BitArray? DirectRead = null;
+      internal IndexSet? DirectRead = null;
 
       internal Boolean ContainsErrorHandlerCall {
          get;
@@ -161,7 +163,7 @@ namespace grammlator {
             switch (Actions[i])
             {
             case TerminalTransition transition:
-               if (!transition.TerminalSymbols.IsEmpty())
+               if (!transition.TerminalSymbols.IsEmpty)
                {
                   // a TerminalTransition, even if caused by all symbols,
                   // can not be skipped because the accept must be generated
@@ -174,7 +176,7 @@ namespace grammlator {
                if (lookAction.TerminalSymbols.All())
                   FoundIndex = i;
                // FittingAction = lookAction; // action with all terminal symbols allowed (or no terminal symbols defined)
-               else if (lookAction.TerminalSymbols.IsEmpty()) // only correct after preceding "if( ...ALL())"
+               else if (lookAction.TerminalSymbols.IsEmpty) // only correct after preceding "if( ...ALL())"
                   continue; // this action will never be executed
                else
                {
@@ -190,7 +192,7 @@ namespace grammlator {
                if (selectAction.TerminalSymbols.All())
                   FoundIndex = i;
                // FittingAction = selectAction; // action with all terminal symbols allowed (or no terminal symbols defined)
-               else if (selectAction.TerminalSymbols.IsEmpty()) // must not occur because some terminals must cause the conflict
+               else if (selectAction.TerminalSymbols.IsEmpty) // must not occur because some terminals must cause the conflict
                   continue; // this action will never be executed
                else
                {
@@ -221,21 +223,21 @@ namespace grammlator {
       /// <summary>
       /// Finds and resolves the conflicts of the state, returns 1, if conflicts have been found, else 0
       /// </summary>
-      /// <param name="allowedTerminalsUpToThisAction">A Bitarray to be used by the method</param>
+      /// <param name="allowedTerminalsUpToThisAction">A IndexSet to be used by the method</param>
       /// <param name="sb">the log of conflicts will be written to <paramref name="sb"/></param>
       /// 
       /// <returns>1 if conflict have been found, else 0</returns>
       public Int32 FindAndSolveConflictsOfState(
-         BitArray allowedTerminalsUpToThisAction,
+         IndexSet allowedTerminalsUpToThisAction,
          out int numberOfConflictsNotSolvedByExplicitPriority,
          StringBuilder sb
          )
       {
          // The union of the TerminalSymbols of all the actions up to the action with IndexOfAction-1
          allowedTerminalsUpToThisAction.SetAll(false);
-         // Allocate a BitArray to be used for the intersection of the actual actions terminal symbols
+         // Allocate a IndexSet to be used for the intersection of the actual actions terminal symbols
          // and the union of the terminal symbols of all preceding actions
-         var conflictSymbols = new BitArray(allowedTerminalsUpToThisAction); // value doesn't matter
+         var conflictSymbols = IndexSet.New(allowedTerminalsUpToThisAction); // value doesn't matter
 
          Boolean writeStateHeader = true;  // false after the header "Conflicts in state ..." has been written
          numberOfConflictsNotSolvedByExplicitPriority = 0;
@@ -253,14 +255,14 @@ namespace grammlator {
                   ))
                continue;
 
-            BitArray terminalsOfThisAction = ((ConditionalAction)thisAction).TerminalSymbols;
+            IndexSet terminalsOfThisAction = ((ConditionalAction)thisAction).TerminalSymbols;
 
 
             if (!
                conflictSymbols
                  .CopyFrom(allowedTerminalsUpToThisAction)  // Assigns to conflictSymbols
                  .And(terminalsOfThisAction) // modifies conflictSymbols
-                 .IsEmpty()  // no new conflict
+                 .IsEmpty  // no new conflict
                )
             {
                // Solve the conflict between thisAction and one or more of the preceding actions 
@@ -293,8 +295,8 @@ namespace grammlator {
       /// solution</param>
       /// <param name="sb">The description of the conflicts will be written to sb</param>
       /// <param name="writeHeadline">If true when there are conflicts a description of the state has to be be written to sb above the conflict description(s)</param>
-      private Boolean SolveAndLogConflictsOfAction(Int32 indexOfConflictAction, BitArray terminalsOfThisAction,
-            BitArray conflictSymbols, BitArray allowedTerminalsUpToConflictAction, StringBuilder sb,
+      private Boolean SolveAndLogConflictsOfAction(Int32 indexOfConflictAction, IndexSet terminalsOfThisAction,
+            IndexSet conflictSymbols, IndexSet allowedTerminalsUpToConflictAction, StringBuilder sb,
             Boolean writeHeadline, out int  numberOfConflictsNotSolvedByExplicitPriority)
       {
 
@@ -333,7 +335,7 @@ namespace grammlator {
             (!conflictSymbols
                 .CopyFrom(allowedTerminalsUpToConflictAction)  // Assigns to conflictSymbols
                 .And(terminalsOfThisAction) // modifies conflictSymbols
-                .IsEmpty()  // break if no conflict or all conflicts are solved
+                .IsEmpty  // break if no conflict or all conflicts are solved
             );
 
          return writeHeadline;
@@ -352,8 +354,8 @@ namespace grammlator {
       /// <param name="sb">The protocol will be writte to sb</param>
       private void SolveAndLogSubsetOfConflict(
             Int32 indexOfFirstConflictAction,
-            BitArray subsetOfConflictSymbols,
-            BitArray allowedSymbolsUpToFirstConflictAction,
+            IndexSet subsetOfConflictSymbols,
+            IndexSet allowedSymbolsUpToFirstConflictAction,
             out int numberOfActionsWithHighestPriority,
             StringBuilder sb)
       {
@@ -400,7 +402,7 @@ namespace grammlator {
 
          // Log the conflict
          sb.AppendLine().Append("caused by == ");
-         subsetOfConflictSymbols.BitsToStringbuilder(
+         subsetOfConflictSymbols.ElementsToStringbuilder(
              sb,
              GlobalVariables.TerminalSymbols,
              " | ",
@@ -408,7 +410,7 @@ namespace grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
-         BitArray thisActionsConflictSymbols = new(subsetOfConflictSymbols.Length);
+         IndexSet thisActionsConflictSymbols = IndexSet.New(subsetOfConflictSymbols.Length);
 
          // action might be removed from State.Actions inside the following loop.
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
@@ -423,11 +425,11 @@ namespace grammlator {
             if (action is NonterminalTransition || action is not ConditionalAction conditionalAction)
                continue;
 
-            BitArray symbolsOfThisAction = conditionalAction.TerminalSymbols;
+            IndexSet symbolsOfThisAction = conditionalAction.TerminalSymbols;
             if (symbolsOfThisAction == null)
                continue;
 
-            if (thisActionsConflictSymbols.CopyFrom(subsetOfConflictSymbols).And(symbolsOfThisAction).IsEmpty())
+            if (thisActionsConflictSymbols.CopyFrom(subsetOfConflictSymbols).And(symbolsOfThisAction).IsEmpty)
                continue; // no conflict
 
             if (IndexOfAction == indexOfActionWithPriority)
@@ -458,13 +460,13 @@ namespace grammlator {
                   sb.Append(" => is overruled: ");
                   conditionalAction.NextAction.AppendShortToSB(sb).AppendLine();
 
-                  if (symbolsOfThisAction.IsEmpty())
+                  if (symbolsOfThisAction.IsEmpty)
                      sb.AppendLine("    This action has been deleted because no input symbols remained.");
                }
 
             }
 
-            if (symbolsOfThisAction.IsEmpty())
+            if (symbolsOfThisAction.IsEmpty)
             {
                // Delete actions without remaining terminal symbols.
                State.Actions[IndexOfAction] = new DeletedParserAction(conditionalAction.NextAction);
@@ -488,7 +490,7 @@ namespace grammlator {
       /// <param name="subsetOfConflictSymbols"></param>
       /// <returns>Index of action with priority or -1 if only dynamic priorities</returns>
       private Int32 FindHighestPriorityActionOfConflictingActions(
-            BitArray subsetOfConflictSymbols,
+            IndexSet subsetOfConflictSymbols,
             ListOfParserActions dynamicPriorityActions,
             out int numberOfActionsWithHighestPriority)
       {
@@ -496,7 +498,7 @@ namespace grammlator {
 
          dynamicPriorityActions.Clear();
          numberOfActionsWithHighestPriority = 1;
-         var thisActionsConflictSymbols = new BitArray(subsetOfConflictSymbols.Length);
+         var thisActionsConflictSymbols = IndexSet.New(subsetOfConflictSymbols.Length);
 
          Int32 indexOfActionWithPriority = -1;
          Int64 highestPriority = Int32.MinValue;
@@ -514,7 +516,7 @@ namespace grammlator {
             if (symbolsOfThisAction == null)
                continue; // it hasn't, no conflict
 
-            if (thisActionsConflictSymbols.CopyFrom(subsetOfConflictSymbols).And(symbolsOfThisAction).IsEmpty())
+            if (thisActionsConflictSymbols.CopyFrom(subsetOfConflictSymbols).And(symbolsOfThisAction).IsEmpty)
                continue; // no, it hasn't
 
             // Yes, it has
@@ -562,11 +564,11 @@ namespace grammlator {
       /// <returns>The added action or null if none added</returns>
       public ConditionalAction? CheckAndAddErrorAction()
       {
-         BitArray allowedSymbols;
+         IndexSet allowedSymbols;
          if (PossibleInputTerminals == null)
-            allowedSymbols = new BitArray(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions
+            allowedSymbols = IndexSet.New(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions
          else
-            allowedSymbols = new BitArray(PossibleInputTerminals!).Not();
+            allowedSymbols = IndexSet.New(PossibleInputTerminals!).Not();
 
          Int32 counter = 0;
 
@@ -588,7 +590,7 @@ namespace grammlator {
          {
             // Add ErrorhandlingAction
             e = new ErrorhandlingAction(
-             lookAhead: new BitArray(allowedSymbols).Not(),
+             lookAhead: IndexSet.New(allowedSymbols).Not(),
              idNumber: this.IdNumber, // use the IdNumber of the ParserState as IdNumber of the ErrorHandlingAction
              state: this
              );
@@ -597,7 +599,7 @@ namespace grammlator {
          { // Add LookaheadAction with nextAction ErrorHaltAction
             e = new LookaheadAction(
                number: GlobalVariables.NumberOfActions++,
-               lookAheadSet: new BitArray(allowedSymbols).Not(),
+               lookAheadSet: IndexSet.New(allowedSymbols).Not(),
                nextAction: GlobalVariables.ErrorHaltInstance
                );
          }
