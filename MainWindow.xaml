@@ -14,7 +14,7 @@
         MaxWidth="2000" MaxHeight="2000" WindowStyle="ThreeDBorderWindow" BorderThickness="1,1,1,1"
         SnapsToDevicePixels="True" ResizeMode="CanResize" SizeToContent="Manual" IsManipulationEnabled="True" RenderTransformOrigin="0.5,0.5">
     <Window.Resources>
-        <ContextMenu x:Key="tbContextMenu" Opened="cmOpened">
+        <ContextMenu x:Key="tbContextMenu" Opened="ContextmenuOpened">
             <MenuItem Header="Cut" Name="cmItemCut" Click="ClickCut" />
             <MenuItem Header="Paste" Name="cmItemPaste" Click="ClickPaste"/>
             <MenuItem Header="Copy" Name="cmItemCopy" Click="ClickCopy"/>
@@ -28,7 +28,7 @@
             <Separator/>
             <MenuItem Header="Clear All Text" Name="cmItemClear" Click="ClickClear"/>
         </ContextMenu>
-        <ContextMenu x:Key="tbReadOnlyContextMenu" Opened="cmReadOnlyOpened">
+        <ContextMenu x:Key="tbReadOnlyContextMenu" Opened="ContextmenuReadOnlyOpened">
             <MenuItem Header="Copy" Name="cmroItemCopy" Click="ClickCopy"/>
             <MenuItem Header="Copy All" Name="cmroItemCopyAll" Click="ClickCopyAll"/>
         </ContextMenu>

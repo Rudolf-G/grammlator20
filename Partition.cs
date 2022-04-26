@@ -110,13 +110,10 @@ namespace grammlator {
 
          // Combine the classes: 
          // Cut the cycles between ClassIndexA and NextA and between ClassIndexB and NextB 
-         Int32 NextA = Info[representativeA].NextElementID;
-         // Link the chains NextA...ClassIndexA and NextB...ClassIndexB together
-         Info[representativeA].NextElementID = Info[representativeB].NextElementID;
-         // and close to a  cycle
-         Info[representativeB].NextElementID = NextA;
-         }
+         (Info[representativeB].NextElementID, Info[representativeA].NextElementID) 
+            = (Info[representativeA].NextElementID, Info[representativeB].NextElementID);
       }
+   }
 
    /// <summary>
    /// Each C#-class, which is used as element of these partition methods, must implement this interface

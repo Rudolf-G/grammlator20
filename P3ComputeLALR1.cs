@@ -69,7 +69,7 @@ internal class P3ComputeLALR1
             // Replace default assignment of parserAction.TerminalSymbols
             Debug.Assert(laOrNonterminalTansition.TerminalSymbols.IsEmpty);
 
-            laOrNonterminalTansition.TerminalSymbols = IndexSet.New(GlobalVariables.NumberOfTerminalSymbols);
+            laOrNonterminalTansition.TerminalSymbols = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
             laOrNonterminalTansition.Codenumber = 0; // initial value for DIGRAPH algorithm
 
             if (laOrNonterminalTansition is not NonterminalTransition NonterminalTransition)
@@ -90,7 +90,7 @@ internal class P3ComputeLALR1
                         {
                            NonterminalTransition.TerminalSymbols.Or(terminalTransition.TerminalSymbols);
                         }
-                        FollowState.DirectRead = IndexSet.New(NonterminalTransition.TerminalSymbols);
+                        FollowState.DirectRead = IndexSet.Create(NonterminalTransition.TerminalSymbols);
                      }
                      else
                      {
@@ -548,7 +548,7 @@ internal class P3ComputeLALR1
    /// <param name="sb">The description of the conflicts will be written to <paramref name="sb"/></param>
    private static Int32 P3c_FindAndResolveAllStaticConflicts(StringBuilder sb, out int sumOfConflictsNotSolvedByExplicitPriority)
    {
-      var allowedSymbolsUpToThisAction = IndexSet.New(GlobalVariables.NumberOfTerminalSymbols); // allocate outside of loop
+      var allowedSymbolsUpToThisAction = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols); // allocate outside of loop
 
       Int32 statesWithConflict = 0;
       sumOfConflictsNotSolvedByExplicitPriority = 0;

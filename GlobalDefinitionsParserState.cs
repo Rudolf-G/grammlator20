@@ -173,7 +173,7 @@ namespace grammlator {
                // This may happen if there is also a IF ( ...All()) ...
                continue;
             case LookaheadAction lookAction:
-               if (lookAction.TerminalSymbols.All())
+               if (lookAction.TerminalSymbols.IsComplete)
                   FoundIndex = i;
                // FittingAction = lookAction; // action with all terminal symbols allowed (or no terminal symbols defined)
                else if (lookAction.TerminalSymbols.IsEmpty) // only correct after preceding "if( ...ALL())"
@@ -189,7 +189,7 @@ namespace grammlator {
                   return -1; // see above ????
 
                // The selectAction contains only Definitions -> LookAheadActions
-               if (selectAction.TerminalSymbols.All())
+               if (selectAction.TerminalSymbols.IsComplete)
                   FoundIndex = i;
                // FittingAction = selectAction; // action with all terminal symbols allowed (or no terminal symbols defined)
                else if (selectAction.TerminalSymbols.IsEmpty) // must not occur because some terminals must cause the conflict
@@ -237,7 +237,7 @@ namespace grammlator {
          allowedTerminalsUpToThisAction.SetAll(false);
          // Allocate a IndexSet to be used for the intersection of the actual actions terminal symbols
          // and the union of the terminal symbols of all preceding actions
-         var conflictSymbols = IndexSet.New(allowedTerminalsUpToThisAction); // value doesn't matter
+         var conflictSymbols = IndexSet.Create(allowedTerminalsUpToThisAction); // value doesn't matter
 
          Boolean writeStateHeader = true;  // false after the header "Conflicts in state ..." has been written
          numberOfConflictsNotSolvedByExplicitPriority = 0;
@@ -410,7 +410,7 @@ namespace grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
-         IndexSet thisActionsConflictSymbols = IndexSet.New(subsetOfConflictSymbols.Length);
+         IndexSet thisActionsConflictSymbols = IndexSet.Create(subsetOfConflictSymbols.Length);
 
          // action might be removed from State.Actions inside the following loop.
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
@@ -498,7 +498,7 @@ namespace grammlator {
 
          dynamicPriorityActions.Clear();
          numberOfActionsWithHighestPriority = 1;
-         var thisActionsConflictSymbols = IndexSet.New(subsetOfConflictSymbols.Length);
+         var thisActionsConflictSymbols = IndexSet.Create(subsetOfConflictSymbols.Length);
 
          Int32 indexOfActionWithPriority = -1;
          Int64 highestPriority = Int32.MinValue;
@@ -566,9 +566,9 @@ namespace grammlator {
       {
          IndexSet allowedSymbols;
          if (PossibleInputTerminals == null)
-            allowedSymbols = IndexSet.New(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions
+            allowedSymbols = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions
          else
-            allowedSymbols = IndexSet.New(PossibleInputTerminals!).Not();
+            allowedSymbols = IndexSet.Create(PossibleInputTerminals!).Not();
 
          Int32 counter = 0;
 
@@ -582,7 +582,7 @@ namespace grammlator {
          if (counter == 0)
             return null; // there is an unconditional action
 
-         if (allowedSymbols.All() && GlobalSettings.InputPeekChecksBounds.Value)
+         if (allowedSymbols.IsComplete && GlobalSettings.InputPeekChecksBounds.Value)
             return null; // in this state all terminal symbols are allowed
 
          ConditionalAction e;
@@ -590,7 +590,7 @@ namespace grammlator {
          {
             // Add ErrorhandlingAction
             e = new ErrorhandlingAction(
-             lookAhead: IndexSet.New(allowedSymbols).Not(),
+             lookAhead: IndexSet.Create(allowedSymbols).Not(),
              idNumber: this.IdNumber, // use the IdNumber of the ParserState as IdNumber of the ErrorHandlingAction
              state: this
              );
@@ -599,7 +599,7 @@ namespace grammlator {
          { // Add LookaheadAction with nextAction ErrorHaltAction
             e = new LookaheadAction(
                number: GlobalVariables.NumberOfActions++,
-               lookAheadSet: IndexSet.New(allowedSymbols).Not(),
+               lookAheadSet: IndexSet.Create(allowedSymbols).Not(),
                nextAction: GlobalVariables.ErrorHaltInstance
                );
          }

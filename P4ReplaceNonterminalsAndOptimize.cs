@@ -231,13 +231,7 @@ internal class P4ReplaceNonterminalsAndOptimize
          //  allowing the class of precedingStates[0] to combine with itself makes code simpler
 
          // The contents of statesToEvaluate is not longer needed, the lists capacity will be reused
-         List<ParserState> temp = StatesOfThisLevel;
-
-         // The next level becomes he actual level
-         StatesOfThisLevel = StatesOfNextLevel;
-
-         // Reuse StatesOfThisLevel
-         StatesOfNextLevel = temp;
+         (StatesOfNextLevel, StatesOfThisLevel) = (StatesOfThisLevel, StatesOfNextLevel);
          StatesOfNextLevel.Clear();
       }
 
@@ -342,11 +336,7 @@ internal class P4ReplaceNonterminalsAndOptimize
          // The contents of statesToEvaluate is no longer needed, the lists capacity will be reused
          StatesOfThisLevel.Clear();
 
-         List<ParserState> temp = StatesOfThisLevel;
-         // go one level down: the collected preceding states become the states to evaluate
-         StatesOfThisLevel = StatesOfNextLevel;
-         // The cleared list StatesOfThisLevel is reused 
-         StatesOfNextLevel = temp;
+         (StatesOfNextLevel, StatesOfThisLevel) = (StatesOfThisLevel, StatesOfNextLevel);
       }
 
       /*  statesOfThisLevel contains all states which are reachable from the given state
@@ -1014,9 +1004,9 @@ internal class P4ReplaceNonterminalsAndOptimize
       // Preset PossibleInputTerminals for each state
       foreach (ParserState state in GlobalVariables.ListOfAllStates.Where(s => s.Calls > 0))
          if (state.AcceptCalls > 0)
-            state.PossibleInputTerminals = IndexSet.New(GlobalVariables.AllTerminalSymbols);
+            state.PossibleInputTerminals = IndexSet.Create(GlobalVariables.AllTerminalSymbols);
          else
-            state.PossibleInputTerminals = IndexSet.New(GlobalVariables.AllTerminalSymbols.Length);
+            state.PossibleInputTerminals = IndexSet.Create(GlobalVariables.AllTerminalSymbols.Length);
 
       // Propagate from states with PossibleInputTerminals set to AllTerminalSymbols
       foreach (ParserState state in GlobalVariables.ListOfAllStates.Where(s => s.AcceptCalls > 0))
@@ -1066,7 +1056,7 @@ internal class P4ReplaceNonterminalsAndOptimize
    }
 
    Int32 PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
-   readonly IndexSet test = IndexSet.New(GlobalVariables.AllTerminalSymbols.Length);
+   readonly IndexSet test = IndexSet.Create(GlobalVariables.AllTerminalSymbols.Length);
 
    private void Propagate(ParserAction? action, IndexSet terminals)
    {
@@ -1097,7 +1087,7 @@ internal class P4ReplaceNonterminalsAndOptimize
             break;
          case BranchAction b:
             if (b.PossibleInputTerminals == null)
-               b.PossibleInputTerminals = IndexSet.New(terminals!);
+               b.PossibleInputTerminals = IndexSet.Create(terminals!);
             else
             {
                if (test.CopyFrom(terminals).ExceptWith(b.PossibleInputTerminals!).IsEmpty)

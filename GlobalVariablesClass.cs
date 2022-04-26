@@ -218,7 +218,7 @@ namespace grammlator {
       /// <returns>instance of the terminal symbol</returns>
       internal static TerminalSymbol GetTerminalSymbolByIndex(Int32 index) => TerminalSymbols[index];
 
-      internal readonly static IndexSet EmptyBitarray = IndexSet.New(0);
+      internal readonly static IndexSet EmptyBitarray = IndexSet.Create(0);
 
       /// <summary>
       /// A set of terminal symbols containing all terminal symbols

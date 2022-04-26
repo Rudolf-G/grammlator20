@@ -212,8 +212,6 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
       ;
    }
 
-   private readonly StringBuilder NameBuilder = new(30);
-
    private readonly LexerResult[] CharToLexerResult = new LexerResult[]
    {
             // sorted by character value

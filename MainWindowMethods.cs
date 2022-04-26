@@ -21,7 +21,6 @@ public partial class MainWindow
       Log = new(2_000);
 
    const Int32 ListboxDistanceAtRight = 35; // used to avoid horizontal scrollbar in Listbox
-   private const Int32 errorLimit = 15; // TODO allow user to set the errorLimit
    private Int32 warnings, errors, firstErrorIndex;
    private Boolean aborted;
 
@@ -562,29 +561,27 @@ public partial class MainWindow
       SourceTextBox.Select(lineStartingCharIndex, lineLength);
    }
 
-   TextBox? GetTextBoxFromParentPlacementTarget(Object sender)
+   static TextBox? GetTextBoxFromParentPlacementTarget(Object sender)
    {
       return (((sender as MenuItem)?.Parent) as ContextMenu)?.PlacementTarget as TextBox;
    }
 
-   TextBox GetTextBoxFromName(string? name)
-   {
-      return name switch
-      {
-         null => throw new ArgumentException("sender is not a MenuItem with Parent"),
-         "ITB" => InfoTextBox,
-         "STB" => SourceTextBox,
-         _ => throw new ArgumentException("unknow tag of MenuItem", name)
-      };
-   }
+   //TextBox GetTextBoxFromName(string? name)
+   //{
+   //   return name switch
+   //   {
+   //      null => throw new ArgumentException("sender is not a MenuItem with Parent"),
+   //      "ITB" => InfoTextBox,
+   //      "STB" => SourceTextBox,
+   //      _ => throw new ArgumentException("unknow tag of MenuItem", name)
+   //   };
+   //}
 
-   void cmOpened(Object sender, RoutedEventArgs args)
+   void ContextmenuOpened(Object sender, RoutedEventArgs args)
    {
-      ContextMenu? cm = sender as ContextMenu;
-      if (cm == null) return;
+      if (sender is not ContextMenu cm) return;
 
-      TextBox? box = cm.PlacementTarget as TextBox;
-      if (box == null) return;
+      if (cm.PlacementTarget is not TextBox box) return;
 
       foreach (var i in cm.Items)
       {
@@ -602,13 +599,11 @@ public partial class MainWindow
       }
    }
 
-   void cmReadOnlyOpened(Object sender, RoutedEventArgs args)
+   void ContextmenuReadOnlyOpened(Object sender, RoutedEventArgs args)
    {
-      ContextMenu? cm = sender as ContextMenu;
-      if (cm == null) return;
+      if (sender is not ContextMenu cm) return;
 
-      TextBox? box = cm.PlacementTarget as TextBox;
-      if (box == null) return;
+      if (cm.PlacementTarget is not TextBox box) return;
 
       foreach (var i in cm.Items)
       {

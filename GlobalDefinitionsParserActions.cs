@@ -1347,7 +1347,7 @@ namespace grammlator {
             IndexSet inputSymbols,
             ConditionalAction? constantPriorityAction,
             ListOfParserActions dynamicPriorityActions
-         ) : base(IndexSet.New(inputSymbols), new PriorityBranchAction(constantPriorityAction, dynamicPriorityActions))
+         ) : base(IndexSet.Create(inputSymbols), new PriorityBranchAction(constantPriorityAction, dynamicPriorityActions))
       {
       }
 

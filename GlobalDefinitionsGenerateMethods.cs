@@ -741,7 +741,7 @@ namespace grammlator
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
          // This is prepared  by shortening chains in phase 4 und implemented by the following.
 
-         if (!PossibleInputTerminals!.All())
+         if (!PossibleInputTerminals!.IsComplete)
          {
             // there has been look ahead: no InstructionAssignSymbol needed
             // Show restricted set of possible symbols
@@ -808,9 +808,7 @@ namespace grammlator
             (Actions[^1] is ErrorhandlingAction
             || (Actions[^1] is LookaheadAction la && la.NextAction is ErrorHaltAction)))
          {
-            ParserAction temp = Actions[^2];
-            Actions[^2] = Actions[^1];
-            Actions[^1] = temp;
+            (Actions[^1], Actions[^2]) = (Actions[^2], Actions[^1]);
          }
 
          return GenerateConditionalActionsOfState(codegen, out accept);// <--- generate if(....)
@@ -828,7 +826,7 @@ namespace grammlator
       {
          // all terminal symbols which are condition of one action can be ignored
          // in the conditions of all following actions (are not relevant)
-         var relevantSymbols = IndexSet.New(PossibleInputTerminals!);
+         var relevantSymbols = IndexSet.Create(PossibleInputTerminals!);
 
          for (Int32 i = 0; i < Actions.Count - 1; i++)
          {
@@ -846,7 +844,7 @@ namespace grammlator
          // Generate condition as comment, but only if not trivial and if more than 1 action 
          // (else it would duplicate the condition generated at the start of the state)
          IndexSet suppressedCondition = LastAction.TerminalSymbols;
-         if (Actions.Count > 1 && nextAction != null && !suppressedCondition.All())
+         if (Actions.Count > 1 && nextAction != null && !suppressedCondition.IsComplete)
          {
             GenerateConditionAsComment(codegen, suppressedCondition,
                nextAction is ErrorhandlingAction || nextAction is ErrorHaltAction);
@@ -877,8 +875,8 @@ namespace grammlator
          codegen.Append(")");
          codegen.GenerateBeginOfBlock();
 
-         Int32 IndexOfLastPossibleTerminal = PossibleInputTerminals!.Last();
-         Int32 IndexOf1stPossibleTerminal = PossibleInputTerminals!.First();
+         Int32 IndexOfLastPossibleTerminal = PossibleInputTerminals!.Max;
+         Int32 IndexOf1stPossibleTerminal = PossibleInputTerminals!.Min;
 
          Int32 LeadingCount = 0, TrailingCount = 0;
          ConditionalAction? LeadingAction = null, TrailingAction = null;
@@ -891,7 +889,7 @@ namespace grammlator
             var ThisAction = (ConditionalAction)Actions[i];
 
             IndexSet Terminals = ThisAction.TerminalSymbols;
-            Int32 TerminalIndex = Terminals.First();
+            Int32 TerminalIndex = Terminals.Min;
             Boolean IsDefaultAction = false;
 
             // Special case: default action if Terminals contains the first possible terminal
@@ -1006,9 +1004,7 @@ namespace grammlator
             {
                static void Swap<T>(ref T a, ref T b)
                {
-                  T temp = a;
-                  a = b;
-                  b = temp;
+                  (b, a) = (a, b);
                }
 
                Swap(ref Action1, ref Action2);
@@ -1597,7 +1593,7 @@ namespace grammlator
             return;
          }
 
-         Int32 firstRelevant = blockList[0].BlockStart;
+         // Int32 firstRelevant = blockList[0].BlockStart;
          Int32 lastRelevant = blockList[^1].BlockEnd;
 
          // Start the loop below with the first block of type==true
@@ -1753,7 +1749,7 @@ namespace grammlator
 
       private static void GenerateIsIn(P5CodegenCS codegen, IndexSet condition, IndexSet relevant, Boolean checkingForbiddenTerminals)
       {
-         IndexSet InverseCondition = IndexSet.New(condition).Not().And(relevant);
+         IndexSet InverseCondition = IndexSet.Create(condition).Not().And(relevant);
          if (condition.Count < InverseCondition.Count) // TOCHECK 1st and last condition?
             GenerateIsInArguments(codegen, condition, false, relevant, checkingForbiddenTerminals);
          else
@@ -1764,7 +1760,7 @@ namespace grammlator
       {
          codegen.IncrementIndentationLevel();
 
-         if (condition.All())
+         if (condition.IsComplete)
          {
             codegen.AppendWithOptionalLinebreak("true")
                .DecrementIndentationLevel();
@@ -1779,8 +1775,8 @@ namespace grammlator
 
          Debug.Assert(condition.Length >= 2); // else it would be "true" or "false"
 
-         int first = relevant.First();
-         int last = relevant.Last();
+         int first = relevant.Min;
+         int last = relevant.Max;
 
          /* consider GlobalSettings.InputElementsAreTerminals
           * There are 2 cases

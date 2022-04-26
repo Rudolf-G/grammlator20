@@ -180,7 +180,7 @@ namespace grammlator
 
          ArraySegment<Int32> a = bits.AsArraySegment();
 
-         a[a.Count - 1] &= mask[(bits.Length - 1) % 32]; // set unused bits of last used element to 0
+         a[^1] &= mask[(bits.Length - 1) % 32]; // set unused bits of last used element to 0
 
          for (Int32 i = 0; i < a.Count; i++)
             if (a[i] != 0)
@@ -212,7 +212,7 @@ namespace grammlator
          ArraySegment<Int32> a = bits.AsArraySegment();
 
          // beware of undefined state of unused bits 
-         a[a.Count - 1] |= ~mask[(bits.Length - 1) % 32]; // set unused bits to 1
+         a[^1] |= ~mask[(bits.Length - 1) % 32]; // set unused bits to 1
 
          for (Int32 i = 0; i < a.Count; i++)
             if (a[i] != -1)
@@ -519,7 +519,7 @@ namespace grammlator
 
          ArraySegment<Int32> a = bits.AsArraySegment();
 
-         a[a.Count - 1] &= mask[(bits.Length - 1) % 32]; // set unused bits to 0
+         a[^1] &= mask[(bits.Length - 1) % 32]; // set unused bits to 0
 
          Int32 sum = 0;
          for (Int32 i = 0; i < a.Count; i++)
