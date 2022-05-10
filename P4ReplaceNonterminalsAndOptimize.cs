@@ -1006,7 +1006,7 @@ internal class P4ReplaceNonterminalsAndOptimize
          if (state.AcceptCalls > 0)
             state.PossibleInputTerminals = IndexSet.Create(GlobalVariables.AllTerminalSymbols);
          else
-            state.PossibleInputTerminals = IndexSet.Create(GlobalVariables.AllTerminalSymbols.Length);
+            state.PossibleInputTerminals = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
 
       // Propagate from states with PossibleInputTerminals set to AllTerminalSymbols
       foreach (ParserState state in GlobalVariables.ListOfAllStates.Where(s => s.AcceptCalls > 0))
@@ -1056,7 +1056,7 @@ internal class P4ReplaceNonterminalsAndOptimize
    }
 
    Int32 PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
-   readonly IndexSet test = IndexSet.Create(GlobalVariables.AllTerminalSymbols.Length);
+   readonly IndexSet test = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
 
    private void Propagate(ParserAction? action, IndexSet terminals)
    {

@@ -875,8 +875,8 @@ namespace grammlator
          codegen.Append(")");
          codegen.GenerateBeginOfBlock();
 
-         Int32 IndexOfLastPossibleTerminal = PossibleInputTerminals!.Max;
-         Int32 IndexOf1stPossibleTerminal = PossibleInputTerminals!.Min;
+         Int32 IndexOfLastPossibleTerminal = PossibleInputTerminals!.IndexOfLastBit(true);
+         Int32 IndexOf1stPossibleTerminal = PossibleInputTerminals!.IndexOfFirstBit(true);
 
          Int32 LeadingCount = 0, TrailingCount = 0;
          ConditionalAction? LeadingAction = null, TrailingAction = null;
@@ -889,7 +889,7 @@ namespace grammlator
             var ThisAction = (ConditionalAction)Actions[i];
 
             IndexSet Terminals = ThisAction.TerminalSymbols;
-            Int32 TerminalIndex = Terminals.Min;
+            Int32 TerminalIndex = Terminals.IndexOfFirstBit(true);
             Boolean IsDefaultAction = false;
 
             // Special case: default action if Terminals contains the first possible terminal
@@ -898,8 +898,8 @@ namespace grammlator
                // remember this action and the count of leading terminals
                Debug.Assert(LeadingCount == 0, "Phase5: LeadingCount already != 0");
                LeadingAction = ThisAction;
-               LeadingCount = Terminals.Next(IndexOf1stPossibleTerminal, true) - IndexOf1stPossibleTerminal;
-               TerminalIndex = Terminals.Next(IndexOf1stPossibleTerminal + LeadingCount);
+               LeadingCount = Terminals.IndexOfNextBit(IndexOf1stPossibleTerminal, false) - IndexOf1stPossibleTerminal;
+               TerminalIndex = Terminals.IndexOfNextBit(IndexOf1stPossibleTerminal + LeadingCount);
                IsDefaultAction = true;
 
                // generate first part of comment "// <= xxx"
@@ -909,12 +909,12 @@ namespace grammlator
             }
 
             // Special case: default action if Terminals contains the last possible terminal
-            if (Terminals[IndexOfLastPossibleTerminal])
+            if (Terminals.GetBit(IndexOfLastPossibleTerminal))
             {
                // remember this action and the count of trailing terminals
                Debug.Assert(TrailingCount == 0, "Phase5: TrailingCount already != 0");
                TrailingAction = ThisAction;
-               TrailingCount = IndexOfLastPossibleTerminal - Terminals.Preceding(IndexOfLastPossibleTerminal, true);
+               TrailingCount = IndexOfLastPossibleTerminal - Terminals.IndexOfPrecedingBit(IndexOfLastPossibleTerminal, false);
                IsDefaultAction = true;
 
                // generate first part of comment "// >= yyy"
@@ -943,7 +943,7 @@ namespace grammlator
                   .Append(GlobalVariables.TerminalSymbols[TerminalIndex].NameToGenerate)
                   .Append(":");
 
-               TerminalIndex = Terminals.Next(TerminalIndex);
+               TerminalIndex = Terminals.IndexOfNextBit(TerminalIndex);
             }
 
             if (CreatedCase)
@@ -1136,9 +1136,6 @@ namespace grammlator
          /// </summary>
          List<BlockOfEqualBits> blockList = new(GlobalVariables.NumberOfTerminalSymbols);
 
-         if (blockList.Capacity != condition.Length)
-            blockList.Capacity = condition.Length;
-
          // determine consecutive blocks (indexes) of equal values of Condition ignoring not relevant symbols (indexes)
          ComputeBlocklist(condition, relevant, blockList);
 
@@ -1204,7 +1201,8 @@ namespace grammlator
           IndexSet Relevant,
           List<BlockOfEqualBits> BlockList)
       {
-         (Int32 firstRelevant, Int32 lastRelevant) = Relevant.MinAndMax();
+         Int32 firstRelevant = Relevant.IndexOfFirstBit(true);
+         Int32 lastRelevant = Relevant.IndexOfLastBit(true);
 
          if (firstRelevant == -1)
          {
@@ -1227,7 +1225,7 @@ namespace grammlator
             Debug.Assert(NextRelevant <= lastRelevant);
 
             BlockStart = NextRelevant;
-            BlockType = Condition[BlockStart];
+            BlockType = Condition.GetBit(BlockStart);
             RelevantBitsCount = 1;
             BlockEnd = BlockStart;
 
@@ -1235,13 +1233,13 @@ namespace grammlator
             while (++NextRelevant <= lastRelevant)
             {
                // skip all elements which are not relevant
-               NextRelevant = Relevant.Next(NextRelevant - 1);
+               NextRelevant = Relevant.IndexOfNextBit(NextRelevant - 1);
                // Note: Relevant.FindNextTrue(LastRelevant - 1) == LastRelevant
 
-               Debug.Assert(NextRelevant <= lastRelevant && Relevant[NextRelevant]);
+               Debug.Assert(NextRelevant <= lastRelevant && Relevant.GetBit(NextRelevant));
 
                // beyond end of block?
-               if (Condition[NextRelevant] != BlockType)
+               if (Condition.GetBit(NextRelevant) != BlockType)
                   break; // yes
 
                // this is until now the last relevant bit 
@@ -1262,7 +1260,8 @@ namespace grammlator
             if (NextRelevant > lastRelevant)
                break; // no more blocks
 
-            Debug.Assert(NextRelevant <= lastRelevant && Relevant[NextRelevant] && Condition[NextRelevant] != BlockType); // = blockStart of next block
+            Debug.Assert(NextRelevant <= lastRelevant && Relevant.GetBit(NextRelevant)
+               && Condition.GetBit(NextRelevant) != BlockType); // = blockStart of next block
          }
       }
 
@@ -1773,10 +1772,8 @@ namespace grammlator
             return;
          }
 
-         Debug.Assert(condition.Length >= 2); // else it would be "true" or "false"
-
-         int first = relevant.Min;
-         int last = relevant.Max;
+         int first = relevant.IndexOfFirstBit(true);
+         int last = relevant.IndexOfLastBit(true);
 
          /* consider GlobalSettings.InputElementsAreTerminals
           * There are 2 cases
@@ -1815,15 +1812,15 @@ namespace grammlator
                // optimize: include test of first and/or last sequence if condition[first / last]
                //   "symbol < first || Symbol > last || IsIn(first|...|last")
                //        ==>  "symbol <= first+x || Symbol >= last-y || IsIn(first+x+1...last-y-1")
-               if (condition[first])
+               if (condition.GetBit(first))
                {
-                  while (first < last && (condition[first + 1] || !relevant[first + 1]))
+                  while (first < last && (condition.GetBit(first + 1) || !relevant.GetBit(first + 1)))
                      first++;
                   op1 = " <= ";
                }
-               if (condition[last])
+               if (condition.GetBit(last))
                {
-                  while (last > first && (condition[last - 1] || !relevant[last - 1]))
+                  while (last > first && (condition.GetBit(last - 1) || !relevant.GetBit(last - 1)))
                      last--; // Note:  first==last is possible
                   op3 = " >= ";
                }
@@ -1836,15 +1833,15 @@ namespace grammlator
                // optimize: include test of first and/or last if condition[] is true
                //   "symbol >= first && Symbol <= last && IsIn(first|...|last")
                //        ==>  "symbol > first && Symbol < last && IsIn(...")
-               if (condition[first])
+               if (condition.GetBit(first))
                {
-                  while (first < last && condition[first + 1])
+                  while (first < last && condition.GetBit(first + 1))
                      first++;
                   op1 = " > ";
                }
-               if (condition[last])
+               if (condition.GetBit(last))
                {
-                  while (first < last && condition[last - 1])
+                  while (first < last && condition.GetBit(last - 1))
                      last--;
                   op3 = " < "; // Note:  first==last is possible
                }
@@ -1865,9 +1862,9 @@ namespace grammlator
 
          Boolean Is1stTrueFlag = true;
          // foreach terminal symbol (maybe except [0] and [^1], maybe empty depending on above code generation):
-         for (Int32 i = condition.Next(first - 1); i <= last; i = condition.Next(i))
+         for (Int32 i = condition.IndexOfNextBit(first - 1); i <= last; i = condition.IndexOfNextBit(i))
          {
-            if (!relevant[i])
+            if (!relevant.GetBit(i))
                continue;
 
             TerminalSymbol t = GlobalVariables.GetTerminalSymbolByIndex(i);

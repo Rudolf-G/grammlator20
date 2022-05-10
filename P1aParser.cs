@@ -485,9 +485,9 @@ internal sealed partial class P1aParser : GrammlatorApplication
    //| = Name(UnifiedString terminalName)
    private void FirstExcludedTerminalSymbol(UnifiedString terminalName)
    {
-      if (ExcludedTerminalSymbols == null || ExcludedTerminalSymbols.Length != GlobalVariables.NumberOfTerminalSymbols)
+      if (ExcludedTerminalSymbols == null ) // || ExcludedTerminalSymbols.Length != GlobalVariables.NumberOfTerminalSymbols)
          ExcludedTerminalSymbols = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
-      ExcludedTerminalSymbols.SetAll(false);
+      ExcludedTerminalSymbols.SetBits(false);
       OneMoreExcludedTerminalSymbol(terminalName);
    }
 
@@ -510,7 +510,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
              $"{name} is not the name of a terminal symbol");
          return; // ignore this name
       }
-      ExcludedTerminalSymbols!.Set(Symbol.SymbolNumber, true);
+      ExcludedTerminalSymbols!.SetBit(Symbol.SymbolNumber, true);
    }
 
    //| NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes) /* Usage see siehe NestedElement */

@@ -27,7 +27,7 @@ namespace IndexSetNamespace
    /// Some methods, e.g. <see cref="IntersectWith(IndexSet)"/>, have alternate names, e.g. <see cref="And(IndexSet)"/>,
    /// to be compatible with <see cref="BitArray"/>.</para>
    /// </summary>
-   public sealed class IndexSet : ICollection<int>, IEnumerable<int>, IComparable<IndexSet>, ISet<int>
+   public sealed class IndexSet // : ICollection<int>, IEnumerable<int>, IComparable<IndexSet>, ISet<int>
    //, IReadOnlyCollection<int>
    // ISet<int>, IReadOnlySet<int>, IReadOnlyCollection<T>, IDeserializationCallback, ISerializable 
    {
@@ -240,7 +240,7 @@ namespace IndexSetNamespace
          {
             if (initialValue < 0 || initialValue >= maxCardinality)
                continue;
-            newSet.Set(initialValue, true);
+            newSet.SetBit(initialValue, true);
          }
          return newSet;
       }
@@ -328,47 +328,14 @@ namespace IndexSetNamespace
       /// <summary>
       /// Returns the largest value in the set. Returns -1 if the set is empty.
       /// </summary>
-      public int Max  // SortedSet<int>
-      {
-         get
-         {
-            for (int i = ArrayLength - 1; i >= 0; i--)
-            {
-               UInt64 actual = GetUInt64(i);
-               if (actual == 0)
-                  continue; // fast O(n) operation
-
-               // found UInt64 with set bit
-               // O(1) operation
-               return ((i + 1) << BitsPerBitIndex) - 1 - BitOperations.LeadingZeroCount(actual);
-            }
-
-            return -1;
-         }
-      }
+      public int IndexOfLastBit(bool value)  // SortedSet<int>
+         => IndexOfPrecedingBit(int.MaxValue, value);
 
       /// <summary>
       /// Returns the smallest value in the set. Returns Length if the set is empty.
       /// </summary>
-      public int Min // SortedSet<int>
-      {
-         get
-         {
-            for (int i = 0; i < ArrayLength; i++)
-            {
-               UInt64 actual = GetUInt64(i);
-               if (actual == 0)
-                  continue;
-
-               // found UInt64 with set bit
-               return (i << BitsPerBitIndex) + BitOperations.TrailingZeroCount(actual);
-            }
-
-            return Length;
-         }
-
-      }
-
+      public int IndexOfFirstBit(bool value) // SortedSet<int>
+         => IndexOfNextBit(-1, value);
 
       /// <summary>
       /// Tests if <paramref name="index"/> is member of the set or adds  <paramref name="index"/> to the set /
@@ -380,8 +347,8 @@ namespace IndexSetNamespace
       /// if the bit as position index is set</returns>
       public bool this[int index]
       {
-         get { return Get(index); }
-         set { Set(index, value); }
+         get { return GetBit(index); }
+         set { SetBit(index, value); }
       }
 
       /* ****** Methods ****** */
@@ -390,7 +357,7 @@ namespace IndexSetNamespace
       /// Adds the index to the set / sets the bit [index] to 1 (true).
       /// </summary>
       /// <param name="index"></param>
-      public void Add(int index) => Set(index, true); // ICollection<int>
+      public void Add(int index) => SetBit(index, true); // ICollection<int>
 
       /// <summary>
       /// Removes all indexes from the current set which are not in the specified set /
@@ -399,14 +366,6 @@ namespace IndexSetNamespace
       /// </summary>
       /// <param name="other"></param>
       /// <returns>The modified current set.</returns>
-
-      bool ISet<int>.Add(int index)
-      {
-         if (Get(index))
-            return false;
-         Set(index, true);
-         return true;
-      }
 
       public IndexSet And(IndexSet other) // BitArray
       {
@@ -425,7 +384,7 @@ namespace IndexSetNamespace
       /// Removes all elements from the set / clears all bits.
       /// Same as SetAll(false).
       /// </summary>
-      public void Clear() => SetAll(false); // ICollection<int>
+      public void Clear() => SetBits(false); // ICollection<int>
 
       /// <summary>
       /// Compares this with another instance of <see cref="IndexSet"/> with the same <see cref="Length"/>.
@@ -463,7 +422,7 @@ namespace IndexSetNamespace
       /// </summary>
       /// <param name="index"></param>
       /// <returns>true if the set contains <paramref name="index"/> / the bit at position index is set; otherwise false</returns>
-      public bool Contains(int index) => Get(index);  // ICollection<int>
+      public bool Contains(int index) => GetBit(index);  // ICollection<int>
 
       /// <summary>
       /// Replaces the content of the current set by the content of the source set.
@@ -507,16 +466,16 @@ namespace IndexSetNamespace
       public bool SetEquals(IndexSet other) // alike ISet<int>
          => CompareTo(other) == 0;
 
-      // Todo ///
-      public bool SetEquals(IEnumerable<int> otherEnum) // ISet<int>
-      {
-         (int otherMin, int otherMax, int otherCount) = GetMinMaxAndCount(otherEnum);
-         if (otherMin != Min || otherMax != Max || otherCount < Count) // other may contain duplicates ! 
-            return false;
-         IndexSet otherSet = Create(otherMax + 1, otherEnum); // remove duplicates
-                                                              // Todo  simpler solution if sorted
-         return CompareTo(Create(otherMax + 1, otherSet)) == 0;
-      }
+      //// Todo ///
+      //public bool SetEquals(IEnumerable<int> otherEnum) // ISet<int>
+      //{
+      //   (int otherMin, int otherMax, int otherCount) = GetMinMaxAndCount(otherEnum);
+      //   if (otherMin != Min || otherMax != Max || otherCount < Count) // other may contain duplicates ! 
+      //      return false;
+      //   IndexSet otherSet = Create(otherMax + 1, otherEnum); // remove duplicates
+      //                                                        // Todo  simpler solution if sorted
+      //   return CompareTo(Create(otherMax + 1, otherSet)) == 0;
+      //}
 
       /// <summary>
       /// Appends the <paramref name="ElementNames"/> (or the indexes if no names) of all bits which are true to the 
@@ -592,7 +551,7 @@ namespace IndexSetNamespace
                {
                   int index = a[i];
                   if (IsGe0AndLT(index, Length))
-                     this[index] = false;
+                     SetBit(index, false); // this[index] = false;
                   // ignore indexes not contained in the set
                }
                return;
@@ -600,7 +559,7 @@ namespace IndexSetNamespace
                foreach (int index in otherEnum)
                {
                   if (IsGe0AndLT(index, Length))
-                     this[index] = false;
+                     SetBit(index, false); // this[index] = false;
                   // ignore indexes not contained in the set
                }
                return;
@@ -615,7 +574,7 @@ namespace IndexSetNamespace
       /// Returns <see langword="true"/> if set contains the element <paramref name="index"/> / if the bit index is set.
       /// Else or if <paramref name="index"/> is not within the range of the set, returns <see langword="false"/>;
       /// </returns>
-      public bool Get(int index) // BitArray
+      public bool GetBit(int index) // BitArray
             => IsGe0AndLT(index, Length) &&
             ((GetUInt64(index >> BitsPerBitIndex) & (1UL << index)) != 0);
 
@@ -684,7 +643,7 @@ namespace IndexSetNamespace
          {
             if (element < 0 || element >= Length)
                continue; // ignore elements out of range
-            if (!this[element])
+            if (!GetBit(element))
                return false;
          }
          return true;
@@ -694,7 +653,7 @@ namespace IndexSetNamespace
       /// Returns the tuple (Min, Max).
       /// </summary>
       /// <returns></returns>
-      public (int min, int max) MinAndMax() => (Min, Max);
+      public (int min, int max) MinAndMax() => (IndexOfFirstBit(true), IndexOfLastBit(true));
 
       /// <summary>
       /// Find the next element and return the index of this element or this.count if not found
@@ -702,7 +661,7 @@ namespace IndexSetNamespace
       /// <param name="lastFound">starts at lastFound+1, starts at 0, if lastFound is -1</param>
       /// <param name="complement">search in complemented set</param>
       /// <returns>Index of found element or this.Length if not found</returns>
-      public int Next(int lastFound, bool complement = false)
+      public int IndexOfNextBit(int lastFound, bool value = true)
       {
          int start = lastFound + 1;
          if (start < 0)
@@ -714,7 +673,7 @@ namespace IndexSetNamespace
 
          for (int i = startUInt64Index; i < ArrayLength; i++)
          {
-            UInt64 actual = complement ? ~GetUInt64(i) : GetUInt64(i);
+            UInt64 actual = value ? GetUInt64(i) : ~GetUInt64(i);
 
             if (actual == 0)
                continue; // redundant shortcut
@@ -781,7 +740,7 @@ namespace IndexSetNamespace
       {
          foreach (int element in otherEnum)
          {
-            if (this[element])
+            if (GetBit(element))
                return true; // found common element
          }
          return false;
@@ -791,9 +750,9 @@ namespace IndexSetNamespace
       /// Find the preceding element and return the index of this element or -1 if not found
       /// </summary>
       /// <param name="lastFound"></param>
-      /// <param name="complement"></param>
+      /// <param name="value"></param>
       /// <returns></returns>
-      public int Preceding(int lastFound, bool complement = false)
+      public int IndexOfPrecedingBit(int lastFound, bool value = true)
       {
          int start = lastFound - 1;
          if (start >= Length)
@@ -805,7 +764,7 @@ namespace IndexSetNamespace
 
          for (int i = startUInt64Index; i >= 0; i--)
          {
-            UInt64 actual = complement ? ~GetUInt64(i) : GetUInt64(i);
+            UInt64 actual = value ? GetUInt64(i) : ~GetUInt64(i);
 
             if (actual == 0)
                continue; // redundant shortcut
@@ -838,9 +797,9 @@ namespace IndexSetNamespace
       /// </returns>
       public bool Remove(int index) // ICollection<int>
       {
-         if (Get(index))
+         if (GetBit(index))
          {
-            Set(index, false);
+            SetBit(index, false);
             return true;
          };
          return false;
@@ -852,7 +811,7 @@ namespace IndexSetNamespace
       /// <param name="index">The index of the bit, which is set.</param>
       /// <param name="value">The value to assign.</param>
       /// <returns>The modified current set</returns>
-      public IndexSet Set(int index, bool value) // BitArray
+      public IndexSet SetBit(int index, bool value) // BitArray
       {
          if (!IsGe0AndLT(index, Length))
          {
@@ -874,7 +833,7 @@ namespace IndexSetNamespace
 
 
       // Todo ///
-      public IndexSet SetAll(bool value) // BitArray
+      public IndexSet SetBits(bool value) // BitArray
       {
          if (value)
          {
@@ -906,14 +865,6 @@ namespace IndexSetNamespace
       // Todo ///
       public IndexSet SymmetricExceptWith(IndexSet other) => Xor(other);
 
-      // Todo ///
-      void ISet<int>.SymmetricExceptWith(IEnumerable<int> otherEnum)
-      {
-         IndexSet other = IndexSet.Create(Length, otherEnum);
-         SymmetricExceptWith(other);
-         return;
-      }
-
       /// <summary>
       /// Returns a string that represents the elements contained in the set.
       /// </summary>
@@ -930,11 +881,6 @@ namespace IndexSetNamespace
       /// <param name="other">The specified set containig the elements to be added.</param>
       /// <returns>The modified current set.</returns>
       public IndexSet UnionWith(IndexSet other) => Or(other);
-      void ISet<int>.UnionWith(IEnumerable<int> otherEnum)
-      {
-         foreach (int element in otherEnum)
-            this[element] = true; // this[] handles element out of bounds
-      }
 
       // Todo ///
       public IndexSet Xor(IndexSet other)  // BitArray
@@ -961,7 +907,7 @@ namespace IndexSetNamespace
       public IEnumerable<int> ComplementedSet()
       {
          for (int i = 0; i < Length; i++)
-            if (!Get(i))
+            if (!GetBit(i))
                yield return i;
          yield break;
       }
@@ -970,14 +916,14 @@ namespace IndexSetNamespace
 
       /* --------------------------------------------------------------- */
 
-      /// <summary> Returns an enumerator that iterates through the elements (indexes) of the <see cref="IndexSet"/> /
-      /// iterates through the indexes of the bits which are 1.
-      /// </summary>
-      /// <returns>An enumerator that can be used to iterate through the set.</returns>
-      IEnumerator<int> IEnumerable<int>.GetEnumerator()
-      {
-         return new GenericIndexSetEnumerator(this);
-      }
+      ///// <summary> Returns an enumerator that iterates through the elements (indexes) of the <see cref="IndexSet"/> /
+      ///// iterates through the indexes of the bits which are 1.
+      ///// </summary>
+      ///// <returns>An enumerator that can be used to iterate through the set.</returns>
+      //IEnumerator<int> GetEnumerator()
+      //{
+      //   return new GenericIndexSetEnumerator(this);
+      //}
 
       /// <summary>
       /// This IEnumerator<int> iterates through all elements of the set
@@ -995,7 +941,7 @@ namespace IndexSetNamespace
          }
 
          public virtual bool MoveNext()
-            => (currentIndex = indexSet.Next(currentIndex)) < indexSet.Length;
+            => (currentIndex = indexSet.IndexOfNextBit(currentIndex)) < indexSet.Length;
 
          int IEnumerator<int>.Current
          {
@@ -1028,7 +974,7 @@ namespace IndexSetNamespace
 
 
       /* ------------------------------------------------------------------ */
-      IEnumerator IEnumerable.GetEnumerator() // BitArray
+      public IEnumerator GetEnumerator() // BitArray
       {
          return new IndexSetEnumerator(this);
       }
@@ -1051,7 +997,7 @@ namespace IndexSetNamespace
          }
 
          public virtual bool MoveNext()
-            => (currentIndex = indexSet.Next(currentIndex)) < indexSet.Length;
+            => (currentIndex = indexSet.IndexOfNextBit(currentIndex)) < indexSet.Length;
 
          public virtual Object Current
          {

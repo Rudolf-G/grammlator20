@@ -1176,9 +1176,9 @@ internal partial class P1aParser
    /// <param name="excludedTerminalSymbols"></param>
    private void EvaluateExcludedTerminalSymbols(IndexSet excludedTerminalSymbols)
    {
-      for (Int32 IndexOfTerminalSymbol = 0; IndexOfTerminalSymbol < excludedTerminalSymbols.Length; IndexOfTerminalSymbol++)
+      for (Int32 IndexOfTerminalSymbol = 0; IndexOfTerminalSymbol < GlobalVariables.NumberOfTerminalSymbols; IndexOfTerminalSymbol++)
       {
-         if (excludedTerminalSymbols[IndexOfTerminalSymbol])
+         if (excludedTerminalSymbols.GetBit(IndexOfTerminalSymbol))
             continue;
          Symbol s = GlobalVariables.GetTerminalSymbolByIndex(IndexOfTerminalSymbol);
          for (Int32 IndexOfAttribute = 0; IndexOfAttribute < s.AttributenameStrings.Length; IndexOfAttribute++)

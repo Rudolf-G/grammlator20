@@ -300,7 +300,7 @@ public sealed class P2ComputeLR0States
          {
             // if not found: create new TerminalTransition
             var inputSymbols = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
-            inputSymbols[inputSymbol.SymbolNumber] = true;
+            inputSymbols.SetBit(inputSymbol.SymbolNumber, true);
             ActionsOfActualState.Add(
                 new TerminalTransition(
                    GlobalVariables.NumberOfActions++,
@@ -308,8 +308,7 @@ public sealed class P2ComputeLR0States
          }
          else
          {
-            existingTransition.TerminalSymbols
-                [inputSymbol.SymbolNumber] = true;
+            existingTransition.TerminalSymbols.SetBit(inputSymbol.SymbolNumber, true);
          }
       }
    }
@@ -441,14 +440,14 @@ public sealed class P2ComputeLR0States
          foreach (Int32 numberOfSuccessorState in state.Actions.
              OfType<ParserActionWithNextAction>().Select(a => a.NextAction).
              OfType<ParserState>().Select(s => s.IdNumber).
-             Where(IDNummer => !hasBeenAdded[IDNummer])
+             Where(IDNummer => !hasBeenAdded.GetBit(IDNummer))
              )
          {
             NumberOfPredecessors[numberOfSuccessorState]++;
-            hasBeenAdded.Set(numberOfSuccessorState, true);
+            hasBeenAdded.SetBit(numberOfSuccessorState, true);
          }
 
-         hasBeenAdded.SetAll(false);
+         hasBeenAdded.SetBits(false);
       }
 
       // B) Assign each state its list of predecessors
@@ -463,14 +462,14 @@ public sealed class P2ComputeLR0States
                  OfType<ParserState>()
                  )
          {
-            if (!hasBeenAdded[successorState.IdNumber])
+            if (!hasBeenAdded.GetBit(successorState.IdNumber))
             {
                successorState.PredecessorList.Add(state);
-               hasBeenAdded.Set(successorState.IdNumber, true);
+               hasBeenAdded.SetBit(successorState.IdNumber, true);
             }
          }
 
-         hasBeenAdded.SetAll(false);
+         hasBeenAdded.SetBits(false);
       }
 
    } // end of ComputePredecessorRelation

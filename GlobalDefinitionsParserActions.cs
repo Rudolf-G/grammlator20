@@ -1004,9 +1004,9 @@ namespace grammlator {
          Terminalcount = 0;
          SumOfWeights = 0;
 
-         for (Int32 index = 0; index < TerminalSymbols.Length; index++)
+         for (Int32 index = 0; index < GlobalVariables.NumberOfTerminalSymbols; index++)
          {
-            if (!TerminalSymbols[index])
+            if (!TerminalSymbols.GetBit(index))
                continue;
 
             Terminalcount++;
@@ -1030,13 +1030,13 @@ namespace grammlator {
           * if all symbols would be relevant
          */
          Int32 result = 0;
-         Boolean ActualValue = TerminalSymbols[0];
+         Boolean ActualValue = TerminalSymbols.GetBit(0);
          Boolean BaseValue = ActualValue;
          Boolean NextValue;
 
-         for (Int32 i = 1; i < TerminalSymbols.Length; i++)
+         for (Int32 i = 1; i < GlobalVariables.NumberOfTerminalSymbols; i++)
          {
-            NextValue = TerminalSymbols[i];
+            NextValue = TerminalSymbols.GetBit(i);
             /* We have an already analyzed sequence of values == BaseValue
              * then the ActualValue
              * then the NextValue

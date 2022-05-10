@@ -234,7 +234,7 @@ namespace grammlator {
          )
       {
          // The union of the TerminalSymbols of all the actions up to the action with IndexOfAction-1
-         allowedTerminalsUpToThisAction.SetAll(false);
+         allowedTerminalsUpToThisAction.SetBits(false);
          // Allocate a IndexSet to be used for the intersection of the actual actions terminal symbols
          // and the union of the terminal symbols of all preceding actions
          var conflictSymbols = IndexSet.Create(allowedTerminalsUpToThisAction); // value doesn't matter
@@ -410,7 +410,7 @@ namespace grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
-         IndexSet thisActionsConflictSymbols = IndexSet.Create(subsetOfConflictSymbols.Length);
+         IndexSet thisActionsConflictSymbols = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
 
          // action might be removed from State.Actions inside the following loop.
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
@@ -498,7 +498,7 @@ namespace grammlator {
 
          dynamicPriorityActions.Clear();
          numberOfActionsWithHighestPriority = 1;
-         var thisActionsConflictSymbols = IndexSet.Create(subsetOfConflictSymbols.Length);
+         var thisActionsConflictSymbols = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
 
          Int32 indexOfActionWithPriority = -1;
          Int64 highestPriority = Int32.MinValue;
