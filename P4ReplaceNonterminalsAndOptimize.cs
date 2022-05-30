@@ -1,4 +1,4 @@
-﻿using IndexSetNamespace;
+﻿using BitsNamespace;
 
 using System;
 using System.Collections;
@@ -1004,9 +1004,9 @@ internal class P4ReplaceNonterminalsAndOptimize
       // Preset PossibleInputTerminals for each state
       foreach (ParserState state in GlobalVariables.ListOfAllStates.Where(s => s.Calls > 0))
          if (state.AcceptCalls > 0)
-            state.PossibleInputTerminals = IndexSet.Create(GlobalVariables.AllTerminalSymbols);
+            state.PossibleInputTerminals = Bits.Create(GlobalVariables.AllTerminalSymbols);
          else
-            state.PossibleInputTerminals = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
+            state.PossibleInputTerminals = Bits.Create(GlobalVariables.NumberOfTerminalSymbols);
 
       // Propagate from states with PossibleInputTerminals set to AllTerminalSymbols
       foreach (ParserState state in GlobalVariables.ListOfAllStates.Where(s => s.AcceptCalls > 0))
@@ -1056,9 +1056,9 @@ internal class P4ReplaceNonterminalsAndOptimize
    }
 
    Int32 PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
-   readonly IndexSet test = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
+   readonly Bits test = Bits.Create(GlobalVariables.NumberOfTerminalSymbols);
 
-   private void Propagate(ParserAction? action, IndexSet terminals)
+   private void Propagate(ParserAction? action, Bits terminals)
    {
       if (action == null)
          return;
@@ -1079,15 +1079,15 @@ internal class P4ReplaceNonterminalsAndOptimize
             Propagate(aa.NextAction, GlobalVariables.AllTerminalSymbols);
             break;
          case LookaheadAction la:
-            IndexSet TerminalsToPropagate = la.TerminalSymbols;
+            Bits TerminalsToPropagate = la.TerminalSymbols;
             Propagate(la.NextAction, la.TerminalSymbols);
             break;
          case ReduceAction r:
             Propagate(r.NextAction, terminals!);
             break;
          case BranchAction b:
-            if (b.PossibleInputTerminals == null)
-               b.PossibleInputTerminals = IndexSet.Create(terminals!);
+            if (b.PossibleInputTerminals.Length == 0)
+               b.PossibleInputTerminals = Bits.Create(terminals!);
             else
             {
                if (test.CopyFrom(terminals).ExceptWith(b.PossibleInputTerminals!).IsEmpty)

@@ -24,7 +24,7 @@ namespace IndexSetNamespace
    /// universal sets with the same <see cref="Length"/>. But if b.Length is greater and b contains
    /// indexes >= a.Length, those elements are ignored: only the subset of b which fits into a is used. </para>
    /// <para>The names of most of the set methods are the same as in <see cref="SortedSet{T}"/>.
-   /// Some methods, e.g. <see cref="IntersectWith(IndexSet)"/>, have alternate names, e.g. <see cref="And(IndexSet)"/>,
+   /// Some methods, e.g. <see cref="IntersectWith(Bits)"/>, have alternate names, e.g. <see cref="And(Bits)"/>,
    /// to be compatible with <see cref="BitArray"/>.</para>
    /// </summary>
    public sealed class IndexSet // : ICollection<int>, IEnumerable<int>, IComparable<IndexSet>, ISet<int>
@@ -33,7 +33,7 @@ namespace IndexSetNamespace
    {
       /// <summary>
       /// The number of elements of the universal set (the number of bits in internal memory).
-      /// The <see cref="IndexSet"/> may contain elements in the range 0..&lt;<see cref="Length"/>
+      /// The <see cref="Bits"/> may contain elements in the range 0..&lt;<see cref="Length"/>
       /// </summary>
       public int Length { get; init; }
 
@@ -54,14 +54,14 @@ namespace IndexSetNamespace
       internal const int BitIndexMask = ~0 >> (BitsPerArrayElement - BitsPerBitIndex); // >> 58
 
       /// <summary>
-      /// This private constructor sets the <see cref="Length"/> of the <see cref="IndexSet"/>. It is intended for internal use only. 
-      /// Public access to constructors is provided by the static methods <see cref="Create(int)"/>, <see cref="Create(IndexSet)"/> etc.
+      /// This private constructor sets the <see cref="Length"/> of the <see cref="Bits"/>. It is intended for internal use only. 
+      /// Public access to constructors is provided by the static methods <see cref="Create(int)"/>, <see cref="Create(Bits)"/> etc.
       /// </summary>
       /// <param name="length"></param>
       private IndexSet(int length)
       {
          if (length < 0)
-            throw new ArgumentException($"The {nameof(IndexSet)} constructor was called with {nameof(length)}< 0");
+            throw new ArgumentException($"The {nameof(Bits)} constructor was called with {nameof(length)}< 0");
          Length = length;
          if (length <= 64)
          {
@@ -204,27 +204,27 @@ namespace IndexSetNamespace
       /// </summary>
       /// <param name="source">IndexSet which will be copied into the new IndexSet</param>
       /// <returns>new IndexSet</returns>
-      public static IndexSet Create(IndexSet source) => Create(source.Length).CopyFrom(source);
+      public static Bits Create(Bits source) => Create(source.Length).CopyFrom(source);
 
       /// <summary>
-      /// Depending on <paramref name="maxCardinality"/> this static method selects a type derived from <see cref="IndexSet"/>
+      /// Depending on <paramref name="maxCardinality"/> this static method selects a type derived from <see cref="Bits"/>
       /// and returns a new instance of this type.
       /// </summary>
-      /// <param name="maxCardinality">The <see cref="Length"/> of the new <see cref="IndexSet"/>.
+      /// <param name="maxCardinality">The <see cref="Length"/> of the new <see cref="Bits"/>.
       /// If &lt;= 0 then 0 is used.</param>
       /// <returns>A new empty IndexSet of type <see cref="SmallIndexSet"/> or <see cref="LargeIndexSet"/>
       /// or the singleton <see cref="IndexSetWithLength0"/> of type <see cref="ZeroLengthIndexSet"/>.</returns>
-      public static IndexSet Create(int maxCardinality)
+      public static Bits Create(int maxCardinality)
       {
          return maxCardinality switch
          {
             <= 0 => IndexSetWithLength0,
-            _ => new IndexSet(maxCardinality),
+            _ => new Bits(maxCardinality),
          };
       }
 
       /// <summary>
-      /// Depending on <paramref name="maxCardinality"/> this static method selects a type derived from <see cref="IndexSet"/>
+      /// Depending on <paramref name="maxCardinality"/> this static method selects a type derived from <see cref="Bits"/>
       /// and returns a new instance of this type initialized with the <paramref name="initialIndexes"/>.
       /// </summary>
       /// <param name="maxCardinality">All elements of the new set must be in the range 0..<paramref name="maxCardinality"/>.</param>
@@ -232,9 +232,9 @@ namespace IndexSetNamespace
       /// Values which are not within the Range of the set are ignored.</param>
       /// <returns>The new IndexSet of type <see cref="SmallIndexSet"/> or <see cref="LargeIndexSet"/>
       /// or the singleton <see cref="IndexSetWithLength0"/> of type <see cref="ZeroLengthIndexSet"/>.</returns>
-      public static IndexSet Create(int maxCardinality, IEnumerable<int> initialIndexes)
+      public static Bits Create(int maxCardinality, IEnumerable<int> initialIndexes)
       {
-         IndexSet newSet = Create(maxCardinality);
+         Bits newSet = Create(maxCardinality);
 
          foreach (int initialValue in initialIndexes)//  i initialValue in initialIndexes)
          {
@@ -246,13 +246,13 @@ namespace IndexSetNamespace
       }
 
       /// <summary>
-      /// Creates an <see cref="IndexSet"/> with length = Mimimum(max+1, this.Length)
+      /// Creates an <see cref="Bits"/> with length = Mimimum(max+1, this.Length)
       /// whereby max is the largest element in <paramref name="initialIndexes"/> and copies
       /// all values vom <paramref name="initialIndexes"/>, which are within the range of the new set.
       /// </summary>
       /// <param name="initialIndexes"></param>
       /// <returns></returns>
-      public IndexSet CreateLimited(IEnumerable<int> initialIndexes)
+      public Bits CreateLimited(IEnumerable<int> initialIndexes)
       {
          (_, int max, _) = GetMinMaxAndCount(initialIndexes);
          int length = Minimum(max + 1, Length);
@@ -260,10 +260,10 @@ namespace IndexSetNamespace
       }
 
       /// <summary>
-      /// A static instance of <see cref="IndexSet"/> based on the empty set 0..&lt;0 as universal set. This set contains no elements.
+      /// A static instance of <see cref="Bits"/> based on the empty set 0..&lt;0 as universal set. This set contains no elements.
       /// No elements can be added.
       /// </summary>
-      public static readonly IndexSet IndexSetWithLength0 = new(0);
+      public static readonly Bits IndexSetWithLength0 = new(0);
 
       private static int Minimum(int a, int b) => a <= b ? a : b;
       private static int Maximum(int a, int b) => a <= b ? b : a;
@@ -339,7 +339,7 @@ namespace IndexSetNamespace
 
       /// <summary>
       /// Tests if <paramref name="index"/> is member of the set or adds  <paramref name="index"/> to the set /
-      /// Gets or sets the value of the bit at the position <paramref name="index"/> in the <see cref="IndexSet"/>.
+      /// Gets or sets the value of the bit at the position <paramref name="index"/> in the <see cref="Bits"/>.
       /// If <paramref name="index"/> is out of the Range of the set, returns 0 resp. has no effect.
       /// </summary>
       /// <param name="index"></param>
@@ -362,12 +362,12 @@ namespace IndexSetNamespace
       /// <summary>
       /// Removes all indexes from the current set which are not in the specified set /
       /// Clears all bits in the current set which are 0 in the specified set.
-      /// Same as <see cref="IntersectWith(IndexSet)"/>.
+      /// Same as <see cref="IntersectWith(Bits)"/>.
       /// </summary>
       /// <param name="other"></param>
       /// <returns>The modified current set.</returns>
 
-      public IndexSet And(IndexSet other) // BitArray
+      public Bits And(Bits other) // BitArray
       {
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
 
@@ -387,14 +387,14 @@ namespace IndexSetNamespace
       public void Clear() => SetBits(false); // ICollection<int>
 
       /// <summary>
-      /// Compares this with another instance of <see cref="IndexSet"/> with the same <see cref="Length"/>.
-      /// For comparision the sequence of bits of each <see cref="IndexSet"/> is interpreted as a long unsigned integer.
+      /// Compares this with another instance of <see cref="Bits"/> with the same <see cref="Length"/>.
+      /// For comparision the sequence of bits of each <see cref="Bits"/> is interpreted as a long unsigned integer.
       /// This is a O(n) operation with n~(Length+63)/64.
       /// </summary>
-      /// <param name="other">The <see cref="IndexSet"/> to compare with</param>
+      /// <param name="other">The <see cref="Bits"/> to compare with</param>
       /// <returns>&lt;0: if this precedes other; 0: if this is at the same postion as other;
       /// >0: if this follows other</returns>
-      public int CompareTo(IndexSet? other) // IComparable<IndexSet>
+      public int CompareTo(Bits? other) // IComparable<IndexSet>
       {
          if (other is null)
             return IsEmpty ? 0 : +1;
@@ -414,7 +414,7 @@ namespace IndexSetNamespace
       /// Replaces the content of the current set by its complement / inverts all bits from 0 (false) to 1 (true) and from 1 (true) to 0 (false).
       /// </summary>
       /// <returns>The modified current set.</returns>
-      public IndexSet Complement() => Not();  // complement U - A
+      public Bits Complement() => Not();  // complement U - A
 
       /// <summary>
       /// Determines whether the set contains the value spcified in <paramref name="index"/> /
@@ -426,12 +426,12 @@ namespace IndexSetNamespace
 
       /// <summary>
       /// Replaces the content of the current set by the content of the source set.
-      /// If the Length of the source exceeds the Length of the current <see cref="IndexSet"/>,
+      /// If the Length of the source exceeds the Length of the current <see cref="Bits"/>,
       /// excess elements / bits of the source are ignored.
       /// </summary>
       /// <param name="source">The source to copy from.</param>
       /// <returns>The modified current set.</returns>
-      public IndexSet CopyFrom(IndexSet other)
+      public Bits CopyFrom(Bits other)
       {
 
          for (int i = 0; i < ArrayLength; i++)
@@ -444,7 +444,7 @@ namespace IndexSetNamespace
 
       /// <summary>
       /// Copies all <see cref="Count"/> elements of the set (the indices of the bits with value 1) to the <paramref name="destination"/> array.
-      /// <para>To copy one <see cref="IndexSet"/> from another use <see cref="CopyFrom"/></para>
+      /// <para>To copy one <see cref="Bits"/> from another use <see cref="CopyFrom"/></para>
       /// </summary>
       /// <param name="destination">The destinatione int Array</param>
       /// <param name="startIndex">the 1st element will be copied to <paramref name="destination"/>[<paramref name="startIndex"/>]</param>
@@ -463,7 +463,7 @@ namespace IndexSetNamespace
       }
 
       // Todo ///
-      public bool SetEquals(IndexSet other) // alike ISet<int>
+      public bool SetEquals(Bits other) // alike ISet<int>
          => CompareTo(other) == 0;
 
       //// Todo ///
@@ -529,7 +529,7 @@ namespace IndexSetNamespace
       }
 
       // Todo ///
-      public IndexSet ExceptWith(IndexSet other) // minuend.Or(subtrahend).Xor(subtrahend);
+      public Bits ExceptWith(Bits other) // minuend.Or(subtrahend).Xor(subtrahend);
       {
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
 
@@ -579,7 +579,7 @@ namespace IndexSetNamespace
             ((GetUInt64(index >> BitsPerBitIndex) & (1UL << index)) != 0);
 
       // Todo ///
-      public IndexSet IntersectWith(IndexSet other)
+      public Bits IntersectWith(Bits other)
          => And(other);
 
       // Todo ///
@@ -587,7 +587,7 @@ namespace IndexSetNamespace
          => And(CreateLimited(otherEnum));
 
       // Todo ///
-      public bool IsProperSubsetOf(IndexSet other)
+      public bool IsProperSubsetOf(Bits other)
          => IsSubsetOf(other) & !SetEquals(other);
 
       // Todo ///
@@ -595,7 +595,7 @@ namespace IndexSetNamespace
          => IsProperSubsetOf(CreateLimited(otherEnum));
 
       // Todo ///
-      public bool IsProperSupersetOf(IndexSet other)
+      public bool IsProperSupersetOf(Bits other)
          => other.IsProperSubsetOf(this);
 
       // Todo ///
@@ -603,7 +603,7 @@ namespace IndexSetNamespace
          => IsSupersetOf(otherEnum) && !EqualsSet(otherEnum); // ISet<int> 
 
       // Todo ///
-      public bool IsSubsetOf(IndexSet other)
+      public bool IsSubsetOf(Bits other)
       {
          if (other is null)
             return IsEmpty;
@@ -629,12 +629,12 @@ namespace IndexSetNamespace
          if (otherEnum is null)
             return IsEmpty;
 
-         IndexSet other = CreateLimited(otherEnum); // ignore additional elements in other
+         Bits other = CreateLimited(otherEnum); // ignore additional elements in other
          return IsSubsetOf(other);
       }
 
       // Todo ///
-      public bool IsSupersetOf(IndexSet other) => other.IsSubsetOf(this);
+      public bool IsSupersetOf(Bits other) => other.IsSubsetOf(this);
 
       // Todo ///
       public bool IsSupersetOf(IEnumerable<int> otherEnum) // ISet<int>
@@ -695,7 +695,7 @@ namespace IndexSetNamespace
 
 
       // Todo ///
-      public IndexSet Not() // BitArray
+      public Bits Not() // BitArray
       {
          int i;
          for (i = 0; i <= ArrayLength - 2; i++)
@@ -706,7 +706,7 @@ namespace IndexSetNamespace
       }
 
       // Todo ///
-      public IndexSet Or(IndexSet other) // BitArray
+      public Bits Or(Bits other) // BitArray
       {
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
 
@@ -722,7 +722,7 @@ namespace IndexSetNamespace
 
 
       // Todo ///
-      public bool Overlaps(IndexSet other)
+      public bool Overlaps(Bits other)
       {
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
 
@@ -811,7 +811,7 @@ namespace IndexSetNamespace
       /// <param name="index">The index of the bit, which is set.</param>
       /// <param name="value">The value to assign.</param>
       /// <returns>The modified current set</returns>
-      public IndexSet SetBit(int index, bool value) // BitArray
+      public Bits SetBit(int index, bool value) // BitArray
       {
          if (!IsGe0AndLT(index, Length))
          {
@@ -833,7 +833,7 @@ namespace IndexSetNamespace
 
 
       // Todo ///
-      public IndexSet SetBits(bool value) // BitArray
+      public Bits SetBits(bool value) // BitArray
       {
          if (value)
          {
@@ -855,15 +855,15 @@ namespace IndexSetNamespace
          if (HasExcessElements(otherEnum))
             return false;
 
-         IndexSet other = CreateLimited(otherEnum);
+         Bits other = CreateLimited(otherEnum);
          return SetEquals(other);
       }
 
       // Todo ///
-      public IndexSet Subtract(IndexSet other) => ExceptWith(other);
+      public Bits Subtract(Bits other) => ExceptWith(other);
 
       // Todo ///
-      public IndexSet SymmetricExceptWith(IndexSet other) => Xor(other);
+      public Bits SymmetricExceptWith(Bits other) => Xor(other);
 
       /// <summary>
       /// Returns a string that represents the elements contained in the set.
@@ -876,14 +876,14 @@ namespace IndexSetNamespace
 
       /// <summary>
       /// Adds all elements of the specified set, which are less than Length of the current set, to the current set.
-      /// The same as <see cref="Or(IndexSet)"/>.
+      /// The same as <see cref="Or(Bits)"/>.
       /// </summary>
       /// <param name="other">The specified set containig the elements to be added.</param>
       /// <returns>The modified current set.</returns>
-      public IndexSet UnionWith(IndexSet other) => Or(other);
+      public Bits UnionWith(Bits other) => Or(other);
 
       // Todo ///
-      public IndexSet Xor(IndexSet other)  // BitArray
+      public Bits Xor(Bits other)  // BitArray
       {
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
 
@@ -931,10 +931,10 @@ namespace IndexSetNamespace
       /// </summary>
       private class GenericIndexSetEnumerator : IEnumerator<int>
       {
-         private readonly IndexSet indexSet;
+         private readonly Bits indexSet;
          private int currentIndex;
 
-         internal GenericIndexSetEnumerator(IndexSet indexSet)
+         internal GenericIndexSetEnumerator(Bits indexSet)
          {
             this.indexSet = indexSet;
             this.currentIndex = -1;
@@ -985,11 +985,11 @@ namespace IndexSetNamespace
       /// </summary>
       private class IndexSetEnumerator : IEnumerator
       {
-         private readonly IndexSet indexSet;
+         private readonly Bits indexSet;
          private int currentIndex;
          // private int version;
 
-         internal IndexSetEnumerator(IndexSet indexSet)
+         internal IndexSetEnumerator(Bits indexSet)
          {
             this.indexSet = indexSet;
             this.currentIndex = -1;

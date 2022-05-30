@@ -1,4 +1,4 @@
-﻿using IndexSetNamespace;
+﻿using BitsNamespace;
 
 using System;
 using System.Collections;
@@ -40,7 +40,7 @@ public sealed class P2ComputeLR0States
 
    private readonly ListOfParserActions ActionsOfActualState = new(100);
 
-   private readonly IndexSet EmptyLookAheadSet = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
+   private readonly Bits EmptyLookAheadSet = Bits.Create(GlobalVariables.NumberOfTerminalSymbols);
 
    private void ComputeLR0StatesAndActions()
    {
@@ -299,8 +299,8 @@ public sealed class P2ComputeLR0States
          if (existingTransition == null)
          {
             // if not found: create new TerminalTransition
-            var inputSymbols = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
-            inputSymbols.SetBit(inputSymbol.SymbolNumber, true);
+            var inputSymbols = Bits.Create(GlobalVariables.NumberOfTerminalSymbols);
+            inputSymbols.Set(inputSymbol.SymbolNumber, true);
             ActionsOfActualState.Add(
                 new TerminalTransition(
                    GlobalVariables.NumberOfActions++,
@@ -308,7 +308,7 @@ public sealed class P2ComputeLR0States
          }
          else
          {
-            existingTransition.TerminalSymbols.SetBit(inputSymbol.SymbolNumber, true);
+            existingTransition.TerminalSymbols.Set(inputSymbol.SymbolNumber, true);
          }
       }
    }
@@ -427,7 +427,7 @@ public sealed class P2ComputeLR0States
       // The following declarations and methods are provided to mark states as processed.
       // All processed states are chained together with the anchor LastProcessed.
 
-      IndexSet hasBeenAdded = IndexSet.Create(GlobalVariables.ListOfAllStates.Count);
+      Bits hasBeenAdded = Bits.Create(GlobalVariables.ListOfAllStates.Count);
 
       // A) Determine the number of predecessor states for each state.
 
@@ -440,14 +440,14 @@ public sealed class P2ComputeLR0States
          foreach (Int32 numberOfSuccessorState in state.Actions.
              OfType<ParserActionWithNextAction>().Select(a => a.NextAction).
              OfType<ParserState>().Select(s => s.IdNumber).
-             Where(IDNummer => !hasBeenAdded.GetBit(IDNummer))
+             Where(IDNummer => !hasBeenAdded.Get(IDNummer))
              )
          {
             NumberOfPredecessors[numberOfSuccessorState]++;
-            hasBeenAdded.SetBit(numberOfSuccessorState, true);
+            hasBeenAdded.Set(numberOfSuccessorState, true);
          }
 
-         hasBeenAdded.SetBits(false);
+         hasBeenAdded.SetAll(false);
       }
 
       // B) Assign each state its list of predecessors
@@ -462,14 +462,14 @@ public sealed class P2ComputeLR0States
                  OfType<ParserState>()
                  )
          {
-            if (!hasBeenAdded.GetBit(successorState.IdNumber))
+            if (!hasBeenAdded.Get(successorState.IdNumber))
             {
                successorState.PredecessorList.Add(state);
-               hasBeenAdded.SetBit(successorState.IdNumber, true);
+               hasBeenAdded.Set(successorState.IdNumber, true);
             }
          }
 
-         hasBeenAdded.SetBits(false);
+         hasBeenAdded.SetAll(false);
       }
 
    } // end of ComputePredecessorRelation

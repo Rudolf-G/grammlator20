@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using IndexSetNamespace;
+using BitsNamespace;
 
 namespace grammlator;
 
@@ -485,13 +485,13 @@ internal sealed partial class P1aParser : GrammlatorApplication
    //| = Name(UnifiedString terminalName)
    private void FirstExcludedTerminalSymbol(UnifiedString terminalName)
    {
-      if (ExcludedTerminalSymbols == null ) // || ExcludedTerminalSymbols.Length != GlobalVariables.NumberOfTerminalSymbols)
-         ExcludedTerminalSymbols = IndexSet.Create(GlobalVariables.NumberOfTerminalSymbols);
-      ExcludedTerminalSymbols.SetBits(false);
+      if (ExcludedTerminalSymbols.Length == 0 ) // || ExcludedTerminalSymbols.Length != GlobalVariables.NumberOfTerminalSymbols)
+         ExcludedTerminalSymbols = Bits.Create(GlobalVariables.NumberOfTerminalSymbols);
+      ExcludedTerminalSymbols.SetAll(false);
       OneMoreExcludedTerminalSymbol(terminalName);
    }
 
-   private IndexSet? ExcludedTerminalSymbols;
+   private Bits ExcludedTerminalSymbols;
 
    //| | ListOfExcludedTerminalSymbols, "|", Name(UnifiedString name)
    private void OneMoreExcludedTerminalSymbol(UnifiedString name)
@@ -510,7 +510,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
              $"{name} is not the name of a terminal symbol");
          return; // ignore this name
       }
-      ExcludedTerminalSymbols!.SetBit(Symbol.SymbolNumber, true);
+      ExcludedTerminalSymbols.Set(Symbol.SymbolNumber, true);
    }
 
    //| NestedGrammarRule(Symbol SymbolAtLeftSide, Int32 NumberOfAttributes) /* Usage see siehe NestedElement */

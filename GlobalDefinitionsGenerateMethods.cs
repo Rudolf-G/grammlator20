@@ -1,4 +1,4 @@
-﻿using IndexSetNamespace;
+﻿using BitsNamespace;
 
 using System;
 using System.CodeDom.Compiler;
@@ -741,7 +741,7 @@ namespace grammlator
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
          // This is prepared  by shortening chains in phase 4 und implemented by the following.
 
-         if (!PossibleInputTerminals!.IsComplete)
+         if (!(PossibleInputTerminals!.IsComplete))
          {
             // there has been look ahead: no InstructionAssignSymbol needed
             // Show restricted set of possible symbols
@@ -826,7 +826,7 @@ namespace grammlator
       {
          // all terminal symbols which are condition of one action can be ignored
          // in the conditions of all following actions (are not relevant)
-         var relevantSymbols = IndexSet.Create(PossibleInputTerminals!);
+         var relevantSymbols = Bits.Create(PossibleInputTerminals!);
 
          for (Int32 i = 0; i < Actions.Count - 1; i++)
          {
@@ -843,7 +843,7 @@ namespace grammlator
 
          // Generate condition as comment, but only if not trivial and if more than 1 action 
          // (else it would duplicate the condition generated at the start of the state)
-         IndexSet suppressedCondition = LastAction.TerminalSymbols;
+         Bits suppressedCondition = LastAction.TerminalSymbols;
          if (Actions.Count > 1 && nextAction != null && !suppressedCondition.IsComplete)
          {
             GenerateConditionAsComment(codegen, suppressedCondition,
@@ -888,7 +888,7 @@ namespace grammlator
          {
             var ThisAction = (ConditionalAction)Actions[i];
 
-            IndexSet Terminals = ThisAction.TerminalSymbols;
+            Bits Terminals = ThisAction.TerminalSymbols;
             Int32 TerminalIndex = Terminals.IndexOfFirstBit(true);
             Boolean IsDefaultAction = false;
 
@@ -909,7 +909,7 @@ namespace grammlator
             }
 
             // Special case: default action if Terminals contains the last possible terminal
-            if (Terminals.GetBit(IndexOfLastPossibleTerminal))
+            if (Terminals.Get(IndexOfLastPossibleTerminal))
             {
                // remember this action and the count of trailing terminals
                Debug.Assert(TrailingCount == 0, "Phase5: TrailingCount already != 0");
@@ -1077,7 +1077,7 @@ namespace grammlator
       /// <param name="a"></param>
       /// <param name="relevantSymbols"></param>
       /// <param name="checkForbiddenTerminals">true if it is the condition of an error action which checks forbidden Symbols</param>
-      private static void GenerateOneConditionalAction(P5CodegenCS codegen, ConditionalAction a, IndexSet relevantSymbols, Boolean checkForbiddenTerminals)
+      private static void GenerateOneConditionalAction(P5CodegenCS codegen, ConditionalAction a, Bits relevantSymbols, Boolean checkForbiddenTerminals)
       {
          codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("if (");
@@ -1122,7 +1122,7 @@ namespace grammlator
          internal Int32 BlockEnd;
       }
 
-      private static void GenerateCondition(P5CodegenCS codegen, IndexSet condition, IndexSet relevant, Boolean checkingForbiddenTerminals)
+      private static void GenerateCondition(P5CodegenCS codegen, Bits condition, Bits relevant, Boolean checkingForbiddenTerminals)
       {
          // Special case if error action and no relevant symbols are true
          // TODO generate a condition that only checks the bounds  "xxx<1stTerminals || xxx>lastTrminal" or 
@@ -1166,7 +1166,7 @@ namespace grammlator
          return;
       }
 
-      private static void GenerateConditionAsComment(P5CodegenCS codegen, IndexSet condition, Boolean checkingForbiddenTerminals)
+      private static void GenerateConditionAsComment(P5CodegenCS codegen, Bits condition, Boolean checkingForbiddenTerminals)
       {
          if (GlobalSettings.NameOfAssertMethod.Value == "")
             return;
@@ -1193,12 +1193,12 @@ namespace grammlator
       /// Creates a list of blocks each of which desribes a sequence of contiguous 0s resp. 1s of the given condition.
       /// Bits which are not relevant are interpreted as 0s or as 1s arbitrarily to get large blocks.
       /// </summary>
-      /// <param name="Condition">A <see cref="IndexSet"/> with the terminal symbols to be checked</param>
-      /// <param name="Relevant">A <see cref="IndexSet"/> with the terminal symbols which are not yet checked</param>
+      /// <param name="Condition">A <see cref="Bits"/> with the terminal symbols to be checked</param>
+      /// <param name="Relevant">A <see cref="Bits"/> with the terminal symbols which are not yet checked</param>
       /// <param name="BlockList">The blocklist to be filled with information</param>
       private static void ComputeBlocklist(
-          IndexSet Condition,
-          IndexSet Relevant,
+          Bits Condition,
+          Bits Relevant,
           List<BlockOfEqualBits> BlockList)
       {
          Int32 firstRelevant = Relevant.IndexOfFirstBit(true);
@@ -1225,7 +1225,7 @@ namespace grammlator
             Debug.Assert(NextRelevant <= lastRelevant);
 
             BlockStart = NextRelevant;
-            BlockType = Condition.GetBit(BlockStart);
+            BlockType = Condition.Get(BlockStart);
             RelevantBitsCount = 1;
             BlockEnd = BlockStart;
 
@@ -1236,10 +1236,10 @@ namespace grammlator
                NextRelevant = Relevant.IndexOfNextBit(NextRelevant - 1);
                // Note: Relevant.FindNextTrue(LastRelevant - 1) == LastRelevant
 
-               Debug.Assert(NextRelevant <= lastRelevant && Relevant.GetBit(NextRelevant));
+               Debug.Assert(NextRelevant <= lastRelevant && Relevant.Get(NextRelevant));
 
                // beyond end of block?
-               if (Condition.GetBit(NextRelevant) != BlockType)
+               if (Condition.Get(NextRelevant) != BlockType)
                   break; // yes
 
                // this is until now the last relevant bit 
@@ -1260,8 +1260,8 @@ namespace grammlator
             if (NextRelevant > lastRelevant)
                break; // no more blocks
 
-            Debug.Assert(NextRelevant <= lastRelevant && Relevant.GetBit(NextRelevant)
-               && Condition.GetBit(NextRelevant) != BlockType); // = blockStart of next block
+            Debug.Assert(NextRelevant <= lastRelevant && Relevant.Get(NextRelevant)
+               && Condition.Get(NextRelevant) != BlockType); // = blockStart of next block
          }
       }
 
@@ -1746,16 +1746,16 @@ namespace grammlator
          }
       }
 
-      private static void GenerateIsIn(P5CodegenCS codegen, IndexSet condition, IndexSet relevant, Boolean checkingForbiddenTerminals)
+      private static void GenerateIsIn(P5CodegenCS codegen, Bits condition, Bits relevant, Boolean checkingForbiddenTerminals)
       {
-         IndexSet InverseCondition = IndexSet.Create(condition).Not().And(relevant);
+         Bits InverseCondition = Bits.Create(condition).Not().And(relevant);
          if (condition.Count < InverseCondition.Count) // TOCHECK 1st and last condition?
             GenerateIsInArguments(codegen, condition, false, relevant, checkingForbiddenTerminals);
          else
             GenerateIsInArguments(codegen, InverseCondition, true, relevant, checkingForbiddenTerminals);
       }
 
-      private static void GenerateIsInArguments(P5CodegenCS codegen, IndexSet condition, Boolean inverse, IndexSet relevant, Boolean checkingForbiddenTerminals)
+      private static void GenerateIsInArguments(P5CodegenCS codegen, Bits condition, Boolean inverse, Bits relevant, Boolean checkingForbiddenTerminals)
       {
          codegen.IncrementIndentationLevel();
 
@@ -1812,15 +1812,15 @@ namespace grammlator
                // optimize: include test of first and/or last sequence if condition[first / last]
                //   "symbol < first || Symbol > last || IsIn(first|...|last")
                //        ==>  "symbol <= first+x || Symbol >= last-y || IsIn(first+x+1...last-y-1")
-               if (condition.GetBit(first))
+               if (condition.Get(first))
                {
-                  while (first < last && (condition.GetBit(first + 1) || !relevant.GetBit(first + 1)))
+                  while (first < last && (condition.Get(first + 1) || !relevant.Get(first + 1)))
                      first++;
                   op1 = " <= ";
                }
-               if (condition.GetBit(last))
+               if (condition.Get(last))
                {
-                  while (last > first && (condition.GetBit(last - 1) || !relevant.GetBit(last - 1)))
+                  while (last > first && (condition.Get(last - 1) || !relevant.Get(last - 1)))
                      last--; // Note:  first==last is possible
                   op3 = " >= ";
                }
@@ -1833,15 +1833,15 @@ namespace grammlator
                // optimize: include test of first and/or last if condition[] is true
                //   "symbol >= first && Symbol <= last && IsIn(first|...|last")
                //        ==>  "symbol > first && Symbol < last && IsIn(...")
-               if (condition.GetBit(first))
+               if (condition.Get(first))
                {
-                  while (first < last && condition.GetBit(first + 1))
+                  while (first < last && condition.Get(first + 1))
                      first++;
                   op1 = " > ";
                }
-               if (condition.GetBit(last))
+               if (condition.Get(last))
                {
-                  while (first < last && condition.GetBit(last - 1))
+                  while (first < last && condition.Get(last - 1))
                      last--;
                   op3 = " < "; // Note:  first==last is possible
                }
@@ -1864,7 +1864,7 @@ namespace grammlator
          // foreach terminal symbol (maybe except [0] and [^1], maybe empty depending on above code generation):
          for (Int32 i = condition.IndexOfNextBit(first - 1); i <= last; i = condition.IndexOfNextBit(i))
          {
-            if (!relevant.GetBit(i))
+            if (!relevant.Get(i))
                continue;
 
             TerminalSymbol t = GlobalVariables.GetTerminalSymbolByIndex(i);

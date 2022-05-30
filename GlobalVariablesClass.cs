@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-using IndexSetNamespace;
+using BitsNamespace;
 
 using Microsoft.Extensions.ObjectPool;
 
@@ -218,12 +218,12 @@ namespace grammlator {
       /// <returns>instance of the terminal symbol</returns>
       internal static TerminalSymbol GetTerminalSymbolByIndex(Int32 index) => TerminalSymbols[index];
 
-      internal readonly static IndexSet EmptyBitarray = IndexSet.Create(0);
+      internal readonly static Bits EmptyBitarray = Bits.Create(0);
 
       /// <summary>
       /// A set of terminal symbols containing all terminal symbols
       /// </summary>
-      internal static IndexSet AllTerminalSymbols = EmptyBitarray; // assigned in Phases1to5Controller
+      internal static Bits AllTerminalSymbols = EmptyBitarray; // assigned in Phases1to5Controller
 
       /// <summary>
       /// is defined after ListOfAllStates[0]; is assigned in 

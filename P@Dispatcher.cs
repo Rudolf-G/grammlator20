@@ -1,4 +1,4 @@
-﻿using IndexSetNamespace;
+﻿using BitsNamespace;
 
 using System;
 using System.Collections;
@@ -129,7 +129,7 @@ internal static class Phases1to5
 #endif
 
       // Prepare handling of terminal symbols             
-      AllTerminalSymbols = IndexSet.Create(NumberOfTerminalSymbols).Not();
+      AllTerminalSymbols = Bits.Create(NumberOfTerminalSymbols).Not();
       P2ComputeLR0States.MakeInstanceAndExecute();
 
       // ----- Do phase 3

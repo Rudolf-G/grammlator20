@@ -1,4 +1,4 @@
-﻿using IndexSetNamespace;
+﻿using BitsNamespace;
 
 using System;
 using System.Collections;
@@ -630,7 +630,7 @@ namespace grammlator {
       internal override StringBuilder AppendShortToSB(StringBuilder sb)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
 
-      internal IndexSet? PossibleInputTerminals = null;
+      internal Bits PossibleInputTerminals = default;
 
       private Int32 SimplifyRecursionCount = 0;
       internal override ParserAction Simplify()
@@ -907,11 +907,11 @@ namespace grammlator {
       /// <see cref="TerminalSymbols"/> are accepted by <see cref="TerminalTransition"/>s or checked
       /// by other actions e.g. <see cref="LookaheadAction"/>s 
       /// </summary>
-      public IndexSet TerminalSymbols {
+      public Bits TerminalSymbols {
          get; set;
       }
 
-      public ConditionalAction(IndexSet terminalSymbols, ParserAction nextAction) : base(nextAction)
+      public ConditionalAction(Bits terminalSymbols, ParserAction nextAction) : base(nextAction)
       {
          TerminalSymbols = terminalSymbols;
       }
@@ -1006,7 +1006,7 @@ namespace grammlator {
 
          for (Int32 index = 0; index < GlobalVariables.NumberOfTerminalSymbols; index++)
          {
-            if (!TerminalSymbols.GetBit(index))
+            if (!TerminalSymbols.Get(index))
                continue;
 
             Terminalcount++;
@@ -1030,13 +1030,13 @@ namespace grammlator {
           * if all symbols would be relevant
          */
          Int32 result = 0;
-         Boolean ActualValue = TerminalSymbols.GetBit(0);
+         Boolean ActualValue = TerminalSymbols.Get(0);
          Boolean BaseValue = ActualValue;
          Boolean NextValue;
 
          for (Int32 i = 1; i < GlobalVariables.NumberOfTerminalSymbols; i++)
          {
-            NextValue = TerminalSymbols.GetBit(i);
+            NextValue = TerminalSymbols.Get(i);
             /* We have an already analyzed sequence of values == BaseValue
              * then the ActualValue
              * then the NextValue
@@ -1067,7 +1067,7 @@ namespace grammlator {
    /// Transition with TerminalSymbols to be accepted 
    /// </summary>
    internal sealed class TerminalTransition : ConditionalAction {
-      internal TerminalTransition(Int32 number, IndexSet terminalSymbols, ParserAction nextAction) :
+      internal TerminalTransition(Int32 number, Bits terminalSymbols, ParserAction nextAction) :
          base(terminalSymbols, nextAction)
       {
          this.IdNumber = number;
@@ -1110,7 +1110,7 @@ namespace grammlator {
    /// </summary>
    internal abstract class LookaheadOrNonterminalTransition : ConditionalAction {
 
-      public LookaheadOrNonterminalTransition(IndexSet terminalSymbols, ParserAction nextAction)
+      public LookaheadOrNonterminalTransition(Bits terminalSymbols, ParserAction nextAction)
          : base(terminalSymbols, nextAction)
       {
       }
@@ -1141,7 +1141,7 @@ namespace grammlator {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isNonterminalTransition;
       internal NonterminalSymbol InputSymbol;
 
-      internal NonterminalTransition(Int32 number, NonterminalSymbol inputSymbol, ParserAction nextAction, IndexSet lookAheadSet)
+      internal NonterminalTransition(Int32 number, NonterminalSymbol inputSymbol, ParserAction nextAction, Bits lookAheadSet)
          : base(lookAheadSet, nextAction)
       {
          this.IdNumber = number;
@@ -1213,7 +1213,7 @@ namespace grammlator {
       /// </summary>
       /// <param name="number">a unique number within all look ahead actions</param>
       /// <param name="definition">the <see cref="Definition"/> to be applied when the parser executes the <see cref="LookaheadAction"/></param>
-      internal LookaheadAction(Int32 number, IndexSet lookAheadSet, ParserAction nextAction)
+      internal LookaheadAction(Int32 number, Bits lookAheadSet, ParserAction nextAction)
          : base(lookAheadSet, nextAction)
       {
          this.IdNumber = number;
@@ -1344,10 +1344,10 @@ namespace grammlator {
       /// or <see cref="TerminalTransition"/></param>
       /// <param name="dynamicPriorityActions">List of <see cref="ConditionalAction"/>s</param>
       internal PrioritySelectAction(
-            IndexSet inputSymbols,
+            Bits inputSymbols,
             ConditionalAction? constantPriorityAction,
             ListOfParserActions dynamicPriorityActions
-         ) : base(IndexSet.Create(inputSymbols), new PriorityBranchAction(constantPriorityAction, dynamicPriorityActions))
+         ) : base(Bits.Create(inputSymbols), new PriorityBranchAction(constantPriorityAction, dynamicPriorityActions))
       {
       }
 
@@ -1369,7 +1369,7 @@ namespace grammlator {
 
    internal sealed class AcceptAction : ConditionalAction {
       internal readonly String InputClass;
-      internal AcceptAction(IndexSet terminalSymbols, String InputClass, ParserAction nextAction)
+      internal AcceptAction(Bits terminalSymbols, String InputClass, ParserAction nextAction)
          : base(terminalSymbols, nextAction)
          => this.InputClass = InputClass;
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isAcceptAction;
@@ -1393,7 +1393,7 @@ namespace grammlator {
       /// <param name="lookAhead"></param>
       /// <param name="idNumber"></param>
       /// <param name="state"></param>
-      internal ErrorhandlingAction(IndexSet lookAhead, Int32 idNumber, ParserState state)
+      internal ErrorhandlingAction(Bits lookAhead, Int32 idNumber, ParserState state)
          : base(lookAhead, GlobalVariables.ErrorHaltInstance)
       {
          this.IdNumber = idNumber;
