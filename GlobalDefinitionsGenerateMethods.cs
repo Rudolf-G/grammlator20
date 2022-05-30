@@ -826,7 +826,7 @@ namespace grammlator
       {
          // all terminal symbols which are condition of one action can be ignored
          // in the conditions of all following actions (are not relevant)
-         var relevantSymbols = Bits.Create(PossibleInputTerminals!);
+         var relevantSymbols = new Bits(PossibleInputTerminals);
 
          for (Int32 i = 0; i < Actions.Count - 1; i++)
          {
@@ -1748,7 +1748,7 @@ namespace grammlator
 
       private static void GenerateIsIn(P5CodegenCS codegen, Bits condition, Bits relevant, Boolean checkingForbiddenTerminals)
       {
-         Bits InverseCondition = Bits.Create(condition).Not().And(relevant);
+         Bits InverseCondition = new Bits(condition).Complement().And(relevant);
          if (condition.Count < InverseCondition.Count) // TOCHECK 1st and last condition?
             GenerateIsInArguments(codegen, condition, false, relevant, checkingForbiddenTerminals);
          else

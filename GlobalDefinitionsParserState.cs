@@ -237,7 +237,7 @@ namespace grammlator {
          allowedTerminalsUpToThisAction.SetAll(false);
          // Allocate a IndexSet to be used for the intersection of the actual actions terminal symbols
          // and the union of the terminal symbols of all preceding actions
-         var conflictSymbols = Bits.Create(allowedTerminalsUpToThisAction); // value doesn't matter
+         var conflictSymbols = new Bits(allowedTerminalsUpToThisAction); // value doesn't matter
 
          Boolean writeStateHeader = true;  // false after the header "Conflicts in state ..." has been written
          numberOfConflictsNotSolvedByExplicitPriority = 0;
@@ -410,7 +410,7 @@ namespace grammlator {
              "no terminal symbols")
             .AppendLine("; ");
 
-         Bits thisActionsConflictSymbols = Bits.Create(GlobalVariables.NumberOfTerminalSymbols);
+         Bits thisActionsConflictSymbols = new(GlobalVariables.NumberOfTerminalSymbols);
 
          // action might be removed from State.Actions inside the following loop.
          // "foreach (cAktion Aktion in Zustand.Aktionen)" would not allow this.
@@ -498,7 +498,7 @@ namespace grammlator {
 
          dynamicPriorityActions.Clear();
          numberOfActionsWithHighestPriority = 1;
-         var thisActionsConflictSymbols = Bits.Create(GlobalVariables.NumberOfTerminalSymbols);
+         var thisActionsConflictSymbols = new Bits(GlobalVariables.NumberOfTerminalSymbols);
 
          Int32 indexOfActionWithPriority = -1;
          Int64 highestPriority = Int32.MinValue;
@@ -566,9 +566,9 @@ namespace grammlator {
       {
          Bits allowedSymbols;
          if (PossibleInputTerminals.Length == 0)
-            allowedSymbols = Bits.Create(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions
+            allowedSymbols = new Bits(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions
          else
-            allowedSymbols = Bits.Create(PossibleInputTerminals!).Not();
+            allowedSymbols = new Bits(PossibleInputTerminals!).Not();
 
          Int32 counter = 0;
 
@@ -590,7 +590,7 @@ namespace grammlator {
          {
             // Add ErrorhandlingAction
             e = new ErrorhandlingAction(
-             lookAhead: Bits.Create(allowedSymbols).Not(),
+             lookAhead: new Bits(allowedSymbols).Complement(),
              idNumber: this.IdNumber, // use the IdNumber of the ParserState as IdNumber of the ErrorHandlingAction
              state: this
              );
@@ -599,7 +599,7 @@ namespace grammlator {
          { // Add LookaheadAction with nextAction ErrorHaltAction
             e = new LookaheadAction(
                number: GlobalVariables.NumberOfActions++,
-               lookAheadSet: Bits.Create(allowedSymbols).Not(),
+               lookAheadSet: new Bits(allowedSymbols).Complement(),
                nextAction: GlobalVariables.ErrorHaltInstance
                );
          }

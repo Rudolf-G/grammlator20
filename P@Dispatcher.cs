@@ -129,7 +129,7 @@ internal static class Phases1to5
 #endif
 
       // Prepare handling of terminal symbols             
-      AllTerminalSymbols = Bits.Create(NumberOfTerminalSymbols).Not();
+      AllTerminalSymbols = new Bits(NumberOfTerminalSymbols).SetAll(true);
       P2ComputeLR0States.MakeInstanceAndExecute();
 
       // ----- Do phase 3

@@ -223,47 +223,6 @@ namespace BitsNamespace
       private readonly UInt64 LastElementMask => (~0UL) >> (-Length); // ">>" uses only 6 Bits of "-Length"
 
       /// <summary>
-      /// This static method constructs a Bits structure with the same length as the source
-      /// and copies the source into the new Bits.
-      /// </summary>
-      /// <param name="source">Bits which will be copied into the new <see cref="Bits"/></param>
-      /// <returns>new <see cref="Bits"/> </returns>
-      [Obsolete("use new(Bits source)")]
-      public static Bits Create(Bits source) => new(source);
-
-      /// <summary>
-      /// Depending on <paramref name="length"/> this static method selects a type derived from <see cref="Bits"/>
-      /// and returns a new instance of this type.
-      /// </summary>
-      /// <param name="length">The <see cref="Length"/> of the new <see cref="Bits"/>.
-      /// If &lt;= 0 then 0 is used.</param>
-      /// <returns>.</returns>
-      [Obsolete("use new(int length)")]
-      public static Bits Create(int length) => new(length);
-
-      /// <summary>
-      /// 
-      /// </summary>
-      /// <param name="bitArray"></param>
-      /// <param name="length"></param>
-      /// <returns></returns>
-      [Obsolete("use new(ulong[] bitarray, int length)")]
-      public static Bits Create(ulong[] bitArray, int length)
-         => new(bitArray, length);
-
-      /// <summary>
-      /// 
-      /// </summary>
-      /// <param name="length"></param>
-      /// <param name="initialIndexes"></param>
-      /// <returns></returns>
-      [Obsolete("use new(int length, IEnumerable<int> initialIndexes)")]
-      public static Bits Create(int length, IEnumerable<int> initialIndexes)
-      {
-         return new Bits(length, initialIndexes, ignoreExcessValues: true);
-      }
-
-      /// <summary>
       /// Creates a <see cref="Bits"/> struct with length = Minimum(max+1, this.Length)
       /// whereby max is the largest element in <paramref name="initialIndexes"/> and copies
       /// all values vom <paramref name="initialIndexes"/>, which are within the range of the new set.

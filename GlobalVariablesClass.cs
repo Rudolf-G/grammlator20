@@ -108,7 +108,7 @@ namespace grammlator {
          ListOfAllHaltActions.Add(new HaltAction(IdNumber: 0, AttributestackAdjustement: 0));
 
          TerminalSymbols = Array.Empty<TerminalSymbol>();
-         AllTerminalSymbols = EmptyBitarray;
+         AllTerminalSymbols = default;
 
          ListOfAllStates.Clear();
          ListOfAllStates.Capacity = InitialCapacityOfListOfAllStates;
@@ -218,12 +218,10 @@ namespace grammlator {
       /// <returns>instance of the terminal symbol</returns>
       internal static TerminalSymbol GetTerminalSymbolByIndex(Int32 index) => TerminalSymbols[index];
 
-      internal readonly static Bits EmptyBitarray = Bits.Create(0);
-
       /// <summary>
       /// A set of terminal symbols containing all terminal symbols
       /// </summary>
-      internal static Bits AllTerminalSymbols = EmptyBitarray; // assigned in Phases1to5Controller
+      internal static Bits AllTerminalSymbols = default; // assigned in Phases1to5Controller
 
       /// <summary>
       /// is defined after ListOfAllStates[0]; is assigned in 

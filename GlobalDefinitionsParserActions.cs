@@ -1347,7 +1347,7 @@ namespace grammlator {
             Bits inputSymbols,
             ConditionalAction? constantPriorityAction,
             ListOfParserActions dynamicPriorityActions
-         ) : base(Bits.Create(inputSymbols), new PriorityBranchAction(constantPriorityAction, dynamicPriorityActions))
+         ) : base(new Bits(inputSymbols), new PriorityBranchAction(constantPriorityAction, dynamicPriorityActions))
       {
       }
 

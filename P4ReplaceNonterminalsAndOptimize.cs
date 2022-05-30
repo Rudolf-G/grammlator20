@@ -1004,9 +1004,9 @@ internal class P4ReplaceNonterminalsAndOptimize
       // Preset PossibleInputTerminals for each state
       foreach (ParserState state in GlobalVariables.ListOfAllStates.Where(s => s.Calls > 0))
          if (state.AcceptCalls > 0)
-            state.PossibleInputTerminals = Bits.Create(GlobalVariables.AllTerminalSymbols);
+            state.PossibleInputTerminals = new Bits(GlobalVariables.AllTerminalSymbols);
          else
-            state.PossibleInputTerminals = Bits.Create(GlobalVariables.NumberOfTerminalSymbols);
+            state.PossibleInputTerminals = new Bits(GlobalVariables.NumberOfTerminalSymbols);
 
       // Propagate from states with PossibleInputTerminals set to AllTerminalSymbols
       foreach (ParserState state in GlobalVariables.ListOfAllStates.Where(s => s.AcceptCalls > 0))
@@ -1056,7 +1056,7 @@ internal class P4ReplaceNonterminalsAndOptimize
    }
 
    Int32 PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
-   readonly Bits test = Bits.Create(GlobalVariables.NumberOfTerminalSymbols);
+   readonly Bits test = new(GlobalVariables.NumberOfTerminalSymbols);
 
    private void Propagate(ParserAction? action, Bits terminals)
    {
@@ -1083,11 +1083,11 @@ internal class P4ReplaceNonterminalsAndOptimize
             Propagate(la.NextAction, la.TerminalSymbols);
             break;
          case ReduceAction r:
-            Propagate(r.NextAction, terminals!);
+            Propagate(r.NextAction, terminals);
             break;
          case BranchAction b:
             if (b.PossibleInputTerminals.Length == 0)
-               b.PossibleInputTerminals = Bits.Create(terminals!);
+               b.PossibleInputTerminals = new Bits(terminals);
             else
             {
                if (test.CopyFrom(terminals).ExceptWith(b.PossibleInputTerminals!).IsEmpty)
