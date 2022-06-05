@@ -926,7 +926,7 @@ internal class P4ReplaceNonterminalsAndOptimize
 
                   if (ActionToCompare.NextAction == ActionAsTerminalTransition.NextAction)
                   {
-                     ActionToCompare.TerminalSymbols.Or(ActionAsTerminalTransition.TerminalSymbols);
+                     ActionToCompare.TerminalSymbols.UnionWith(ActionAsTerminalTransition.TerminalSymbols);
                      State.Actions[ActionIndex] = DeletedAction;
                      break;
                   }
@@ -1092,7 +1092,7 @@ internal class P4ReplaceNonterminalsAndOptimize
             {
                if (test.CopyFrom(terminals).ExceptWith(b.PossibleInputTerminals!).IsEmpty)
                   break; // PossibleInputTerminals >= terminals
-               b.PossibleInputTerminals.Or(terminals);
+               b.PossibleInputTerminals.UnionWith(terminals);
             }
             foreach (ParserAction a in b.ListOfCases.Select(c => c.BranchcaseAction))
                Propagate(a, terminals!);
@@ -1103,7 +1103,7 @@ internal class P4ReplaceNonterminalsAndOptimize
             if (test.CopyFrom(terminals).ExceptWith(state.PossibleInputTerminals!).IsEmpty)
                break; // PossibleInputTerminals >= terminals
 
-            _ = state.PossibleInputTerminals!.Or(terminals);
+            _ = state.PossibleInputTerminals!.UnionWith(terminals);
             PropagateFromState(state);
             break;
          case HaltAction _:

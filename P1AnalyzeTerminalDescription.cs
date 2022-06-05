@@ -538,7 +538,6 @@ EndOfGeneratedCode:
         }
 
         // Optional weight: '%' followed by number
-        Int64 Weight = GlobalSettings.TerminalDefaultWeight.Value;
         if (Description.TestAndSkipCharacter(ref Position, '%'))
         {
             Description.SkipWhiteSpace(ref Position);

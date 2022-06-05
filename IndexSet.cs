@@ -654,8 +654,7 @@ public readonly struct IndexSet :
    /// of the <paramref name="other"/> struct the excess bits of the <paramref name="other"/> struct are ignored.
    /// <para>ISet&lt;int>: Removes all elements in the specified collection from the current set.</para>
    /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-   /// <para>Same as <see cref="Subtract(IndexSet)"/>.</para>
-   /// </summary>
+  /// </summary>
    /// <param name="other">The <see cref="IndexSet"/> used as operand of the operation.</param>
    /// <returns>A struct which references the same bits as the current struct.</returns>
    public IndexSet ExceptWith(IndexSet other) // this.Or(other).Xor(other);
@@ -1083,20 +1082,6 @@ public readonly struct IndexSet :
    }
 
    /// <summary>
-   /// Modifies the bits referenced by the current struct by performing an "except with" operation
-   /// (equivalent to this.Or(<paramref name="other"/>).Xor(<paramref name="other"/>)) between those 
-   /// and the bits referenced by the <paramref name="other"/> struct. (Each bit referenced by the current struct
-   /// is cleared if the corresponding bit of the <paramref name="other"/> struct is true (1)).
-   /// If the <see cref="Length"/> of the current struct is less than the <see cref="Length"/>
-   /// of the <paramref name="other"/> struct the excess bits of the <paramref name="other"/> struct are ignored.
-   /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-   /// <para>Same as <see cref="ExceptWith(IndexSet)"/>.</para>
-   /// </summary>
-   /// <param name="other">The <see cref="IndexSet"/> used as operand of the operation.</param>
-   /// <returns>A struct which references the same bits as the current struct.</returns>
-   public IndexSet Subtract(IndexSet other) => ExceptWith(other);
-
-   /// <summary>
    ///  Toggles all bits referenced by the current struct which are true (1) in
    ///  the bits referenced by the <paramref name="other"/> struct ("xor").
    /// </summary>
@@ -1159,7 +1144,7 @@ public readonly struct IndexSet :
    /// of the <paramref name="other"/> struct and at least one of the excess bits referenced by the other struct is 1
    /// an <see cref="ArgumentException"/> is thrown.
    /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-   /// <para>Same as <see cref="UnionWith(IndexSet)"/>.</para>
+   /// <para>Same as <see cref="SymmetricExceptWith(IndexSet)"/>.</para>
    /// </summary>
    /// <param name="other">The <see cref="IndexSet"/> used as operand of the <see cref="And(IndexSet)"/> operation.</param>
    /// <returns>A struct which references the same bits as the current struct.</returns>

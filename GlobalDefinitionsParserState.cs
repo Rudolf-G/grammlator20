@@ -234,7 +234,7 @@ namespace grammlator {
          )
       {
          // The union of the TerminalSymbols of all the actions up to the action with IndexOfAction-1
-         allowedTerminalsUpToThisAction.SetAll(false);
+         allowedTerminalsUpToThisAction.Clear();
          // Allocate a IndexSet to be used for the intersection of the actual actions terminal symbols
          // and the union of the terminal symbols of all preceding actions
          var conflictSymbols = new IndexSet(allowedTerminalsUpToThisAction); // value doesn't matter
@@ -261,7 +261,7 @@ namespace grammlator {
             if (!
                conflictSymbols
                  .CopyFrom(allowedTerminalsUpToThisAction)  // Assigns to conflictSymbols
-                 .And(terminalsOfThisAction) // modifies conflictSymbols
+                 .IntersectWith(terminalsOfThisAction) // modifies conflictSymbols
                  .IsEmpty  // no new conflict
                )
             {
@@ -273,7 +273,7 @@ namespace grammlator {
             }
 
             // allowedSymbolsUpToThisAction and terminalsOfThisAction might be modified by SolveConflicts
-            allowedTerminalsUpToThisAction.Or(terminalsOfThisAction);
+            allowedTerminalsUpToThisAction.UnionWith(terminalsOfThisAction);
          } // for (int IndexOfAction
 
          // Remove all actions that have been replaced by DeletedParserAction
@@ -334,7 +334,7 @@ namespace grammlator {
          while
             (!conflictSymbols
                 .CopyFrom(allowedTerminalsUpToConflictAction)  // Assigns to conflictSymbols
-                .And(terminalsOfThisAction) // modifies conflictSymbols
+                .IntersectWith(terminalsOfThisAction) // modifies conflictSymbols
                 .IsEmpty  // break if no conflict or all conflicts are solved
             );
 
@@ -429,7 +429,7 @@ namespace grammlator {
             if (symbolsOfThisAction.Length == 0)
                continue;
 
-            if (thisActionsConflictSymbols.CopyFrom(subsetOfConflictSymbols).And(symbolsOfThisAction).IsEmpty)
+            if (thisActionsConflictSymbols.CopyFrom(subsetOfConflictSymbols).IntersectWith(symbolsOfThisAction).IsEmpty)
                continue; // no conflict
 
             if (IndexOfAction == indexOfActionWithPriority)
@@ -479,7 +479,7 @@ namespace grammlator {
          if (indexOfActionWithPriority >= indexOfFirstConflictAction)
          {
             // Remove the subsetOfConflictSymbols from the superset AllowedSymbolsUpToFirstConflictAction
-            allowedSymbolsUpToFirstConflictAction.Xor(subsetOfConflictSymbols);
+            allowedSymbolsUpToFirstConflictAction.ExceptWith(subsetOfConflictSymbols);
          }
       }
 
@@ -516,7 +516,7 @@ namespace grammlator {
             if (symbolsOfThisAction.Length == 0)
                continue; // it hasn't, no conflict
 
-            if (thisActionsConflictSymbols.CopyFrom(subsetOfConflictSymbols).And(symbolsOfThisAction).IsEmpty)
+            if (thisActionsConflictSymbols.CopyFrom(subsetOfConflictSymbols).IntersectWith(symbolsOfThisAction).IsEmpty)
                continue; // no, it hasn't
 
             // Yes, it has
@@ -568,14 +568,14 @@ namespace grammlator {
          if (PossibleInputTerminals.Length == 0)
             allowedSymbols = new IndexSet(GlobalVariables.NumberOfTerminalSymbols); // symbols causing actions
          else
-            allowedSymbols = new IndexSet(PossibleInputTerminals!).Not();
+            allowedSymbols = new IndexSet(PossibleInputTerminals!).Complement();
 
          Int32 counter = 0;
 
          foreach (ConditionalAction conditionalAction in Actions.OfType<ConditionalAction>())
          {
             Debug.Assert(conditionalAction is not NonterminalTransition);
-            allowedSymbols.Or(conditionalAction.TerminalSymbols);
+            allowedSymbols.UnionWith(conditionalAction.TerminalSymbols);
             counter++;
          }
 

@@ -88,13 +88,13 @@ internal class P3ComputeLALR1
                         foreach (TerminalTransition terminalTransition
                             in FollowState.Actions.OfType<TerminalTransition>())
                         {
-                           NonterminalTransition.TerminalSymbols.Or(terminalTransition.TerminalSymbols);
+                           NonterminalTransition.TerminalSymbols.UnionWith(terminalTransition.TerminalSymbols);
                         }
                         FollowState.DirectRead = new IndexSet(NonterminalTransition.TerminalSymbols);
                      }
                      else
                      {
-                        NonterminalTransition.TerminalSymbols.Or(FollowState.DirectRead);
+                        NonterminalTransition.TerminalSymbols.UnionWith(FollowState.DirectRead);
                      }
 
 
@@ -119,7 +119,7 @@ internal class P3ComputeLALR1
                       * e.g by adding a field to nonterminal transitions (and reductions and ...) 
                       * and use this flag in conflict analysis 
                       * */
-                     NonterminalTransition.TerminalSymbols.Or(GlobalVariables.AllTerminalSymbols);
+                     NonterminalTransition.TerminalSymbols.UnionWith(GlobalVariables.AllTerminalSymbols);
                      break;
                   }
             }
@@ -193,7 +193,7 @@ internal class P3ComputeLALR1
 
          // add the set of read symbols of NextTransition
          // to the set of read symbols of actualTransition
-         actualTransition.TerminalSymbols.Or(NextTransition.TerminalSymbols);
+         actualTransition.TerminalSymbols.UnionWith(NextTransition.TerminalSymbols);
 
          if (actualTransition.Codenumber > NextTransition.Codenumber)
          {
@@ -216,7 +216,7 @@ internal class P3ComputeLALR1
       {
          TopOfStackTransition = StackOfNonterminalTransitions.Pop();
          TopOfStackTransition.Codenumber = Int32.MaxValue;
-         TopOfStackTransition.TerminalSymbols.Or(actualTransition.TerminalSymbols); // equivalent to Assign(...)
+         TopOfStackTransition.TerminalSymbols.UnionWith(actualTransition.TerminalSymbols); // equivalent to Assign(...)
       }
       while (TopOfStackTransition != actualTransition);
    }
@@ -492,7 +492,7 @@ internal class P3ComputeLALR1
       {
          if (NtTransitionY.Codenumber >= 0)
             Traverse2(NtTransitionY);
-         x.TerminalSymbols.Or(NtTransitionY.TerminalSymbols);
+         x.TerminalSymbols.UnionWith(NtTransitionY.TerminalSymbols);
       }
       x.Codenumber = Int32.MinValue;
    }
@@ -514,7 +514,7 @@ internal class P3ComputeLALR1
 
          // add the look ahead symbols of NtTransitionY
          // to the look ahead symbols of transitionX
-         transitionX.TerminalSymbols.Or(NtTransitionY.TerminalSymbols);
+         transitionX.TerminalSymbols.UnionWith(NtTransitionY.TerminalSymbols);
 
          if (NtTransitionY.Codenumber > transitionX.Codenumber)
          {
@@ -535,7 +535,7 @@ internal class P3ComputeLALR1
       {
          ats = StackOfActionsWithFollow.Pop();
          ats.Codenumber = Int32.MinValue;
-         ats.TerminalSymbols.Or(transitionX.TerminalSymbols); // eqivalent to Assign(...)
+         ats.TerminalSymbols.UnionWith(transitionX.TerminalSymbols); // eqivalent to Assign(...)
       }
       while (ats != transitionX);
    }

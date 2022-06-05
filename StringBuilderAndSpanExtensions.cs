@@ -104,8 +104,6 @@ internal static class SpanExtensions
       if (thisSpan == null || position + pattern.Length > thisSpan.Length)
          return false;
 
-      Int32 sPosition = position;     
-
       if (!thisSpan[position..].StartsWith(pattern))
          return false;
       position += pattern.Length;
@@ -199,7 +197,6 @@ internal static class SpanExtensions
    internal static Boolean IsInt64(this ReadOnlySpan<Char> ThisSpan, ref int Position, out Int64 Number)
    {
       Int32 checkPosition = Position;
-      Number = 0;
 
       while (checkPosition < ThisSpan.Length && char.IsDigit(ThisSpan[checkPosition]))
          checkPosition++;

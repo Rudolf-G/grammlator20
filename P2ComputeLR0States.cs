@@ -300,7 +300,7 @@ public sealed class P2ComputeLR0States
          {
             // if not found: create new TerminalTransition
             var inputSymbols = new IndexSet(GlobalVariables.NumberOfTerminalSymbols);
-            inputSymbols.Set(inputSymbol.SymbolNumber, true);
+            inputSymbols.Add(inputSymbol.SymbolNumber);
             ActionsOfActualState.Add(
                 new TerminalTransition(
                    GlobalVariables.NumberOfActions++,
@@ -308,7 +308,7 @@ public sealed class P2ComputeLR0States
          }
          else
          {
-            existingTransition.TerminalSymbols.Set(inputSymbol.SymbolNumber, true);
+            existingTransition.TerminalSymbols.Add(inputSymbol.SymbolNumber);
          }
       }
    }
@@ -444,10 +444,10 @@ public sealed class P2ComputeLR0States
              )
          {
             NumberOfPredecessors[numberOfSuccessorState]++;
-            hasBeenAdded.Set(numberOfSuccessorState, true);
+            hasBeenAdded.Add(numberOfSuccessorState);
          }
 
-         hasBeenAdded.SetAll(false);
+         hasBeenAdded.Clear();
       }
 
       // B) Assign each state its list of predecessors
@@ -465,11 +465,11 @@ public sealed class P2ComputeLR0States
             if (!hasBeenAdded.Get(successorState.IdNumber))
             {
                successorState.PredecessorList.Add(state);
-               hasBeenAdded.Set(successorState.IdNumber, true);
+               hasBeenAdded.Add(successorState.IdNumber);
             }
          }
 
-         hasBeenAdded.SetAll(false);
+         hasBeenAdded.Clear();
       }
 
    } // end of ComputePredecessorRelation

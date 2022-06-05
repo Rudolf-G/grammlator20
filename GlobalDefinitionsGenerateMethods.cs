@@ -1748,7 +1748,7 @@ namespace grammlator
 
       private static void GenerateIsIn(P5CodegenCS codegen, IndexSet condition, IndexSet relevant, Boolean checkingForbiddenTerminals)
       {
-         IndexSet InverseCondition = new IndexSet(condition).Complement().And(relevant);
+         IndexSet InverseCondition = new IndexSet(condition).Complement().IntersectWith(relevant);
          if (condition.Count < InverseCondition.Count) // TOCHECK 1st and last condition?
             GenerateIsInArguments(codegen, condition, false, relevant, checkingForbiddenTerminals);
          else
