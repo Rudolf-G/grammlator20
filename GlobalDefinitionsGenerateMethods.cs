@@ -1,4 +1,4 @@
-﻿using BitsNamespace;
+﻿using IndexSetNamespace;
 
 using System;
 using System.CodeDom.Compiler;
@@ -826,7 +826,7 @@ namespace grammlator
       {
          // all terminal symbols which are condition of one action can be ignored
          // in the conditions of all following actions (are not relevant)
-         var relevantSymbols = new Bits(PossibleInputTerminals);
+         var relevantSymbols = new IndexSet(PossibleInputTerminals);
 
          for (Int32 i = 0; i < Actions.Count - 1; i++)
          {
@@ -843,7 +843,7 @@ namespace grammlator
 
          // Generate condition as comment, but only if not trivial and if more than 1 action 
          // (else it would duplicate the condition generated at the start of the state)
-         Bits suppressedCondition = LastAction.TerminalSymbols;
+         IndexSet suppressedCondition = LastAction.TerminalSymbols;
          if (Actions.Count > 1 && nextAction != null && !suppressedCondition.IsComplete)
          {
             GenerateConditionAsComment(codegen, suppressedCondition,
@@ -888,7 +888,7 @@ namespace grammlator
          {
             var ThisAction = (ConditionalAction)Actions[i];
 
-            Bits Terminals = ThisAction.TerminalSymbols;
+            IndexSet Terminals = ThisAction.TerminalSymbols;
             Int32 TerminalIndex = Terminals.IndexOfFirstBit(true);
             Boolean IsDefaultAction = false;
 
@@ -1077,7 +1077,7 @@ namespace grammlator
       /// <param name="a"></param>
       /// <param name="relevantSymbols"></param>
       /// <param name="checkForbiddenTerminals">true if it is the condition of an error action which checks forbidden Symbols</param>
-      private static void GenerateOneConditionalAction(P5CodegenCS codegen, ConditionalAction a, Bits relevantSymbols, Boolean checkForbiddenTerminals)
+      private static void GenerateOneConditionalAction(P5CodegenCS codegen, ConditionalAction a, IndexSet relevantSymbols, Boolean checkForbiddenTerminals)
       {
          codegen.IndentExactly();
          codegen.AppendWithOptionalLinebreak("if (");
@@ -1122,7 +1122,7 @@ namespace grammlator
          internal Int32 BlockEnd;
       }
 
-      private static void GenerateCondition(P5CodegenCS codegen, Bits condition, Bits relevant, Boolean checkingForbiddenTerminals)
+      private static void GenerateCondition(P5CodegenCS codegen, IndexSet condition, IndexSet relevant, Boolean checkingForbiddenTerminals)
       {
          // Special case if error action and no relevant symbols are true
          // TODO generate a condition that only checks the bounds  "xxx<1stTerminals || xxx>lastTrminal" or 
@@ -1166,7 +1166,7 @@ namespace grammlator
          return;
       }
 
-      private static void GenerateConditionAsComment(P5CodegenCS codegen, Bits condition, Boolean checkingForbiddenTerminals)
+      private static void GenerateConditionAsComment(P5CodegenCS codegen, IndexSet condition, Boolean checkingForbiddenTerminals)
       {
          if (GlobalSettings.NameOfAssertMethod.Value == "")
             return;
@@ -1193,12 +1193,12 @@ namespace grammlator
       /// Creates a list of blocks each of which desribes a sequence of contiguous 0s resp. 1s of the given condition.
       /// Bits which are not relevant are interpreted as 0s or as 1s arbitrarily to get large blocks.
       /// </summary>
-      /// <param name="Condition">A <see cref="Bits"/> with the terminal symbols to be checked</param>
-      /// <param name="Relevant">A <see cref="Bits"/> with the terminal symbols which are not yet checked</param>
+      /// <param name="Condition">A <see cref="IndexSet"/> with the terminal symbols to be checked</param>
+      /// <param name="Relevant">A <see cref="IndexSet"/> with the terminal symbols which are not yet checked</param>
       /// <param name="BlockList">The blocklist to be filled with information</param>
       private static void ComputeBlocklist(
-          Bits Condition,
-          Bits Relevant,
+          IndexSet Condition,
+          IndexSet Relevant,
           List<BlockOfEqualBits> BlockList)
       {
          Int32 firstRelevant = Relevant.IndexOfFirstBit(true);
@@ -1746,16 +1746,16 @@ namespace grammlator
          }
       }
 
-      private static void GenerateIsIn(P5CodegenCS codegen, Bits condition, Bits relevant, Boolean checkingForbiddenTerminals)
+      private static void GenerateIsIn(P5CodegenCS codegen, IndexSet condition, IndexSet relevant, Boolean checkingForbiddenTerminals)
       {
-         Bits InverseCondition = new Bits(condition).Complement().And(relevant);
+         IndexSet InverseCondition = new IndexSet(condition).Complement().And(relevant);
          if (condition.Count < InverseCondition.Count) // TOCHECK 1st and last condition?
             GenerateIsInArguments(codegen, condition, false, relevant, checkingForbiddenTerminals);
          else
             GenerateIsInArguments(codegen, InverseCondition, true, relevant, checkingForbiddenTerminals);
       }
 
-      private static void GenerateIsInArguments(P5CodegenCS codegen, Bits condition, Boolean inverse, Bits relevant, Boolean checkingForbiddenTerminals)
+      private static void GenerateIsInArguments(P5CodegenCS codegen, IndexSet condition, Boolean inverse, IndexSet relevant, Boolean checkingForbiddenTerminals)
       {
          codegen.IncrementIndentationLevel();
 

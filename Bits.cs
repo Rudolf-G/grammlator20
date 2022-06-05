@@ -7,28 +7,11 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
-namespace BitsNamespace
+namespace IndexSetNamespace
 {
-   /// <summary>
-   /// Todo ///
-   /// </summary>
-   public static class BitsExtensions
-   {
-      /// <summary>
-      /// Todo ///
-      /// </summary>
-      /// <param name="bitArray"></param>
-      /// <param name="length"></param>
-      /// <returns></returns>
-      public static Bits AsBits(this ulong[] bitArray, int length)
-      {
-         return new Bits(bitArray, length);
-      }
-
-   }
 
    /// <summary>
-   /// A <see cref="Bits"/> struct implements an array of bits. The number of bits stored is
+   /// A <see cref="IndexSet"/> struct implements an array of bits. The number of bits stored is
    /// given by the readonly property <see cref="Length"/>, which is set by the constructor and can not be changed.
    /// <para>
    /// The bits can be set via indexes within the range 0 .. &lt;  <see cref="Length"/> with methods
@@ -39,15 +22,15 @@ namespace BitsNamespace
    /// This class can be used as a limited replacement of <see cref="System.Collections.BitArray"/> with less restrictions,
    /// additional methods and improved performance. The semantics of some methods are different.
    /// </para>
-   /// <para>Methods alike a.UnionWith(b) are not only defined for <see cref="Bits"/> structs a and b
+   /// <para>Methods alike a.UnionWith(b) are not only defined for <see cref="IndexSet"/> structs a and b
    /// with the same <see cref="Length"/>. If b.Length is greater and b contains
    /// indexes >= a.Length, those elements are ignored: only the subset of b which fits into a is used. </para>
    /// <para>The names of most of the set methods are the same as in <see cref="SortedSet{T}"/>.
-   /// Some methods, e.g. <see cref="IntersectWith(Bits)"/>, have alias names, e.g. <see cref="And(Bits)"/>,
+   /// Some methods, e.g. <see cref="IntersectWith(IndexSet)"/>, have alias names, e.g. <see cref="And(IndexSet)"/>,
    /// to be compatible with <see cref="System.Collections.BitArray"/>.</para>
    /// </summary>
-   public readonly struct Bits :
-      ICollection<int>, IEnumerable<int>, IComparable<Bits>, ISet<int>
+   public readonly struct IndexSet :
+      ICollection<int>, IEnumerable<int>, IComparable<IndexSet>, ISet<int>
    //, IReadOnlyCollection<int>, IReadOnlySet<int>, IReadOnlyCollection<T>, IDeserializationCallback, ISerializable 
    {
       /// <summary>
@@ -58,7 +41,7 @@ namespace BitsNamespace
       private readonly UInt64[]? BitArray; // 8 bytes
 
       /// <summary>
-      /// The <see cref="Bits"/> struct has the capacity to store elements with indexes in the range 0..&lt; <see cref="Length"/>.
+      /// The <see cref="IndexSet"/> struct has the capacity to store elements with indexes in the range 0..&lt; <see cref="Length"/>.
       /// </summary>
       public readonly int Length; // 4 bytes. Is 0 if and only if BitArray is null. 
       private readonly int ArrayLength; // 4 bytes (uses allignment space otherwise unused). Is 0 if and only if BitArray is null.
@@ -141,29 +124,29 @@ namespace BitsNamespace
       }
 
       /// <summary>
-      /// This standard constructor returns a <see cref="Bits"/> struct with no bits.
+      /// This standard constructor returns a <see cref="IndexSet"/> struct with no bits.
       /// </summary>
-      public Bits() => this = default;
+      public IndexSet() => this = default;
 
       /// <summary>
-      /// This constructor returns a <see cref="Bits"/> struct which is a deep copy of <paramref name="source"/>.
+      /// This constructor returns a <see cref="IndexSet"/> struct which is a deep copy of <paramref name="source"/>.
       /// </summary>
-      /// <param name="source">The <see cref="Bits"/> which are copied into the new struct.</param>
-      public Bits(Bits source)
+      /// <param name="source">The <see cref="IndexSet"/> which are copied into the new struct.</param>
+      public IndexSet(IndexSet source)
       {
          this = new(source.Length);
          CopyFrom(source);
       }
 
       /// <summary>
-      /// This constructor returns a <see cref="Bits"/> struct with the given <see cref="Length"/> and 
+      /// This constructor returns a <see cref="IndexSet"/> struct with the given <see cref="Length"/> and 
       /// allocates an Array, which can store this number of bits.
       /// </summary>
       /// <param name="length">The <see cref="Length"/> (number of bits) of the new struct. If the <paramref name="length"/> is &lt; 0 a struct with <see cref="Length"/> 0 is returned.</param>
-      public Bits(int length)
+      public IndexSet(int length)
       {
          if (length < 0)
-            throw new ArgumentException($"The {nameof(Bits)} constructor was called with {nameof(length)}< 0");
+            throw new ArgumentException($"The {nameof(IndexSet)} constructor was called with {nameof(length)}< 0");
          ArrayLength = (length + (BitsPerArrayElement - 1)) >> BitsPerBitIndex;
 
          Length = length;
@@ -171,7 +154,7 @@ namespace BitsNamespace
       }
 
       /// <summary>
-      /// This constructor returns a <see cref="Bits"/> struct with the given <see cref="Length"/> (number of bits)
+      /// This constructor returns a <see cref="IndexSet"/> struct with the given <see cref="Length"/> (number of bits)
       /// as a wrapper around the given <paramref name="bitArray"/>.
       /// </summary>
       /// <param name="bitArray"> This arrays Length (number of UInt64 elements) must be > 0.
@@ -179,7 +162,7 @@ namespace BitsNamespace
       /// <param name="length">The <see cref="Length"/> (number of bits) of the new struct whereby
       /// (<paramref name="bitArray"/>.Length - 1) &lt;= 
       /// (<paramref name="length"/>-1) / 64  &lt; <paramref name="bitArray"/>.Length.</param>
-      public Bits(ulong[] bitArray, int length)
+      public IndexSet(ulong[] bitArray, int length)
       {
          if (length <= 0)
             throw new ArgumentException($"{nameof(length)} is {length} but must be > 0.");
@@ -202,7 +185,7 @@ namespace BitsNamespace
       /// Depending on <paramref name="ignoreExcessValues"/> values which are not within
       /// the range 0..<paramref name="length"/> are ignored or cause an ArgumentException.</param>
       /// <param name="ignoreExcessValues"></param>
-      public Bits(int length, IEnumerable<int> initialIndexes, bool ignoreExcessValues)
+      public IndexSet(int length, IEnumerable<int> initialIndexes, bool ignoreExcessValues)
       {
          this = new(length);
 
@@ -223,13 +206,13 @@ namespace BitsNamespace
       private readonly UInt64 LastElementMask => (~0UL) >> (-Length); // ">>" uses only 6 Bits of "-Length"
 
       /// <summary>
-      /// Creates a <see cref="Bits"/> struct with length = Minimum(max+1, this.Length)
+      /// Creates a <see cref="IndexSet"/> struct with length = Minimum(max+1, this.Length)
       /// whereby max is the largest element in <paramref name="initialIndexes"/> and copies
       /// all values vom <paramref name="initialIndexes"/>, which are within the range of the new set.
       /// </summary>
       /// <param name="initialIndexes"></param>
-      /// <returns>A new <see cref="Bits"/> struct.</returns>
-      private Bits CopyToNewLimitedLengthBits(IEnumerable<int> initialIndexes)
+      /// <returns>A new <see cref="IndexSet"/> struct.</returns>
+      private IndexSet CopyToNewLimitedLengthBits(IEnumerable<int> initialIndexes)
          => new(length: Minimum(initialIndexes.Max() + 1, Length), initialIndexes, ignoreExcessValues: true);
 
       ///// <summary>
@@ -309,7 +292,7 @@ namespace BitsNamespace
 
       /// <summary>
       /// Tests if <paramref name="index"/> is member of the set or adds  <paramref name="index"/> to the set /
-      /// Gets or sets the value of the bit at the position <paramref name="index"/> in the <see cref="Bits"/>.
+      /// Gets or sets the value of the bit at the position <paramref name="index"/> in the <see cref="IndexSet"/>.
       /// If <paramref name="index"/> is out of the Range of the set, returns 0 resp. has no effect.
       /// </summary>
       /// <param name="index"></param>
@@ -357,11 +340,11 @@ namespace BitsNamespace
       /// of the <paramref name="other"/> the excess bits referenced by the current struct are set to 0
       /// as if the other had been replenished with zeros.
       /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-      /// <para>Same as <see cref="IntersectWith(Bits)"/>.</para>
+      /// <para>Same as <see cref="IntersectWith(IndexSet)"/>.</para>
       /// </summary>
-      /// <param name="other">The <see cref="Bits"/> used as operand of the <see cref="And(Bits)"/> operation.</param>
+      /// <param name="other">The <see cref="IndexSet"/> used as operand of the <see cref="And(IndexSet)"/> operation.</param>
       /// <returns>A struct which references the same bits as the current struct.</returns>
-      public Bits And(Bits other) // BitArray
+      public IndexSet And(IndexSet other) // BitArray
       {
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
          if (smallerArrayLength > 0)
@@ -384,16 +367,16 @@ namespace BitsNamespace
       public void Clear() => SetAll(false); // ICollection<int>
 
       /// <summary>
-      /// Compares this with another instance of <see cref="Bits"/>.
-      /// For comparision the sequence of bits of each <see cref="Bits"/> is interpreted as a long unsigned integer.
+      /// Compares this with another instance of <see cref="IndexSet"/>.
+      /// For comparision the sequence of bits of each <see cref="IndexSet"/> is interpreted as a long unsigned integer.
       /// If both instances have different <see cref="Length"/>, the shorter one is considered as beeing filled with 
       /// leading (more significant) 0 (true) bits.
       /// This is a O(n) operation with n~(Length+63)/64.
       /// </summary>
-      /// <param name="other">The <see cref="Bits"/> to compare with</param>
+      /// <param name="other">The <see cref="IndexSet"/> to compare with</param>
       /// <returns>&lt;0: if this precedes other; 0: if this is at the same postion as other;
       /// >0: if this follows other</returns>
-      public readonly int CompareTo(Bits other) // IComparable<IndexSetR>
+      public readonly int CompareTo(IndexSet other) // IComparable<IndexSetR>
       {
          int i;
          if (ArrayLength < other.ArrayLength)
@@ -426,7 +409,7 @@ namespace BitsNamespace
       /// <para>Same as <see cref="Not"/>.</para>
       /// </summary>
       /// <returns>A struct which references the same bits as the current struct.</returns>
-      public Bits Complement() => Not();
+      public IndexSet Complement() => Not();
 
       /// <summary>
       /// Determines whether the set contains the value specified in <paramref name="index"/> /
@@ -439,12 +422,12 @@ namespace BitsNamespace
 
       /// <summary>
       /// Replaces the content of the current set by the content of the source set.
-      /// If the Length of the source exceeds the Length of the current <see cref="Bits"/>,
+      /// If the Length of the source exceeds the Length of the current <see cref="IndexSet"/>,
       /// excess elements / bits of the source are ignored.
       /// </summary>
       /// <param name="other">The source to copy from.</param>
       /// <returns>The modified current set.</returns>
-      public Bits CopyFrom(Bits other)
+      public IndexSet CopyFrom(IndexSet other)
       {
          int smallerArrayLength = Minimum(this.ArrayLength, other.ArrayLength);
          if (smallerArrayLength > 0)
@@ -461,7 +444,7 @@ namespace BitsNamespace
       /// <summary>
       /// Copies all <see cref="Count"/> elements of the set (the indexes of the bits with value 1)
       /// to the <paramref name="destination"/> array.
-      /// <para>To copy the contents of another <see cref="Bits"/> struct into the current one use <see cref="CopyFrom"/></para>
+      /// <para>To copy the contents of another <see cref="IndexSet"/> struct into the current one use <see cref="CopyFrom"/></para>
       /// </summary>
       /// <param name="destination">The destinatione int Array.</param>
       /// <param name="startIndex">The 1st element will be copied to <paramref name="destination"/>[<paramref name="startIndex"/>].
@@ -639,11 +622,11 @@ namespace BitsNamespace
       /// of the <paramref name="other"/> struct the excess bits of the <paramref name="other"/> struct are ignored.
       /// <para>ISet&lt;int>: Removes all elements in the specified collection from the current set.</para>
       /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-      /// <para>Same as <see cref="Subtract(Bits)"/>.</para>
+      /// <para>Same as <see cref="Subtract(IndexSet)"/>.</para>
       /// </summary>
-      /// <param name="other">The <see cref="Bits"/> used as operand of the operation.</param>
+      /// <param name="other">The <see cref="IndexSet"/> used as operand of the operation.</param>
       /// <returns>A struct which references the same bits as the current struct.</returns>
-      public Bits ExceptWith(Bits other) // this.Or(other).Xor(other);
+      public IndexSet ExceptWith(IndexSet other) // this.Or(other).Xor(other);
       {
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
 
@@ -690,11 +673,11 @@ namespace BitsNamespace
       /// of the <paramref name="other"/> the excess bits referenced by the current struct are set to 0
       /// as if the other had been replenished with zeros.
       /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-      /// <para>Same as <see cref="And(Bits)"/>.</para>
+      /// <para>Same as <see cref="And(IndexSet)"/>.</para>
       /// </summary>
-      /// <param name="other">The <see cref="Bits"/> used as operand of the <see cref="And(Bits)"/> operation.</param>
+      /// <param name="other">The <see cref="IndexSet"/> used as operand of the <see cref="And(IndexSet)"/> operation.</param>
       /// <returns>A struct which references the same bits as the current struct.</returns>
-      public Bits IntersectWith(Bits other) // alike ISet<int>
+      public IndexSet IntersectWith(IndexSet other) // alike ISet<int>
          => And(other);
 
       /// <summary>
@@ -715,7 +698,7 @@ namespace BitsNamespace
       /// <param name="other"></param>
       /// <returns> <see langword="true"/> if the bits referenced by the current struct are a proper subset of the 
       /// bits referenced by the <paramref name="other"/> struct, else false. </returns>
-      public bool IsProperSubsetOf(Bits other) // alike ISet<int>
+      public bool IsProperSubsetOf(IndexSet other) // alike ISet<int>
          => IsSubsetOrSuperset(this.BitArray, other.BitArray) == SubsetResult.SubSet; // and not Superset!
 
       /// <summary>
@@ -740,7 +723,7 @@ namespace BitsNamespace
       /// <param name="other"></param>
       /// <returns> <see langword="true"/> if the bits referenced by the current struct are a proper subset of the 
       /// bits referenced by the <paramref name="other"/> struct, else false. </returns>
-      public bool IsProperSupersetOf(Bits other) // alike ISet<int>
+      public bool IsProperSupersetOf(IndexSet other) // alike ISet<int>
          => IsSubsetOrSuperset(this.BitArray, other.BitArray) == SubsetResult.Superset; // and not Subset!
 
       /// <summary>
@@ -762,7 +745,7 @@ namespace BitsNamespace
       /// <param name="other"></param>
       /// <returns> <see langword="true"/> if the bits referenced by the current struct are a subset of the 
       /// bits referenced by the <paramref name="other"/> struct, else false. </returns>
-      public bool IsSubsetOf(Bits other)
+      public bool IsSubsetOf(IndexSet other)
       {
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
          int i;
@@ -789,7 +772,7 @@ namespace BitsNamespace
          if (otherEnum is null)
             return IsEmpty;
 
-         Bits other = CopyToNewLimitedLengthBits(otherEnum); // ignore additional elements in other
+         IndexSet other = CopyToNewLimitedLengthBits(otherEnum); // ignore additional elements in other
          return IsSubsetOf(other);
       }
 
@@ -835,7 +818,7 @@ namespace BitsNamespace
       /// <param name="other"></param>
       /// <returns> <see langword="true"/> if the bits referenced by the current struct are a subset of the 
       /// bits referenced by the <paramref name="other"/> struct, else false. </returns>
-      public bool IsSupersetOf(Bits other) => other.IsSubsetOf(this);
+      public bool IsSupersetOf(IndexSet other) => other.IsSubsetOf(this);
 
       /// <summary>
       /// ISet&lt;int>: Determines whether the current set is a superset of a specified collection.
@@ -876,7 +859,7 @@ namespace BitsNamespace
       /// <para>Same as <see cref="Complement"/>.</para>
       /// </summary>
       /// <returns>A struct which references the same bits as the current struct.</returns>
-      public Bits Not() // alike public System.Collections.BitArray Not ();
+      public IndexSet Not() // alike public System.Collections.BitArray Not ();
       {
          if (ArrayLength > 0)
          {
@@ -896,12 +879,12 @@ namespace BitsNamespace
       /// of the <paramref name="other"/> struct and at least one of the excess bits referenced by the other struct is 1
       /// an <see cref="ArgumentException"/> is thrown.
       /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-      /// <para>Same as <see cref="UnionWith(Bits)"/>.</para>
+      /// <para>Same as <see cref="UnionWith(IndexSet)"/>.</para>
       /// </summary>
-      /// <param name="other">The <see cref="Bits"/> used as operand of the <see cref="And(Bits)"/> operation.</param>
+      /// <param name="other">The <see cref="IndexSet"/> used as operand of the <see cref="And(IndexSet)"/> operation.</param>
       /// <returns>A struct which references the same bits as the current struct.</returns>
 
-      public Bits Or(Bits other) // alike System.Collections.BitArray Or (System.Collections.BitArray value);
+      public IndexSet Or(IndexSet other) // alike System.Collections.BitArray Or (System.Collections.BitArray value);
       {
 
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
@@ -932,7 +915,7 @@ namespace BitsNamespace
       /// </summary>
       /// <param name="other">The collection to compare to the current set.</param>
       /// <returns>true if the current set and other share at least one common element; otherwise, false.</returns>
-      public bool Overlaps(Bits other)
+      public bool Overlaps(IndexSet other)
       {
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
 
@@ -993,7 +976,7 @@ namespace BitsNamespace
       /// <paramref name="value"/> is true and <paramref name="index"/> is &lt; 0 or is > <see cref="Length"/>. 
       /// </exception>
       /// <returns>The modified current set.</returns>
-      public Bits Set(int index, bool value) // BitArray
+      public IndexSet Set(int index, bool value) // BitArray
       {
          if (!IsGe0AndLT(index, Length))
          {
@@ -1020,7 +1003,7 @@ namespace BitsNamespace
       /// </summary>
       /// <param name="value">All bits are set to this value: false (0) or true(1).</param>
       /// <returns>A struct which references the same bits as the current struct.</returns>
-      public Bits SetAll(bool value) // alike BitArray public void SetAll (bool value);
+      public IndexSet SetAll(bool value) // alike BitArray public void SetAll (bool value);
       {
          if (BitArray is null)
             return this;
@@ -1038,18 +1021,18 @@ namespace BitsNamespace
       }
 
       /// <summary>
-      /// Determines whether the indexes of the bits with value 1 of the current <see cref="Bits"/>
-      /// and of the specified <see cref="Bits"/> are equal.  
+      /// Determines whether the indexes of the bits with value 1 of the current <see cref="IndexSet"/>
+      /// and of the specified <see cref="IndexSet"/> are equal.  
       /// </summary>
       /// <param name="other"></param>
-      /// <returns><see langword="true"/> if the given <see cref="Bits"/> is equal to <paramref name="other"/>
+      /// <returns><see langword="true"/> if the given <see cref="IndexSet"/> is equal to <paramref name="other"/>
       /// (if the <see cref="Length"/> is different, the shorter one is assumed to be filled with 0); 
       /// otherwise <see langword="false"/></returns>
-      public bool SetEquals(Bits other) // alike ISet<int>
+      public bool SetEquals(IndexSet other) // alike ISet<int>
          => CompareTo(other) == 0;
 
       /// <summary>
-      /// Determines whether the current <see cref="Bits"/> and the specified <see cref="Bits"/> have the same sequence of bits.
+      /// Determines whether the current <see cref="IndexSet"/> and the specified <see cref="IndexSet"/> have the same sequence of bits.
       /// If the <see cref="Length"/> differ, the shorter one is considered as extended with zeros.
       /// </summary>
       /// <param name="otherEnum">The collection to compare to the current set.</param>
@@ -1074,11 +1057,11 @@ namespace BitsNamespace
       /// If the <see cref="Length"/> of the current struct is less than the <see cref="Length"/>
       /// of the <paramref name="other"/> struct the excess bits of the <paramref name="other"/> struct are ignored.
       /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-      /// <para>Same as <see cref="ExceptWith(Bits)"/>.</para>
+      /// <para>Same as <see cref="ExceptWith(IndexSet)"/>.</para>
       /// </summary>
-      /// <param name="other">The <see cref="Bits"/> used as operand of the operation.</param>
+      /// <param name="other">The <see cref="IndexSet"/> used as operand of the operation.</param>
       /// <returns>A struct which references the same bits as the current struct.</returns>
-      public Bits Subtract(Bits other) => ExceptWith(other);
+      public IndexSet Subtract(IndexSet other) => ExceptWith(other);
 
       /// <summary>
       ///  Toggles all bits referenced by the current struct which are true (1) in
@@ -1086,7 +1069,7 @@ namespace BitsNamespace
       /// </summary>
       /// <param name="other">The <paramref name="other"/> set.</param>
       ///<returns>A struct which references the same bits as the current struct.</returns>
-      public Bits SymmetricExceptWith(Bits other) => Xor(other);
+      public IndexSet SymmetricExceptWith(IndexSet other) => Xor(other);
 
       /// <summary>
       ///  ISet&lt;int>: Toggles all bits of the current set with indexes given by <paramref name="otherEnum"/>
@@ -1117,11 +1100,11 @@ namespace BitsNamespace
 
       /// <summary>
       /// Adds all elements of the specified set, which are less than Length of the current set, to the current set.
-      /// The same as <see cref="Or(Bits)"/>.
+      /// The same as <see cref="Or(IndexSet)"/>.
       /// </summary>
       /// <param name="other">The specified set containig the elements to be added.</param>
       /// <returns>The modified current set.</returns>
-      public Bits UnionWith(Bits other) => Or(other); // alike ISet<int>.UnionWith
+      public IndexSet UnionWith(IndexSet other) => Or(other); // alike ISet<int>.UnionWith
 
       /// <summary>
       /// ISet&lt;int>: Modifies the current set so that it contains all elements that are present
@@ -1143,12 +1126,12 @@ namespace BitsNamespace
       /// of the <paramref name="other"/> struct and at least one of the excess bits referenced by the other struct is 1
       /// an <see cref="ArgumentException"/> is thrown.
       /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-      /// <para>Same as <see cref="UnionWith(Bits)"/>.</para>
+      /// <para>Same as <see cref="UnionWith(IndexSet)"/>.</para>
       /// </summary>
-      /// <param name="other">The <see cref="Bits"/> used as operand of the <see cref="And(Bits)"/> operation.</param>
+      /// <param name="other">The <see cref="IndexSet"/> used as operand of the <see cref="And(IndexSet)"/> operation.</param>
       /// <returns>A struct which references the same bits as the current struct.</returns>
 
-      public Bits Xor(Bits other) // alike public System.Collections.BitArray Xor (System.Collections.BitArray value);
+      public IndexSet Xor(IndexSet other) // alike public System.Collections.BitArray Xor (System.Collections.BitArray value);
       {
 
          int smallerArrayLength = Minimum(ArrayLength, other.ArrayLength);
@@ -1207,10 +1190,10 @@ namespace BitsNamespace
       /// </summary>
       private class GenericBitsEnumerator : IEnumerator<int>
       {
-         private readonly Bits IndexSetR;
+         private readonly IndexSet IndexSetR;
          private int currentIndex;
 
-         internal GenericBitsEnumerator(Bits IndexSetR)
+         internal GenericBitsEnumerator(IndexSet IndexSetR)
          {
             this.IndexSetR = IndexSetR;
             this.currentIndex = -1;
@@ -1265,10 +1248,10 @@ namespace BitsNamespace
       /// </summary>
       private class BitsEnumerator : IEnumerator
       {
-         private readonly Bits bits;
+         private readonly IndexSet bits;
          private int currentIndex;
 
-         internal BitsEnumerator(Bits bits)
+         internal BitsEnumerator(IndexSet bits)
          {
             this.bits = bits;
             this.currentIndex = -1;

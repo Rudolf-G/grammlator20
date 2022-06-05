@@ -31,8 +31,8 @@
 
   <ItemGroup>
     <Compile Remove="BitArrayExtensions.cs" />
+    <Compile Remove="Bits.cs" />
     <Compile Remove="IndexSet-V0.cs" />
-    <Compile Remove="IndexSet.cs" />
     <Compile Remove="P1aParser-old.cs" />
     <Compile Remove="P1bLexer with error for Tests.cs" />
     <Compile Remove="StringReaderWithLineCounter.cs" />

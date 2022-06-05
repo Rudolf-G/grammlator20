@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-using BitsNamespace;
+using IndexSetNamespace;
 
 using Microsoft.Extensions.ObjectPool;
 
@@ -221,7 +221,7 @@ namespace grammlator {
       /// <summary>
       /// A set of terminal symbols containing all terminal symbols
       /// </summary>
-      internal static Bits AllTerminalSymbols = default; // assigned in Phases1to5Controller
+      internal static IndexSet AllTerminalSymbols = default; // assigned in Phases1to5Controller
 
       /// <summary>
       /// is defined after ListOfAllStates[0]; is assigned in 

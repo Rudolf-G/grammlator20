@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using BitsNamespace;
+using IndexSetNamespace;
 
 namespace grammlator;
 
@@ -486,12 +486,12 @@ internal sealed partial class P1aParser : GrammlatorApplication
    private void FirstExcludedTerminalSymbol(UnifiedString terminalName)
    {
       if (ExcludedTerminalSymbols.Length == 0 ) // || ExcludedTerminalSymbols.Length != GlobalVariables.NumberOfTerminalSymbols)
-         ExcludedTerminalSymbols = new Bits(GlobalVariables.NumberOfTerminalSymbols);
+         ExcludedTerminalSymbols = new IndexSet(GlobalVariables.NumberOfTerminalSymbols);
       ExcludedTerminalSymbols.SetAll(false);
       OneMoreExcludedTerminalSymbol(terminalName);
    }
 
-   private Bits ExcludedTerminalSymbols;
+   private IndexSet ExcludedTerminalSymbols;
 
    //| | ListOfExcludedTerminalSymbols, "|", Name(UnifiedString name)
    private void OneMoreExcludedTerminalSymbol(UnifiedString name)

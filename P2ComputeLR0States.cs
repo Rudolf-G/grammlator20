@@ -1,4 +1,4 @@
-﻿using BitsNamespace;
+﻿using IndexSetNamespace;
 
 using System;
 using System.Collections;
@@ -40,7 +40,7 @@ public sealed class P2ComputeLR0States
 
    private readonly ListOfParserActions ActionsOfActualState = new(100);
 
-   private readonly Bits EmptyLookAheadSet = new(GlobalVariables.NumberOfTerminalSymbols);
+   private readonly IndexSet EmptyLookAheadSet = new(GlobalVariables.NumberOfTerminalSymbols);
 
    private void ComputeLR0StatesAndActions()
    {
@@ -299,7 +299,7 @@ public sealed class P2ComputeLR0States
          if (existingTransition == null)
          {
             // if not found: create new TerminalTransition
-            var inputSymbols = new Bits(GlobalVariables.NumberOfTerminalSymbols);
+            var inputSymbols = new IndexSet(GlobalVariables.NumberOfTerminalSymbols);
             inputSymbols.Set(inputSymbol.SymbolNumber, true);
             ActionsOfActualState.Add(
                 new TerminalTransition(
@@ -427,7 +427,7 @@ public sealed class P2ComputeLR0States
       // The following declarations and methods are provided to mark states as processed.
       // All processed states are chained together with the anchor LastProcessed.
 
-      Bits hasBeenAdded = new(GlobalVariables.ListOfAllStates.Count);
+      IndexSet hasBeenAdded = new(GlobalVariables.ListOfAllStates.Count);
 
       // A) Determine the number of predecessor states for each state.
 

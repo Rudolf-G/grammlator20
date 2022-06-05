@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections;
-using BitsNamespace;
+using IndexSetNamespace;
 
 namespace grammlator;
 
@@ -1174,7 +1174,7 @@ internal partial class P1aParser
    /// Generate a definition for all terminal symbols without the terminal symbols in <paramref name="excludedTerminalSymbols"/>
    /// </summary>
    /// <param name="excludedTerminalSymbols"></param>
-   private void EvaluateExcludedTerminalSymbols(Bits excludedTerminalSymbols)
+   private void EvaluateExcludedTerminalSymbols(IndexSet excludedTerminalSymbols)
    {
       for (Int32 IndexOfTerminalSymbol = 0; IndexOfTerminalSymbol < GlobalVariables.NumberOfTerminalSymbols; IndexOfTerminalSymbol++)
       {
