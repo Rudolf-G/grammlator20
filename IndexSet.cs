@@ -2,9 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+
 
 namespace IndexSetNamespace;
 
@@ -35,7 +37,8 @@ namespace IndexSetNamespace;
 /// </para>
 /// </summary>
 public readonly struct IndexSet :
-   ICollection<int>, IEnumerable<int>, IComparable<IndexSet>, ISet<int>
+   ICollection<int>, IEnumerable<int>, IComparable<IndexSet>, ISet<int>,
+   IReadOnlyCollection<int>, IReadOnlySet<int>
 {
    /// <summary>
    /// The <see cref="IndexSet"/> struct has the capacity to store elements with indexes in the range 0..&lt; <see cref="Length"/>.
@@ -68,11 +71,12 @@ public readonly struct IndexSet :
 
    /// <summary>
    /// Returns the mimum value, the maximum value and the count of elements of <paramref name="initialIndexes"/>.
-   /// Tests if the values are sorted in increasing order.
+   /// Tests if the values are sorted in increasing or decreasing order.
    /// Returns (0, -1, 0, true) if <paramref name="initialIndexes"/> is null or empty.
    /// </summary>
-   /// <returns>The tuple (int min, int max, int count).</returns>
-   private static (int min, int max, int count, bool isSorted) GetMinMaxCountSorted(IEnumerable<int> initialIndexes)
+   /// <returns>The tuple (int min, int max, int count, bool increasing, bool decreasing).</returns>
+   private static (int min, int max, int count, bool increasing, bool decreasing)
+      GetMinMaxCountSorted(IEnumerable<int> initialIndexes)
    {
 
       int max = int.MinValue;
@@ -124,9 +128,9 @@ public readonly struct IndexSet :
       }
 
       if (count == 0)
-         return (0, -1, 0, true); // empty set
+         return (0, -1, 0, true, true); // empty set
 
-      return (min, max, count, increasing || decreasing);
+      return (min, max, count, increasing, decreasing); //  || decreasing
    }
 
    /// <summary>
@@ -185,9 +189,16 @@ public readonly struct IndexSet :
    /// Depending on <paramref name="ignoreExcessValues"/> values which are not within
    /// the range 0..<paramref name="length"/> are ignored or cause an ArgumentException.</param>
    /// <param name="ignoreExcessValues"></param>
-   public IndexSet(int length, IEnumerable<int> initialIndexes, bool ignoreExcessValues = false)
+   public IndexSet(IEnumerable<int>? initialIndexes, bool ignoreExcessValues = false)
    {
-      this = new(length);
+      if (initialIndexes is null)
+      {
+         this = default;
+         return;
+      }
+
+      int length = initialIndexes.Max();
+      this = new(length + 1);
       if (initialIndexes is IndexSet bits)
       {
          CopyFrom(bits, ignoreExcessValues);
@@ -217,8 +228,12 @@ public readonly struct IndexSet :
    /// </summary>
    /// <param name="initialIndexes"></param>
    /// <returns>A new <see cref="IndexSet"/> struct.</returns>
-   private IndexSet CopyToNewLimitedLengthBits(IEnumerable<int> initialIndexes)
-      => new(length: Minimum(initialIndexes.Max() + 1, Length), initialIndexes, ignoreExcessValues: true);
+   private static IndexSet CopyToNewLimitedLengthBits(IEnumerable<int>? initialIndexes)
+   {
+      return initialIndexes is null
+         ? default
+         : (new(initialIndexes, ignoreExcessValues: true));
+   }
 
    ///// <summary>
    ///// A static instance of <see cref="Bits"/> based on the empty set 0..&lt;0 as universal set. This set contains no elements.
@@ -289,14 +304,14 @@ public readonly struct IndexSet :
    }
 
    /// <summary>
-   /// Todo ///
+   /// Is true, if <see cref="Length"/>== 0, else false.
    /// </summary>
    public readonly bool IsSynchronized => Length == 0;  // BitArray: false
 
    /// <summary>
-   /// Todo ///
+   /// Returns an object that can be used to synchronize the sequence of bits.
    /// </summary>
-   public object SyncRoot => Length > 0 ? BitSequence! : new object();
+   public object SyncRoot => Length > 0 ? BitSequence!.SyncRoot : new object();
 
    /// <summary>
    /// Tests if <paramref name="index"/> is member of the set or adds  <paramref name="index"/> to the set /
@@ -485,7 +500,7 @@ public readonly struct IndexSet :
    /// <exception cref="ArgumentOutOfRangeException">the exception will be thrown if <paramref name="destination"/> &lt;0 or &gt; <see cref="Length"/> </exception>
    public void CopyTo(int[] destination, int startIndex) // ICollection<int>
    {
-      if (startIndex < 0 || startIndex > destination.Length - this.Count)
+      if (startIndex < 0 || destination is null || startIndex > destination.Length - this.Count)
          throw new ArgumentOutOfRangeException(
             nameof(startIndex),
             $"The {nameof(startIndex)} argument of {nameof(CopyTo)} is {startIndex}but must be >= 0 and <= {nameof(destination)}.Length - cardinality of the set, which is {this.Count}"); ;
@@ -612,6 +627,7 @@ public readonly struct IndexSet :
       Object[]? ElementNames = null,
       String delimiter = ", ", String? allString = null, String? emptyString = null)
    {
+      ArgumentNullException.ThrowIfNull(sb);
       if (ElementNames != null && ElementNames.Length < Length)
       {
          throw new ArgumentOutOfRangeException
@@ -654,7 +670,7 @@ public readonly struct IndexSet :
    /// of the <paramref name="other"/> struct the excess bits of the <paramref name="other"/> struct are ignored.
    /// <para>ISet&lt;int>: Removes all elements in the specified collection from the current set.</para>
    /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-  /// </summary>
+   /// </summary>
    /// <param name="other">The <see cref="IndexSet"/> used as operand of the operation.</param>
    /// <returns>A struct which references the same bits as the current struct.</returns>
    public IndexSet ExceptWith(IndexSet other) // this.Or(other).Xor(other);
@@ -672,14 +688,15 @@ public readonly struct IndexSet :
    /// ISet&lt;int>: Removes all elements in the specified collection from the current set.
    /// </summary>
    /// <param name="otherEnum"></param>
-   public void ExceptWith(IEnumerable<int> otherEnum) // ISet<int>
+   public void ExceptWith(IEnumerable<int>? otherEnum) // ISet<int>
    {
-      foreach (int index in otherEnum)
-      {
-         if (IsGe0AndLT(index, Length))
-            this[index] = false;
-         // bits not contained in the set are considered to be false already
-      }
+      if (otherEnum is not null)
+         foreach (int index in otherEnum)
+         {
+            if (IsGe0AndLT(index, Length))
+               this[index] = false;
+            // bits not contained in the set are considered to be false already
+         }
       return;
    }
 
@@ -715,7 +732,7 @@ public readonly struct IndexSet :
    /// ISet&lt;int>: Modifies the current set so that it contains only int values that are also in a specified collection.
    /// </summary>
    /// <param name="otherEnum"></param>
-   public void IntersectWith(IEnumerable<int> otherEnum) // ISet<int>
+   public void IntersectWith(IEnumerable<int>? otherEnum) // ISet<int>
       => And(CopyToNewLimitedLengthBits(otherEnum));
 
    /// <summary>
@@ -737,11 +754,8 @@ public readonly struct IndexSet :
    /// </summary>
    /// <param name="otherEnum"></param>
    /// <returns>true if the current set is a proper subset of other; otherwise, false.</returns>
-   public bool IsProperSubsetOf(IEnumerable<int> otherEnum) // ISet<int>
-      => IsProperSubsetOf(
-         new(length: Minimum(otherEnum.Max() + 1, Length),
-            otherEnum,
-            ignoreExcessValues: false));
+   public bool IsProperSubsetOf(IEnumerable<int>? otherEnum) // ISet<int>
+      => IsProperSubsetOf(new(otherEnum, ignoreExcessValues: false));
 
    /// <summary>
    /// Determines whether the bits referenced by the current struct are a proper superset of the 
@@ -762,7 +776,7 @@ public readonly struct IndexSet :
    /// </summary>
    /// <param name="otherEnum">The collection to compare to the current set.</param>
    /// <returns>true if the current set is a proper superset of other; otherwise, false.</returns>
-   public bool IsProperSupersetOf(IEnumerable<int> otherEnum)
+   public bool IsProperSupersetOf(IEnumerable<int>? otherEnum)
       => IsSupersetOf(otherEnum) && !SetEquals(otherEnum); // ISet<int> // Todo  optimize & excess bits? 
 
    /// <summary>
@@ -795,7 +809,7 @@ public readonly struct IndexSet :
    /// </summary>
    /// <param name="otherEnum">The collection to compare to the current set.</param>
    /// <returns>true if the current set is a subset of other; otherwise, false.</returns>
-   public bool IsSubsetOf(IEnumerable<int> otherEnum) // ISet<int>
+   public bool IsSubsetOf(IEnumerable<int>? otherEnum) // ISet<int>
    {
       if (IsEmpty)
          return true;
@@ -857,13 +871,14 @@ public readonly struct IndexSet :
    /// <param name="otherEnum">The collection to compare to the current set.</param>
    /// <returns>If other contains the same elements as the current set, the current set is still considered a superset of other.
    /// <para></para></returns>
-   public bool IsSupersetOf(IEnumerable<int> otherEnum) // ISet<int>
+   public bool IsSupersetOf(IEnumerable<int>? otherEnum) // ISet<int>
    {
-      foreach (int element in otherEnum)
-      {
-         if (!IsGe0AndLT(element, Length) || !Get(element))
-            return false;
-      }
+      if (otherEnum is not null)
+         foreach (int element in otherEnum)
+         {
+            if (!IsGe0AndLT(element, Length) || !Get(element))
+               return false;
+         }
       return true;
    }
 
@@ -967,13 +982,14 @@ public readonly struct IndexSet :
    /// </summary>
    /// <param name="otherEnum">The collection to compare to the current set.</param>
    /// <returns>true if the current set and other share at least one common element; otherwise, false.</returns>
-   public bool Overlaps(IEnumerable<int> otherEnum) // ISet<int>
+   public bool Overlaps(IEnumerable<int>? otherEnum) // ISet<int>
    {
-      foreach (int element in otherEnum)
-      {
-         if (this[element])
-            return true; // found common element
-      }
+      if (otherEnum is not null)
+         foreach (int element in otherEnum)
+         {
+            if (this[element])
+               return true; // found common element
+         }
       return false;
    }
 
@@ -1068,17 +1084,37 @@ public readonly struct IndexSet :
    /// </summary>
    /// <param name="otherEnum">The collection to compare to the current set.</param>
    /// <returns>true if the current set is equal to other; otherwise, false.</returns>
-   public bool SetEquals(IEnumerable<int> otherEnum) // ISet<int>.SetEquals(System.Collections.Generic.IEnumerable<T> other)
+   public bool SetEquals(IEnumerable<int>? otherEnum) // ISet<int>.SetEquals(System.Collections.Generic.IEnumerable<T> other)
    {
-      (int otherMin, int otherMax, int otherCount, bool isSorted) = GetMinMaxCountSorted(otherEnum); // O(otherEnum.Length)
+      if (otherEnum is null)
+         return IsEmpty;
+
       // Simple tests ( O(this.Length) before allocation of new Bits (..., otherEnum)
+      (int otherMin, int otherMax, int otherCount, bool isIncreasing, bool isDecreasing)
+         = GetMinMaxCountSorted(otherEnum); // O(otherEnum.Length)
+      int thisCount = Count;
+      if (otherCount == 0)
+         return thisCount == 0;
+
       if (otherMin != IndexOfFirstBit(true) || otherMax != IndexOfLastBit(true)
-         || (isSorted ? otherCount != Count : otherCount < Count))
+         || (isIncreasing ? otherCount != thisCount : otherCount < thisCount))
          // < because other may contain counted duplicates if not sorted
          return false;
-      // Todo  avoid new(...)  if other is sorted
-      // 
-      return CompareTo(new(otherMax + 1, otherEnum, ignoreExcessValues: true)) == 0;
+
+      // Avoid new(...)  if other is sorted
+      if (isIncreasing || isDecreasing)
+      {
+         int thisNext = isIncreasing ? IndexOfNextBit(-1) : IndexOfPrecedingBit(int.MaxValue);
+         foreach (int other in otherEnum)
+         {
+            if (other != thisNext)
+               return false;
+            thisNext = isIncreasing ? IndexOfNextBit(thisNext) : IndexOfPrecedingBit(thisNext);
+         }
+         return thisNext == Length;
+      }
+
+      return CompareTo(new(otherEnum, ignoreExcessValues: true)) == 0;
    }
 
    /// <summary>
@@ -1096,14 +1132,15 @@ public readonly struct IndexSet :
    /// </summary>
    /// <param name="otherEnum">The collection to compare to the current set.</param>
    /// <exception cref="System.ArgumentException"></exception>
-   void ISet<int>.SymmetricExceptWith(IEnumerable<int> otherEnum)
+   void ISet<int>.SymmetricExceptWith(IEnumerable<int>? otherEnum)
    {
-      foreach (int other in otherEnum)
-         if (IsGe0AndLT(other, Length))
-            this[other] = !this[other];
-         else
-            throw new ArgumentException
-               ($"{nameof(otherEnum)} contains the index {other} whích is &lt; 0 or >= {nameof(Length)} {Length}");
+      if (otherEnum is not null)
+         foreach (int other in otherEnum)
+            if (IsGe0AndLT(other, Length))
+               this[other] = !this[other];
+            else
+               throw new ArgumentException
+                  ($"{nameof(otherEnum)} contains the index {other} whích is &lt; 0 or >= {nameof(Length)} {Length}");
       return;
    }
 
@@ -1131,10 +1168,11 @@ public readonly struct IndexSet :
    /// <param name="otherEnum">The collection to compare to the current set.</param>
    /// <exception cref="ArgumentException">if <paramref name="otherEnum"/> contains an index
    /// less than 0 or ><see cref="Length"/></exception>
-   public void UnionWith(IEnumerable<int> otherEnum) // ISet<int>.
+   public void UnionWith(IEnumerable<int>? otherEnum) // ISet<int>.
    {
-      foreach (int element in otherEnum)
-         this[element] = true; // this[] handles element out of bounds
+      if (otherEnum is not null)
+         foreach (int element in otherEnum)
+            this[element] = true; // this[] handles element out of bounds
    }
 
    /// <summary>
@@ -1144,7 +1182,7 @@ public readonly struct IndexSet :
    /// of the <paramref name="other"/> struct and at least one of the excess bits referenced by the other struct is 1
    /// an <see cref="ArgumentException"/> is thrown.
    /// <para>This is an O(n) operation with 64 bit parallel execution.</para>
-   /// <para>Same as <see cref="SymmetricExceptWith(IndexSet)"/>.</para>
+   /// <para>Same as <see cref="UnionWith(IndexSet)"/>.</para>
    /// </summary>
    /// <param name="other">The <see cref="IndexSet"/> used as operand of the <see cref="And(IndexSet)"/> operation.</param>
    /// <returns>A struct which references the same bits as the current struct.</returns>
