@@ -84,8 +84,9 @@ internal class P4ReplaceNonterminalsAndOptimize
    {
       public override int Compare((int smaller, int larger) a, (int smaller, int larger) b)
       {
-         if (a.larger.CompareTo(b.larger) != 0) return a.larger.CompareTo(b.larger);
-         return a.smaller.CompareTo(b.smaller);
+         return a.larger.CompareTo(b.larger) != 0
+            ? a.larger.CompareTo(b.larger)
+            : a.smaller.CompareTo(b.smaller);
       }
    }
 
@@ -168,7 +169,7 @@ internal class P4ReplaceNonterminalsAndOptimize
                       * or (terminalTransition - ) Definition (shiftreduce): shift-reduce-conflict
                       * or (terminalTransition - ) State (shift): shift-reduce-conflict)
                       * accept ... */
-                     throw new NotImplementedException("Constant priority action in Priorit<BranchAction not yet implemented");
+                     throw new NotImplementedException("Constant priority action in PriorityBranchAction not yet implemented");
                   }
                   foreach (ParserAction dynamicPriorityAction in b.DynamicPriorityActions)
                   {
@@ -210,7 +211,7 @@ internal class P4ReplaceNonterminalsAndOptimize
 
       StatesOfNextLevel.Clear();
 
-      // Iterate Depth-1 levels
+      // Iterate Depth levels
       for (Int32 remainingLength = Depth; remainingLength > 0; remainingLength--)
       {
          // Add all predecessors of all states of this level to the list of preceding states

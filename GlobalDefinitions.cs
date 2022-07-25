@@ -6,13 +6,15 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 
-namespace grammlator {
+namespace grammlator
+{
    /// <summary>
    /// <see cref="ErrorInSourcedataException"/> is thrown in case of errors found by grammlator in the source file.
    /// The field Position (LineNumber and ColumnNumber) can be set as parameter of the constructor
    /// and accessed by e.ErrorPosition in exception handlers
    /// </summary>
-   public class ErrorInSourcedataException : Exception {
+   public class ErrorInSourcedataException : Exception
+   {
       internal Int32 Position { get; private set; }
 
       /// <summary>
@@ -61,7 +63,8 @@ namespace grammlator {
    /// <summary>
    /// Exception thrown in case of program errors
    /// </summary>
-   public class ErrorInGrammlatorProgramException : Exception {
+   public class ErrorInGrammlatorProgramException : Exception
+   {
       /// <summary>
       /// Exception thrown in case of program errors
       /// </summary>
@@ -86,7 +89,8 @@ namespace grammlator {
           : base(message, innerException) { }
    }
 
-   internal enum MessageTypeOrDestinationEnum {
+   internal enum MessageTypeOrDestinationEnum
+   {
       noMessageType,
       SymbolProtocol, ConflictProtocol, StateProtocol1, StateProtocol2,
       Information, Warning, Status, Error, AbortIfErrors, Abort
@@ -95,7 +99,8 @@ namespace grammlator {
    /// <summary>
    ///  A definition is empty if it contains no elements or if all contained elements are empty
    /// </summary>
-   internal enum EmptyComputationResultEnum {
+   internal enum EmptyComputationResultEnum
+   {
       /// <summary>
       /// As default initial value meaning NotYetComputed, as result of a computation 
       /// meaning: the search limited by recursion didn't find an empty definition
@@ -118,8 +123,9 @@ namespace grammlator {
       /// </summary>
       IsOrContainsEmptyDefinition
    }
-   
-   internal struct AttributeStruct {
+
+   internal struct AttributeStruct
+   {
       /// <summary>
       /// The type of the attribute e.g."Int32"
       /// </summary>
@@ -147,7 +153,8 @@ namespace grammlator {
       /// attribute must be copied and cleared when accessed so that no unused reference may
       /// remain in the attribute stack
       /// </summary>
-      internal enum OverlayEnum: Byte {
+      internal enum OverlayEnum : Byte
+      {
          /// <summary>
          /// Attribute in the right side not overlaying  or overlaying with same type and different name.
          /// <para>May not be used or may be associated to a formal value or in parameter.</para>
@@ -219,13 +226,14 @@ namespace grammlator {
          OverlayType = OverlayEnum.inAttribute;
          Implementation = ParameterImplementation.NotAssigned;
       }
-      
+
    }
 
    /// <summary>
    /// Stores the attributes while parsing a (maybe nested) definition
    /// </summary>
-   internal class ListOfAttributes : List<AttributeStruct> {
+   internal class ListOfAttributes : List<AttributeStruct>
+   {
       /// <summary>
       /// returns an attribute struct with LeftSide == true and Usage == inAttribute (to be updated later)
       /// </summary>
@@ -284,7 +292,8 @@ namespace grammlator {
    /// depending on the type of the formal parameter (value, in, out, ref)
    /// and the overlay of left and right side attributes.
    /// </summary>
-   internal enum ParameterImplementation: Byte {
+   internal enum ParameterImplementation : Byte
+   {
       /// <summary>
       ///  This default value is assigned to a formal parameter until grammlator associates this parameter to an attribute.
       ///  Parameters which can not be assigned to attributes are an error in the grammlator input.
@@ -329,7 +338,8 @@ namespace grammlator {
    /// <summary>
    /// Describes the characteristics of a formal method parameter assiciated to a grammlator attribute
    /// </summary>
-   internal struct MethodParameterStruct {
+   internal struct MethodParameterStruct
+   {
       internal UnifiedString NameString;
       internal UnifiedString TypeString;
 
@@ -343,7 +353,8 @@ namespace grammlator {
    /// <summary>
    /// Stores the name and the parameters of a semantic method or priority specified in the grammar
    /// </summary>
-   internal class MethodClass {
+   internal class MethodClass
+   {
       internal readonly String MethodName;
       internal readonly Int32 Position;
 
@@ -363,7 +374,8 @@ namespace grammlator {
    /// <summary>
    /// Stores the name and the parameters of a semantic method specified in the grammar
    /// </summary>
-   internal class VoidMethodClass : MethodClass {
+   internal class VoidMethodClass : MethodClass
+   {
       internal VoidMethodClass(String methodName, Int32 position) : base(methodName, position)
       {
       }
@@ -372,7 +384,8 @@ namespace grammlator {
    /// <summary>
    /// Stores the name and the parameters of a semantic priority specified in the grammar
    /// </summary>
-   internal class IntMethodClass : MethodClass {
+   internal class IntMethodClass : MethodClass
+   {
       internal IntMethodClass(String methodName, Int32 position) : base(methodName, position)
       {
       }
@@ -381,7 +394,8 @@ namespace grammlator {
    /// <summary>
    ///  Extensions to Symbol[]
    /// </summary>
-   internal static class ArrayOfSymbolExtensions {
+   internal static class ArrayOfSymbolExtensions
+   {
       /// <summary>
       /// Checks if one of the Symbols ContainsAnEmptyDefinition
       /// </summary>
@@ -401,24 +415,24 @@ namespace grammlator {
          {
             switch (Symbol.ContainsAnEmptyDefinition()) // may cause recursion
             {
-            case EmptyComputationResultEnum.NotEmpty:
-               break; // this symbol doesn't contain an empty definition, check next symbol of list
+               case EmptyComputationResultEnum.NotEmpty:
+                  break; // this symbol doesn't contain an empty definition, check next symbol of list
 
-            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
-               return EmptyComputationResultEnum.IsOrContainsEmptyDefinition; // Success
+               case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
+                  return EmptyComputationResultEnum.IsOrContainsEmptyDefinition; // Success
 
-            case EmptyComputationResultEnum.NotYetComputedOrRecursion:
-            {
-               Result = EmptyComputationResultEnum.NotYetComputedOrRecursion;
-               break; // this computation ended in recursion, check next symbol of list
-            }
+               case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+                  {
+                     Result = EmptyComputationResultEnum.NotYetComputedOrRecursion;
+                     break; // this computation ended in recursion, check next symbol of list
+                  }
 
-            default:
-            {
-               Debug.Fail($"Error in {nameof(OneOfTheSymbolsContainsAnEmptyDefinition)}");
-               throw new ErrorInGrammlatorProgramException(
-                   $"Error in {nameof(OneOfTheSymbolsContainsAnEmptyDefinition)}: illegal value");
-            }
+               default:
+                  {
+                     Debug.Fail($"Error in {nameof(OneOfTheSymbolsContainsAnEmptyDefinition)}");
+                     throw new ErrorInGrammlatorProgramException(
+                         $"Error in {nameof(OneOfTheSymbolsContainsAnEmptyDefinition)}: illegal value");
+                  }
             }
          } // foreach
 
@@ -502,7 +516,8 @@ namespace grammlator {
       }
    }
 
-   internal abstract class Symbol {
+   internal abstract class Symbol
+   {
 
       internal Symbol(UnifiedString identifier, Int32 position, Int32 symbolNumber)
       {
@@ -559,35 +574,37 @@ namespace grammlator {
       /// which contains only symbols for which SymbolContainsAnEmptyDefinition is true.
       /// </summary>
       /// <exception cref="ErrorInGrammlatorProgramException"></exception>
-      internal Boolean IsNullable {
-         get {
+      internal Boolean IsNullable
+      {
+         get
+         {
 
             switch (_EmptyComputationResult)
             {
-            case EmptyComputationResultEnum.NotEmpty:
-            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
-               return _EmptyComputationResult == EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+               case EmptyComputationResultEnum.NotEmpty:
+               case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
+                  return _EmptyComputationResult == EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
 
-            case EmptyComputationResultEnum.NotYetComputedOrRecursion:
-               // has not yet been computed: compute it (only once)
-               _EmptyComputationResult = ContainsAnEmptyDefinition();
+               case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+                  // has not yet been computed: compute it (only once)
+                  _EmptyComputationResult = ContainsAnEmptyDefinition();
 
-               if (_EmptyComputationResult == EmptyComputationResultEnum.NotYetComputedOrRecursion)
-               {
-                  /* computation hase bean started from outside any recursion, 
-                   * so recursion means that no empty alternative has been found */
-                  _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;
-                  return false;
-               }
+                  if (_EmptyComputationResult == EmptyComputationResultEnum.NotYetComputedOrRecursion)
+                  {
+                     /* computation hase bean started from outside any recursion, 
+                      * so recursion means that no empty alternative has been found */
+                     _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;
+                     return false;
+                  }
 
-               return _EmptyComputationResult == EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+                  return _EmptyComputationResult == EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
 
-            default: // case eEmptyComputationResult.IsJustBeingComputed 
-            {
-               Debug.Fail($"Error in {nameof(IsNullable)}");
-               throw new ErrorInGrammlatorProgramException(
-                   $"Error in {nameof(IsNullable)}");
-            }
+               default: // case eEmptyComputationResult.IsJustBeingComputed 
+                  {
+                     Debug.Fail($"Error in {nameof(IsNullable)}");
+                     throw new ErrorInGrammlatorProgramException(
+                         $"Error in {nameof(IsNullable)}");
+                  }
             }
          }
       }
@@ -617,7 +634,8 @@ namespace grammlator {
       /// </summary>
       internal Boolean IsTerminalSymbol => this is TerminalSymbol;
 
-      internal abstract String SymboltypeString {
+      internal abstract String SymboltypeString
+      {
          get;
       }
 
@@ -677,8 +695,9 @@ namespace grammlator {
 
    }
 
-   internal sealed class TerminalSymbol : Symbol {
-      internal TerminalSymbol(UnifiedString identifier, Int32 Position, Int32 symbolNumber, Int64 enumValue) 
+   internal sealed class TerminalSymbol : Symbol
+   {
+      internal TerminalSymbol(UnifiedString identifier, Int32 Position, Int32 symbolNumber, Int64 enumValue)
          : base(identifier, Position, symbolNumber)
       {
          EnumValue = enumValue;
@@ -699,11 +718,13 @@ namespace grammlator {
       internal String FlagName { get; private set; }
 
       private String? _NameToGenerate;
-      internal String NameToGenerate {
+      internal String NameToGenerate
+      {
          // Lazy evaluation because GlobalSettings.TerminalSymbolEnum may not yet be
          // assigned at the time when the declaration of the terminal in grammlator source
          // is evaluated (an enum my follow)
-         get {
+         get
+         {
             if (_NameToGenerate == null)
             {
                if (GlobalSettings.TerminalSymbolEnum.Value == GlobalSettings.TerminalSymbolUndefinedValue
@@ -756,7 +777,8 @@ namespace grammlator {
       }
    }
 
-   internal sealed class NonterminalSymbol : Symbol {
+   internal sealed class NonterminalSymbol : Symbol
+   {
 
       internal NonterminalSymbol(
             UnifiedString identifier,
@@ -800,7 +822,8 @@ namespace grammlator {
          TrivalDefinitionsArray = trivalDefinitionsArray;
       }
 
-      internal Boolean IsDefined {
+      internal Boolean IsDefined
+      {
          get { return TrivalDefinitionsArray.Length != 0 || NontrivialDefinitionsList.Count != 0; }
       }
 
@@ -861,14 +884,14 @@ namespace grammlator {
       {
          switch (_EmptyComputationResult)
          {
-         // if value has been already computed then return value
-         case EmptyComputationResultEnum.NotEmpty:
-         case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
-            return _EmptyComputationResult;
+            // if value has been already computed then return value
+            case EmptyComputationResultEnum.NotEmpty:
+            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
+               return _EmptyComputationResult;
 
-         // if value is marked as "just beeing computed" do not change the value, but return "NotYetComputedOrRecursion"
-         case EmptyComputationResultEnum.IsJustBeingComputed:
-            return EmptyComputationResultEnum.NotYetComputedOrRecursion;
+            // if value is marked as "just beeing computed" do not change the value, but return "NotYetComputedOrRecursion"
+            case EmptyComputationResultEnum.IsJustBeingComputed:
+               return EmptyComputationResultEnum.NotYetComputedOrRecursion;
 
          }
 
@@ -884,64 +907,64 @@ namespace grammlator {
          // Check nontrivial definitions of the nonterminal symbol
          switch (NontrivialDefinitionsList.ListContainsEmptyDefinition()) // this may cause recursion
          {
-         case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
-         {// success: an empty definition has been found
-            _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-            return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-         }
+            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
+               {// success: an empty definition has been found
+                  _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+                  return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+               }
 
-         case EmptyComputationResultEnum.NotEmpty: // the symbol does not contain an empty alternative 
-            break; // Search in nontrivial definitions
+            case EmptyComputationResultEnum.NotEmpty: // the symbol does not contain an empty alternative 
+               break; // Search in nontrivial definitions
 
-         case EmptyComputationResultEnum.NotYetComputedOrRecursion:
-         {
-            // The search is stopped caused by recursion without finding an empty definition.
-            // If ContainsAnEmptyDefinition has been called from outside this means there is no empty definition.
-            // If it has been called during another search process that must be continued and
-            // computing the result for the current symbol must be reated later.
-            // Then the chance of finding a result is better.
-            // TODO Expand this simple algorithm to the Digraph algorithm which runs in linear time.
-            SearchLimitedByRecursion = true;
-            break;  // Search in nontrivial definitions
-         }
+            case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+               {
+                  // The search is stopped caused by recursion without finding an empty definition.
+                  // If ContainsAnEmptyDefinition has been called from outside this means there is no empty definition.
+                  // If it has been called during another search process that must be continued and
+                  // computing the result for the current symbol must be reated later.
+                  // Then the chance of finding a result is better.
+                  // TODO Expand this simple algorithm to the Digraph algorithm which runs in linear time.
+                  SearchLimitedByRecursion = true;
+                  break;  // Search in nontrivial definitions
+               }
 
-         case EmptyComputationResultEnum.IsJustBeingComputed:
-            break;
+            case EmptyComputationResultEnum.IsJustBeingComputed:
+               break;
 
-         default: // case ... .IsJustBeingComputed:
-         {
-            Debug.Fail($"Error in {nameof(ContainsAnEmptyDefinition)}");
-            throw new ErrorInGrammlatorProgramException(
-                $"Error in {nameof(ContainsAnEmptyDefinition)}");
-         }
+            default: // case ... .IsJustBeingComputed:
+               {
+                  Debug.Fail($"Error in {nameof(ContainsAnEmptyDefinition)}");
+                  throw new ErrorInGrammlatorProgramException(
+                      $"Error in {nameof(ContainsAnEmptyDefinition)}");
+               }
          }
 
          // Check trivial definitions of the nonterminal symbol
          switch (TrivalDefinitionsArray.OneOfTheSymbolsContainsAnEmptyDefinition()
              )
          {
-         // this computation may cause recursion
-         case EmptyComputationResultEnum.IsOrContainsEmptyDefinition: // a descendant contains an empty alternative
-         {
-            _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-            return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-         }
+            // this computation may cause recursion
+            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition: // a descendant contains an empty alternative
+               {
+                  _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+                  return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+               }
 
-         case EmptyComputationResultEnum.NotEmpty: // es wurde keine leere Alternative gefunden, bei den Alternativen trat eventuell Rekursion auf
-            break;
+            case EmptyComputationResultEnum.NotEmpty: // es wurde keine leere Alternative gefunden, bei den Alternativen trat eventuell Rekursion auf
+               break;
 
-         case EmptyComputationResultEnum.NotYetComputedOrRecursion:
-         {
-            SearchLimitedByRecursion = true;
-            break;
-         }
+            case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+               {
+                  SearchLimitedByRecursion = true;
+                  break;
+               }
 
-         default: //  case eEmptyComputationResult.IsJustBeingComputed:
-         {
-            Debug.Fail($"Error in {nameof(ContainsAnEmptyDefinition)}");
-            throw new ErrorInGrammlatorProgramException(
-                $"Error in {nameof(ContainsAnEmptyDefinition)}");
-         }
+            default: //  case eEmptyComputationResult.IsJustBeingComputed:
+               {
+                  Debug.Fail($"Error in {nameof(ContainsAnEmptyDefinition)}");
+                  throw new ErrorInGrammlatorProgramException(
+                      $"Error in {nameof(ContainsAnEmptyDefinition)}");
+               }
          }
 
          // keine Alternative bzw. Nachfolger gefunden, die bzw. der die leere Zeichenkette erzeugt
@@ -959,7 +982,8 @@ namespace grammlator {
    /// and identifies each string by a unique index. To get the string use ToString().
    /// The comparision of unified strings by "==" is the comparision of the integer value.
    /// </summary>
-   internal readonly record struct UnifiedString {
+   internal readonly record struct UnifiedString
+   {
       /// <summary>
       /// All <see cref="UnifiedString"/>s which represent the same string have the same <see cref="Index"/>.
       /// The <see cref="Index"/> of "" is 0;

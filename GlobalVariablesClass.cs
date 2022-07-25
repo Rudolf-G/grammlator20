@@ -10,9 +10,11 @@ using IndexSetNamespace;
 
 using Microsoft.Extensions.ObjectPool;
 
-namespace grammlator {
+namespace grammlator
+{
 
-   class MemoryComparer : IEqualityComparer<ReadOnlyMemory<Char>> {
+   class MemoryComparer : IEqualityComparer<ReadOnlyMemory<Char>>
+   {
       public Boolean Equals(ReadOnlyMemory<Char> rom1, ReadOnlyMemory<Char> rom2)
          => rom1.Span.SequenceEqual(rom2.Span);
 
@@ -21,7 +23,8 @@ namespace grammlator {
    }
 
 
-   internal static class GlobalVariables {
+   internal static class GlobalVariables
+   {
 
       static GlobalVariables()
       {
@@ -38,8 +41,10 @@ namespace grammlator {
       }
 
       static public String AssemblyFullPath { get; private set; } = "";
-      internal static String GetVersioninfo {
-         get {
+      internal static String GetVersioninfo
+      {
+         get
+         {
 
             Assembly ThisAssembly = typeof(GlobalVariables).Assembly;
             AssemblyName AssemblyName = ThisAssembly.GetName();
@@ -132,7 +137,8 @@ namespace grammlator {
          ListOfAllPriorityBranchActions.Capacity = InitialCapacityOfListOfAllPriorityBranchActions;
       }
 
-      internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage {
+      internal static Action<MessageTypeOrDestinationEnum, String> OutputMessage
+      {
          get; private set;
       }
 
@@ -143,21 +149,24 @@ namespace grammlator {
       {
       }
 
-      internal static Action<MessageTypeOrDestinationEnum, String, Int32> OutputMessageAndPosition {
+      internal static Action<MessageTypeOrDestinationEnum, String, Int32> OutputMessageAndPosition
+      {
          get; private set;
       }
 
       /// <summary>
       ///  The number of terminal symbols is defined in phase1. It may be zero.
       /// </summary>
-      internal static Int32 NumberOfTerminalSymbols {
+      internal static Int32 NumberOfTerminalSymbols
+      {
          get; set;
       } // wird beim Erkennen des ersten nichtterminalen Symbols bestimmt
 
       /// <summary>
       /// The number of nonterminal symbols ist defined at the end of phase1.
       /// </summary>
-      internal static Int32 NumberOfNonterminalSymbols {
+      internal static Int32 NumberOfNonterminalSymbols
+      {
          get; set;
       }
 
@@ -174,7 +183,8 @@ namespace grammlator {
       /// None of its definitions will be considered as trivial definition.
       /// Starting with it phase2 computes all states.
       /// </summary>
-      internal static NonterminalSymbol Startsymbol {
+      internal static NonterminalSymbol Startsymbol
+      {
          get; private set;
       }
 
@@ -228,7 +238,8 @@ namespace grammlator {
       /// <see cref="P4ReplaceNonterminalsAndOptimize.MakeInstanceAndExecute"/>
       ///  and is used as root of all actions in P4 to count usage and in P5 generate the code
       /// </summary>
-      internal static ParserAction Startaction {
+      internal static ParserAction Startaction
+      {
          get; set;
       }
 

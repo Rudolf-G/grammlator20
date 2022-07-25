@@ -546,7 +546,7 @@ public partial class MainWindow
    void ClickCopyAll(Object sender, RoutedEventArgs args)
    {
       TextBox? tb = GetTextBoxFromParentPlacementTarget(sender);
-      tb?. SelectAll(); tb?.Copy();
+      tb?.SelectAll(); tb?.Copy();
    }
    void ClickSelectAll(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.SelectAll(); }
    void ClickClear(Object sender, RoutedEventArgs args) { GetTextBoxFromParentPlacementTarget(sender)?.Clear(); }

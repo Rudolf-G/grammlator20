@@ -7,11 +7,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace grammlator {
+namespace grammlator
+{
    /// <summary>
    /// IdNumbers of <see cref="ParserState"/>s are assigned at start of phase 2 and reset at end of phase 2
    /// </summary>
-   internal sealed partial class ParserState : ParserAction, IELementOfPartition {
+   internal sealed partial class ParserState : ParserAction, IELementOfPartition
+   {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isParserState;
 
       internal ItemList CoreItems = new();
@@ -52,7 +54,8 @@ namespace grammlator {
       /// </summary>
       internal IndexSet DirectRead = default;
 
-      internal Boolean ContainsErrorHandlerCall {
+      internal Boolean ContainsErrorHandlerCall
+      {
          get;
          set;
       }
@@ -64,13 +67,14 @@ namespace grammlator {
       /// if instructions (for all but the last conditional action)
       /// or a switch instruction.
       /// </summary>
-      internal Int32 IfComplexity {
+      internal Int32 IfComplexity
+      {
          get;
          set;
       }
 
       /// <summary>
-      /// Constructor which assigns the number (&gt;=1)to the states IdNumber and <see cref="StateStackNumber"/>
+      /// Constructor which assigns the number (&gt;=1) to the states <see cref="ParserAction.IdNumber"/>
       /// and copies the items to the <see cref="CoreItems"/>
       /// </summary>
       /// <param name="Number">Assigned to <see cref="StateStackNumber"/> and to IdNumber</param>
@@ -162,53 +166,53 @@ namespace grammlator {
 
             switch (Actions[i])
             {
-            case TerminalTransition transition:
-               if (!transition.TerminalSymbols.IsEmpty)
-               {
-                  // a TerminalTransition, even if caused by all symbols,
-                  // can not be skipped because the accept must be generated
-                  return -1;
-               }
-               // ...TerminalSymbols.Empty(): this transition will never be executed, can be ignored
-               // This may happen if there is also a IF ( ...All()) ...
-               continue;
-            case LookaheadAction lookAction:
-               if (lookAction.TerminalSymbols.IsComplete)
-                  FoundIndex = i;
-               // FittingAction = lookAction; // action with all terminal symbols allowed (or no terminal symbols defined)
-               else if (lookAction.TerminalSymbols.IsEmpty) // only correct after preceding "if( ...ALL())"
-                  continue; // this action will never be executed
-               else
-               {
-                  FoundIndex = i;
-               }
+               case TerminalTransition transition:
+                  if (!transition.TerminalSymbols.IsEmpty)
+                  {
+                     // a TerminalTransition, even if caused by all symbols,
+                     // can not be skipped because the accept must be generated
+                     return -1;
+                  }
+                  // ...TerminalSymbols.Empty(): this transition will never be executed, can be ignored
+                  // This may happen if there is also a IF ( ...All()) ...
+                  continue;
+               case LookaheadAction lookAction:
+                  if (lookAction.TerminalSymbols.IsComplete)
+                     FoundIndex = i;
+                  // FittingAction = lookAction; // action with all terminal symbols allowed (or no terminal symbols defined)
+                  else if (lookAction.TerminalSymbols.IsEmpty) // only correct after preceding "if( ...ALL())"
+                     continue; // this action will never be executed
+                  else
+                  {
+                     FoundIndex = i;
+                  }
 
-               break;
-            case PrioritySelectAction selectAction:
-               if (selectAction.NextAction is TerminalTransition)
-                  return -1; // see above ????
+                  break;
+               case PrioritySelectAction selectAction:
+                  if (selectAction.NextAction is TerminalTransition)
+                     return -1; // see above ????
 
-               // The selectAction contains only Definitions -> LookAheadActions
-               if (selectAction.TerminalSymbols.IsComplete)
-                  FoundIndex = i;
-               // FittingAction = selectAction; // action with all terminal symbols allowed (or no terminal symbols defined)
-               else if (selectAction.TerminalSymbols.IsEmpty) // must not occur because some terminals must cause the conflict
-                  continue; // this action will never be executed
-               else
-               {
-                  FoundIndex = i;
-               }
+                  // The selectAction contains only Definitions -> LookAheadActions
+                  if (selectAction.TerminalSymbols.IsComplete)
+                     FoundIndex = i;
+                  // FittingAction = selectAction; // action with all terminal symbols allowed (or no terminal symbols defined)
+                  else if (selectAction.TerminalSymbols.IsEmpty) // must not occur because some terminals must cause the conflict
+                     continue; // this action will never be executed
+                  else
+                  {
+                     FoundIndex = i;
+                  }
 
-               break;
-            case ReduceAction _:
-               FoundIndex = i;
-               break;
-            case DeletedParserAction _:
-            case NonterminalTransition _:
-               continue;
-            default: // all other types of actions
-               Debug.Assert(false);
-               throw new ArgumentException();
+                  break;
+               case ReduceAction _:
+                  FoundIndex = i;
+                  break;
+               case DeletedParserAction _:
+               case NonterminalTransition _:
+                  continue;
+               default: // all other types of actions
+                  Debug.Assert(false);
+                  throw new ArgumentException();
             }
 
             if (FirstFoundIndex == -1)
@@ -297,7 +301,7 @@ namespace grammlator {
       /// <param name="writeHeadline">If true when there are conflicts a description of the state has to be be written to sb above the conflict description(s)</param>
       private Boolean SolveAndLogConflictsOfAction(Int32 indexOfConflictAction, IndexSet terminalsOfThisAction,
             IndexSet conflictSymbols, IndexSet allowedTerminalsUpToConflictAction, StringBuilder sb,
-            Boolean writeHeadline, out int  numberOfConflictsNotSolvedByExplicitPriority)
+            Boolean writeHeadline, out int numberOfConflictsNotSolvedByExplicitPriority)
       {
 
          numberOfConflictsNotSolvedByExplicitPriority = 0;
@@ -326,7 +330,7 @@ namespace grammlator {
                                          allowedTerminalsUpToConflictAction, // will be modified if the terminal symbols of one of the prededing actions is modified
                                          out int numberOfActionsWithHighestPriority,
                                          sb);
-            numberOfConflictsNotSolvedByExplicitPriority += (numberOfActionsWithHighestPriority-1);
+            numberOfConflictsNotSolvedByExplicitPriority += (numberOfActionsWithHighestPriority - 1);
             // One conflict is solved, symbolsOfThisAction may be modified
             // There may be more conflicts between the action and the preceding actions
 
@@ -700,11 +704,12 @@ namespace grammlator {
 
    /// <summary>
    /// The ItemStruct includes an additional field InputSymbol to make the special handling of trivial definitions possible.
-   /// First the InputSymbol is the marked symbol.
-   /// Then the item is copied for all trivial definitions of the marked symbol
+   /// Initially the InputSymbol is the marked symbol.
+   /// Then the <see cref="ItemStruct"/> is copied for all trivial definitions of the marked symbol
    /// and each trivial definition (symbol) is used as InputSymbol
    /// </summary>
-   public readonly record struct ItemStruct {
+   public readonly record struct ItemStruct
+   {
       internal readonly Definition SymbolDefinition;
       internal readonly Int32 MarkerPosition;
       internal Symbol InputSymbol { get; init; } // == EmptySymbol if enditem
@@ -868,9 +873,10 @@ namespace grammlator {
       }
    }
 
-   internal class ItemList : List<ItemStruct> {
+   internal class ItemList : List<ItemStruct>
+   {
       /// <summary>
-      /// Constructor
+      /// Constructor of a <see cref="List{T}"/> of <see cref="ItemStruct"/>s
       /// </summary>
       internal ItemList()
       {

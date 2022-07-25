@@ -6,13 +6,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace grammlator {
+namespace grammlator
+{
    /// <summary>
    /// <see cref="ParserActionEnum"/> is used to sort the actions of a state and to output the name of the type of actions.
    /// The order of the enum elements corresponds to the order of the elements
    /// of <see cref="GlobalVariables.LabelPrefixes"/>
    /// </summary>
-   internal enum ParserActionEnum {
+   internal enum ParserActionEnum
+   {
       isDefinition,
       isParserState,
       isPushStateAction,
@@ -32,7 +34,8 @@ namespace grammlator {
       isSomethingElse
    }
 
-   class ParserEnumExtension {
+   class ParserEnumExtension
+   {
       /// <summary>
       /// These strings are used to construct labels in the generated program.
       /// They are adressed by <see cref="ParserActionEnum"/>.
@@ -69,12 +72,13 @@ namespace grammlator {
 
    internal abstract partial class ParserAction :
       EqualityComparer<ParserAction> //, // implements: public Boolean Equals(ParserAction? a1, ParserAction? a2)
-                                      // IComparable<ParserAction>, // implements: Int32 CompareTo([AllowNull] T other)
-      {
+                                     // IComparable<ParserAction>, // implements: Int32 CompareTo([AllowNull] T other)
+   {
       /// <summary>
       /// The <see cref="ParserActionType"/>  is used for AppendToSB (...) and for comparisions
       /// </summary>
-      internal abstract ParserActionEnum ParserActionType {
+      internal abstract ParserActionEnum ParserActionType
+      {
          get;
       }
 
@@ -82,21 +86,19 @@ namespace grammlator {
       /// compares the (Int32)ParserActionType, which is defined by <see cref="ParserActionEnum"/>, and then the IdNumbers
       /// </summary>
       /// <param name="other"></param>
-      /// <returns> this... - other ...</returns>
+      /// <returns> this... minusd other ...</returns>
       /// <exception cref="ArgumentNullException"><paramref name="other"/> is <c>null</c>.</exception>
       public virtual Int32 CompareTo(ParserAction? other)
       {
          if (other == null)
             throw new ArgumentNullException(nameof(other));
 
-         Int32 result = (Int32)this.ParserActionType - (Int32)other.ParserActionType;
-         if (result != 0)
-            return result;
+         Debug.Assert((this.IdNumber - other.IdNumber != 0) || ReferenceEquals(this, other));
 
-         // different instances of same type must have different IdNumbers
-         result = this.IdNumber - other.IdNumber;
-         Debug.Assert((result != 0) || ReferenceEquals(this, other));
-         return result;
+         Int32 result;
+         return (result = (Int32)this.ParserActionType - (Int32)other.ParserActionType) != 0
+            ? result
+            : this.IdNumber - other.IdNumber;
       }
 
       public override Boolean Equals(ParserAction? a1, ParserAction? a2)
@@ -111,14 +113,15 @@ namespace grammlator {
 
       public override Int32 GetHashCode(ParserAction a)
       {
-         return (Int32)a.ParserActionType + a.IdNumber << 5;
+         return (Int32)a.ParserActionType + (a.IdNumber << 5);
       }
 
       /// <summary>
       /// A number &gt;= 0, unique within subclass (halts, reductions and branches are numbered separately.
       /// In protocols IdNumber+1 is used (human friendly).
       /// </summary>
-      public Int32 IdNumber {
+      public Int32 IdNumber
+      {
          get; set;
       }
 
@@ -126,7 +129,8 @@ namespace grammlator {
       /// in phase3: used in digraph (0=&gt;not yet calculated); 
       /// in phase4: set to 0 (implements interface IParserAction)
       /// </summary>
-      public Int32 Codenumber {
+      public Int32 Codenumber
+      {
          get; set;
       }
 
@@ -137,7 +141,8 @@ namespace grammlator {
       ///  <para> Additional Optimization may move this information to other actions.
       ///  Then the number x is replaced by (-x-2).</para>
       /// </summary>
-      internal Int32 StateStackNumber {
+      internal Int32 StateStackNumber
+      {
          get; set;
       } = -1;
 
@@ -146,7 +151,8 @@ namespace grammlator {
       /// state stack, is always &gt;= 0, initial value 0;
       /// <para> Optimization may move this information to other actions.</para>
       /// </summary>
-      internal Int32 StateStackAdjustment {
+      internal Int32 StateStackAdjustment
+      {
          get; set;
       } = 0;
 
@@ -155,10 +161,12 @@ namespace grammlator {
       /// <para>0: never used or code has been generated, </para>
       /// <para>&lt;0: code has been generated or should not yet be generated (=-number of usages)</para>
       /// </summary>
-      internal Int32 Calls {
+      internal Int32 Calls
+      {
          get; set;
       }
-      internal Int32 AcceptCalls {
+      internal Int32 AcceptCalls
+      {
          get; set;
       }
 
@@ -201,7 +209,8 @@ namespace grammlator {
       }
    }
 
-   internal class ListOfParserActions : List<ParserAction> {
+   internal class ListOfParserActions : List<ParserAction>
+   {
       /// <summary>
       /// Initializes a new instance of the <see cref="ListOfParserActions"/>: List&lt;ParserAction&gt; class
       /// that is empty and has the specified initial <paramref name="capacity"/>.
@@ -248,8 +257,10 @@ namespace grammlator {
       /// Yields all actions of the list of actions whereby instead of a PrioritySelectActions its
       /// NextAction is used and if it is a PriorityBranchAction yields all dependend actions
       /// </summary>
-      public IEnumerable<ParserAction> PriorityUnwindedSetOfActions {
-         get {
+      public IEnumerable<ParserAction> PriorityUnwindedSetOfActions
+      {
+         get
+         {
             for (Int32 i = 0; i < Count; i++)
             {
                ParserAction? a = this[i];
@@ -278,9 +289,11 @@ namespace grammlator {
 
    /// <summary>
    /// Each nonterminal symbol has one ore more (n-1) definitions, numbered from 0 to n-1 by IdNumber.
-   /// Each definition consist of the DefinedSymbol, its Elements and the AttributestackAdjustment.
+   /// Each definition is made up of this <see cref="ParserAction.IdNumber"/>, the <see cref="DefinedSymbol"/>, 
+   /// its <see cref="Elements"/> Elements, the <see cref="AttributestackAdjustment"/> and the <see cref="AttributeIdentifiers"/>.
    /// </summary>
-   internal sealed class Definition : ParserAction {
+   internal sealed class Definition : ParserAction
+   {
       //   Nummer gibt an, um die wievielte Alternative des
       //     erzeugten Symbols es sich handelt
       //   TOCHECK          Kontext in dieser Version noch nicht implementiert !!!}
@@ -296,7 +309,7 @@ namespace grammlator {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isDefinition;
 
       /// <summary>
-      /// Compares this and other by ParserActionType, DefinedSymbol.SymbolNumer and ParserAction.IdNumber
+      /// Compares this and other by ParserActionType, DefinedSymbol!.SymbolNumber and ParserAction.IdNumber
       /// </summary>
       /// <param name="other"></param>
       /// <returns>if this &lt; other: result is &lt; 0; if equal result is &gt; 0 else is  0</returns>
@@ -307,17 +320,15 @@ namespace grammlator {
 
          Int32 result;
 
-         if ((result = this.ParserActionType - other.ParserActionType) != 0)
-            return result;
-
-         // other is a Definition
-         var otherNumber = ((Definition)other).DefinedSymbol!.SymbolNumber;
-         return (result = this.DefinedSymbol!.SymbolNumber - otherNumber) != 0
+         return (other is Definition otherDefinition)
+            ? ((result = this.DefinedSymbol!.SymbolNumber - otherDefinition.DefinedSymbol!.SymbolNumber) != 0
              ? result
-             : this.IdNumber - other.IdNumber;
+             : this.IdNumber - other.IdNumber)
+            : this.ParserActionType - other.ParserActionType;
       }
 
-      internal NonterminalSymbol? DefinedSymbol {
+      internal NonterminalSymbol? DefinedSymbol
+      {
          get; set;
       }
 
@@ -432,13 +443,13 @@ namespace grammlator {
       {
          switch (_EmptyComputationResult)
          {
-         // if value is known return value
-         case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
-         case EmptyComputationResultEnum.NotEmpty:
-            return _EmptyComputationResult;
-         // if recursion return NotYetComputedOrRecursion
-         case EmptyComputationResultEnum.IsJustBeingComputed:
-            return EmptyComputationResultEnum.NotYetComputedOrRecursion;
+            // if value is known return value
+            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
+            case EmptyComputationResultEnum.NotEmpty:
+               return _EmptyComputationResult;
+            // if recursion return NotYetComputedOrRecursion
+            case EmptyComputationResultEnum.IsJustBeingComputed:
+               return EmptyComputationResultEnum.NotYetComputedOrRecursion;
          }
 
          // Is the alternative empty (simple redundant check)
@@ -467,26 +478,26 @@ namespace grammlator {
          {
             switch (Symbol.ContainsAnEmptyDefinition())
             {
-            case EmptyComputationResultEnum.NotEmpty:
-            {
-               _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;
-               return EmptyComputationResultEnum.NotEmpty;
-            }
+               case EmptyComputationResultEnum.NotEmpty:
+                  {
+                     _EmptyComputationResult = EmptyComputationResultEnum.NotEmpty;
+                     return EmptyComputationResultEnum.NotEmpty;
+                  }
 
-            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
-               break; // Test if all other elements also contain an empty alternative
+               case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
+                  break; // Test if all other elements also contain an empty alternative
 
-            case EmptyComputationResultEnum.NotYetComputedOrRecursion:
-            {
-               ResultDependsOnRecursion = true; // Weitersuchen, ob eLeereZeichenkette.falsch auftritt
-               break; // this computation ended in recursion, check next symbols of list for DoesNotContain
-            }
+               case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+                  {
+                     ResultDependsOnRecursion = true; // Weitersuchen, ob eLeereZeichenkette.falsch auftritt
+                     break; // this computation ended in recursion, check next symbols of list for DoesNotContain
+                  }
 
-            default: // =  case eEmptyComputationResult.IsJustBeingComputed:
-            {
-               Debug.Fail("Error in Symbol.ContainsAnEmptyAlternative");
-               throw new ErrorInGrammlatorProgramException("Error in Symbol.ContainsAnEmptyAlternative");
-            }
+               default: // =  case eEmptyComputationResult.IsJustBeingComputed:
+                  {
+                     Debug.Fail("Error in Symbol.ContainsAnEmptyAlternative");
+                     throw new ErrorInGrammlatorProgramException("Error in Symbol.ContainsAnEmptyAlternative");
+                  }
             }
          }
 
@@ -499,7 +510,8 @@ namespace grammlator {
       }
    }
 
-   internal class ListOfDefinitions : List<Definition> {
+   internal class ListOfDefinitions : List<Definition>
+   {
 
       internal ListOfDefinitions(Int32 Anzahlelemente) : base(Anzahlelemente) { }
 
@@ -517,14 +529,14 @@ namespace grammlator {
       {
          switch (_EmptyComputationResult)
          {
-         // if value is already known return value
-         case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
-         case EmptyComputationResultEnum.NotEmpty:
-            return _EmptyComputationResult;
+            // if value is already known return value
+            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition:
+            case EmptyComputationResultEnum.NotEmpty:
+               return _EmptyComputationResult;
 
-         // if recursion return "NotYetComputedOrRecursion"
-         case EmptyComputationResultEnum.IsJustBeingComputed:
-            return EmptyComputationResultEnum.NotYetComputedOrRecursion;
+            // if recursion return "NotYetComputedOrRecursion"
+            case EmptyComputationResultEnum.IsJustBeingComputed:
+               return EmptyComputationResultEnum.NotYetComputedOrRecursion;
          }
 
          // Redundant check: is any of the definitions empty
@@ -547,24 +559,24 @@ namespace grammlator {
          {
             switch (def.IsEmptyDefinitionComputation())
             {
-            case EmptyComputationResultEnum.IsOrContainsEmptyDefinition: // Suche war erfolgreich
-            {
-               _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-               return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
-            }
+               case EmptyComputationResultEnum.IsOrContainsEmptyDefinition: // Suche war erfolgreich
+                  {
+                     _EmptyComputationResult = EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+                     return EmptyComputationResultEnum.IsOrContainsEmptyDefinition;
+                  }
 
-            case EmptyComputationResultEnum.NotEmpty:
-               break; // continue searching
+               case EmptyComputationResultEnum.NotEmpty:
+                  break; // continue searching
 
-            case EmptyComputationResultEnum.NotYetComputedOrRecursion:
-            {
-               SearchLimitedByRecursion = true;
-               break;
-            }
+               case EmptyComputationResultEnum.NotYetComputedOrRecursion:
+                  {
+                     SearchLimitedByRecursion = true;
+                     break;
+                  }
 
-            default:
-               throw new
-          ErrorInGrammlatorProgramException("illegal result of empty ComputeEmptyComputationResult()");
+               default:
+                  throw new
+             ErrorInGrammlatorProgramException("illegal result of empty ComputeEmptyComputationResult()");
             }
          }
 
@@ -602,7 +614,8 @@ namespace grammlator {
       public void RemoveFromEnd(Int32 n) => this.RemoveRange(this.Count - n, n);
    }
 
-   internal sealed partial class BranchAction : ParserAction {
+   internal sealed partial class BranchAction : ParserAction
+   {
       internal BranchAction(BranchcasesList ListOfCases, Int32 IdNumber)
       {
          this.ListOfCases = ListOfCases;
@@ -674,7 +687,8 @@ namespace grammlator {
       }
    }
 
-   internal class BranchcasesList : List<BranchcaseStruct> {
+   internal class BranchcasesList : List<BranchcaseStruct>
+   {
       internal BranchcasesList(Int32 capacity) : base(capacity) { }
 
       private BranchcasesList()
@@ -747,7 +761,8 @@ namespace grammlator {
       }
    }
 
-   internal struct BranchcaseStruct {
+   internal struct BranchcaseStruct
+   {
       internal Int32 BranchcaseCondition;
       internal ParserAction BranchcaseAction;
 
@@ -758,8 +773,10 @@ namespace grammlator {
       }
    }
 
-   internal abstract class ParserActionWithNextAction : ParserAction {
-      public ParserAction NextAction {
+   internal abstract class ParserActionWithNextAction : ParserAction
+   {
+      public ParserAction NextAction
+      {
          get; set;
       }
 
@@ -793,7 +810,8 @@ namespace grammlator {
    /// In phase4 definitions and nonterminal transitions are replaced by reduce actions with appropriate next actions
    /// (ParserState, BranchAction ...)
    /// </summary>
-   internal sealed partial class ReduceAction : ParserActionWithNextAction {
+   internal sealed partial class ReduceAction : ParserActionWithNextAction
+   {
 
       internal ReduceAction(ParserAction nextAction) : base(nextAction) { }
 
@@ -902,12 +920,14 @@ namespace grammlator {
       }
    }
 
-   internal abstract class ConditionalAction : ParserActionWithNextAction {
+   internal abstract class ConditionalAction : ParserActionWithNextAction
+   {
       /// <summary>
       /// <see cref="TerminalSymbols"/> are accepted by <see cref="TerminalTransition"/>s or checked
       /// by other actions e.g. <see cref="LookaheadAction"/>s 
       /// </summary>
-      public IndexSet TerminalSymbols {
+      public IndexSet TerminalSymbols
+      {
          get; set;
       }
 
@@ -919,8 +939,10 @@ namespace grammlator {
       /// <summary>
       /// Returns Int32.MaxValue if action has dynamic priority, assigned priority of lookadead action, 0 else
       /// </summary>
-      public Int64 Priority {
-         get {
+      public Int64 Priority
+      {
+         get
+         {
             if (this is LookaheadAction laAction)
             {
                if (laAction.PriorityFunction != null)
@@ -976,14 +998,16 @@ namespace grammlator {
       /// <summary>
       /// The sum of the weights of all terminal symbols in <see cref="TerminalSymbols"/>, never 0 (replaced by 1)
       /// </summary>
-      public Int64 SumOfWeights {
+      public Int64 SumOfWeights
+      {
          get; private set;
       }
 
       /// <summary>
       /// The number of terminal symbols in <see cref="TerminalSymbols"/>
       /// </summary>
-      public Int32 Terminalcount {
+      public Int32 Terminalcount
+      {
          get; private set;
       }
 
@@ -991,7 +1015,8 @@ namespace grammlator {
       /// Estimates how many if conditions might be generated to test if a symbol is one of the allowed symbols.
       /// 0 &lt;= <see cref="Complexity"/> &lt;= allowed symbols. Returns 0 if all or none.
       /// </summary>
-      public Int32 Complexity {
+      public Int32 Complexity
+      {
          get; private set;
       }
 
@@ -1045,7 +1070,7 @@ namespace grammlator {
             if (ActualValue != BaseValue)
             {
                // different values: a comparision has to be generated
-               result++; 
+               result++;
                if (NextValue != BaseValue)
                {
                   // The next value is equal to the actual value: a >= or <= comparision is sufficient
@@ -1066,7 +1091,8 @@ namespace grammlator {
    /// <summary>
    /// Transition with TerminalSymbols to be accepted 
    /// </summary>
-   internal sealed class TerminalTransition : ConditionalAction {
+   internal sealed class TerminalTransition : ConditionalAction
+   {
       internal TerminalTransition(Int32 number, IndexSet terminalSymbols, ParserAction nextAction) :
          base(terminalSymbols, nextAction)
       {
@@ -1108,7 +1134,8 @@ namespace grammlator {
    // <summary>
    /// This class is used in phase 3
    /// </summary>
-   internal abstract class LookaheadOrNonterminalTransition : ConditionalAction {
+   internal abstract class LookaheadOrNonterminalTransition : ConditionalAction
+   {
 
       public LookaheadOrNonterminalTransition(IndexSet terminalSymbols, ParserAction nextAction)
          : base(terminalSymbols, nextAction)
@@ -1118,7 +1145,8 @@ namespace grammlator {
       private static readonly HashSet<NonterminalTransition>
          emptyHashSet = new(0);
 
-      internal HashSet<NonterminalTransition> Includes {
+      internal HashSet<NonterminalTransition> Includes
+      {
          get; set;
       } = emptyHashSet;
 
@@ -1133,7 +1161,8 @@ namespace grammlator {
    /// A nonterminal transition denotes a parser state change caused by a nonterminal.
    /// In phase 4 all nonterminal transitions are replaced by reduce actions.
    /// </summary>
-   internal sealed class NonterminalTransition : LookaheadOrNonterminalTransition {
+   internal sealed class NonterminalTransition : LookaheadOrNonterminalTransition
+   {
       //internal override HashSet<NonterminalTransition> Includes {
       //   get; set;
       //}
@@ -1198,7 +1227,8 @@ namespace grammlator {
    /// <summary>
    /// Look ahead actions are generated in phase 2
    /// </summary>
-   internal sealed class LookaheadAction : LookaheadOrNonterminalTransition {
+   internal sealed class LookaheadAction : LookaheadOrNonterminalTransition
+   {
       //internal override HashSet<NonterminalTransition> Includes {
       //   get; set;
       //}
@@ -1257,7 +1287,8 @@ namespace grammlator {
 
    }
 
-   internal sealed partial class PriorityBranchAction : ParserAction {
+   internal sealed partial class PriorityBranchAction : ParserAction
+   {
       internal PriorityBranchAction(
             ConditionalAction? constantPriorityAction,
             ListOfParserActions dynamicPriorityActions
@@ -1334,7 +1365,8 @@ namespace grammlator {
             ((LookaheadAction)a).NextAction.CountUsage(false);
       }
    }
-   internal sealed partial class PrioritySelectAction : ConditionalAction {
+   internal sealed partial class PrioritySelectAction : ConditionalAction
+   {
 
       /// <summary>
       /// Constructor
@@ -1367,7 +1399,8 @@ namespace grammlator {
       }
    }
 
-   internal sealed class AcceptAction : ConditionalAction {
+   internal sealed class AcceptAction : ConditionalAction
+   {
       internal readonly String InputClass;
       internal AcceptAction(IndexSet terminalSymbols, String InputClass, ParserAction nextAction)
          : base(terminalSymbols, nextAction)
@@ -1384,7 +1417,8 @@ namespace grammlator {
    /// <summary>
    /// <see cref="ErrorhandlingAction"/>s are added to the states in Phase 4 and used for code generation in phase5
    /// </summary>
-   internal sealed partial class ErrorhandlingAction : ConditionalAction {
+   internal sealed partial class ErrorhandlingAction : ConditionalAction
+   {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isErrorhandlingAction;
 
       ///<summary>
@@ -1421,7 +1455,8 @@ namespace grammlator {
       }
    }
 
-   internal sealed partial class HaltAction : ParserActionWithNextAction {
+   internal sealed partial class HaltAction : ParserActionWithNextAction
+   {
       /// <summary>
       /// Construct halt action with unique number>=1 and number of attributes to store
       /// </summary>
@@ -1436,7 +1471,8 @@ namespace grammlator {
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isHaltAction;
 
-      internal Int32 AttributestackAdjustment {
+      internal Int32 AttributestackAdjustment
+      {
          get; set;
       }
 
@@ -1458,7 +1494,8 @@ namespace grammlator {
    /// which is referenced by <see cref="ErrorhandlingAction"/>s.
    /// This action typically calls a user method, resets the stack pointers and jumps to the end of generated code
    /// </summary>
-   internal sealed partial class ErrorHaltAction : ParserActionWithNextAction {
+   internal sealed partial class ErrorHaltAction : ParserActionWithNextAction
+   {
       internal ErrorHaltAction() : base(GlobalVariables.EndOfGeneratedCodeInstance) { }
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isErrorhaltAction;
@@ -1474,9 +1511,11 @@ namespace grammlator {
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
    }
 
-   internal sealed class DeletedParserAction : ParserAction {
+   internal sealed class DeletedParserAction : ParserAction
+   {
       // : ActionWithNextAction" ??? no, NextAction should be ignored because it can not be reached
-      public ParserAction? NextAction {
+      public ParserAction? NextAction
+      {
          get;
       }
 
@@ -1499,7 +1538,8 @@ namespace grammlator {
    /// which is referenced by <see cref="ErrorhandlingAction"/>s.
    /// This action typically calls a user method, resets the stack pointers and jumps to the end of gnerated code
    /// </summary>
-   internal sealed partial class EndOfGeneratedCodeAction : ParserAction {
+   internal sealed partial class EndOfGeneratedCodeAction : ParserAction
+   {
 
       internal EndOfGeneratedCodeAction() { }
 
@@ -1516,7 +1556,8 @@ namespace grammlator {
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
    }
 
-   internal sealed partial class PushStateAction : ParserActionWithNextAction {
+   internal sealed partial class PushStateAction : ParserActionWithNextAction
+   {
 
       internal PushStateAction(Int32 idNumber, Int32 stateStackNumber, ParserAction nextAction)
          : base(nextAction)
@@ -1525,8 +1566,10 @@ namespace grammlator {
          this.StateStackNumber = stateStackNumber;
       }
 
-      internal override ParserActionEnum ParserActionType {
-         get {
+      internal override ParserActionEnum ParserActionType
+      {
+         get
+         {
             return ParserActionEnum.isPushStateAction;
          }
       }

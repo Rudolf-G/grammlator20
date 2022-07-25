@@ -485,7 +485,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    //| = Name(UnifiedString terminalName)
    private void FirstExcludedTerminalSymbol(UnifiedString terminalName)
    {
-      if (ExcludedTerminalSymbols.Length == 0 ) // || ExcludedTerminalSymbols.Length != GlobalVariables.NumberOfTerminalSymbols)
+      if (ExcludedTerminalSymbols.Length == 0) // || ExcludedTerminalSymbols.Length != GlobalVariables.NumberOfTerminalSymbols)
          ExcludedTerminalSymbols = new IndexSet(GlobalVariables.NumberOfTerminalSymbols);
       ExcludedTerminalSymbols.Clear();
       OneMoreExcludedTerminalSymbol(terminalName);

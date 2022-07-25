@@ -188,7 +188,7 @@ namespace grammlator
 
          return true;
       }
-            
+
       /// <summary>
       /// Checks if all bits are 1, true if no bits
       /// </summary>
@@ -234,7 +234,7 @@ namespace grammlator
             throw new ArgumentNullException(nameof(rightArgument));
          if (leftArgument == null)
             throw new ArgumentNullException(nameof(leftArgument));
-         
+
          if (leftArgument.Length != rightArgument.Length)
             return false;
 

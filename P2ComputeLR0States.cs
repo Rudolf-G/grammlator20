@@ -29,14 +29,10 @@ public sealed class P2ComputeLR0States
       ComputePredecessorRelation();
    }
 
-   // private readonly Action<MessageTypeOrDestinationEnum, string> OutputMessage;
-
    /// <summary>
    /// Make constructor private (external calls via Phase2.Execute(...))
    /// </summary>
-   private P2ComputeLR0States()
-   {
-   }
+   private P2ComputeLR0States() { }
 
    private readonly ListOfParserActions ActionsOfActualState = new(100);
 
@@ -62,17 +58,16 @@ public sealed class P2ComputeLR0States
          ListOfNotAnEnditemLOfActualState.Clear();
          ActionsOfActualState.Clear();
 
-         /* Special Case: In the first state insert a nonterminal transitions caused by the startsymbol with null next state  
-          * This is will be transformed to a halt action
-          */
+         /* Special Case: In the first state insert a nonterminal transitions with a halt action as nextAction 
+          * instead of a state */
 
          if (IndexOfActualState == 0)
          {
             ActionsOfActualState.Add(
                new NonterminalTransition(
-                   GlobalVariables.NumberOfActions++,
-                   GlobalVariables.Startsymbol,
-                   GlobalVariables.ListOfAllHaltActions[0], EmptyLookAheadSet)
+                   number: GlobalVariables.NumberOfActions++,
+                   inputSymbol: GlobalVariables.Startsymbol,
+                   nextAction: GlobalVariables.ListOfAllHaltActions[0], EmptyLookAheadSet)
                    );
          }
 

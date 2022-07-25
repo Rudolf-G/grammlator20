@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace grammlator {
-   internal partial class P5GenerateCode {
+namespace grammlator
+{
+   internal partial class P5GenerateCode
+   {
       public static void MakeInstanceAndExecute(P5CodegenCS Codegen)
          => new P5GenerateCode(Codegen).Execute();
 

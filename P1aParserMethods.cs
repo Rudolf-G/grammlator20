@@ -1276,7 +1276,7 @@ internal partial class P1aParser
          {
             // no attribute with the same name as the formal parameter
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-               $"Error in method \"{semanticMethod!.MethodName }\" formal parameter \"{methodParameterName}\": "
+               $"Error in method \"{semanticMethod!.MethodName}\" formal parameter \"{methodParameterName}\": "
                + "missing attribute with the same name.",
                semanticMethod!.Position
                );
@@ -1296,7 +1296,7 @@ internal partial class P1aParser
          {
             // last attribute with same name as formal parameter is defined at a different level
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-               $"Error in method \"{semanticMethod!.MethodName }\" formal parameter \"{methodParameterName}\": "
+               $"Error in method \"{semanticMethod!.MethodName}\" formal parameter \"{methodParameterName}\": "
                + "the attribute with the same name is not inside the parantheses of the nested grammar rule.",
                semanticMethod!.Position
                );
@@ -1314,7 +1314,7 @@ internal partial class P1aParser
          if (!String.IsNullOrEmpty(errorDescription))
          {
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-               $"Error in method \"{semanticMethod!.MethodName }\": the formal parameter \"{methodParameterName}\" "
+               $"Error in method \"{semanticMethod!.MethodName}\": the formal parameter \"{methodParameterName}\" "
                + "and the attribute with the same name are not compatible:"
                 + errorDescription,
                semanticMethod!.Position
@@ -1328,7 +1328,7 @@ internal partial class P1aParser
          if (Attribute.TypeString != MethodParameter.TypeString)
          {
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-               $"Error in method \"{semanticMethod!.MethodName }\": the type of the formal parameter  "
+               $"Error in method \"{semanticMethod!.MethodName}\": the type of the formal parameter  "
                + $"\"{MethodParameter.TypeString} {methodParameterName}\""
                + $" is different from the type of the attribute "
                + $"\"{Attribute.TypeString} {Attribute.NameString}\"",
@@ -1493,7 +1493,7 @@ internal partial class P1aParser
             // no attribute with the same name as the formal parameter
             // no attribute with the same name as the formal parameter
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-                $"Error in semantic priority \"{semanticPriority!.MethodName }\" formal parameter \"{methodParameterName}\": "
+                $"Error in semantic priority \"{semanticPriority!.MethodName}\" formal parameter \"{methodParameterName}\": "
                 + "missing attribute with the same name.",
                 semanticPriority!.Position
                 );
@@ -1512,7 +1512,7 @@ internal partial class P1aParser
          {
             // last attribute with same name as formal parameter is defined at a different level
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-               $"Error in  priority method \"{semanticPriority!.MethodName }\" formal parameter \"{methodParameterName}\": "
+               $"Error in  priority method \"{semanticPriority!.MethodName}\" formal parameter \"{methodParameterName}\": "
                + "the attribute with the same name is not inside the parantheses of the nested grammar rule.",
                semanticPriority!.Position
                );
@@ -1526,7 +1526,7 @@ internal partial class P1aParser
          {
             // A parameter of a priority method must not be associated with a left side attribute
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-               $"Error in  priority method \"{semanticPriority!.MethodName }\": the formal parameter \"{methodParameterName}\""
+               $"Error in  priority method \"{semanticPriority!.MethodName}\": the formal parameter \"{methodParameterName}\""
                   + " has the same name as an attribute of the left side of the definition",
                   semanticPriority!.Position
                   );
@@ -1539,7 +1539,7 @@ internal partial class P1aParser
              && MethodParameter.Implementation != ParameterImplementation.ValueOrInClearCall)
          {
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-               $"Error in  priority method \"{semanticPriority!.MethodName }\": the formal parameter \"{methodParameterName}\""
+               $"Error in  priority method \"{semanticPriority!.MethodName}\": the formal parameter \"{methodParameterName}\""
                   + "is not a value parameter or an in parameter.",
                   semanticPriority!.Position
                   );
@@ -1551,7 +1551,7 @@ internal partial class P1aParser
          if (Attribute.TypeString != MethodParameter.TypeString)
          {
             GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-               $"Error in priority method \"{semanticPriority!.MethodName }\": the type of the formal parameter "
+               $"Error in priority method \"{semanticPriority!.MethodName}\": the type of the formal parameter "
                + $"\"{MethodParameter.TypeString} {methodParameterName}\""
                + $" is different from the type of the attribute "
                + $"\"{Attribute.TypeString} {Attribute.NameString}\"",

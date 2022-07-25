@@ -340,8 +340,8 @@ internal class P3ComputeLALR1
    }
 
    /// <summary>
-   /// Finds all predecessor states in the given distance of actual state 
-   /// and adds the action, that the defined nonterminal symbol causes there, to the includes relation.
+   /// Find all predecessor states in the given distance of actual state 
+   /// and add the action, that the defined nonterminal symbol causes there, to the includes relation.
    /// </summary>
    /// <param name="actualState"></param>
    /// <param name="waybackAcceptsEmpty"></param>

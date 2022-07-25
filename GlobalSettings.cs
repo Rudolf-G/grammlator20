@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace grammlator {
+namespace grammlator
+{
 
 
-   public abstract class Setting {
-      public enum SettingType {
+   public abstract class Setting
+   {
+      public enum SettingType
+      {
          StringType, BooleanType, Int64Type
       }
 
@@ -34,7 +37,8 @@ namespace grammlator {
       public virtual void Reset() { }
    }
 
-   public class Int64Setting : Setting {
+   public class Int64Setting : Setting
+   {
 
       public Int64 InitialValue { get; }
       public Int64 Value { get; set; }
@@ -52,7 +56,8 @@ namespace grammlator {
       public override void Reset() => Value = InitialValue;
    }
 
-   public class BooleanSetting : Setting {
+   public class BooleanSetting : Setting
+   {
 
       public Boolean InitialValue { get; }
       public Boolean Value { get; set; }
@@ -70,7 +75,8 @@ namespace grammlator {
       public override void Reset() => Value = InitialValue;
    }
 
-   public class StringSetting : Setting {
+   public class StringSetting : Setting
+   {
 
       public String InitialValue { get; }
       public String Value { get; set; }
@@ -88,7 +94,8 @@ namespace grammlator {
       public override void Reset() => Value = InitialValue;
    }
 
-   public static class GlobalSettings {
+   public static class GlobalSettings
+   {
 
       public static void Reset()
       {

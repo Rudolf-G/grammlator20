@@ -129,7 +129,7 @@ internal static class SpanExtensions
             break;
          }
 
-         column+=keyword.Length;
+         column += keyword.Length;
       }
 
       return foundAllKeywords;
