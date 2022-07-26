@@ -45,15 +45,13 @@ internal class P4ReplaceNonterminalsAndOptimize
 
       p4.P4aComputeStateStackNumbersAndBranches();
 
-      // p4.P4cRemoveNotLongerUsedActionsFromStates();
-
       GlobalVariables.Startaction = GlobalVariables.ListOfAllStates[0];
 
       //Shorten chains of actions and remove states which have been skipped by optimization
       P4bShortenChainsOfActionsDeleteNonterminalTransitions();
 
       // Now  ListOfAllStates[0] is definitely assigned and GlobalVariables.Startaction may be defined and used
-      P4cRemoveNotLongerUsedActionsFromStates(); // TOCHECK second call needed ??
+      P4cRemoveNotLongerUsedActionsFromStates();
 
       // For each Parseraction compute the number of AcceptCalls and Calls
       GlobalVariables.Startaction.CountUsage(Accept: false);
@@ -98,11 +96,16 @@ internal class P4ReplaceNonterminalsAndOptimize
    /// </summary>
    private readonly PartitionInfoArray<ParserState> SamePredecessorLevelPartitionOfStates;
 
-   private enum RelationtypeEnum
-   {
-      ComputeDistinguishableStatesRelation,
-      ComputeBranches
-   };
+   /// <summary>
+   /// Lists of states used in in <see cref="CombineClassesOfSamePredecessorLevelPartitionOfStates"/>,
+   /// <see cref="ComputeDistinguishableStatesRelation"/> and  <see cref="ReplaceDefinitionsByReductionsAndBranches/>
+   /// </summary>
+   List<ParserState>
+      StatesOfThisLevel =
+          new(GlobalVariables.ListOfAllStates.Count),
+      StatesOfNextLevel =
+          new(GlobalVariables.ListOfAllStates.Count);
+
 
    /// <summary>
    /// In Phase2 the StateStackNumber of each state has been set to its idNumber (==position in ListOfallStes).
@@ -117,12 +120,11 @@ internal class P4ReplaceNonterminalsAndOptimize
    /// </summary>
    public void P4aComputeStateStackNumbersAndBranches()
    {
-
       ComputeSamePredecessorLevelPartitionOfStates();
 
       // ComputeDistinguishableStatesRelation
       DistinguishableStatesRelation.Clear();
-      EvaluatePrecedingStates(RelationtypeEnum.ComputeDistinguishableStatesRelation);
+      ComputeDistinguishableStatesRelation();
 
       // DetermineNotStackingStates using SamePredecessorLevelPartitionOfState and DistinguishableStatesRelation
       GlobalVariables.NumberOfStatesWithStateStackNumber = AssignStateStackNumbersAndCountPushingStates();
@@ -134,7 +136,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       }
 
       // Compute branches
-      EvaluatePrecedingStates(RelationtypeEnum.ComputeBranches);
+      ReplaceDefinitionsByReductionsAndBranches();
    }
 
    /// <summary>
@@ -156,7 +158,9 @@ internal class P4ReplaceNonterminalsAndOptimize
                {
                   CombineClassesOfSamePredecessorLevelPartitionOfStates(
                       StateToStartFrom: state,
-                      Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1)
+                      Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1),
+                      StatesOfThisLevel,
+                      StatesOfNextLevel
                   );
                   // In terminal and nonterminal shifts the item is one position before the end:
                   // depth must be one less than the length of the definitions elementlist
@@ -177,7 +181,10 @@ internal class P4ReplaceNonterminalsAndOptimize
                      if (dynamicPriorityAction is Definition d)
                         CombineClassesOfSamePredecessorLevelPartitionOfStates(
                             StateToStartFrom: state,
-                            Depth: d.Elements.Length);
+                            Depth: d.Elements.Length,
+                            StatesOfThisLevel,
+                            StatesOfNextLevel
+                            );
                   }
                }
             }
@@ -186,23 +193,20 @@ internal class P4ReplaceNonterminalsAndOptimize
    }
 
    /// <summary>
-   /// used as temporary variable in <see cref="CombineClassesOfSamePredecessorLevelPartitionOfStates"/>
-   /// and in <see cref="EvaluatePredecessors"/>
-   /// </summary>
-   List<ParserState>
-      StatesOfThisLevel =
-          new(GlobalVariables.ListOfAllStates.Count),
-      StatesOfNextLevel =
-          new(GlobalVariables.ListOfAllStates.Count);
-
-   /// <summary>
    /// Start with <paramref name="StateToStartFrom"/> and walk <paramref name="Depth"/> levels
    /// back to all predecessors combining all states of the same depth into the same class
    /// of <see cref="SamePredecessorLevelPartitionOfStates"/>
    /// </summary>
    /// <param name="StateToStartFrom">state from where to walk back</param>
    /// <param name="Depth">number of levels to walk back</param>
-   private void CombineClassesOfSamePredecessorLevelPartitionOfStates(ParserState StateToStartFrom, Int32 Depth)
+   /// <param name="StatesOfThisLevel">temporary vairaialbe</param>
+   /// <param name="StatesOfNextLevel">temporary variable</param>
+   private void CombineClassesOfSamePredecessorLevelPartitionOfStates(
+      ParserState StateToStartFrom, 
+      Int32 Depth,
+      List<ParserState> StatesOfThisLevel,
+      List<ParserState> StatesOfNextLevel
+)
    {
       // start with StateToStartFrom as single element of the set of states to evaluate 
       // and walk back 
@@ -218,7 +222,8 @@ internal class P4ReplaceNonterminalsAndOptimize
          foreach (ParserState stateToEvaluate in StatesOfThisLevel)
          {
             foreach (ParserState predecessor in stateToEvaluate.PredecessorList!)
-               StatesOfNextLevel.Add(predecessor);
+               if (!StatesOfNextLevel.Contains(predecessor))
+                  StatesOfNextLevel.Add(predecessor);
          }
 
          Debug.Assert(StatesOfNextLevel.Count != 0, "Error in phase4: no predecessor)");
@@ -239,13 +244,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       StatesOfThisLevel.Clear();
    }
 
-   /// <summary>
-   /// Visit all states, take all actions which apply a definition,
-   /// and find all predecessor states up to a search depth given by the definitions length.
-   /// Apply the type of evaluation to the predecessors.
-   /// </summary> 
-   /// <param name="TypeOfEvaluation"></param>
-   private void EvaluatePrecedingStates(RelationtypeEnum TypeOfEvaluation)
+   private void ComputeDistinguishableStatesRelation()
    {
       foreach (ParserState state in GlobalVariables.ListOfAllStates)
          foreach (ParserAction action in state.Actions.PriorityUnwindedSetOfActions)
@@ -253,55 +252,93 @@ internal class P4ReplaceNonterminalsAndOptimize
             if ((action is ParserActionWithNextAction actionWithNextAction)
                 && (actionWithNextAction.NextAction is Definition definition))
             {
-               switch (TypeOfEvaluation)
-               {
-                  case RelationtypeEnum.ComputeDistinguishableStatesRelation:
-                     EvaluatePredecessors(
-                         RelationtypeEnum.ComputeDistinguishableStatesRelation,
-                         StateToStartFrom: state,
-                         DefinitionToReplace: definition,
-                         Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1
-                         // In terminal and nonterminal shifts the item is one position before the end:
-                         // depth must be one less than the length of the definitions elementlist
-                         )
-                     );
-                     break;
-                  case RelationtypeEnum.ComputeBranches:
-                     Debug.Assert(actionWithNextAction is ConditionalAction && actionWithNextAction.NextAction is Definition);
-                     actionWithNextAction.NextAction =
-                         EvaluatePredecessors(
-                             RelationtypeEnum.ComputeBranches,
-                             StateToStartFrom: state,
-                             DefinitionToReplace: definition,
-                             Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1)
-                         )!;
-                     Debug.Assert(actionWithNextAction.NextAction is not Definition); // ??????????????
-                                                                                      // actionWithNextAction.NextAction may be NonterminalTransition;
-
-                     break;
-               }
+               _ = FindPrecedingStates(
+                        StateToStartFrom: state,
+                        Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1),
+                        StatesOfThisLevel:
+                        // In terminal and nonterminal shifts the item is one position before the end:
+                        // depth must be one less than the length of the definitions elementlist
+                        ref StatesOfThisLevel,
+                        ref StatesOfNextLevel
+                        );
+               ComputeDistinguishableStatesRelation(
+                  statesWhichAcceptTheNonterminal: StatesOfThisLevel,
+                  inputSymbol: definition.DefinedSymbol!);
             }
          }
    }
 
    /// <summary>
-   /// Start with <paramref name="StateToStartFrom"/> and walk <paramref name="Depth"/> levels
-   /// back and do at each or at the last level the type of evaluation
-   /// </summary>
-   /// <param name="TypeOfEvaluation">defines what to do</param>
-   /// <param name="StateToStartFrom">state from where to walk back</param>
-   /// <param name="DefinitionToReplace">Definition to replace</param>
-   /// <param name="Depth">number of levels to walk back</param>
-   /// <returns>if <paramref name="TypeOfEvaluation"/> is <see cref="RelationtypeEnum.ComputeBranches"/>
-   /// returns a <see cref="BranchAction"/> or <see cref="ReduceAction"/> otherwise <paramref name="DefinitionToReplace"/> 
-   ///  </returns>
-   private ParserAction? EvaluatePredecessors(
-       RelationtypeEnum TypeOfEvaluation,
-       ParserState StateToStartFrom,
-       Definition DefinitionToReplace,
-       Int32 Depth)
+   /// Visit all states, take all actions a which apply a definition,
+   /// and find all predecessor states up to a search depth given by the definitions length.
+   /// Replace a by a <see cref="ReduceAction"/> followed by a <see cref="BranchAction"/> or
+   /// an optimized version of those
+   /// </summary> 
+   private void ReplaceDefinitionsByReductionsAndBranches()
    {
-      // List<ParserState> StatesOfThisLevel = new List<ParserState>(GlobalVariables.ListOfAllStates.Count);
+      foreach (ParserState state in GlobalVariables.ListOfAllStates)
+         foreach (ParserAction action in state.Actions.PriorityUnwindedSetOfActions)
+         {
+            if ((action is ParserActionWithNextAction actionWithNextAction)
+                && (actionWithNextAction.NextAction is Definition definition))
+            {
+               Debug.Assert(actionWithNextAction is ConditionalAction && actionWithNextAction.NextAction is Definition);
+
+               Int32 countOfStateStackNumbersToPop =
+                   FindPrecedingStates(
+                       StateToStartFrom: state,
+                       Depth: definition.Elements.Length + ((action is LookaheadAction) ? 0 : -1),
+                       StatesOfThisLevel: ref StatesOfThisLevel,
+                       StatesOfNextLevel: ref StatesOfNextLevel
+                       )!;
+
+               BranchcasesList SortedListOfBranchcases =
+                  ConstructListOfBranchcases(StatesOfThisLevel, definition.DefinedSymbol!);
+
+               StatesOfThisLevel.Clear();
+
+               ParserAction NextActionOfReduce = // branch or action
+                       SortedListOfBranchcases.Count == 1
+                       ? SortedListOfBranchcases[0].BranchcaseAction // no branch, single action
+                       : FindOrConstructBranch(SortedListOfBranchcases);
+
+               // Debug.Assert(!(NextAction is NonterminalTransition));
+               Debug.Assert(NextActionOfReduce is not Definition); // CHECK assertions ???????
+
+               actionWithNextAction.NextAction =
+                  (definition.HasNoSemantics() && (countOfStateStackNumbersToPop == 0)
+                   && definition.DefinedSymbol != GlobalVariables.Startsymbol)
+                  ? NextActionOfReduce
+                  : MakeReduceAction(
+                        countOfStateStackNumbersToPop,
+                        definition,
+                        NextActionOfReduce: NextActionOfReduce);
+
+               Debug.Assert(actionWithNextAction.NextAction is not Definition);
+               // actionWithNextAction.NextAction may be NonterminalTransition;
+            }
+         }
+   }
+
+   /// <summary>
+   /// Starts with <paramref name="StateToStartFrom"/> and walks <paramref name="Depth"/> levels back.
+   /// Return the found states in <paramref name="StatesOfThisLevel"/>
+   /// </summary>
+   /// <param name="StateToStartFrom">state from where to walk back</param>
+   /// <param name="Depth">number of levels to walk back</param>
+   /// <param name="StatesOfNextLevel">A reference to a list of states,
+   /// which will be used as temporary storage and will be assigned the list of
+   /// states found at the given <paramref name="Depth"/>.</param>
+   /// <param name="StatesOfThisLevel"> A reference to a list of states which will be used as temporary storage.</param>
+   /// <returns> The number of states x encountered on the way back with  x.StateStackNumber >= 0
+   /// </returns>
+   private static Int32 FindPrecedingStates(
+       ParserState StateToStartFrom,
+       Int32 Depth,
+       ref List<ParserState> StatesOfThisLevel,
+       ref List<ParserState> StatesOfNextLevel
+       )
+   {
       StatesOfThisLevel.Clear();
       StatesOfThisLevel.Add(StateToStartFrom);
 
@@ -341,49 +378,11 @@ internal class P4ReplaceNonterminalsAndOptimize
       }
 
       /*  statesOfThisLevel contains all states which are reachable from the given state
-       *  by applying the given definition. Each of these states contains the startitem of the given definition.
-       *  
-       *  If exactly one action results by input of the nonterminal symbol (defined by the definition)
-       *  the definition is replaced by this action else a branch action has to be generated.
+       *  by going back depth levels.
        */
 
-      NonterminalSymbol definedSymbol = DefinitionToReplace.DefinedSymbol!;
-
-      switch (TypeOfEvaluation)
-      {
-         case RelationtypeEnum.ComputeDistinguishableStatesRelation:
-            ComputeDistinguishableStatesRelation(StatesOfThisLevel, definedSymbol);
-            return DefinitionToReplace; // notnull dummy
-
-         case RelationtypeEnum.ComputeBranches:
-
-            BranchcasesList SortedListOfBranchcases = ConstructListOfBranchcases(StatesOfThisLevel, definedSymbol);
-            StatesOfThisLevel.Clear();
-
-            ParserAction NextAction =
-                    SortedListOfBranchcases.Count == 1
-                    ? SortedListOfBranchcases[0].BranchcaseAction // no branch, single action
-                    : FindOrConstructBranch(SortedListOfBranchcases);
-
-            // Debug.Assert(!(NextAction is NonterminalTransition)); // ??????????
-            Debug.Assert(NextAction is not Definition); // CHECK assertions ???????
-
-            if (DefinitionToReplace.HasNoSemantics() && (countOfStateStackNumbersToPop == 0)
-                && DefinitionToReplace.DefinedSymbol != GlobalVariables.Startsymbol)
-            {
-               return NextAction; // branch or action
-            }
-
-            // reduce => (branch or action)
-            return MakeReduceAction(
-                countOfStateStackNumbersToPop,
-                DefinitionToReplace,
-                NextActionOfReduce: NextAction);
-
-         default:
-            throw new ErrorInGrammlatorProgramException("unknown argument " + nameof(TypeOfEvaluation));
-      }
-   } // End of EvaluatePredecessors
+      return countOfStateStackNumbersToPop;
+   }
 
    /// <summary>
    /// Check which states have to be distinguished from each other,
@@ -473,7 +472,6 @@ internal class P4ReplaceNonterminalsAndOptimize
    private static BranchcasesList ConstructListOfBranchcases(
       List<ParserState> StatesAcceptingThisSymbol, NonterminalSymbol inputSymbol)
    {
-      // wird aufgerufen aus VorgängerSindNacharn,nach günstigeKennungenBerechnen()
       var ListOfCases = new BranchcasesList(StatesAcceptingThisSymbol.Count);
 
       ParserState State1 = StatesAcceptingThisSymbol[0];
