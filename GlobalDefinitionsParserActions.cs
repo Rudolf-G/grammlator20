@@ -1103,20 +1103,18 @@ namespace grammlator
 
       internal override void CountUsage(Boolean Accept)
       {
-         Boolean CountNextaction = Calls == 0;
-
          if (Accept)
          {
             AcceptCalls++;
             // code of accept ... will be generated only once (if any):
             //    count subsequent code of terminal transition  only once
-            if (AcceptCalls == 1)
-               Calls++;
+            if (AcceptCalls > 1)
+               return;
          }
-         else
-            Calls++;
 
-         if (CountNextaction)
+         Calls++;
+
+         if (Calls == 1)
             NextAction?.CountUsage(true); // terminal transition: accept == true !!!
       }
 

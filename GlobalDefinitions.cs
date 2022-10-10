@@ -711,7 +711,7 @@ namespace grammlator
       internal Boolean IsUsedInIsIn = false;
 
       /// <summary>
-      /// If the identifier contains special characters (other than letter or digit) the <see cref="FlagName"/>
+      /// If the identifier contains special characters (other than letter, digit or underline) the <see cref="FlagName"/>
       /// consists of the value of the terminal symbol followed by all letters and digits of the identifier ignoring
       /// all other characters. Else it is equal to the identifier.
       /// </summary>
@@ -765,7 +765,7 @@ namespace grammlator
       {
          FlagNameBuilder.Clear(); // .Append(GlobalSettings.PrefixOfFlagConstants);
          foreach (char c in identifier)
-            if (char.IsLetter(c) || char.IsDigit(c))
+            if (char.IsLetter(c) || char.IsDigit(c) || c=='_')
                FlagNameBuilder.Append(c);
 
          if (FlagNameBuilder.Length == identifier.Length)

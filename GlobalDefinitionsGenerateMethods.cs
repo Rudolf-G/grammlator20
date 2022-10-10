@@ -955,11 +955,18 @@ namespace grammlator
                   // adjust the statistics because here a "goto label" will be generated
                   // in addition to the code generated in the default action.
                   // If the statistics are not adjusted those code might be generated without label.
-                  if (ThisAction is TerminalTransition)
+
+                  // if the code has been generated already (counters are 0)
+                  //     the statistics must not be changed
+
+                  // Todo If AcceptCalls or Calls is 0, labels may have been not generated
+                  // Todo If AcceptCalls or Calls is <0 teh value should be decremented
+
+                  if (ThisAction is TerminalTransition && ThisAction.NextAction.AcceptCalls > 0)
                      ThisAction.NextAction.AcceptCalls++;
-                  else if (ThisAction is ErrorhandlingAction)
+                  else if (ThisAction is ErrorhandlingAction && ThisAction.Calls > 0)
                      ThisAction.Calls++;
-                  else
+                  else if (ThisAction.NextAction.Calls > 0)
                      ThisAction.NextAction.Calls++;
 
                   // generate goto
