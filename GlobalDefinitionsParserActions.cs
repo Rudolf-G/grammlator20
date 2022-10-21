@@ -885,6 +885,8 @@ namespace grammlator
          {
             if (LaOrNt.NextAction is not Definition)
                NextAction = LaOrNt.NextAction; // may be again a nonterminal transition
+            else
+               return this; // Todo is this correct?
          }
 
          Debug.Assert(NextAction is not NonterminalTransition);
