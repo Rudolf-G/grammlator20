@@ -186,18 +186,22 @@ namespace grammlator
          Calls++;
       }
 
-      internal virtual StringBuilder AppendToSB(StringBuilder sb)
-         => sb.Append("Action ")
-           .Append(IdNumber + 1)
-           .Append(", ")
-           .AppendLine(ParserActionType.ToString());
+      internal virtual StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // ParserAction
+         return sb.Append("Action ")
+                 .Append(IdNumber + 1)
+                 .Append(", ")
+                 .AppendLine(ParserActionType.ToString());
+      }
 
       /// <summary>
-      /// nonrecursive short description of the <see cref="ParserAction"/>
+      /// short description of the <see cref="ParserAction"/>,
+      /// to be overwritten by some classes to avoid endless recursion
       /// </summary>
       /// <param name="sb"></param>
-      internal virtual StringBuilder AppendShortToSB(StringBuilder sb)
-         => AppendToSB(sb); // some methods overwrite AppendShortToSB to avoid endless recursion
+      internal virtual StringBuilder AppendShortToSB(StringBuilder sb, Boolean withAttributes = true)
+       => AppendToSB(sb, withAttributes); // some methods overwrite AppendShortToSB to avoid endless recursion
+
 
       /// <summary>
       /// Return a "simpler" <see cref="ParserAction"/> which can replace this action or return this
@@ -228,7 +232,7 @@ namespace grammlator
 
       internal void RemoveFromEnd(Int32 count) => RemoveRange(this.Count - count, count);
 
-      internal virtual StringBuilder AppendToSB(StringBuilder sb)
+      internal virtual StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
       {
          Int32 number = 1;
          if (this.Count == 0)
@@ -246,7 +250,7 @@ namespace grammlator
             {
                sb.Append(number++)
                  .Append(". ");
-               a.AppendToSB(sb);
+               a.AppendToSB(sb, withAttributes);
                sb.AppendLine();
             }
          }
@@ -370,28 +374,32 @@ namespace grammlator
               && (AttributestackAdjustment == 0);
       // && (PriorityFunction == null);
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // Definition
          sb.Append("recognized ");
          DefinedSymbol!.IdentifierAndAttributesToSB(sb).AppendLine("= ");
          sb.Append("      ");
-         AppendToSB(sb, Int32.MaxValue); // do not mark any element
+         AppendToSB(sb, Int32.MaxValue, withAttributes); // do not mark any element
          return sb;
       }
 
-      internal override StringBuilder AppendShortToSB(StringBuilder sb)
-      {
-         DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
-         ElementsToStringbuilder(sb, Int32.MaxValue);
+      internal override StringBuilder AppendShortToSB(StringBuilder sb, Boolean withAttributes = true) // Definition
+      {  // Definition
+         if (withAttributes)
+            DefinedSymbol!.IdentifierAndAttributesToSB(sb);
+         else
+            sb.Append(DefinedSymbol!.Identifier);
+         sb.Append("= ");
+         ElementsToStringbuilder(sb, Int32.MaxValue, withAttributes);
          return sb;
       }
 
-      internal void ElementsToStringbuilder(StringBuilder sb, Int32 MarkiertesElement)
-          => Elements.Append(sb, MarkiertesElement, this.AttributeIdentifiers);
+      internal void ElementsToStringbuilder(StringBuilder sb, Int32 markerPosition, Boolean withAttributes = true)
+          => Elements.Append(sb, markerPosition, this.AttributeIdentifiers, withAttributes: withAttributes);
 
-      internal StringBuilder AppendToSB(StringBuilder sb, Int32 MarkiertesElement)
+      internal StringBuilder AppendToSB(StringBuilder sb, Int32 markerPosition, Boolean withAttributes = true)
       {
-         ElementsToStringbuilder(sb, MarkiertesElement);
+         ElementsToStringbuilder(sb, markerPosition, withAttributes);
 
          String Delimiter = "";
 
@@ -640,8 +648,10 @@ namespace grammlator
          }
       }
 
-      internal override StringBuilder AppendShortToSB(StringBuilder sb)
-          => sb.Append(P5CodegenCS.GotoLabel(this, false));
+      internal override StringBuilder AppendShortToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // BranchAction
+         return sb.Append(P5CodegenCS.GotoLabel(this, false));
+      }
 
       internal IndexSet PossibleInputTerminals = default;
 
@@ -799,10 +809,10 @@ namespace grammlator
             NextAction?.CountUsage(false);
       }
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // ParserActionWithNextAction
          sb.Append("    then: ");
-         return NextAction.AppendShortToSB(sb);
+         return NextAction.AppendShortToSB(sb, withAttributes);
       }
    }
 
@@ -832,11 +842,11 @@ namespace grammlator
       /// </summary>
       internal Boolean FirstAdjustAttributeStackThenCallMethod;
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // ReduceAction
          sb.Append(P5CodegenCS.GotoLabel(this, false));
          AppendAdjustmentsAndMethod(sb);
-         return base.AppendToSB(sb);
+         return base.AppendToSB(sb, withAttributes);
       }
 
       private void AppendAdjustmentsAndMethod(StringBuilder sb)
@@ -966,7 +976,7 @@ namespace grammlator
             if (laAction.PriorityFunction != null)
                sb.Append(laAction.PriorityFunction.MethodName);
             else
-               sb.Append(laAction.ConstantPriority);
+               sb.AppendFormat("{0,5}", laAction.ConstantPriority);
             return;
          }
 
@@ -976,7 +986,7 @@ namespace grammlator
             return;
          }
 
-         sb.Append(0);
+         sb.AppendFormat("{0,5}", 0);
       }
 
       public Boolean HasPriorityFunction()
@@ -991,10 +1001,10 @@ namespace grammlator
          return sb;
       }
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // ConditionalAction
          ConditionToStringbuilder(sb);
-         return base.AppendToSB(sb);
+         return base.AppendToSB(sb, withAttributes);
       }
 
       /// <summary>
@@ -1120,14 +1130,14 @@ namespace grammlator
             NextAction?.CountUsage(true); // terminal transition: accept == true !!!
       }
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // TerminalTransition
          ConditionToStringbuilder(sb)
            .Append("    then:  accept; then: ");
          if (NextAction == null)
             return sb.Append("no action (halt)");
          else
-            return NextAction.AppendShortToSB(sb);
+            return NextAction.AppendShortToSB(sb, withAttributes);
       }
    }
 
@@ -1177,15 +1187,15 @@ namespace grammlator
          this.InputSymbol = inputSymbol;
       }
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // NonterminalTransition
          sb.Append("if nonterminal == ")
            .AppendLine(InputSymbol.Identifier.ToString())
            .Append("    then: ");
          if (NextAction == null)
             sb.Append("no action (halt)");
          else
-            NextAction.AppendShortToSB(sb);
+            NextAction.AppendShortToSB(sb, withAttributes);
          return sb;
       }
 
@@ -1254,9 +1264,9 @@ namespace grammlator
          }
       }
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
-         base.AppendToSB(sb);
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // LookaheadAction
+         base.AppendToSB(sb, withAttributes);
          return sb;
       }
 
@@ -1315,8 +1325,8 @@ namespace grammlator
                                                                     // The PriorityFunctions are copied from PriorityActions because those may be modified later
       internal readonly IntMethodClass[] PriorityFunctions;
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // PriorityBranchAction
          sb.AppendLine("Select by dynamic priority: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 
          if (ConstantPriorityAction != null)
@@ -1325,9 +1335,9 @@ namespace grammlator
               .Append("    ");
 
             if (ConstantPriorityAction is ConditionalAction ca)
-               ca.NextAction.AppendShortToSB(sb); // the condition (terminal symbols) must not be used
+               ca.NextAction.AppendShortToSB(sb, withAttributes); // the condition (terminal symbols) must not be used
             else
-               ConstantPriorityAction.AppendShortToSB(sb);
+               ConstantPriorityAction.AppendShortToSB(sb, withAttributes);
             sb.AppendLine();
          }
          // PriorityFunctions and DynamicPriorityActions AppendToSB(sb);
@@ -1337,9 +1347,9 @@ namespace grammlator
               .Append(PriorityFunctions[i].MethodName)
               .Append(": ");
             if (DynamicPriorityActions[i] is ConditionalAction ca)
-               ca.NextAction.AppendShortToSB(sb); // the condition (terminal symbols) must not be used
+               ca.NextAction.AppendShortToSB(sb, withAttributes); // the condition (terminal symbols) must not be used
             else
-               DynamicPriorityActions[i].AppendShortToSB(sb);
+               DynamicPriorityActions[i].AppendShortToSB(sb, withAttributes);
             sb.AppendLine();
          }
 
@@ -1385,15 +1395,15 @@ namespace grammlator
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isPrioritySelectAction;
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // PrioritySelectAction
          sb.Append("if Symbol == ");
          TerminalSymbols.ElementsToStringbuilder(
             sb, GlobalVariables.TerminalSymbols, " | ", "all terminal symbols", "no terminal symbols")
             .AppendLine("; ");
 
          sb.Append("    then: ");
-         NextAction.AppendToSB(sb);
+         NextAction.AppendToSB(sb, withAttributes);
 
          return sb;
       }
@@ -1407,10 +1417,10 @@ namespace grammlator
          => this.InputClass = InputClass;
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isAcceptAction;
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // AcceptAction
          sb.Append("accept, then :");
-         return base.AppendToSB(sb);
+         return base.AppendToSB(sb, withAttributes);
       }
    }
 
@@ -1447,8 +1457,8 @@ namespace grammlator
 
       internal ParserState State;
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // ErrorhandlingAction
          return ConditionToStringbuilder(sb)
            .Append("    then: call error handler from state ")
            .Append(State.IdNumber + 1);
@@ -1476,8 +1486,8 @@ namespace grammlator
          get; set;
       }
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // HaltAction
          sb.Append(P5CodegenCS.GotoLabel(this, false)).
             Append(", AttributestackAdjustment ").
             Append(AttributestackAdjustment);
@@ -1485,7 +1495,7 @@ namespace grammlator
          return sb;
       }
 
-      internal override StringBuilder AppendShortToSB(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb, Boolean withAttributes = true)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
    }
 
@@ -1500,14 +1510,14 @@ namespace grammlator
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isErrorhaltAction;
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // ErrorHaltAction
          sb.Append(P5CodegenCS.GotoLabel(this, false));
          base.AppendToSB(sb);
          return sb;
       }
 
-      internal override StringBuilder AppendShortToSB(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb, Boolean withAttributes = true)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
    }
 
@@ -1524,11 +1534,11 @@ namespace grammlator
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isDeletedParserAction;
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // DeletedParserAction
          sb.AppendLine("action deleted by optimization: ")
            .Append("      ");
-         NextAction?.AppendShortToSB(sb);
+         NextAction?.AppendShortToSB(sb, withAttributes);
          return sb;
       }
    }
@@ -1545,14 +1555,14 @@ namespace grammlator
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isEndOfGeneratedCode;
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // EndOfGeneratedCodeAction
          sb.Append(P5CodegenCS.GotoLabel(this, false));
          base.AppendToSB(sb);
          return sb;
       }
 
-      internal override StringBuilder AppendShortToSB(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb, Boolean withAttributes = true)
           => sb.Append(P5CodegenCS.GotoLabel(this, false));
    }
 
@@ -1574,8 +1584,8 @@ namespace grammlator
          }
       }
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // PushStateAction
          sb.Append(P5CodegenCS.GotoLabel(this, false)).
             Append("(push value: ").
             Append(StateStackNumber).
@@ -1584,14 +1594,14 @@ namespace grammlator
          return sb;
       }
 
-      internal override StringBuilder AppendShortToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendShortToSB(StringBuilder sb, Boolean withAttributes = true)
+      {  // PushStateAction
          sb.Append(P5CodegenCS.GotoLabel(this, false)).
             Append(" (push value: ").
             Append(StateStackNumber).
             AppendLine(")");
 
-         return base.AppendShortToSB(sb);
+         return base.AppendShortToSB(sb, withAttributes);
       }
    }
 }

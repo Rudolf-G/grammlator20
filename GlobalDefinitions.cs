@@ -448,18 +448,16 @@ namespace grammlator
 
          return Zähler;
       }
-
-      internal static void Append(this Symbol[] SymbolArray, StringBuilder sb, String separator = ", ")
-          => SymbolArray.Append(sb, Int32.MaxValue, null, separator); // am Ende markieren
-
+      
       internal static void Append(
             this Symbol[] SymbolArray,
             StringBuilder sb,
-            Int32 Markierung,
+            Int32 MarkerPosition,
             UnifiedString[]? AttributnameStringIndexes,
-            String separator = ", ")
+            String separator = ", ",
+            Boolean withAttributes = true)
       {
-         Int32 Elementzähler = 0;
+         Int32 ElementPosition = 0;
          Int32 NumberOfParameter = 0;
 
          foreach (Symbol s in SymbolArray)
@@ -469,18 +467,18 @@ namespace grammlator
             {
                NameStrings = s.AttributenameStrings;
 
-               NumberOfParameter = 0; // Zählen pro Symbol statt ab Listenanfang
+               NumberOfParameter = 0; // restart counter for each Symbol
             }
 
-            if (Elementzähler != 0)
+            if (ElementPosition != 0)
             {
                sb.Append(separator);
             }
-            if (Elementzähler == Markierung)
+            if (ElementPosition == MarkerPosition)
                sb.Append('►');
             sb.Append(s.Identifier);
 
-            if (s.NumberOfAttributes > 0)
+            if (withAttributes & (s.NumberOfAttributes > 0))
             {
                sb.Append('(')
                  //.Append(Parameternummer + 1);
@@ -504,12 +502,12 @@ namespace grammlator
                sb.Append(')');
             }
             // not s.Append(sb): this might cause an infinite recursion
-            Elementzähler++;
+            ElementPosition++;
          }
 
-         if (Markierung == SymbolArray.Length)
+         if (MarkerPosition == SymbolArray.Length)
             sb.Append("●;"); // Enditem
-         else if (Markierung == SymbolArray.Length + 1)
+         else if (MarkerPosition == SymbolArray.Length + 1)
             sb.Append(";◄"); // Reduktion
          else
             sb.Append(';'); // Standard
@@ -863,7 +861,7 @@ namespace grammlator
          if (TrivalDefinitionsArray.Length > 0)
          {
             sb.Append("    0. trivial rule(s): ");
-            TrivalDefinitionsArray.Append(sb, separator: " | ");
+            TrivalDefinitionsArray.Append(sb, Int32.MaxValue, null, separator: " | ", true);
             sb.AppendLine();
          }
          if (NontrivialDefinitionsList.Count == 0)

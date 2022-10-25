@@ -231,7 +231,7 @@ internal static class Phases1to5
       {
          if (state.Actions.Count == 0)
             foundError = true;
-         state.AppendToSB(sb);
+         state.AppendToSB(sb, withAttributes: true);
       }
       return foundError;
    }

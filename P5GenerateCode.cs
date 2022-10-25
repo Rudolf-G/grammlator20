@@ -120,7 +120,6 @@ namespace grammlator
 
          // Now the declarations can be generated preceding the already generated instructions
          Codegen.GenerateStartOfCodeAndCopyCodeToResultBuilder(
-            GlobalVariables.TerminalSymbolsAreFlags,
             GenerateStateStackInitialCountVariable: GlobalVariables.NumberOfStatesWithStateStackNumber > 0,
             GenerateAttributeStackInitialCountVariable:
             GlobalVariables.reductionsModifyAttributStack && CodeContainsErrorHalt

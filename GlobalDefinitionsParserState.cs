@@ -120,8 +120,8 @@ namespace grammlator
          return (NonterminalTransition)result;
       }
 
-      internal override StringBuilder AppendToSB(StringBuilder sb)
-      {
+      internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes)
+      {  // ParserState
          sb.Append(P5CodegenCS.GotoLabel(this, false));
          if (StateStackNumber >= 0)
          {
@@ -137,14 +137,14 @@ namespace grammlator
          }
          sb.AppendLine(": ")
            .AppendLine("Items:");
-         CoreItems.ToStringbuilderExtended(sb)
+         CoreItems.ToStringbuilderExtended(sb, withAttributes)
            .Append("Actions: ");
-         Actions?.AppendToSB(sb)
+         Actions?.AppendToSB(sb, withAttributes)
            .AppendLine();
          return sb;
       }
 
-      internal override StringBuilder AppendShortToSB(StringBuilder sb)
+      internal override StringBuilder AppendShortToSB(StringBuilder sb, Boolean withAttributes = true)
           => sb.Append("goto ").Append(P5CodegenCS.GotoLabel(this, false));
 
       /// <summary>
@@ -321,7 +321,7 @@ namespace grammlator
                  .Append("Conflicts in state ")
                  .Append(IdNumber + 1)
                  .AppendLine();
-               CoreItems.ToStringbuilderExtended(sb);
+               CoreItems.ToStringbuilderExtended(sb, withAttributes: false);
             }
 
             // find one group of actions which conflict with the ConflictAction and solve the conflict for this group
@@ -405,14 +405,14 @@ namespace grammlator
          }
 
          // Log the conflict
-         sb.AppendLine().Append("caused by == ");
+         sb.AppendLine().Append("if ( ");
          subsetOfConflictSymbols.ElementsToStringbuilder(
              sb,
              GlobalVariables.TerminalSymbols,
              " | ",
              "all terminal symbols",
              "no terminal symbols")
-            .AppendLine("; ");
+            .AppendLine(" ); ");
 
          IndexSet thisActionsConflictSymbols = new(GlobalVariables.NumberOfTerminalSymbols);
 
@@ -423,6 +423,21 @@ namespace grammlator
          // For each action in the parser state 
          // log the actions priority and determine the action with the highest priority
          // remove the conflict symbols from lower priority actions
+
+         // log (and handle) the action with the highest priority first
+         ConditionalAction conditionalAction1 = (State.Actions[indexOfActionWithPriority] as ConditionalAction)!;
+         if (dynamicPriorityActions.Count > 0)
+            conditionalAction1.TerminalSymbols.ExceptWith(subsetOfConflictSymbols); // moved to PrioritySelectAction
+         else
+         {
+            sb.Append("  priority ");
+            conditionalAction1.AppendPriorityTo(sb);
+            sb.Append(" => ");
+            if (conditionalAction1.ParserActionType == ParserActionEnum.isTerminalTransition)
+               sb.Append("accept; ");
+            conditionalAction1.NextAction.AppendShortToSB(sb, false).AppendLine();
+         }
+
          for (Int32 IndexOfAction = 0; IndexOfAction < State!.Actions!.Count; IndexOfAction++)
          {
             ParserAction action = State.Actions[IndexOfAction];
@@ -438,19 +453,13 @@ namespace grammlator
 
             if (IndexOfAction == indexOfActionWithPriority)
             {
-               if (dynamicPriorityActions.Count > 0)
-                  symbolsOfThisAction.ExceptWith(subsetOfConflictSymbols); // moved to PrioritySelectAction
-               else
-               {
-                  sb.Append("  priority ");
-                  conditionalAction.AppendPriorityTo(sb);
-                  sb.Append(" => highest priority: ");
-                  conditionalAction.NextAction.AppendShortToSB(sb).AppendLine();
-               }
+               // code has been moved in front of the loop to log highest priority action first
             }
             else if (action is PrioritySelectAction)
             {
-               conditionalAction.NextAction.AppendShortToSB(sb).AppendLine();
+               if (conditionalAction.ParserActionType == ParserActionEnum.isTerminalTransition)
+                  sb.Append("accept; ");
+               conditionalAction.NextAction.AppendShortToSB(sb, false).AppendLine();
             }
             else
             {
@@ -459,10 +468,12 @@ namespace grammlator
                // Write log:
                if (!(conditionalAction.HasPriorityFunction()))
                {
-                  sb.Append("  priority ");
+                  sb.Append("  lower p. ");
                   conditionalAction.AppendPriorityTo(sb);
-                  sb.Append(" => is overruled: ");
-                  conditionalAction.NextAction.AppendShortToSB(sb).AppendLine();
+                  sb.Append(" => ");
+                  if (conditionalAction.ParserActionType == ParserActionEnum.isTerminalTransition)
+                     sb.Append("accept; ");
+                  conditionalAction.NextAction.AppendShortToSB(sb, false).AppendLine();
 
                   if (symbolsOfThisAction.IsEmpty)
                      sb.AppendLine("    This action has been deleted because no input symbols remained.");
@@ -914,13 +925,20 @@ namespace grammlator
          }
       }
 
-      internal StringBuilder ToStringbuilderExtended(StringBuilder sb)
+      internal StringBuilder ToStringbuilderExtended(StringBuilder sb, Boolean withAttributes)
       {
          foreach (ItemStruct Item in this)
          {
             Definition d = Item.SymbolDefinition;
-            d.DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
-            d.AppendToSB(sb, Item.MarkerPosition);
+            if (withAttributes)
+               d.DefinedSymbol!.IdentifierAndAttributesToSB(sb);
+            else
+               sb.Append("  ").Append(d.DefinedSymbol!.Identifier);
+            sb.Append("= ");
+
+            d.AppendToSB(sb, Item.MarkerPosition, withAttributes);
+            // d.DefinedSymbol!.IdentifierAndAttributesToSB(sb).Append("= ");
+            // d.AppendToSB(sb, Item.MarkerPosition);
             sb.AppendLine();
          }
          return sb;

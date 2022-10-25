@@ -294,8 +294,10 @@ public sealed class P2ComputeLR0States
          if (existingTransition == null)
          {
             // if not found: create new TerminalTransition
-            var inputSymbols = new IndexSet(GlobalVariables.NumberOfTerminalSymbols);
-            inputSymbols.Add(inputSymbol.SymbolNumber);
+            var inputSymbols = new IndexSet(GlobalVariables.NumberOfTerminalSymbols)
+            {
+               inputSymbol.SymbolNumber
+            };
             ActionsOfActualState.Add(
                 new TerminalTransition(
                    GlobalVariables.NumberOfActions++,

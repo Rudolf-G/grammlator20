@@ -35,13 +35,13 @@ internal partial class P1aParser
    {
       int i = -1; // Index of the last accepted char
       Boolean Accepted = true;
-      int NumberFirstPos = 0;
-      int NumberLastPos = 0;
-      int IdentifierFirstPos = 0;
-      int IdentifierLastPos = 0;
+      int NumberFirstPos;
+      int NumberLastPos;
+      int IdentifierFirstPos;
+      int IdentifierLastPos;
       long Weight = GlobalSettings.TerminalDefaultWeight.Value;
       TerminalSymbol? Terminal = null;
-      Boolean TerminalHasBeenDefined = false;
+      Boolean TerminalHasBeenDefined;
       List<ReadOnlyMemory<char>> AttributeTypes = new(20);
       List<ReadOnlyMemory<char>> AttributeIdentifiers = new(20);
       var _s = new Stack<int>(50); // using GrammlatorRuntime !!!

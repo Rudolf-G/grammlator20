@@ -49,7 +49,6 @@ internal class P5CodegenCS
    }
 
    public void GenerateStartOfCodeAndCopyCodeToResultBuilder(
-      Boolean useTerminalValuesAsFlags,
       Boolean GenerateStateStackInitialCountVariable,
       Boolean GenerateAttributeStackInitialCountVariable)
    {
