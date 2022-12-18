@@ -9,24 +9,28 @@
     <ApplicationIcon>Grammlator.ico</ApplicationIcon>
     <AssemblyVersion>20.11.0.0</AssemblyVersion>
     <StartupObject>grammlator.App</StartupObject>
-    <FileVersion>2020.11.09.0</FileVersion>
-    <Version>2020.11.09</Version>
+    <FileVersion>2022.11.10.0</FileVersion>
+    <Version>2022.11.10</Version>
     <PackageLicenseExpression>Without warranty</PackageLicenseExpression>
     <Copyright>Dr. Rudolf Gardill</Copyright>
     <PackageReleaseNotes></PackageReleaseNotes>
     <NeutralLanguage>en-001</NeutralLanguage>
     <Nullable>enable</Nullable>
     <Win32Resource />
+    <Title>Grammlator</Title>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG</DefineConstants>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <WarningLevel>7</WarningLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
+    <WarningLevel>7</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
