@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 
@@ -47,7 +48,7 @@ namespace grammlator
       /// In der BranchToGenerate.ListOfCases kann als Folge der Optimierungen die gleiche Aktion mit verschiedenen Kennungen vorkommen.
       /// In der ActionCounterList kommt jede Aktion daraus genau einmal vor. Der Zähler gibt an, wie oft sie in der ListOfCases vorkommt.
       /// </summary>
-      public class ActionCounterList : List<ActionAndCounter>
+      public sealed class ActionCounterList : List<ActionAndCounter>
       {
          private ActionCounterList(Int32 capacity) : base(capacity) { }
 
@@ -258,7 +259,7 @@ namespace grammlator
                   if (f.BranchcaseAction == ElementOFCounterList.Action)
                      codegen.IndentExactly()
                         .Append("case ")
-                        .Append(f.BranchcaseCondition.ToString())
+                        .Append(f.BranchcaseCondition.ToString(CultureInfo.InvariantCulture))
                         .Append(": ");
                }
 
@@ -279,7 +280,7 @@ namespace grammlator
             if (f.BranchcaseAction == defaultAction)
             {
                countOfDefaultCases++;
-               codegen.AppendWithOptionalLinebreak("case ", f.BranchcaseCondition.ToString(), ": ");
+               codegen.AppendWithOptionalLinebreak("case ", f.BranchcaseCondition.ToString(CultureInfo.InvariantCulture), ": ");
             }
          }
 
@@ -587,7 +588,8 @@ namespace grammlator
 
          if (GlobalSettings.GenerateComments.Value)
             codegen.IndentAndAppendLine(
-               "// Halt: a definition of the startsymbol with " + numberOfAttributesToStore.ToString() + " attributes has been recognized.");
+               "// Halt: a definition of the startsymbol with " 
+               + numberOfAttributesToStore.ToString(CultureInfo.InvariantCulture) + " attributes has been recognized.");
 
          if (GlobalVariables.ListOfAllStates[0].StateStackNumber >= 0)
             codegen.IndentExactly().AppendFormat(
@@ -735,7 +737,7 @@ namespace grammlator
          else if (StateStackNumber <= -2)
          {
             codegen.IndentExactly();
-            codegen.AppendLine("// *Push(" + (-StateStackNumber - 2).ToString() + ')');
+            codegen.AppendLine("// *Push(" + (-StateStackNumber - 2).ToString(CultureInfo.InvariantCulture) + ')');
          }
 
          // The call of "FetchSymbol();" must be generated only if the state contains actions, which check the input symbol.
@@ -771,7 +773,8 @@ namespace grammlator
          {
             // This shouldn't happen 'cause each state should at least contain one action (may be error action)
             GlobalVariables.OutputMessage(
-                MessageTypeOrDestinationEnum.Error, "Check your grammar: no actions in state " + (IdNumber + 1).ToString());
+                MessageTypeOrDestinationEnum.Error, "Check your grammar: no actions in state " 
+                + (IdNumber + 1).ToString(CultureInfo.InvariantCulture));
             throw new ErrorInGrammlatorProgramException("Can not generate state without actions");
          }
 

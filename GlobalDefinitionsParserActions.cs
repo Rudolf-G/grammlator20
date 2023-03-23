@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace grammlator
@@ -34,7 +35,7 @@ namespace grammlator
       isSomethingElse
    }
 
-   class ParserEnumExtension
+   sealed class ParserEnumExtension
    {
       /// <summary>
       /// These strings are used to construct labels in the generated program.
@@ -154,7 +155,7 @@ namespace grammlator
       internal Int32 StateStackAdjustment
       {
          get; set;
-      } = 0;
+      } // = 0;
 
       /// <summary>
       /// Used in Phase5: &gt; 0: number of usages (code has not been generated),
@@ -213,7 +214,7 @@ namespace grammlator
       }
    }
 
-   internal class ListOfParserActions : List<ParserAction>
+   internal sealed class ListOfParserActions : List<ParserAction>
    {
       /// <summary>
       /// Initializes a new instance of the <see cref="ListOfParserActions"/>: List&lt;ParserAction&gt; class
@@ -232,7 +233,7 @@ namespace grammlator
 
       internal void RemoveFromEnd(Int32 count) => RemoveRange(this.Count - count, count);
 
-      internal virtual StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
+      internal StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes = true)
       {
          Int32 number = 1;
          if (this.Count == 0)
@@ -518,7 +519,7 @@ namespace grammlator
       }
    }
 
-   internal class ListOfDefinitions : List<Definition>
+   internal sealed class ListOfDefinitions : List<Definition>
    {
 
       internal ListOfDefinitions(Int32 Anzahlelemente) : base(Anzahlelemente) { }
@@ -594,7 +595,7 @@ namespace grammlator
          return _EmptyComputationResult;
       }
 
-      internal virtual Int32 MarkAndCountAllUsedSymbols()
+      internal Int32 MarkAndCountAllUsedSymbols()
       {
          Int32 count = 0;
          foreach (Definition alternative in this)
@@ -604,7 +605,7 @@ namespace grammlator
          return count;
       }
 
-      internal virtual void AppendToSB(StringBuilder sb)
+      internal void AppendToSB(StringBuilder sb)
       {
          Int32 number = 1;
          if (this.Count == 0)
@@ -653,9 +654,9 @@ namespace grammlator
          return sb.Append(P5CodegenCS.GotoLabel(this, false));
       }
 
-      internal IndexSet PossibleInputTerminals = default;
+      internal IndexSet PossibleInputTerminals; // = default;
 
-      private Int32 SimplifyRecursionCount = 0;
+      private Int32 SimplifyRecursionCount; //= 0;
       internal override ParserAction Simplify()
       {
          if (SimplifyRecursionCount > 0)
@@ -697,7 +698,7 @@ namespace grammlator
       }
    }
 
-   internal class BranchcasesList : List<BranchcaseStruct>
+   internal sealed class BranchcasesList : List<BranchcaseStruct>
    {
       internal BranchcasesList(Int32 capacity) : base(capacity) { }
 
@@ -880,7 +881,7 @@ namespace grammlator
          sb.AppendLine();
       }
 
-      Int32 SimplifyRecursionCount = 0;
+      Int32 SimplifyRecursionCount; // = 0;
       internal override ParserAction Simplify() // ReduceAction
       {
          if (SimplifyRecursionCount > 2)
@@ -976,7 +977,7 @@ namespace grammlator
             if (laAction.PriorityFunction != null)
                sb.Append(laAction.PriorityFunction.MethodName);
             else
-               sb.AppendFormat("{0,5}", laAction.ConstantPriority);
+               sb.AppendFormat(CultureInfo.InvariantCulture, "{0,5}", laAction.ConstantPriority);
             return;
          }
 
@@ -986,7 +987,7 @@ namespace grammlator
             return;
          }
 
-         sb.AppendFormat("{0,5}", 0);
+         sb.AppendFormat(CultureInfo.InvariantCulture, "{0,5}", 0);
       }
 
       public Boolean HasPriorityFunction()
@@ -1245,8 +1246,8 @@ namespace grammlator
 
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isLookaheadAction;
 
-      internal readonly Int64 ConstantPriority = 0;
-      internal readonly IntMethodClass? PriorityFunction = null;
+      internal readonly Int64 ConstantPriority; // = 0;
+      internal readonly IntMethodClass? PriorityFunction; // = null;
 
       /// <summary>
       /// constructor, assigning a definition as NextAction

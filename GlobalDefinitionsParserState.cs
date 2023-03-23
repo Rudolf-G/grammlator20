@@ -44,7 +44,7 @@ namespace grammlator
       /// </summary>
       internal List<ParserState> PredecessorList = emptyPredecessorList;
 
-      internal IndexSet PossibleInputTerminals = default;
+      internal IndexSet PossibleInputTerminals; // = default;
 
       /// <summary>
       /// The set of all terminal symbols accepted by terminal transitions of the FollowState
@@ -52,7 +52,7 @@ namespace grammlator
       /// <para>Is set and used (to avoid recomputation) in P3 AssignTerminalSymbolsAndComputeDirectRead()
       /// for all states which are the NextAction of a nonterminal transition.</para>
       /// </summary>
-      internal IndexSet DirectRead = default;
+      internal IndexSet DirectRead; // = default;
 
       internal Boolean ContainsErrorHandlerCall
       {
@@ -112,12 +112,11 @@ namespace grammlator
          var result = Actions.Find((a) => (a as NonterminalTransition)?.InputSymbol == InputSymbol);
 
          // There must exist an action also for the Startsymbol: a HaltAction
-         if (result == null)
-            throw new ErrorInGrammlatorProgramException(
+         return result == null
+            ? throw new ErrorInGrammlatorProgramException(
                $"Missing action in state {this.IdNumber + 1} for InpuSymbol {InputSymbol.Identifier}"
-               );
-
-         return (NonterminalTransition)result;
+               )
+            : (NonterminalTransition)result;
       }
 
       internal override StringBuilder AppendToSB(StringBuilder sb, Boolean withAttributes)
@@ -645,7 +644,7 @@ namespace grammlator
          Actions.RemoveFromEnd(DeletedActionsCount);
       }
 
-      private Int32 SimplifyRecursionCount = 0;
+      private Int32 SimplifyRecursionCount; // = 0;
       internal override ParserAction Simplify() // ParserState
       {
          /*
@@ -884,7 +883,7 @@ namespace grammlator
       }
    }
 
-   internal class ItemList : List<ItemStruct>
+   internal sealed class ItemList : List<ItemStruct>
    {
       /// <summary>
       /// Constructor of a <see cref="List{T}"/> of <see cref="ItemStruct"/>s

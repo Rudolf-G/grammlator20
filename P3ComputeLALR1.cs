@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -11,7 +12,7 @@ using IndexSetNamespace;
 
 namespace grammlator;
 
-internal class P3ComputeLALR1
+internal sealed class P3ComputeLALR1
 {
    /* Phase 3 computes LALR(1) Look-Ahead-Sets (see References: DeRemer and Penello) */
 
@@ -565,10 +566,11 @@ internal class P3ComputeLALR1
       }
 
       sb.AppendLine()
-        .AppendLine($"-- Result of conflict analysis: found {statesWithConflict} states with static conflicts.");
+        .AppendLine(CultureInfo.InvariantCulture,
+           $"-- Result of conflict analysis: found {statesWithConflict} states with static conflicts.");
       if (sumOfConflictsNotSolvedByExplicitPriority > 0)
-         sb.AppendLine
-            ($"-- Warning: {sumOfConflictsNotSolvedByExplicitPriority} conflict(s) could not be solved by semantic priorities.");
+         sb.AppendLine (CultureInfo.InvariantCulture, 
+            $"-- Warning: {sumOfConflictsNotSolvedByExplicitPriority} conflict(s) could not be solved by semantic priorities.");
 
       return statesWithConflict;
    }

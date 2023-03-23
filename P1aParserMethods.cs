@@ -32,7 +32,7 @@ internal partial class P1aParser
 
    private static readonly ListOfDefinitions EmptyListOfNontrivialDefinitions = new(0);
 
-   public class ListOfSymbols : List<Symbol>
+   public sealed class ListOfSymbols : List<Symbol>
    {
       public ListOfSymbols(Int32 capacity) : base(capacity) { }
 
@@ -54,7 +54,7 @@ internal partial class P1aParser
    /// The StringIndex of the name of the last enum the parser found in the source.
    /// <see cref="EnumName"/>.Index is 0 if an optional enum has been empty.
    /// </summary>
-   public UnifiedString EnumName = new();
+   public UnifiedString EnumName; // = new();
 
    // TODO test all error messages
    private void CreateParserErrorMessage(String message)
@@ -157,7 +157,7 @@ internal partial class P1aParser
       }
    }
 
-   class EnumComparer : Comparer<Symbol>
+   sealed class EnumComparer : Comparer<Symbol>
    {
       public override int Compare(Symbol? s1, Symbol? s2)
          => (int)((s1 as TerminalSymbol)!.EnumValue - (s2 as TerminalSymbol)!.EnumValue);
@@ -440,7 +440,7 @@ internal partial class P1aParser
    //{-*****************************************************************************
    //--*******           M A K E   N E W   N A M E                         *********
    //--*****************************************************************************}
-   private Int32 CountOfGeneratedNames = 0;
+   private Int32 CountOfGeneratedNames; // = 0;
 
    ///<summary>
    /// Generates a unique synthetic name enclosed in (), which starts with the given prefix followed by a number

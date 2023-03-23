@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -223,7 +224,7 @@ public partial class MainWindow
 
       var tb = new TextBox
       {
-         Name = 'E' + GrammlatorListBox.Items.Count.ToString(),
+         Name = 'E' + GrammlatorListBox.Items.Count.ToString(CultureInfo.InvariantCulture),
          Text = text,
          Width = GrammlatorListBox.ActualWidth - ListboxDistanceAtRight,
          IsReadOnly = true,

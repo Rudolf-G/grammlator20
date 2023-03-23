@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Security.Policy;
 using System.Text;
@@ -396,7 +397,7 @@ public partial class MainWindow : Window
       {
          Box = box;
       }
-      public TextBox? Box;
+      internal TextBox? Box { get; set; }
    }
 
    public event EventHandler<FocusTextBoxEventArgs> FocusTextBox;
@@ -429,7 +430,7 @@ public partial class MainWindow : Window
       if (sender is TextBox tb)
       {
          // The name of the error textbox contains its number, which is used to index ErrorPositions
-         Int32 Index = Int32.Parse(tb.Name.AsSpan(1));
+         Int32 Index = Int32.Parse(tb.Name.AsSpan(1), NumberStyles.Integer, CultureInfo.InvariantCulture);
          if (Index < ErrorPositions.Count)
             SetCursorOfSourceTextbox(ErrorPositions[Index]);
       }

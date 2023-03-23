@@ -9,7 +9,7 @@ using System.Text;
 
 namespace grammlator;
 
-internal class P4ReplaceNonterminalsAndOptimize
+internal sealed class P4ReplaceNonterminalsAndOptimize
 {
    /* Phase 4 checks all states and handles all actions which would cause "apply definition" 
     *    (execute semantic method and go back to a state in the state stack, input 
@@ -78,7 +78,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       // SortedSet is easy to use but allocates a node for each entry
    }
 
-   public class SortPairOfStatesBylargerThenBySmaller : Comparer<(int smaller, int larger)>
+   public sealed class SortPairOfStatesBylargerThenBySmaller : Comparer<(int smaller, int larger)>
    {
       public override int Compare((int smaller, int larger) a, (int smaller, int larger) b)
       {
@@ -1054,7 +1054,7 @@ internal class P4ReplaceNonterminalsAndOptimize
       }
    }
 
-   Int32 PropagateRecursionDepth = 0; // TODO avoid recursion in a correct way
+   Int32 PropagateRecursionDepth; // = 0; // TODO avoid recursion in a correct way
    readonly IndexSet test = new(GlobalVariables.NumberOfTerminalSymbols);
 
    private void Propagate(ParserAction? action, IndexSet terminals)

@@ -56,7 +56,9 @@ namespace GrammlatorRuntime {
       /// Caution: Access to the elements of the attribute stack is not type save.
       ///</summary>
 #pragma warning disable IDE1006 // Benennungsstile
+#pragma warning disable CA1707 // Bezeichner dürfen keine Unterstriche enthalten
       public StackOfMultiTypeElements _a {
+#pragma warning restore CA1707 // Bezeichner dürfen keine Unterstriche enthalten
          get; protected set;
       }
 #pragma warning restore IDE1006 // Benennungsstile
@@ -98,7 +100,9 @@ namespace GrammlatorRuntime {
       /// Returns a local stack with the attributes of Symbol (if any). It is empty if accepted == true.
       /// </summary>
 #pragma warning disable IDE1006 // Benennungsstile
+#pragma warning disable CA1707 // Bezeichner dürfen keine Unterstriche enthalten
       protected StackOfMultiTypeElements _AttributesOfSymbol {
+#pragma warning restore CA1707 // Bezeichner dürfen keine Unterstriche enthalten
          get;
          // private set{ _AttributesOfSymbol = value; }
       } = new StackOfMultiTypeElements(10);
@@ -141,7 +145,9 @@ namespace GrammlatorRuntime {
       /// Beware: access to its elements is not type save.
       /// </summary>
 #pragma warning disable IDE1006 // Benennungsstile
+#pragma warning disable CA1707 // Bezeichner dürfen keine Unterstriche enthalten
       public StackOfMultiTypeElements _a {
+#pragma warning restore CA1707 // Bezeichner dürfen keine Unterstriche enthalten
          get; protected set;
       }
 
@@ -154,7 +160,9 @@ namespace GrammlatorRuntime {
       /// Each parser / lexer may have its own state stack.
       /// But also different lexers / parsers may share the same state stack.</para>
       /// </summary>
+#pragma warning disable CA1707 // Bezeichner dürfen keine Unterstriche enthalten
       protected Stack<Int32> _s {
+#pragma warning restore CA1707 // Bezeichner dürfen keine Unterstriche enthalten
          get;
       }
 #pragma warning restore IDE1006 // Benennungsstile
@@ -186,7 +194,9 @@ namespace GrammlatorRuntime {
       /// The state stack is used by grammlator generated code. Each class may have its own state stack. Different classes may share the same state stack.
       /// </summary>
 #pragma warning disable IDE1006 // Benennungsstile
+#pragma warning disable CA1707 // Bezeichner dürfen keine Unterstriche enthalten
       protected Stack<Int32> _s {
+#pragma warning restore CA1707 // Bezeichner dürfen keine Unterstriche enthalten
          get;
       }
 #pragma warning restore IDE1006 // Benennungsstile
@@ -317,7 +327,9 @@ namespace GrammlatorRuntime {
    /// </summary>
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes")]
    [StructLayout(LayoutKind.Explicit)]
+#pragma warning disable CA1708 // Bezeichner dürfen sich nicht nur durch die Groß-/Kleinschreibung unterscheiden
    public partial struct MultiTypeStruct // may be extended by "partial" declarations
+#pragma warning restore CA1708 // Bezeichner dürfen sich nicht nur durch die Groß-/Kleinschreibung unterscheiden
    {
       /* It is possible, to overlap fields with different object types.
        * Not all errors caused by different overlapping object-types are recognized by the C# compiler or the C# runtime system.
@@ -325,58 +337,43 @@ namespace GrammlatorRuntime {
        * will result in very hard to recognize errors in the behaviour of the program.
        */
       [FieldOffset(0)]
-      public Object _object; // object types
+      public Object _Object; // object types
 
       [FieldOffset(0)]
-      public String _string;
+      public String _String;
 
       [FieldOffset(8)]       // value fields must not overlap object fields
-      public Boolean _bool;
+      public Boolean _Boolean;
 
       [FieldOffset(8)]
-      public Byte _byte;
+      public Byte _Byte;
 
       [FieldOffset(8)]
-      public SByte _sbyte;
-
-      [FieldOffset(8)]
-      public Char _char;
-
-      [FieldOffset(8)]
-      public Decimal _decimal;
-
-      [FieldOffset(8)]
-      public Double _double;
-
-      [FieldOffset(8)]
-      public Single _float;
-
-      [FieldOffset(8)]
-      public Int32 _int;
-
-      [FieldOffset(8)]
-      public UInt32 _uint;
-
-      [FieldOffset(8)]
-      public Int64 _long;
-
-      [FieldOffset(8)]
-      public UInt64 _ulong;
-
-      [FieldOffset(8)]
-      public Int16 _short;
-
-      [FieldOffset(8)]
-      public UInt16 _ushort;
+      public SByte _SByte;
 
       [FieldOffset(8)]
       public Char _Char;
 
       [FieldOffset(8)]
+      public Decimal _Decimal;
+
+      [FieldOffset(8)]
+      public Double _Double;
+
+      [FieldOffset(8)]
+      public Single _Single;
+
+      [FieldOffset(8)]
+      public Int16 _Int16;
+
+      [FieldOffset(8)]
+      public UInt16 _UInt16;
+
+      [FieldOffset(8)]
       public Int32 _Int32;
 
       [FieldOffset(8)]
-      public UInt32 _Uint32;
+      public UInt32 _UInt32;
 
       [FieldOffset(8)]
       public Int64 _Int64;
@@ -385,10 +382,37 @@ namespace GrammlatorRuntime {
       public UInt64 _UInt64;
 
       [FieldOffset(8)]
-      public Int16 _Int16;
+      public char _char;
 
       [FieldOffset(8)]
-      public UInt16 _UInt16;
+      public int _int;
+
+      [FieldOffset(8)]
+      public uint _uint;
+
+      [FieldOffset(8)]
+      public long _long;
+
+      [FieldOffset(8)]
+      public ulong _ulong;
+
+      [FieldOffset(8)]
+      public short _short;
+
+      [FieldOffset(8)]
+      public ushort _ushort;
+
+      [FieldOffset(8)]
+      public sbyte _sbyte;
+
+      [FieldOffset(8)]
+      public byte _byte;
+
+      [FieldOffset(8)]
+      public nint _nint;
+
+      [FieldOffset(8)]
+      public nuint _nuint;
    }
 
    /// <summary>
@@ -413,8 +437,6 @@ namespace GrammlatorRuntime {
       public StackOfMultiTypeElements() : this(100)
       {
       }
-
-      private static readonly MultiTypeStruct MultiTypeStructDefault = new();
 
       // For each type identifier used in the grammar there must be a corresponding field in the MultiTypeStruct.
       // The identifier of the corresponding field of a type starts with the character '_' followed by the identifier of the type.
@@ -453,7 +475,7 @@ namespace GrammlatorRuntime {
       {
          Debug.Assert(offset <= 0 && offset >= -TopIndex, $"Argument of {nameof(PeekClear)} must be <=0");
          MultiTypeStruct result = a[TopIndex + offset];
-         a[TopIndex + offset] = MultiTypeStructDefault; // clear all references contained in the element
+         a[TopIndex + offset] = default; // clear all references contained in the element
          return result;
       }
 
@@ -466,7 +488,7 @@ namespace GrammlatorRuntime {
       {
          Debug.Assert(offset <= 0 && offset >= -TopIndex, $"Argument of {nameof(PeekClear)} must be <=0");
          ref MultiTypeStruct result = ref a[TopIndex + offset];
-         result = MultiTypeStructDefault; // same as "a[TopIndex + offset] = MultiTypeStructDefault;"
+         result = default; // same as "a[TopIndex + offset] = default;"
          return ref result;
       }
 
@@ -518,7 +540,7 @@ namespace GrammlatorRuntime {
          // Clear discarded elements to avoid orphan references
          for (Int32 i = TopIndex; i >= TopIndex + 1 - count; i--)
          {
-            a[i] = MultiTypeStructDefault;
+            a[i] = default;
          }
          TopIndex -= count;
          return;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace grammlator
@@ -26,7 +27,7 @@ namespace grammlator
       protected Setting(String name, SettingType hasType, String initialValueAsString, List<Setting> settingList, String description)
       {
          Name = name;
-         NameToLower = name.ToLower();
+         NameToLower = name.ToLower(CultureInfo.InvariantCulture);
          HasType = hasType;
          InitialValueAsString = initialValueAsString;
          Description = description;
@@ -42,16 +43,16 @@ namespace grammlator
 
       public Int64 InitialValue { get; }
       public Int64 Value { get; set; }
-      public override String ValueAsString { get { return Value.ToString(); } }
+      public override String ValueAsString { get { return Value.ToString(CultureInfo.InvariantCulture); } }
 
       public Int64Setting(String name, Int64 initialValue, List<Setting> settingList, String description)
-         : base(name, SettingType.Int64Type, initialValue.ToString(), settingList, description)
+         : base(name, SettingType.Int64Type, initialValue.ToString(CultureInfo.InvariantCulture), settingList, description)
       {
          InitialValue = initialValue;
          Value = initialValue;
       }
 
-      public override String ToString() => Value.ToString();
+      public override String ToString() => Value.ToString(CultureInfo.InvariantCulture);
 
       public override void Reset() => Value = InitialValue;
    }

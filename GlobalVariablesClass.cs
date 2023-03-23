@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -13,7 +14,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace grammlator
 {
 
-   class MemoryComparer : IEqualityComparer<ReadOnlyMemory<Char>>
+   sealed class MemoryComparer : IEqualityComparer<ReadOnlyMemory<Char>>
    {
       public Boolean Equals(ReadOnlyMemory<Char> rom1, ReadOnlyMemory<Char> rom2)
          => rom1.Span.SequenceEqual(rom2.Span);
@@ -53,7 +54,7 @@ namespace grammlator
             String FileVersion = fvi.FileVersion!;
             String FileWrittenDate =
                System.IO.File.GetLastWriteTime(AssemblyFullPath)
-               .ToString("d MMM yyyy");
+               .ToString("d MMM yyyy", CultureInfo.InvariantCulture);
 
             /* Concept:
              * FileVersion is incremented using year / month / day
@@ -72,7 +73,7 @@ namespace grammlator
       }
 
       private static readonly String VersionInfo = GetVersioninfo;
-      internal static String TranslationInfo => DateTime.Now.ToString("d MMM yyyy") + VersionInfo;
+      internal static String TranslationInfo => DateTime.Now.ToString("d MMM yyyy", CultureInfo.InvariantCulture) + VersionInfo;
 
       internal const Int32 InitialCapacityOfListOfAllStates = 1000;
       internal const Int32 InitialCapacityOfListOfAllReductions = 400;
@@ -196,7 +197,7 @@ namespace grammlator
       /// <summary>
       /// Assigned and used in P5. Is set if the terminal symbols can be used as flags else is reset.
       /// </summary>
-      internal static Boolean TerminalSymbolsAreFlags = false;
+      internal static Boolean TerminalSymbolsAreFlags; // = false;
 
       /// <summary>
       /// Called once after phase1 is finished.
@@ -231,7 +232,7 @@ namespace grammlator
       /// <summary>
       /// A set of terminal symbols containing all terminal symbols
       /// </summary>
-      internal static IndexSet AllTerminalSymbols = default; // assigned in Phases1to5Controller
+      internal static IndexSet AllTerminalSymbols; // = default; // assigned in Phases1to5Controller
 
       /// <summary>
       /// is defined after ListOfAllStates[0]; is assigned in 

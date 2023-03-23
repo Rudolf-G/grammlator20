@@ -17,12 +17,7 @@ namespace GrammlatorRuntime {
        * access should be designed carefully.
        */
       // Object (pointer) types with FieldOffset 0
-      [FieldOffset(0)]
-      internal Object _Object;
-
-      [FieldOffset(0)]
-      internal String _String;
-
+      
       [FieldOffset(0)]
       internal Symbol _Symbol;
 

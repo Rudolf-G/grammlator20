@@ -29,7 +29,7 @@ namespace grammlator;
 /// <summary>
 /// Grammlator syntaxchecker Level 0: input for lexical analysis Lex1
 /// </summary>
-internal class P1cInputClassifier : IGrammlatorInput<ClassifierResult>
+internal sealed class P1cInputClassifier : IGrammlatorInput<ClassifierResult>
 { //GrammlatorInput<ClassifierResult> {
 
    // TODO use the Rune struct https://docs.microsoft.com/en-gb/dotnet/api/system.text.rune?view=netcore-3.1
@@ -71,7 +71,7 @@ internal class P1cInputClassifier : IGrammlatorInput<ClassifierResult>
    public Boolean Accepted
    {
       get; // may be evaluated in semantic methods before accessing context
-      protected set;
+      private set;
    }
 
 
@@ -95,7 +95,7 @@ internal class P1cInputClassifier : IGrammlatorInput<ClassifierResult>
    /// </summary>
    public ClassifierResult Symbol
    {
-      get; protected set;
+      get; private set;
    }
 
    Int32 PositionOfSymbol;
@@ -215,7 +215,7 @@ internal class P1cInputClassifier : IGrammlatorInput<ClassifierResult>
 
    // Local fields
    private ReadOnlyMemory<Char> InputLine;
-   private Int32 InputLineLengthWithoutEol = 0;
+   private Int32 InputLineLengthWithoutEol; // = 0;
 
    // The translation of input characters to ClassifierResults is accelarated using an array
    const int TableLength = 128; // 128 is sufficient, no considerable benefit if including characters such as umlauts 

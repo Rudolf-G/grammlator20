@@ -1,11 +1,13 @@
 using GrammlatorRuntime;
+
+using IndexSetNamespace;
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Collections;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.CompilerServices;
-using IndexSetNamespace;
 
 namespace grammlator;
 
@@ -197,27 +199,27 @@ internal sealed partial class P1aParser : GrammlatorApplication
    /// <summary>
    /// level of paranthesis, initialized with 0
    /// </summary>
-   private Int32 NestingLevel = 0;
+   private Int32 NestingLevel; // = 0;
 
    /// <summary>
    /// Number (>=0) of the last attribute of the left side of the actual production, counted from beginning of the outermost production
    /// </summary>
-   private Int32 NumberOfLastAttributeOfLeftSide = 0;
+   private Int32 NumberOfLastAttributeOfLeftSide; // = 0;
 
    /// <summary>
    ///  Number (>=0, 0 if no attribute) of the actual attribute, counted from beginning of the outermost production
    /// </summary>
-   private Int32 AttributeCounter = 0;
+   private Int32 AttributeCounter; // = 0;
 
    /// <summary>
    /// Is 0 when the analysis of an outer production starts, is changed only when the nesting level changes
    /// </summary>
-   private Int32 AttributeNumberAtStartOfDefinition = 0; // Number der Attribute vor der rechten Seite bzw. öffnenden Klammer, wird nur durch Klammern geändert!
+   private Int32 AttributeNumberAtStartOfDefinition; // = 0; 
 
    /// <summary>
    /// Number of definitions of the actual (nested) rule less or equal ActualListOfDefinitions.Count; descendants are not counted.
    /// </summary>
-   private Int32 NumberOfNontrivialDefinitions = 0; // Number of nontrivial definitions of the actual nichtterminalen Symbols <= aktuelleDefinitionnListe.Count
+   private Int32 NumberOfNontrivialDefinitions; // = 0; Number of nontrivial definitions of the actual nichtterminalen Symbols <= aktuelleDefinitionnListe.Count
 
    /// <summary>
    /// Contains all (perhaps nested) Definitions which are not yet assigned to a nonterminal symbol
@@ -227,7 +229,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    /// <summary>
    /// Number of the trival definitions of the actual (nested) production &lt;= ActualListOfTrivialDefinitions.Count
    /// </summary>
-   private Int32 NumberOfTrivalDefinitions = 0;
+   private Int32 NumberOfTrivalDefinitions; // = 0;
 
    /// <summary>
    /// Contains all (perhaps nested) trivial definitions which are not yet assigned to a nonterminal symbol.
@@ -238,7 +240,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    /// <summary>
    /// Number of the elements of the actual definition less or equal ActualListOfElements.Count
    /// </summary>
-   private Int32 NumberOfElements = 0;
+   private Int32 NumberOfElements; // = 0;
 
    /// <summary>
    /// Contains all elements of the actual (perhaps nested) definition.
@@ -288,7 +290,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
 
    private void SetGrammlatorStringSetting(UnifiedString name, String assignedString)
    {
-      String NameToLower = name.ToString().ToLower();
+      String NameToLower = name.ToString().ToLower(CultureInfo.InvariantCulture);
       Setting? s = GlobalSettings.VisibleSettings.Find(s => s.NameToLower == NameToLower);
       if (s == null)
       {
@@ -322,7 +324,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
    //| | Name(UnifiedString name), ":", Number(Int64 value), ";"
    private void SetGrammlatorInt32Setting(UnifiedString name, Int64 value)
    {
-      String NameToLower = name.ToString().ToLower(); // TODO avoid new string by better comparer
+      String NameToLower = name.ToString().ToLower(CultureInfo.InvariantCulture); // TODO avoid new string by better comparer
       Setting? s = GlobalSettings.VisibleSettings.Find(s => s.NameToLower == NameToLower);
       if (s == null)
       {
@@ -413,7 +415,8 @@ internal sealed partial class P1aParser : GrammlatorApplication
    //| OptionalValue(Int64 value)
    //| = /* empty */
    private void OptionalValueDefault(out Int64 value) => value = ++LastTerminalValue;
-   Int64 LastTerminalValue = -1;
+
+   private Int64 LastTerminalValue = -1;
    //| | "=", Number(Int64 value)
    private void OptionalValueAssignment(Int64 value) => LastTerminalValue = value;
 
@@ -872,7 +875,8 @@ internal sealed partial class P1aParser : GrammlatorApplication
       DictCountBeforeEnum = SymbolDictionary.Count;
       EnumName = nameString;
    }
-   int DictCountBeforeEnum = 0;
+
+   private int DictCountBeforeEnum; // = 0;
 
    //| optionalBaseType
    //| = /* empty */

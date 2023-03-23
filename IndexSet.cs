@@ -3,10 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-
+using System.Windows;
 
 namespace IndexSetNamespace;
 
@@ -43,7 +44,8 @@ public readonly struct IndexSet :
    /// <summary>
    /// The <see cref="IndexSet"/> struct has the capacity to store elements with indexes in the range 0..&lt; <see cref="Length"/>.
    /// </summary>
-   public readonly int Length; // 4 bytes. Is 0 if and only if BitArray is null. 
+  readonly int length; // 4 bytes. Is 0 if and only if BitArray is null. 
+   public int Length { get { return length; } } // 4 bytes. Is 0 if and only if BitArray is null. 
 
    /// <summary>
    /// <see cref="BitSequence"/> is allocated if <see cref="Length"/> is greater 0, else is null.
@@ -159,7 +161,7 @@ public readonly struct IndexSet :
          throw new ArgumentException($"The {nameof(IndexSet)} constructor was called with {nameof(length)}< 0");
       RequiredLength = (length + (BitsPerArrayElement - 1)) >> BitsPerBitIndex;
 
-      Length = length;
+      this.length = length;
       BitSequence = RequiredLength <= 0 ? null : new ulong[RequiredLength];
    }
 
@@ -650,7 +652,7 @@ public readonly struct IndexSet :
 
             sb.Append(
                ElementNames == null || index >= ElementNames.Length || ElementNames[index] == null
-               ? index.ToString()
+               ? index.ToString(CultureInfo.InvariantCulture)
                : ElementNames[index].ToString()
                );
          }
@@ -687,11 +689,11 @@ public readonly struct IndexSet :
    /// <summary>
    /// ISet&lt;int>: Removes all elements in the specified collection from the current set.
    /// </summary>
-   /// <param name="otherEnum"></param>
-   public void ExceptWith(IEnumerable<int>? otherEnum) // ISet<int>
+   /// <param name="other"></param>
+   public void ExceptWith(IEnumerable<int>? other) // ISet<int>
    {
-      if (otherEnum is not null)
-         foreach (int index in otherEnum)
+      if (other is not null)
+         foreach (int index in other)
          {
             if (IsGe0AndLT(index, Length))
                this[index] = false;
@@ -731,9 +733,9 @@ public readonly struct IndexSet :
    /// <summary>
    /// ISet&lt;int>: Modifies the current set so that it contains only int values that are also in a specified collection.
    /// </summary>
-   /// <param name="otherEnum"></param>
-   public void IntersectWith(IEnumerable<int>? otherEnum) // ISet<int>
-      => And(CopyToNewLimitedLengthBits(otherEnum));
+   /// <param name="other"></param>
+   public void IntersectWith(IEnumerable<int>? other) // ISet<int>
+      => And(CopyToNewLimitedLengthBits(other));
 
    /// <summary>
    /// Determines whether the bits referenced by the current struct are a proper subset of the 
@@ -752,10 +754,10 @@ public readonly struct IndexSet :
    /// <summary>
    /// ISet&lt;int>: Determines whether the current set is a proper (strict) subset of a specified collection.
    /// </summary>
-   /// <param name="otherEnum"></param>
+   /// <param name="other"></param>
    /// <returns>true if the current set is a proper subset of other; otherwise, false.</returns>
-   public bool IsProperSubsetOf(IEnumerable<int>? otherEnum) // ISet<int>
-      => IsProperSubsetOf(new(otherEnum, ignoreExcessValues: false));
+   public bool IsProperSubsetOf(IEnumerable<int>? other) // ISet<int>
+      => IsProperSubsetOf(new(other, ignoreExcessValues: false));
 
    /// <summary>
    /// Determines whether the bits referenced by the current struct are a proper superset of the 
@@ -774,10 +776,10 @@ public readonly struct IndexSet :
    /// <summary>
    /// ISet&lt;int>: Determines whether the current set is a proper (strict) superset of a specified collection.
    /// </summary>
-   /// <param name="otherEnum">The collection to compare to the current set.</param>
+   /// <param name="other">The collection to compare to the current set.</param>
    /// <returns>true if the current set is a proper superset of other; otherwise, false.</returns>
-   public bool IsProperSupersetOf(IEnumerable<int>? otherEnum)
-      => IsSupersetOf(otherEnum) && !SetEquals(otherEnum); // ISet<int> // Todo  optimize & excess bits? 
+   public bool IsProperSupersetOf(IEnumerable<int>? other)
+      => IsSupersetOf(other) && !SetEquals(other); // ISet<int> // Todo  optimize & excess bits? 
 
    /// <summary>
    /// Determines whether the bits referenced by the current struct are a subset of the 
@@ -807,18 +809,18 @@ public readonly struct IndexSet :
    /// <summary>
    /// ISet&lt;int>: Determines whether a set is a subset of a specified collection.
    /// </summary>
-   /// <param name="otherEnum">The collection to compare to the current set.</param>
+   /// <param name="other">The collection to compare to the current set.</param>
    /// <returns>true if the current set is a subset of other; otherwise, false.</returns>
-   public bool IsSubsetOf(IEnumerable<int>? otherEnum) // ISet<int>
+   public bool IsSubsetOf(IEnumerable<int>? other) // ISet<int>
    {
       if (IsEmpty)
          return true;
 
-      if (otherEnum is null)
+      if (other is null)
          return IsEmpty;
 
-      IndexSet other = CopyToNewLimitedLengthBits(otherEnum); // ignore additional elements in other
-      return IsSubsetOf(other);
+      // ignore additional elements in other
+      return IsSubsetOf(CopyToNewLimitedLengthBits(other));
    }
 
    [Flags]
@@ -868,13 +870,13 @@ public readonly struct IndexSet :
    /// <summary>
    /// ISet&lt;int>: Determines whether the current set is a superset of a specified collection.
    /// </summary>
-   /// <param name="otherEnum">The collection to compare to the current set.</param>
+   /// <param name="other">The collection to compare to the current set.</param>
    /// <returns>If other contains the same elements as the current set, the current set is still considered a superset of other.
    /// <para></para></returns>
-   public bool IsSupersetOf(IEnumerable<int>? otherEnum) // ISet<int>
+   public bool IsSupersetOf(IEnumerable<int>? other) // ISet<int>
    {
-      if (otherEnum is not null)
-         foreach (int element in otherEnum)
+      if (other is not null)
+         foreach (int element in other)
          {
             if (!IsGe0AndLT(element, Length) || !Get(element))
                return false;
@@ -980,12 +982,12 @@ public readonly struct IndexSet :
    /// <summary>
    /// ISet&lt;int>: Determines whether the current set overlaps with the specified collection.
    /// </summary>
-   /// <param name="otherEnum">The collection to compare to the current set.</param>
+   /// <param name="other">The collection to compare to the current set.</param>
    /// <returns>true if the current set and other share at least one common element; otherwise, false.</returns>
-   public bool Overlaps(IEnumerable<int>? otherEnum) // ISet<int>
+   public bool Overlaps(IEnumerable<int>? other) // ISet<int>
    {
-      if (otherEnum is not null)
-         foreach (int element in otherEnum)
+      if (other is not null)
+         foreach (int element in other)
          {
             if (this[element])
                return true; // found common element
@@ -1082,16 +1084,16 @@ public readonly struct IndexSet :
    /// Determines whether the current <see cref="IndexSet"/> and the specified <see cref="IndexSet"/> have the same sequence of bits.
    /// If the <see cref="Length"/> differ, the shorter one is considered as extended with zeros.
    /// </summary>
-   /// <param name="otherEnum">The collection to compare to the current set.</param>
+   /// <param name="other">The collection to compare to the current set.</param>
    /// <returns>true if the current set is equal to other; otherwise, false.</returns>
-   public bool SetEquals(IEnumerable<int>? otherEnum) // ISet<int>.SetEquals(System.Collections.Generic.IEnumerable<T> other)
+   public bool SetEquals(IEnumerable<int>? other) // ISet<int>.SetEquals(System.Collections.Generic.IEnumerable<T> other)
    {
-      if (otherEnum is null)
+      if (other is null)
          return IsEmpty;
 
       // Simple tests ( O(this.Length) before allocation of new Bits (..., otherEnum)
       (int otherMin, int otherMax, int otherCount, bool isIncreasing, bool isDecreasing)
-         = GetMinMaxCountSorted(otherEnum); // O(otherEnum.Length)
+         = GetMinMaxCountSorted(other); // O(otherEnum.Length)
       int thisCount = Count;
       if (otherCount == 0)
          return thisCount == 0;
@@ -1105,16 +1107,16 @@ public readonly struct IndexSet :
       if (isIncreasing || isDecreasing)
       {
          int thisNext = isIncreasing ? IndexOfNextBit(-1) : IndexOfPrecedingBit(int.MaxValue);
-         foreach (int other in otherEnum)
+         foreach (int o in other)
          {
-            if (other != thisNext)
+            if (o != thisNext)
                return false;
             thisNext = isIncreasing ? IndexOfNextBit(thisNext) : IndexOfPrecedingBit(thisNext);
          }
          return thisNext == Length;
       }
 
-      return CompareTo(new(otherEnum, ignoreExcessValues: true)) == 0;
+      return CompareTo(new(other, ignoreExcessValues: true)) == 0;
    }
 
    /// <summary>
@@ -1165,13 +1167,13 @@ public readonly struct IndexSet :
    /// ISet&lt;int>: Modifies the current set so that it contains all elements that are present
    /// in the current set, in the specified collection, or in both.
    /// </summary>
-   /// <param name="otherEnum">The collection to compare to the current set.</param>
-   /// <exception cref="ArgumentException">if <paramref name="otherEnum"/> contains an index
+   /// <param name="other">The collection to compare to the current set.</param>
+   /// <exception cref="ArgumentException">if <paramref name="other"/> contains an index
    /// less than 0 or ><see cref="Length"/></exception>
-   public void UnionWith(IEnumerable<int>? otherEnum) // ISet<int>.
+   public void UnionWith(IEnumerable<int>? other) // ISet<int>.
    {
-      if (otherEnum is not null)
-         foreach (int element in otherEnum)
+      if (other is not null)
+         foreach (int element in other)
             this[element] = true; // this[] handles element out of bounds
    }
 
@@ -1245,7 +1247,7 @@ public readonly struct IndexSet :
    /// This IEnumerator&lt;int> iterates through all elements of the set
    /// == iterates through the indices of the bits which are 1
    /// </summary>
-   private class GenericBitsEnumerator : IEnumerator<int>
+   private sealed class GenericBitsEnumerator : IEnumerator<int>
    {
       private readonly IndexSet set;
       private int currentIndex;
@@ -1256,7 +1258,7 @@ public readonly struct IndexSet :
          this.currentIndex = -1;
       }
 
-      public virtual bool MoveNext()
+      public bool MoveNext()
          => (currentIndex = set.IndexOfNextBit(currentIndex)) < set.Length;
 
       int IEnumerator<int>.Current
@@ -1303,7 +1305,7 @@ public readonly struct IndexSet :
    /// This IEnumerator iterates through all elements of the set
    /// == iterates through the indices of the bits which are 1
    /// </summary>
-   private class BitsEnumerator : IEnumerator
+   private sealed class BitsEnumerator : IEnumerator
    {
       private readonly IndexSet set;
       private int currentIndex;
@@ -1314,10 +1316,10 @@ public readonly struct IndexSet :
          this.currentIndex = -1;
       }
 
-      public virtual bool MoveNext()
+      public bool MoveNext()
          => (currentIndex = set.IndexOfNextBit(currentIndex)) < set.Length;
 
-      public virtual Object Current
+      public Object Current
       {
          get
          {

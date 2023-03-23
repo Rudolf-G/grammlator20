@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace grammlator;
@@ -7,7 +8,7 @@ namespace grammlator;
 /// <summary>
 /// Low level methods for code generation (C#) to be used by phase 5
 /// </summary>
-internal class P5CodegenCS
+internal sealed class P5CodegenCS
 {
    public P5CodegenCS(StringBuilder resultbuilder)
    {
@@ -37,7 +38,7 @@ internal class P5CodegenCS
    public Int32 IndentationLevel
    {
       get; private set;
-   } = 0;
+   } // = 0;
 
    private Int32 IndentationPosition() => IndentationLevel * IndentationWidth + 2;
 
@@ -140,7 +141,7 @@ internal class P5CodegenCS
             .Append(')');
             if (Offset != 0)
                Append('-')
-               .Append(Offset.ToString());
+               .Append(Offset.ToString(CultureInfo.InvariantCulture));
             AppendLine(") & flags) != 0;");
          }
       }
@@ -259,7 +260,7 @@ internal class P5CodegenCS
 
    public P5CodegenCS AppendFormat(String format, params object?[] args)
    {
-      CodeLine.AppendFormat(format, args);
+      CodeLine.AppendFormat(CultureInfo.InvariantCulture, format, args);
       return this;
    }
 
@@ -429,7 +430,7 @@ internal class P5CodegenCS
          action.ParserActionType == ParserActionEnum.isEndOfGeneratedCode)
          // There is only one ErrorHaltAction, one end of generated code
          return (accept ? "Accept" : "") + LabelPrefix;
-      return (accept ? "Accept" : "") + LabelPrefix + (action.IdNumber + 1).ToString();
+      return (accept ? "Accept" : "") + LabelPrefix + (action.IdNumber + 1).ToString(CultureInfo.InvariantCulture);
    }
 
    /// <summary>

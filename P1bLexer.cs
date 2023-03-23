@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -118,7 +119,7 @@ public static class ClassifierResultExtensions
 /// <summary>
 /// Grammlator lexer (uses input classifier, is used by parser)
 /// </summary>
-internal class P1bLexer : GrammlatorInputApplication<LexerResult>
+internal sealed class P1bLexer : GrammlatorInputApplication<LexerResult>
 {
 
    private readonly P1cInputClassifier inputClassifier;
@@ -200,7 +201,7 @@ internal class P1bLexer : GrammlatorInputApplication<LexerResult>
       inputClassifier.AcceptSymbol(); // make the attribute (the character) available in the stack and to discard the classifiers result
 
       GlobalVariables.OutputMessageAndPosition(MessageTypeOrDestinationEnum.Error,
-          "Lexical analysis error " + LexerStateNumber.ToString()
+          "Lexical analysis error " + LexerStateNumber.ToString(CultureInfo.InvariantCulture)
           + ": input character \'" + Source.Span[_a.PeekRef(0)._Int32]
           + "\' classified as \"" + symbol.MyToString() +
           "\" not allowed in state " + Environment.NewLine + stateDescription + Environment.NewLine

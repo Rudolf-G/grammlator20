@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
@@ -48,7 +49,8 @@ namespace grammlator
       /// <param name="message"></param>
       /// <param name="innerException"></param>
       public ErrorInSourcedataException(Int32 position, String message, Exception innerException)
-          : base(String.Format("{0} in source position {1}.", message, position + 1), innerException) => Position = position;
+          : base(String.Format(CultureInfo.InvariantCulture, "{0} in source position {1}.", message, position + 1),
+                  innerException) => Position = position;
 
       /// <summary>
       /// Exception caused by some unknown inner exception
@@ -232,7 +234,7 @@ namespace grammlator
    /// <summary>
    /// Stores the attributes while parsing a (maybe nested) definition
    /// </summary>
-   internal class ListOfAttributes : List<AttributeStruct>
+   internal sealed class ListOfAttributes : List<AttributeStruct>
    {
       /// <summary>
       /// returns an attribute struct with LeftSide == true and Usage == inAttribute (to be updated later)
@@ -374,7 +376,7 @@ namespace grammlator
    /// <summary>
    /// Stores the name and the parameters of a semantic method specified in the grammar
    /// </summary>
-   internal class VoidMethodClass : MethodClass
+   internal sealed class VoidMethodClass : MethodClass
    {
       internal VoidMethodClass(String methodName, Int32 position) : base(methodName, position)
       {
@@ -384,7 +386,7 @@ namespace grammlator
    /// <summary>
    /// Stores the name and the parameters of a semantic priority specified in the grammar
    /// </summary>
-   internal class IntMethodClass : MethodClass
+   internal sealed class IntMethodClass : MethodClass
    {
       internal IntMethodClass(String methodName, Int32 position) : base(methodName, position)
       {
@@ -448,7 +450,7 @@ namespace grammlator
 
          return Zähler;
       }
-      
+
       internal static void Append(
             this Symbol[] SymbolArray,
             StringBuilder sb,
@@ -625,7 +627,7 @@ namespace grammlator
 
       internal Int32 NumberOfAttributes => AttributetypeStrings.Length;
 
-      internal Boolean isUsed = false;
+      internal Boolean isUsed; // = false;
 
       /// <summary>
       /// Equivalent to "<code>this is <see cref="TerminalSymbol"/></code>"
@@ -706,7 +708,7 @@ namespace grammlator
 
       internal Int64 EnumValue;
       internal Int64 Weight;
-      internal Boolean IsUsedInIsIn = false;
+      internal Boolean IsUsedInIsIn; // = false;
 
       /// <summary>
       /// If the identifier contains special characters (other than letter, digit or underline) the <see cref="FlagName"/>
@@ -743,7 +745,7 @@ namespace grammlator
       internal override void Append(StringBuilder sb)
       {
          sb.AppendFormat
-            ("{0} nr.{1,3}, value:{2,4}: ",
+            (CultureInfo.InvariantCulture, "{0} nr.{1,3}, value:{2,4}: ",
             SymboltypeString, SymbolNumber + 1, EnumValue);
 
          IdentifierAndAttributesToSB(sb);
@@ -763,7 +765,7 @@ namespace grammlator
       {
          FlagNameBuilder.Clear(); // .Append(GlobalSettings.PrefixOfFlagConstants);
          foreach (char c in identifier)
-            if (char.IsLetter(c) || char.IsDigit(c) || c=='_')
+            if (char.IsLetter(c) || char.IsDigit(c) || c == '_')
                FlagNameBuilder.Append(c);
 
          if (FlagNameBuilder.Length == identifier.Length)
