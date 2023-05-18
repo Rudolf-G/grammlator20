@@ -1346,7 +1346,7 @@ public readonly struct IndexSet :
       int i = RequiredLength - 1;
       // Elements with different length which differ only in the number of trailing zeros must return the same hash code:
       // therefore ignore trailing 0s
-      for (; (i >= 0) && (BitSequence![i] != 0ul); i--) ;
+      for (; (i >= 0) && (BitSequence![i] == 0ul); i--) ;
       // hash all other elements of BitSequence
       for (; i >= 0; i--)
             hash.Add(BitSequence![i]);
