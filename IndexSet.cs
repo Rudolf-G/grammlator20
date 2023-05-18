@@ -1336,12 +1336,12 @@ public readonly struct IndexSet :
       public void Reset() => currentIndex = -1;
    }
 
-   public override bool Equals(object? obj) 
+   public override bool Equals(object? obj)
       => (obj is IndexSet s) && CompareTo(s) == 0;
 
    public override int GetHashCode()
    {
-         var hash = new HashCode();
+      var hash = new HashCode();
 
       int i = RequiredLength - 1;
       // Elements with different length which differ only in the number of trailing zeros must return the same hash code:
@@ -1349,7 +1349,7 @@ public readonly struct IndexSet :
       for (; (i >= 0) && (BitSequence![i] == 0ul); i--) ;
       // hash all other elements of BitSequence
       for (; i >= 0; i--)
-            hash.Add(BitSequence![i]);
+         hash.Add(BitSequence![i]);
 
       return hash.ToHashCode();
    }
