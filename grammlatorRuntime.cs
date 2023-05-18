@@ -327,15 +327,14 @@ namespace GrammlatorRuntime {
    /// </summary>
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes")]
    [StructLayout(LayoutKind.Explicit)]
-#pragma warning disable CA1708 // Bezeichner dürfen sich nicht nur durch die Groß-/Kleinschreibung unterscheiden
    public partial struct MultiTypeStruct // may be extended by "partial" declarations
-#pragma warning restore CA1708 // Bezeichner dürfen sich nicht nur durch die Groß-/Kleinschreibung unterscheiden
    {
       /* It is possible, to overlap fields with different object types.
        * Not all errors caused by different overlapping object-types are recognized by the C# compiler or the C# runtime system.
        * Storing an object in one field and accessing the object by an other typed object field 
        * will result in very hard to recognize errors in the behaviour of the program.
        */
+
       [FieldOffset(0)]
       public Object _Object; // object types
 

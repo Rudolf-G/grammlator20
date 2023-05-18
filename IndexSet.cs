@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Security.Policy;
 using System.Text;
 using System.Windows;
 
@@ -44,7 +45,7 @@ public readonly struct IndexSet :
    /// <summary>
    /// The <see cref="IndexSet"/> struct has the capacity to store elements with indexes in the range 0..&lt; <see cref="Length"/>.
    /// </summary>
-  readonly int length; // 4 bytes. Is 0 if and only if BitArray is null. 
+   readonly int length; // 4 bytes. Is 0 if and only if BitArray is null. 
    public int Length { get { return length; } } // 4 bytes. Is 0 if and only if BitArray is null. 
 
    /// <summary>
@@ -335,12 +336,12 @@ public readonly struct IndexSet :
    /// <summary>
    /// Sets the selected bit to <see langword="true"/>.
    /// </summary>
-   /// <param name="index">The index of the selected bit. The index must be >=0 and &lt; <see cref="Length"/>
+   /// <param name="item">The index of the selected bit. The index must be >=0 and &lt; <see cref="Length"/>
    /// </param>
    /// <exception cref="ArgumentException">
-   /// An exception is thrown if <paramref name="index"/> is &lt; 0 or >= <see cref="Length"/>. 
+   /// An exception is thrown if <paramref name="item"/> is &lt; 0 or >= <see cref="Length"/>. 
    /// </exception>
-   public void Add(int index) => Set(index, true); // ICollection<int>
+   public void Add(int item) => Set(item, true); // ICollection<int>
 
 
    /// <summary>
@@ -443,13 +444,13 @@ public readonly struct IndexSet :
    public IndexSet Complement() => Not();
 
    /// <summary>
-   /// Determines whether the set contains the value specified in <paramref name="index"/> /
-   /// if the bit at position <paramref name="index"/> is 1 resp. true. This is a O(1) operation.
+   /// Determines whether the set contains the value specified in <paramref name="item"/> /
+   /// if the bit at position <paramref name="item"/> is 1 resp. true. This is a O(1) operation.
    /// </summary>
-   /// <param name="index"></param>
-   /// <returns><see langword="true"/> if the set contains <paramref name="index"/> / the bit at position index is set;
+   /// <param name="item"></param>
+   /// <returns><see langword="true"/> if the set contains <paramref name="item"/> / the bit at position index is set;
    /// otherwise <see langword="false"/>.</returns>
-   public readonly bool Contains(int index) => Get(index);  // ICollection<int>
+   public readonly bool Contains(int item) => Get(item);  // ICollection<int>
 
    /// <summary>
    /// Copies the bits of <paramref name="other"/> into the bits of the current set as far as possible.
@@ -492,24 +493,24 @@ public readonly struct IndexSet :
 
    /// <summary>
    /// Copies all <see cref="Count"/> elements of the set (the indexes of the bits with value 1)
-   /// to the <paramref name="destination"/> array.
+   /// to the <paramref name="array"/> array.
    /// <para>To copy the contents of another <see cref="IndexSet"/> struct into the current one use <see cref="CopyFrom"/></para>
    /// </summary>
-   /// <param name="destination">The destinatione int Array.</param>
-   /// <param name="startIndex">The 1st element will be copied to <paramref name="destination"/>[<paramref name="startIndex"/>].
+   /// <param name="array">The destinatione int Array.</param>
+   /// <param name="arrayIndex">The 1st element will be copied to <paramref name="array"/>[<paramref name="arrayIndex"/>].
    /// </param>
    /// <exception cref="ArgumentNullException"></exception>
-   /// <exception cref="ArgumentOutOfRangeException">the exception will be thrown if <paramref name="destination"/> &lt;0 or &gt; <see cref="Length"/> </exception>
-   public void CopyTo(int[] destination, int startIndex) // ICollection<int>
+   /// <exception cref="ArgumentOutOfRangeException">the exception will be thrown if <paramref name="array"/> &lt;0 or &gt; <see cref="Length"/> </exception>
+   public void CopyTo(int[] array, int arrayIndex) // ICollection<int>
    {
-      if (startIndex < 0 || destination is null || startIndex > destination.Length - this.Count)
+      if (arrayIndex < 0 || array is null || arrayIndex > array.Length - this.Count)
          throw new ArgumentOutOfRangeException(
-            nameof(startIndex),
-            $"The {nameof(startIndex)} argument of {nameof(CopyTo)} is {startIndex}but must be >= 0 and <= {nameof(destination)}.Length - cardinality of the set, which is {this.Count}"); ;
+            nameof(arrayIndex),
+            $"The {nameof(arrayIndex)} argument of {nameof(CopyTo)} is {arrayIndex}but must be >= 0 and <= {nameof(array)}.Length - cardinality of the set, which is {this.Count}"); ;
 
-      int destinationIndex = startIndex;
+      int destinationIndex = arrayIndex;
       foreach (int element in this)
-         destination[destinationIndex++] = element;
+         array[destinationIndex++] = element;
    }
 
    /// <summary>
@@ -999,15 +1000,15 @@ public readonly struct IndexSet :
    /// Tests, if the set contains an element and removes this element /
    /// tests if a bit ist set and clears this bit.
    /// </summary>
-   /// <param name="index">the element to remove / the bit to clear</param>
-   /// <returns>true if the set did contain the element <paramref name="index"/> / the bit had been set;
-   /// otherwise (or if <paramref name="index"/> is &lt;0 or >= Length) false.
+   /// <param name="item">the element to remove / the bit to clear</param>
+   /// <returns>true if the set did contain the element <paramref name="item"/> / the bit had been set;
+   /// otherwise (or if <paramref name="item"/> is &lt;0 or >= Length) false.
    /// </returns>
-   public bool Remove(int index) // ICollection<int>
+   public bool Remove(int item) // ICollection<int>
    {
-      if (Get(index))
+      if (Get(item))
       {
-         Set(index, false);
+         Set(item, false);
          return true;
       };
       return false;
@@ -1335,4 +1336,51 @@ public readonly struct IndexSet :
       public void Reset() => currentIndex = -1;
    }
 
+   public override bool Equals(object? obj) 
+      => (obj is IndexSet s) && CompareTo(s) == 0;
+
+   public override int GetHashCode()
+   {
+         var hash = new HashCode();
+
+      int i = RequiredLength - 1;
+      // Elements with different length which differ only in the number of trailing zeros must return the same hash code:
+      // therefore ignore trailing 0s
+      for (; (i >= 0) && (BitSequence![i] != 0ul); i--) ;
+      // hash all other elements of BitSequence
+      for (; i >= 0; i--)
+            hash.Add(BitSequence![i]);
+
+      return hash.ToHashCode();
+   }
+
+   public static bool operator ==(IndexSet left, IndexSet right)
+   {
+      return left.Equals(right);
+   }
+
+   public static bool operator !=(IndexSet left, IndexSet right)
+   {
+      return !(left == right);
+   }
+
+   public static bool operator <(IndexSet left, IndexSet right)
+   {
+      return left.CompareTo(right) < 0;
+   }
+
+   public static bool operator <=(IndexSet left, IndexSet right)
+   {
+      return left.CompareTo(right) <= 0;
+   }
+
+   public static bool operator >(IndexSet left, IndexSet right)
+   {
+      return left.CompareTo(right) > 0;
+   }
+
+   public static bool operator >=(IndexSet left, IndexSet right)
+   {
+      return left.CompareTo(right) >= 0;
+   }
 }
