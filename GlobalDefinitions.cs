@@ -204,7 +204,7 @@ namespace grammlator
       /// </summary>
       internal ParameterImplementation Implementation;
 
-      internal void Append(StringBuilder sb)
+      internal readonly void Append(StringBuilder sb)
           => sb.Append(TypeString.ToString())
                .Append(' ')
                .Append(NameString.ToString());

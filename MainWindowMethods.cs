@@ -69,7 +69,7 @@ public partial class MainWindow
       /// </summary>
       /// <param name="flags">The flags to test</param>
       /// <returns>true if if all specified flags are set (or if no flags are specified)</returns>
-      internal Boolean TestFlags(StatusFlags flags)
+      internal readonly Boolean TestFlags(StatusFlags flags)
          => (Status & flags) == flags;
 
    }

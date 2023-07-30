@@ -327,6 +327,7 @@ namespace GrammlatorRuntime {
    /// </summary>
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes")]
    [StructLayout(LayoutKind.Explicit)]
+   [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1708:Bezeichner dürfen sich nicht nur durch die Groß-/Kleinschreibung unterscheiden", Justification = "<Ausstehend>")]
    public partial struct MultiTypeStruct // may be extended by "partial" declarations
    {
       /* It is possible, to overlap fields with different object types.

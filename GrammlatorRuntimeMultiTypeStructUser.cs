@@ -6,9 +6,7 @@ namespace GrammlatorRuntime {
    /// <summary>
    /// Extension to runtime library: adding types used by the SKOP implementation
    /// </summary>
-#pragma warning disable CA1708 // Identifiers should differ by more than case: _byte - _Byte; _sbyte - _SByte
    public partial struct MultiTypeStruct {
-#pragma warning restore CA1708 // Identifiers should differ by more than case
       /* It is possible, to overlap fields with different object types.
        * It is recommended to use an offset of 0 for all object types (reference types)
        * and an offset of 8 for all value types, which must not overlap object types.
@@ -19,7 +17,7 @@ namespace GrammlatorRuntime {
        * access should be designed carefully.
        */
       // Object (pointer) types with FieldOffset 0
-      
+
       [FieldOffset(0)]
       internal Symbol _Symbol;
 
