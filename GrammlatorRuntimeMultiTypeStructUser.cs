@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace GrammlatorRuntime {
    /// <summary>
-   /// Extension to runtime library: adding types used by the SKOP implementation
+   /// Extension to runtime library: adding types used by the Grammlator implementation
    /// </summary>
    public partial struct MultiTypeStruct {
       /* It is possible, to overlap fields with different object types.
