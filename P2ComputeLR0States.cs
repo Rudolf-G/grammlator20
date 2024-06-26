@@ -318,7 +318,7 @@ public sealed class P2ComputeLR0States
    /// <param name="Item"></param>
    /// <param name="ListOfNotAnEnditemLOfActualState"></param>
    /// <param name="doNotProcessNonterminalSymbolAgain"></param>
-   private void DuplicateItemForTrivialDefinitions(
+   private static void DuplicateItemForTrivialDefinitions(
            NonterminalSymbol MarkedSymbol, ItemStruct Item, ItemList ListOfNotAnEnditemLOfActualState,
            Boolean[] doNotProcessNonterminalSymbolAgain)
    {

@@ -565,7 +565,7 @@ internal sealed class P4ReplaceNonterminalsAndOptimize
    /// <param name="Definition"></param>
    /// <param name="NextActionOfReduce"></param>
    /// <returns>Returns the reduce action or an </returns>
-   private static ParserAction MakeReduceAction(
+   private static ReduceAction MakeReduceAction(
        Int32 stateStackAdjustment,
        Definition Definition,
        ParserAction NextActionOfReduce)

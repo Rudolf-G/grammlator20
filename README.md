@@ -20,7 +20,7 @@ What makes grammlator different to well known programs:
 * implements bottom-up-analysis (by an explicitely programmed pushdown automaton or in simple cases a finite state machine)
 * uses C# types for semantic attributes of terminal and nonterminal symbols
 * may be used for small and large grammars e.g. to implement lexers and parsers
-* may use its output as input (replacing the generated C# code)
+* can use its output file as input file (replacing the generated C# code)
 * is not integrated in Visual Studio but it is easy to use it together with Visual Studio
 
 State of the implementation of grammlator:

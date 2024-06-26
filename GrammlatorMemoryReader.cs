@@ -48,11 +48,9 @@ namespace grammlator
       {
          String inputLine;
 
-         if (sb == null)
-            throw new ArgumentNullException(nameof(sb));
+         ArgumentNullException.ThrowIfNull(sb);
 
-         if (markers == null)
-            throw new ArgumentNullException(nameof(markers));
+         ArgumentNullException.ThrowIfNull(markers);
 
          void OutputLine(String s)
          {
@@ -171,8 +169,7 @@ namespace grammlator
          if (copy && sb == null)
             throw new ArgumentNullException(nameof(sb));
 
-         if (markers == null)
-            throw new ArgumentNullException(nameof(markers));
+         ArgumentNullException.ThrowIfNull(markers);
 
          Int32 StartPosition = Position;
          Int32 StartOfLine;

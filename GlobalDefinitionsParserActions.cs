@@ -91,8 +91,7 @@ namespace grammlator
       /// <exception cref="ArgumentNullException"><paramref name="other"/> is <c>null</c>.</exception>
       public virtual Int32 CompareTo(ParserAction? other)
       {
-         if (other == null)
-            throw new ArgumentNullException(nameof(other));
+         ArgumentNullException.ThrowIfNull(other);
 
          Debug.Assert((this.IdNumber - other.IdNumber != 0) || ReferenceEquals(this, other));
 
@@ -320,8 +319,7 @@ namespace grammlator
       /// <returns>if this &lt; other: result is &lt; 0; if equal result is &gt; 0 else is  0</returns>
       public override Int32 CompareTo(ParserAction? other)
       {
-         if (other == null)
-            throw new ArgumentNullException(nameof(other));
+         ArgumentNullException.ThrowIfNull(other);
 
          Int32 result;
 

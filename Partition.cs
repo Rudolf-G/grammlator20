@@ -144,8 +144,7 @@ namespace grammlator
       private static Int32 MaxOfIdNumber(IEnumerable<T> elementlist)
       {
          Int32 count = 0, max = Int32.MinValue, min = Int32.MaxValue;
-         if (elementlist == null)
-            throw new ArgumentNullException(nameof(elementlist));
+         ArgumentNullException.ThrowIfNull(elementlist);
 
          foreach (T Element in elementlist)
          {
