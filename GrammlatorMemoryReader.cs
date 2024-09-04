@@ -100,7 +100,7 @@ namespace grammlator
       /// <summary>
       /// Position of the next character to read, initial value == 0
       /// </summary>
-      public Int32 Position { get; private set; } = 0;
+      public Int32 Position { get; private set; } //  = 0;
 
       /// <summary>
       /// Finds the end of the line

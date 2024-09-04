@@ -418,8 +418,7 @@ namespace GrammlatorRuntime {
       /// <param name="initialCapacity">must be >= 0. Ff not specified, an implemenation specific value will be used</param>
       public StackOfMultiTypeElements(Int32 initialCapacity)
       {
-         if (initialCapacity < 0)
-            throw new ArgumentOutOfRangeException(nameof(initialCapacity));
+         ArgumentOutOfRangeException.ThrowIfNegative(initialCapacity);
          a = new MultiTypeStruct[initialCapacity];
          TopIndex = -1; // empty stack, no top element
       }

@@ -1872,7 +1872,7 @@ namespace grammlator
             TerminalSymbol t = GlobalVariables.GetTerminalSymbolByIndex(i);
 
             // the int constant "_(identifier of terminal symbol)" has to be declared (if not terminals are flags)
-            t.IsUsedInIsIn = true;
+            t.IsUsedInIsin = true;
 
             if (Is1stTrueFlag)
             {

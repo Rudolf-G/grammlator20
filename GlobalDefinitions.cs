@@ -707,7 +707,7 @@ namespace grammlator
 
       internal Int64 EnumValue;
       internal Int64 Weight;
-      internal Boolean IsUsedInIsIn; // = false;
+      internal Boolean IsUsedInIsin; // = false;
 
       /// <summary>
       /// If the identifier contains special characters (other than letter, digit or underline) the <see cref="FlagName"/>

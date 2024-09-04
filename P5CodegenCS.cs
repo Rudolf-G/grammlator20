@@ -86,7 +86,7 @@ internal sealed class P5CodegenCS(StringBuilder resultbuilder)
          Boolean IsInFunctionHasBeenUsed = false;
          foreach (TerminalSymbol t in GlobalVariables.TerminalSymbols)
          {
-            if (t.IsUsedInIsIn)
+            if (t.IsUsedInIsin)
             {
                IsInFunctionHasBeenUsed = true;
 
