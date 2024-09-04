@@ -1170,7 +1170,7 @@ namespace grammlator
 
       private static void GenerateConditionAsComment(P5CodegenCS codegen, IndexSet condition, Boolean checkingForbiddenTerminals)
       {
-         if (GlobalSettings.NameOfAssertMethod.Value == "")
+         if (GlobalSettings.NameOfAssertMethod.Value == "" | condition.IsEmpty)
             return;
          codegen
             .IndentExactly()
