@@ -308,7 +308,7 @@ namespace grammlator
          DefinedSymbol = definedSymbol;
          Elements = elements;
          AttributestackAdjustment = attributestackAdjustment;
-         AttributeIdentifiers = Array.Empty<UnifiedString>();
+         AttributeIdentifiers = [];
       }
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isDefinition;
 
@@ -782,17 +782,12 @@ namespace grammlator
       }
    }
 
-   internal abstract class ParserActionWithNextAction : ParserAction
+   internal abstract class ParserActionWithNextAction(ParserAction nextAction) : ParserAction
    {
       public ParserAction NextAction
       {
          get; set;
-      }
-
-      public ParserActionWithNextAction(ParserAction nextAction)
-      {
-         NextAction = nextAction;
-      }
+      } = nextAction;
 
       internal override void CountUsage(Boolean Accept)
       {
@@ -931,7 +926,7 @@ namespace grammlator
       }
    }
 
-   internal abstract class ConditionalAction : ParserActionWithNextAction
+   internal abstract class ConditionalAction(IndexSet terminalSymbols, ParserAction nextAction) : ParserActionWithNextAction(nextAction)
    {
       /// <summary>
       /// <see cref="TerminalSymbols"/> are accepted by <see cref="TerminalTransition"/>s or checked
@@ -940,12 +935,7 @@ namespace grammlator
       public IndexSet TerminalSymbols
       {
          get; set;
-      }
-
-      public ConditionalAction(IndexSet terminalSymbols, ParserAction nextAction) : base(nextAction)
-      {
-         TerminalSymbols = terminalSymbols;
-      }
+      } = terminalSymbols;
 
       /// <summary>
       /// Returns Int32.MaxValue if action has dynamic priority, assigned priority of lookadead action, 0 else
@@ -1143,16 +1133,11 @@ namespace grammlator
    // <summary>
    /// This class is used in phase 3
    /// </summary>
-   internal abstract class LookaheadOrNonterminalTransition : ConditionalAction
+   internal abstract class LookaheadOrNonterminalTransition
+       (IndexSet terminalSymbols, ParserAction nextAction) : ConditionalAction(terminalSymbols, nextAction)
    {
-
-      public LookaheadOrNonterminalTransition(IndexSet terminalSymbols, ParserAction nextAction)
-         : base(terminalSymbols, nextAction)
-      {
-      }
-
       private static readonly HashSet<NonterminalTransition>
-         emptyHashSet = new(0);
+         emptyHashSet = [];
 
       internal HashSet<NonterminalTransition> Includes
       {

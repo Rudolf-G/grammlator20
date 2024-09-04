@@ -32,10 +32,10 @@ namespace grammlator
          Startsymbol = new NonterminalSymbol(new UnifiedString("*Startsymbol"),
             position: 0,
             symbolNumber: 0,
-            attributetypeStringList: Array.Empty<UnifiedString>(),
-            attributenameStringList: Array.Empty<UnifiedString>()
+            attributetypeStringList: [],
+            attributenameStringList: []
             );
-         TerminalSymbols = Array.Empty<TerminalSymbol>();
+         TerminalSymbols = [];
          OutputMessage = OutputToNirwana;
          OutputMessageAndPosition = OutputToNirwana;
          Startaction = new DeletedParserAction();
@@ -102,9 +102,9 @@ namespace grammlator
          Startsymbol = new NonterminalSymbol(new UnifiedString("*Startsymbol"),
             position: 0,
             symbolNumber: 0,
-            attributetypeStringList: Array.Empty<UnifiedString>(),
-            attributenameStringList: Array.Empty<UnifiedString>()
-            // trivalDefinitionsArray: Array.Empty<Symbol>(), // the startsymbol will not have any trival definitions: default
+            attributetypeStringList: [],
+            attributenameStringList: []
+            // trivalDefinitionsArray: [], // the startsymbol will not have any trival definitions: default
             // nontrivalDefinitionsList: ... // will be set after the startsymbol: default (empty list)
             );
 
@@ -113,7 +113,7 @@ namespace grammlator
          ListOfAllHaltActions.Capacity = InitialCapacityOfListOfAllHaltActions;
          ListOfAllHaltActions.Add(new HaltAction(IdNumber: 0, AttributestackAdjustement: 0));
 
-         TerminalSymbols = Array.Empty<TerminalSymbol>();
+         TerminalSymbols = [];
          AllTerminalSymbols = default;
 
          ListOfAllStates.Clear();

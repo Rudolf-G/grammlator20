@@ -25,7 +25,7 @@ public partial class MainWindow
    private Int32 warnings, errors, firstErrorIndex;
    private Boolean aborted;
 
-   private readonly List<Int32> ErrorPositions = new();
+   private readonly List<Int32> ErrorPositions = [];
 
    readonly Stopwatch Watch = new();
 
@@ -461,8 +461,8 @@ public partial class MainWindow
       var s1Remain = s1;
       var s2Remain = s2;
 
-      s1Line = ReadOnlySpan<Char>.Empty;
-      s2Line = ReadOnlySpan<Char>.Empty;
+      s1Line = [];
+      s2Line = [];
 
       s1Index = 0;
       s2Index = 0;
@@ -491,7 +491,7 @@ public partial class MainWindow
          else
          {
             s1Line = s1Remain;
-            s1Remain = ReadOnlySpan<Char>.Empty;
+            s1Remain = [];
          }
 
          if (eol2Index >= 0)
@@ -502,7 +502,7 @@ public partial class MainWindow
          else
          {
             s2Line = s2Remain;
-            s2Remain = ReadOnlySpan<Char>.Empty;
+            s2Remain = [];
          }
 
 

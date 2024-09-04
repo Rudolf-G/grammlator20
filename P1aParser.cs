@@ -773,7 +773,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
          voidMethod = null;
       }
 
-      method.MethodParameters = LastFormalParameterList.ToArray();
+      method.MethodParameters = [.. LastFormalParameterList];
       LastFormalParameterList.Clear();
       Lexer.SkipToEndOfCSLines();
    }
@@ -793,7 +793,7 @@ internal sealed partial class P1aParser : GrammlatorApplication
          method = intMethod;
       }
 
-      method.MethodParameters = LastFormalParameterList.ToArray();
+      method.MethodParameters = [.. LastFormalParameterList];
       LastFormalParameterList.Clear();
       Lexer.SkipToEndOfCSLines();
    }

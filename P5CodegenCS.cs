@@ -8,19 +8,10 @@ namespace grammlator;
 /// <summary>
 /// Low level methods for code generation (C#) to be used by phase 5
 /// </summary>
-internal sealed class P5CodegenCS
+internal sealed class P5CodegenCS(StringBuilder resultbuilder)
 {
-   public P5CodegenCS(StringBuilder resultbuilder)
-   {
-      // Code is constructed in Codebuilder
-      // then depending on generated code definitions are appended to ResultBuilder
-      // then CodeBuilder is appended to Resultbuilder
-      CodeBuilder = new StringBuilder(20000);
-      ResultBuilder = resultbuilder;
-   }
-
-   private readonly StringBuilder ResultBuilder;
-   private StringBuilder CodeBuilder;
+   private readonly StringBuilder ResultBuilder = resultbuilder;
+   private StringBuilder CodeBuilder = new(20000);
 
    /// <summary>
    /// a StringBuilder to store parts of the generated code until it is output 
@@ -193,7 +184,7 @@ internal sealed class P5CodegenCS
 
    public Int32 LineLength => CodeLine.Length;
 
-   private readonly String[] lineSeparators = new String[] { Environment.NewLine };
+   private readonly String[] lineSeparators = [Environment.NewLine];
 
    /// <summary>
    /// split <paramref name="sToAppend"/> into lines and append separately

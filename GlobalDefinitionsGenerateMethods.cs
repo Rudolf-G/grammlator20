@@ -29,19 +29,11 @@ namespace grammlator
    internal sealed partial class BranchAction : ParserAction
    {
 
-      public struct ActionAndCounter
+      public struct ActionAndCounter(Int32 counter, ParserAction action, Int32 minMaxCondition)
       {
-         public Int32 Counter;
-         public Int32 MaxCondition, MinCondition;
-         public ParserAction Action;
-
-         public ActionAndCounter(Int32 counter, ParserAction action, Int32 minMaxCondition)
-         {
-            this.Counter = counter;
-            this.Action = action;
-            this.MinCondition = minMaxCondition;
-            this.MaxCondition = minMaxCondition;
-         }
+         public Int32 Counter = counter;
+         public Int32 MaxCondition = minMaxCondition, MinCondition = minMaxCondition;
+         public ParserAction Action = action;
       }
 
       /// <summary>

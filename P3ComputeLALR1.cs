@@ -256,7 +256,7 @@ internal sealed class P3ComputeLALR1
          {
             Action.Codenumber = 0;
             if (Action is LookaheadOrNonterminalTransition ActionWithInclude)
-               ActionWithInclude.Includes = new HashSet<NonterminalTransition>();
+               ActionWithInclude.Includes = [];
          }
       }
    }

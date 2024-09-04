@@ -213,8 +213,8 @@ internal sealed class P1bLexer : GrammlatorInputApplication<LexerResult>
       ;
    }
 
-   private readonly LexerResult[] CharToLexerResult = new LexerResult[]
-   {
+   private readonly LexerResult[] CharToLexerResult =
+   [
             // sorted by character value
         LexerResult.Error,  // 0; U0000; Cc; NULL
         LexerResult.Error,  // 1; U0001; Cc; START OF HEADING
@@ -345,7 +345,7 @@ internal sealed class P1bLexer : GrammlatorInputApplication<LexerResult>
         LexerResult.Error,  // 126; U007E; Sm; ~
         LexerResult.Error // 127; U007F; Cc; DELETE
 
-   };
+   ];
 
    #region grammar of grammlator lexer
    //|

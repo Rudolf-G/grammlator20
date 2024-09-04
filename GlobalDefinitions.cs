@@ -262,7 +262,7 @@ namespace grammlator
       internal UnifiedString[] GetAttributeIdentifierStringIndexes(Int32 count)
       {
          if (count == 0)
-            return Array.Empty<UnifiedString>();
+            return [];
 
          var AttributeIdentifierStringIndexes = new UnifiedString[count];
          for (Int32 i = 0; i < count; i++)
@@ -279,8 +279,7 @@ namespace grammlator
       internal UnifiedString[] GetAttributeTypeStringIndexes(Int32 count)
       {
          if (count == 0)
-            return Array.Empty<UnifiedString>();
-
+            return [];
          var AttributeTypesString = new UnifiedString[count];
          for (Int32 i = 0; i < count; i++)
             AttributeTypesString[i] = this[Count - count + i].TypeString;
@@ -368,7 +367,7 @@ namespace grammlator
       internal MethodClass(String methodName, Int32 position)
       {
          MethodName = methodName;
-         MethodParameters = Array.Empty<MethodParameterStruct>();
+         MethodParameters = [];
          Position = position;
       }
    }
@@ -524,8 +523,8 @@ namespace grammlator
          this.Identifier = identifier;
          this.FirstPosition = position;
          this.SymbolNumber = symbolNumber;
-         this.AttributetypeStrings = Array.Empty<UnifiedString>();
-         this.AttributenameStrings = Array.Empty<UnifiedString>();
+         this.AttributetypeStrings = [];
+         this.AttributenameStrings = [];
       }
 
       internal Symbol(
@@ -538,7 +537,7 @@ namespace grammlator
          this.FirstPosition = position;
          this.SymbolNumber = symbolNumber;
          this.AttributetypeStrings = attributetypeStringList;
-         this.AttributenameStrings = Array.Empty<UnifiedString>();
+         this.AttributenameStrings = [];
       }
 
       internal Symbol(
@@ -790,7 +789,7 @@ namespace grammlator
       {
          {
             NontrivialDefinitionsList = EmptyDefinitionsList;
-            TrivalDefinitionsArray = Array.Empty<Symbol>();
+            TrivalDefinitionsArray = [];
          }
       }
 
@@ -804,7 +803,7 @@ namespace grammlator
          : base(identifier, position, symbolNumber, attributetypeStringList, attributenameStringList)
       {
          NontrivialDefinitionsList = EmptyDefinitionsList;
-         TrivalDefinitionsArray = Array.Empty<Symbol>();
+         TrivalDefinitionsArray = [];
       }
 
       internal NonterminalSymbol(

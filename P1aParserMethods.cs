@@ -32,10 +32,8 @@ internal partial class P1aParser
 
    private static readonly ListOfDefinitions EmptyListOfNontrivialDefinitions = new(0);
 
-   public sealed class ListOfSymbols : List<Symbol>
+   public sealed class ListOfSymbols(Int32 capacity) : List<Symbol>(capacity)
    {
-      public ListOfSymbols(Int32 capacity) : base(capacity) { }
-
       public void RemoveFromEnd(Int32 n) => this.RemoveRange(this.Count - n, n);
    }
 
@@ -43,12 +41,12 @@ internal partial class P1aParser
    /// Stores the StringIndexes of all elements of the last C# enum.
    /// Is the empty list, if an enum with no elements has been recognized. 
    /// </summary>
-   private readonly List<UnifiedString> EnumNames = new();
+   private readonly List<UnifiedString> EnumNames = [];
 
    /// <summary>
    /// <see cref="EnumValues"/>[i] is the value of <see cref="EnumNames"/>[i]
    /// </summary>
-   private readonly List<Int64> EnumValues = new();
+   private readonly List<Int64> EnumValues = [];
 
    /// <summary>
    /// The StringIndex of the name of the last enum the parser found in the source.
@@ -515,13 +513,13 @@ internal partial class P1aParser
       var newSymbol = new NonterminalSymbol(newNname,
          Lexer.LexerTextPos,
          symbolNumber: SymbolDictionary.Count - GlobalVariables.NumberOfTerminalSymbols,
-         attributetypeStringList: Array.Empty<UnifiedString>(), //ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
-         attributenameStringList: Array.Empty<UnifiedString>()  // ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0)
+         attributetypeStringList: [], //ListOfAttributesOfGrammarRule.GetAttributeTypeStringIndexes(0), // has no attributes
+         attributenameStringList: []  // ListOfAttributesOfGrammarRule.GetAttributeIdentifierStringIndexes(0)
          );
 
       SymbolDictionary[newNname] = newSymbol;
       ListOfDefinitions nontrivialDefinitions;
-      Symbol[] trivialDefinitions = Array.Empty<Symbol>(); // preset: no trival definition
+      Symbol[] trivialDefinitions = []; // preset: no trival definition
 
       switch (type)
       {
@@ -536,12 +534,11 @@ internal partial class P1aParser
                                 new Definition ( // 1st definition: empty definition
                                     idNumber: 0,
                                     definedSymbol: newSymbol,
-                                    elements: Array.Empty<Symbol>(),
+                                    elements: [],
                                     attributestackAdjustment: 0
                                     )
                        };
-                  trivialDefinitions
-                      = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol;
+                  trivialDefinitions = [existingSymbol]; // 1 trivial definition: existingSymbol;
                }
                else
                {
@@ -552,14 +549,14 @@ internal partial class P1aParser
                                 new Definition ( // 1st definition: empty definition
                                     idNumber: 0,
                                     definedSymbol: newSymbol,
-                                    elements: Array.Empty<Symbol>(),
+                                    elements: [],
                                     attributestackAdjustment: 0
                                 ),
 
                                 new Definition ( // 2nd definition: existingSymbol(xxx)
                                     idNumber : 1,
                                     definedSymbol : newSymbol,
-                                    elements : new Symbol[1] { existingSymbol },
+                                    elements : [existingSymbol],
                                     attributestackAdjustment : -existingSymbol.NumberOfAttributes
                                 )
                          // no trivial definition (as has been preset)
@@ -577,14 +574,14 @@ internal partial class P1aParser
                             new Definition ( // 1st definition: empty definition
                             idNumber: 0,
                             definedSymbol: newSymbol,
-                            elements: Array.Empty<Symbol>(),
+                            elements: [],
                             attributestackAdjustment:0
                             ),
 
                             new Definition ( // 2nd definition: newSymbol, existingSymbol(xxx)
                                 idNumber: 1,
                                 definedSymbol: newSymbol,
-                                elements: new Symbol[2] { newSymbol, existingSymbol },
+                                elements: [newSymbol, existingSymbol],
                                 attributestackAdjustment: -existingSymbol.NumberOfAttributes
                             )
                    };
@@ -598,7 +595,7 @@ internal partial class P1aParser
                {
                   // make "newSymbol = existingSymbol() || newSymbol, existingSymbol() ||;"
                   trivialDefinitions
-                      = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol() 
+                      = [existingSymbol]; // 1 trivial definition: existingSymbol() 
 
                   nontrivialDefinitions
                       = new ListOfDefinitions(1) // 1 definition
@@ -606,7 +603,7 @@ internal partial class P1aParser
                                 new Definition ( // 1st definition: newSymbol, existingSymbol()
                                     idNumber: 0,
                                     definedSymbol: newSymbol,
-                                    elements: new Symbol[2] { newSymbol, existingSymbol },
+                                    elements: [newSymbol, existingSymbol],
                                     attributestackAdjustment: 0
                                 )
                       };
@@ -620,14 +617,14 @@ internal partial class P1aParser
                                 new Definition (
                                     idNumber : 0,  // 1st definition: existingSymbol(xxx)
                                     definedSymbol : newSymbol,
-                                    elements : new Symbol[1]{ existingSymbol },
+                                    elements : [existingSymbol],
                                     attributestackAdjustment : -existingSymbol.NumberOfAttributes
                                 ),
 
                                 new Definition (
                                     idNumber : 1,  // 2nd definition: newSymbol, existingSymbol(xxx);
                                     definedSymbol : newSymbol,
-                                    elements : new Symbol[2] { newSymbol, existingSymbol },
+                                    elements : [newSymbol, existingSymbol],
                                     attributestackAdjustment : -existingSymbol.NumberOfAttributes
                                 )
                       };
@@ -646,13 +643,13 @@ internal partial class P1aParser
                             new Definition ( // 1st definition: empty
                                 idNumber: 0,
                                 definedSymbol: newSymbol,
-                                elements: Array.Empty<Symbol>(),
+                                elements: [],
                                 attributestackAdjustment: 0
                             ),
                             new Definition ( // 2nd definition: existingSymbol, newSymbol;
                                 idNumber: 1,
                                 definedSymbol: newSymbol,
-                                elements: new Symbol[2] { existingSymbol, newSymbol },
+                                elements: [existingSymbol, newSymbol],
                                 attributestackAdjustment: -existingSymbol.NumberOfAttributes
                             )
                    };
@@ -666,7 +663,7 @@ internal partial class P1aParser
                if (existingSymbol.NumberOfAttributes == 0)
                {
                   trivialDefinitions
-                      = new Symbol[1] { existingSymbol }; // 1 trivial definition: existingSymbol()
+                      = [existingSymbol]; // 1 trivial definition: existingSymbol()
 
                   nontrivialDefinitions
                       = new ListOfDefinitions(1) // 1 definition
@@ -674,7 +671,7 @@ internal partial class P1aParser
                              new Definition ( // 1st definition: existingSymbol(), newSymbol
                                 idNumber: 0,
                                 definedSymbol: newSymbol,
-                                elements: new Symbol[2] { existingSymbol, newSymbol },
+                                elements: [existingSymbol, newSymbol],
                                 attributestackAdjustment: 0
                                 )
                       };
@@ -691,14 +688,14 @@ internal partial class P1aParser
                                 new Definition (
                                     idNumber: 0,  // 1st definition: existingSymbol(xxx)
                                     definedSymbol: newSymbol,
-                                    elements: new Symbol[1]{ existingSymbol },
+                                    elements: [existingSymbol],
                                     attributestackAdjustment: -existingSymbol.NumberOfAttributes
                                 ),
 
                                 new Definition (
                                     idNumber: 1,  // 2nd definition: existingSymbol(xxx), newSymbol;
                                     definedSymbol: newSymbol,
-                                    elements: new Symbol[2] { existingSymbol, newSymbol },
+                                    elements: [existingSymbol, newSymbol],
                                     attributestackAdjustment: -existingSymbol.NumberOfAttributes
                                 )
                       };
@@ -722,7 +719,7 @@ internal partial class P1aParser
    /// When the end of a definition is recognized the attributes of the definition are evaluated
    /// and removed, the attributes of the left side remain.
    /// </summary>
-   private readonly ListOfAttributes ListOfAttributesOfGrammarRule = new();
+   private readonly ListOfAttributes ListOfAttributesOfGrammarRule = [];
 
    /// <summary>
    /// Check attribute and add attribute to TemporaryListOfAttributes;
@@ -855,7 +852,7 @@ internal partial class P1aParser
       ListOfAttributesOfGrammarRule.Add(newAttribute);
    }
 
-   private readonly UnifiedString[] emptyListOfStringIndexes = Array.Empty<UnifiedString>();
+   private readonly UnifiedString[] emptyListOfStringIndexes = [];
 
    /// <summary>
    /// returns true if the types of the attributes of symbol are equal to the types
@@ -883,19 +880,19 @@ internal partial class P1aParser
 
    // lokale Variablenvereinbarungen
 
-   public List<MethodParameterStruct> LastFormalParameterList = new();
+   public List<MethodParameterStruct> LastFormalParameterList = [];
 
    // Methoden:       
    /// <summary>
    /// List of string containing all legal method properties of C#, e.g. "new", "public", ... 
    /// </summary>
-   private static readonly List<String> CSharpMethodProperties = new()
-   {
-                "", "new",
-                "public", "protected", "internal", "private",
-                "static", "sealed", "virtual"
-            // not allowed "abstract", "extern", "async"
-            };
+   private static readonly List<String> CSharpMethodProperties =
+     [
+         "", "new",
+         "public", "protected", "internal", "private",
+         "static", "sealed", "virtual"
+         // not allowed "abstract", "extern", "async"
+      ];
 
    /// <summary>
    /// Checks the parameters and assigns a new method (only with its name) to method
@@ -1127,7 +1124,7 @@ internal partial class P1aParser
          Symbol[] ElementArray;
          if (NumberOfElements <= 0)
          {
-            ElementArray = Array.Empty<Symbol>();
+            ElementArray = [];
          }
          else
          {
@@ -1202,7 +1199,7 @@ internal partial class P1aParser
    /// <summary>
    ///  an empty list of method parameters
    /// </summary>
-   private readonly MethodParameterStruct[] NoMethodParameters = Array.Empty<MethodParameterStruct>();
+   private readonly MethodParameterStruct[] NoMethodParameters = [];
 
    private static String AttributeParameterMatchError(AttributeStruct Attribute, MethodParameterStruct Parameter)
    {

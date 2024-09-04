@@ -16,7 +16,7 @@ namespace grammlator
    {
       internal override ParserActionEnum ParserActionType => ParserActionEnum.isParserState;
 
-      internal ItemList CoreItems = new();
+      internal ItemList CoreItems = [];
 
       private static readonly ListOfParserActions emptyListOfParserActions = new(0);
 
@@ -37,7 +37,7 @@ namespace grammlator
       /// </summary>
       internal ListOfParserActions Actions = emptyListOfParserActions;
 
-      private static readonly List<ParserState> emptyPredecessorList = new(0);
+      private static readonly List<ParserState> emptyPredecessorList = [];
 
       /// <summary>
       /// Is computed in phase 2 and used in phase 3 and 4

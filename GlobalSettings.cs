@@ -38,57 +38,39 @@ namespace grammlator
       public virtual void Reset() { }
    }
 
-   public class Int64Setting : Setting
+   public class Int64Setting(String name, Int64 initialValue, List<Setting> settingList, String description) 
+      : Setting(name, SettingType.Int64Type, initialValue.ToString(CultureInfo.InvariantCulture), settingList, description)
    {
 
-      public Int64 InitialValue { get; }
-      public Int64 Value { get; set; }
+      public Int64 InitialValue { get; } = initialValue;
+      public Int64 Value { get; set; } = initialValue;
       public override String ValueAsString { get { return Value.ToString(CultureInfo.InvariantCulture); } }
-
-      public Int64Setting(String name, Int64 initialValue, List<Setting> settingList, String description)
-         : base(name, SettingType.Int64Type, initialValue.ToString(CultureInfo.InvariantCulture), settingList, description)
-      {
-         InitialValue = initialValue;
-         Value = initialValue;
-      }
 
       public override String ToString() => Value.ToString(CultureInfo.InvariantCulture);
 
       public override void Reset() => Value = InitialValue;
    }
 
-   public class BooleanSetting : Setting
+   public class BooleanSetting(String name, Boolean initialValue, List<Setting> settingList, String description) 
+      : Setting(name, SettingType.BooleanType, initialValue ? "true" : "false", settingList, description)
    {
 
-      public Boolean InitialValue { get; }
-      public Boolean Value { get; set; }
+      public Boolean InitialValue { get; } = initialValue;
+      public Boolean Value { get; set; } = initialValue;
       public override String ValueAsString { get { return Value ? "true" : "false"; } }
-
-      public BooleanSetting(String name, Boolean initialValue, List<Setting> settingList, String description)
-         : base(name, SettingType.BooleanType, initialValue ? "true" : "false", settingList, description)
-      {
-         InitialValue = initialValue;
-         Value = initialValue;
-      }
 
       public override String ToString() => Value ? "true" : "false";
 
       public override void Reset() => Value = InitialValue;
    }
 
-   public class StringSetting : Setting
+   public class StringSetting(String name, String initialValue, List<Setting> settingList, String description) 
+      : Setting(name, SettingType.StringType, initialValue.ToString(), settingList, description)
    {
 
-      public String InitialValue { get; }
-      public String Value { get; set; }
+      public String InitialValue { get; } = initialValue;
+      public String Value { get; set; } = initialValue;
       public override String ValueAsString { get { return Value; } }
-
-      public StringSetting(String name, String initialValue, List<Setting> settingList, String description)
-         : base(name, SettingType.StringType, initialValue.ToString(), settingList, description)
-      {
-         InitialValue = initialValue;
-         Value = initialValue;
-      }
 
       public override String ToString() => Value;
 

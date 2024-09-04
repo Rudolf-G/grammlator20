@@ -391,13 +391,9 @@ public partial class MainWindow : Window
       ResultTextBox.Focus();
    }
 
-   public class FocusTextBoxEventArgs : EventArgs
+   public class FocusTextBoxEventArgs(TextBox? box) : EventArgs
    {
-      public FocusTextBoxEventArgs(TextBox? box)
-      {
-         Box = box;
-      }
-      internal TextBox? Box { get; set; }
+      internal TextBox? Box { get; set; } = box;
    }
 
    public event EventHandler<FocusTextBoxEventArgs> FocusTextBox;

@@ -7,14 +7,12 @@ namespace grammlator
    /// <summary>
    /// <see cref="GrammlatorMemoryReader"/> is a StringReader which counts the read lines and makes the actual <see cref="LineNumber"/> available
    /// </summary>
-   public class GrammlatorMemoryReader : System.IO.StringReader
+   /// <remarks>
+   /// Contructor of the <see cref="System.IO.StringReader"/> <see cref="GrammlatorMemoryReader"/>, assigning a string to read from
+   /// </remarks>
+   /// <param name="input">The input of the reader</param>
+   public class GrammlatorMemoryReader(String input) : System.IO.StringReader(input)
    {
-
-      /// <summary>
-      /// Contructor of the <see cref="System.IO.StringReader"/> <see cref="GrammlatorMemoryReader"/>, assigning a string to read from
-      /// </summary>
-      /// <param name="input">The input of the reader</param>
-      public GrammlatorMemoryReader(String input) : base(input) => LineNumber = -1;
 
       /// <summary>
       /// the number of the actual line (0 if no line has been read)
@@ -22,7 +20,7 @@ namespace grammlator
       public Int32 LineNumber
       {
          get; private set;
-      }
+      } = -1;
 
       /// <summary>
       /// Increment <see cref="LineNumber"/> and <see cref="ReadLine"/>
@@ -80,38 +78,29 @@ namespace grammlator
       }
    }
 
-   public class SpanReaderWithCharacterAndLineCounter
+   /// <summary>
+   /// Contructor of the <see cref="System.IO.StringReader"/> <see cref="GrammlatorMemoryReader"/>,
+   /// assigning a string to read from
+   /// </summary>
+   /// <param name="source">The input of the reader</param>
+   public class SpanReaderWithCharacterAndLineCounter(ReadOnlyMemory<Char> source)
    {
-
-      /// <summary>
-      /// Contructor of the <see cref="System.IO.StringReader"/> <see cref="GrammlatorMemoryReader"/>,
-      /// assigning a string to read from
-      /// </summary>
-      /// <param name="source">The input of the reader</param>
-      public SpanReaderWithCharacterAndLineCounter(ReadOnlyMemory<Char> source)
-      {
-         Source = source;
-         Position = 0;
-         LineNumber = -1;
-         EoLLength = -1;
-      }
-
-      public ReadOnlyMemory<Char> Source { get; private set; }
+      public ReadOnlyMemory<Char> Source { get; private set; } = source;
 
       /// <summary>
       /// Number of the last read line, initial value == -1
       /// </summary>
-      public Int32 LineNumber { get; private set; }
+      public Int32 LineNumber { get; private set; } = -1;
 
       /// <summary>
       /// Number of the EOL character(s) at the end of the last read line: 0, 1 or 2
       /// </summary>
-      public Int32 EoLLength { get; private set; }
+      public Int32 EoLLength { get; private set; } = -1;
 
       /// <summary>
       /// Position of the next character to read, initial value == 0
       /// </summary>
-      public Int32 Position { get; private set; }
+      public Int32 Position { get; private set; } = 0;
 
       /// <summary>
       /// Finds the end of the line
