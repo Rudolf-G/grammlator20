@@ -413,6 +413,9 @@ namespace grammlator
              "no terminal symbols")
             .AppendLine(" ); ");
 
+         if (numberOfActionsWithHighestPriority>1)
+            sb.AppendLine().AppendLine("->>> more than one action with highest priority !!!");
+
          IndexSet thisActionsConflictSymbols = new(GlobalVariables.NumberOfTerminalSymbols);
 
          // action might be removed from State.Actions inside the following loop.
