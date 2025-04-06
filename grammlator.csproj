@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <Authors>Dr. Rudolf Gardill</Authors>
     <PackageIcon>Grammlator.ico</PackageIcon>
@@ -19,6 +19,7 @@
     <Win32Resource />
     <Title>Grammlator</Title>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
